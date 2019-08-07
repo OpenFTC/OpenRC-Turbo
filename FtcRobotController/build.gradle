@@ -1,0 +1,38 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 32
+        versionName "5.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    /*
+     * Other Modules
+     */
+    implementation project(':FtcCommon')
+    implementation project(':RobotCore')
+    implementation project(':Inspection')
+    implementation project(':Blocks')
+    implementation project(':Hardware')
+    implementation project(':OnBotJava')
+    implementation project(':RobotServer')
+
+    /*
+     * External
+     */
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+}
