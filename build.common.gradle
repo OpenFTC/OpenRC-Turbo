@@ -91,6 +91,37 @@ android {
         }
     }
 
+    flavorDimensions 'type'
+    productFlavors {
+        stock { dimension 'type' }
+        turbo {
+            dimension 'type'
+        }
+        extremeTurbo {
+            dimension 'type'
+        }
+    }
+
+    sourceSets {
+        turbo {
+            res.srcDirs = ['src/openftc/res', 'src/turbo/res']
+            java.srcDirs = ['src/openftc/java', 'src/turbo/java']
+        }
+
+        extremeTurbo {
+            res.srcDirs = ['src/openftc/res', 'src/extremeTurbo/res']
+            java.srcDirs = ['src/openftc/java', 'src/extremeTurbo/java']
+        }
+    }
+
+    // Selecting a release variant will prompt teams to set up a signing key. Now that there's
+    // a reason to select other variants, better to filter out the ones that will confuse teams.
+    variantFilter { variant ->
+        if (variant.buildType.name == "release") {
+            setIgnore(true)
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7

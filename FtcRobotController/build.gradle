@@ -17,19 +17,61 @@ android {
         }
     }
 
+    flavorDimensions 'type'
+    productFlavors {
+        stock { dimension 'type' }
+        turbo {
+            dimension 'type'
+
+
+        }
+        extremeTurbo {
+            dimension 'type'
+
+
+        }
+    }
+
+    sourceSets {
+        turbo {
+            res.srcDirs = ['src/openftc/res', 'src/turbo/res']
+            java.srcDirs = ['src/openftc/java', 'src/turbo/java']
+        }
+
+        extremeTurbo {
+            res.srcDirs = ['src/openftc/res', 'src/extremeTurbo/res']
+            java.srcDirs = ['src/openftc/java', 'src/extremeTurbo/java']
+        }
+    }
 }
 
 dependencies {
     /*
      * Other Modules
      */
-    implementation project(':FtcCommon')
-    implementation project(':RobotCore')
-    implementation project(':Inspection')
-    implementation project(':Blocks')
-    implementation project(':Hardware')
-    implementation project(':OnBotJava')
-    implementation project(':RobotServer')
+    turboImplementation project(':FtcCommon')
+    turboImplementation project(':RobotCore')
+    turboImplementation project(':Inspection')
+    turboImplementation project(':Blocks')
+    turboImplementation project(':Hardware')
+    turboImplementation project(':OnBotJava')
+    turboImplementation project(':RobotServer')
+
+    extremeTurboImplementation project(':FtcCommon')
+    extremeTurboImplementation project(':RobotCore')
+    extremeTurboImplementation project(':Inspection')
+    extremeTurboImplementation project(':Blocks')
+    extremeTurboImplementation project(':Hardware')
+    extremeTurboImplementation project(':OnBotJava')
+    extremeTurboImplementation project(':RobotServer')
+
+    stockImplementation project(':FtcCommon')
+    stockImplementation project(':RobotCore')
+    stockImplementation project(':Inspection')
+    stockImplementation project(':Blocks')
+    stockImplementation project(':Hardware')
+    stockImplementation project(':OnBotJava')
+    stockImplementation project(':RobotServer')
 
     /*
      * External
