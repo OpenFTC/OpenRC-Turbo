@@ -65,13 +65,17 @@ dependencies {
     extremeTurboImplementation project(':OnBotJava')
     extremeTurboImplementation project(':RobotServer')
 
-    stockImplementation project(':FtcCommon')
-    stockImplementation project(':RobotCore')
-    stockImplementation project(':Inspection')
-    stockImplementation project(':Blocks')
-    stockImplementation project(':Hardware')
-    stockImplementation project(':OnBotJava')
-    stockImplementation project(':RobotServer')
+    stockImplementation 'org.openftc:ftccommon-stock:5.0'
+    stockImplementation 'org.openftc:robotcore-stock:5.0'
+    stockImplementation 'org.openftc:inspection-stock:5.0'
+    stockImplementation 'org.openftc:blocks-stock:5.0'
+    stockImplementation 'org.openftc:hardware-stock:5.0'
+    stockImplementation 'org.openftc:onbotjava-stock:5.0'
+    stockImplementation 'org.openftc:robotserver-stock:5.0'
+
+    stockApi 'com.android.support:support-annotations:28.0.0'
+    stockApi 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    stockApi 'org.openftc:tfod-ftc-repackaged:5.0'
 
     /*
      * External
