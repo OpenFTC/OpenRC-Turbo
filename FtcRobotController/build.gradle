@@ -30,11 +30,13 @@ dependencies {
     turboImplementation project(':Blocks')
     turboImplementation project(':Hardware')
     turboImplementation project(':RobotServer')
+    turboImplementation project(':OpenRC')
 
     extremeTurboImplementation project(':FtcCommon')
     extremeTurboImplementation project(':RobotCore')
     extremeTurboImplementation project(':Inspection')
     extremeTurboImplementation project(':Hardware')
+    extremeTurboImplementation project(':OpenRC')
 
     stockImplementation 'org.openftc:ftccommon-stock:5.0'
     stockImplementation 'org.openftc:robotcore-stock:5.0'
@@ -43,6 +45,7 @@ dependencies {
     stockImplementation 'org.openftc:hardware-stock:5.0'
     stockImplementation 'org.openftc:onbotjava-stock:5.0'
     stockImplementation 'org.openftc:robotserver-stock:5.0'
+    stockImplementation 'com.android.support:support-compat:26.0.0'
 
     /*
      * Things needed regardless of turbo/extremeTurbo/stock

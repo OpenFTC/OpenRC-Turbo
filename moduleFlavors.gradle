@@ -3,18 +3,21 @@ android {
     flavorDimensions 'type'
     productFlavors {
         stock { dimension 'type' }
-        turbo {
-            dimension 'type'
-        }
-        extremeTurbo {
-            dimension 'type'
-        }
+        turbo { dimension 'type' }
+        extremeTurbo { dimension 'type' }
     }
 
     sourceSets {
+
+        stock {
+            res.srcDirs = ['src/stockAndStdTurbo/res']
+            assets.srcDirs = ['src/stockAndStdTurbo/assets']
+        }
+
         turbo {
-            res.srcDirs = ['src/openftc/res', 'src/turbo/res']
+            res.srcDirs = ['src/openftc/res', 'src/turbo/res', 'src/stockAndStdTurbo/res']
             java.srcDirs = ['src/openftc/java', 'src/turbo/java']
+            assets.srcDirs = ['src/turbo/assets', 'src/stockAndStdTurbo/assets']
         }
 
         extremeTurbo {

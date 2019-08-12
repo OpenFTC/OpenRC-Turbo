@@ -20,7 +20,11 @@ dependencies {
     implementation project(':Hardware')
     implementation project(':Inspection')
     implementation project(':RobotCore')
-    implementation project(':RobotServer')
+
+    turboImplementation project(':RobotServer')
+    //turboImplementation project(':OpenRC')
+
+    //extremeTurboImplementation project(':OpenRC')
 
     /*
      * External
