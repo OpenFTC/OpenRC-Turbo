@@ -10,7 +10,7 @@ import java.util.TreeSet;
 public class OnBotJavaHelperImpl extends ClassLoader implements OnBotJavaHelper {
     @Override
     public ClassLoader getOnBotJavaClassLoader() {
-        return this;
+        return OnBotJavaHelperImpl.class.getClassLoader();
     }
 
     @Override

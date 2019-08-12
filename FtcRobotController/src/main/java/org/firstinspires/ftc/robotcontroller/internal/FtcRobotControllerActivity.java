@@ -100,9 +100,9 @@ import com.qualcomm.robotcore.wifi.NetworkType;
 import org.firstinspires.ftc.ftccommon.external.SoundPlayingRobotMonitor;
 import org.firstinspires.ftc.ftccommon.internal.FtcRobotControllerWatchdogService;
 import org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity;
-//import org.firstinspires.ftc.onbotjava.OnBotJavaClassLoader;
-//import org.firstinspires.ftc.onbotjava.OnBotJavaHelperImpl;
-//import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
+import org.firstinspires.ftc.onbotjava.OnBotJavaClassLoader;
+import org.firstinspires.ftc.onbotjava.OnBotJavaHelperImpl;
+import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
 import org.firstinspires.ftc.robotcore.external.navigation.MotionDetection;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
@@ -333,7 +333,7 @@ public class FtcRobotControllerActivity extends Activity
      * have permissions. So...
      */
     if (permissionsValidated) {
-      //ClassManager.getInstance().setOnBotJavaClassHelper(new OnBotJavaHelperImpl());
+      ClassManager.getInstance().setOnBotJavaClassHelper(new OnBotJavaHelperImpl());
       ClassManagerFactory.registerFilters();
       ClassManagerFactory.processAllClasses();
     }
@@ -360,7 +360,7 @@ public class FtcRobotControllerActivity extends Activity
 
     programmingModeManager = new ProgrammingModeManager();
     programmingModeManager.register(new ProgrammingWebHandlers());
-    //programmingModeManager.register(new OnBotJavaProgrammingMode());
+    programmingModeManager.register(new OnBotJavaProgrammingMode());
     programmingModeController = new ProgrammingModeControllerImpl(
             this, (TextView) findViewById(R.id.textRemoteProgrammingMode), programmingModeManager);
 
