@@ -16,34 +16,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    flavorDimensions 'type'
-    productFlavors {
-        stock { dimension 'type' }
-        turbo {
-            dimension 'type'
-
-
-        }
-        extremeTurbo {
-            dimension 'type'
-
-
-        }
-    }
-
-    sourceSets {
-        turbo {
-            res.srcDirs = ['src/openftc/res', 'src/turbo/res']
-            java.srcDirs = ['src/openftc/java', 'src/turbo/java']
-        }
-
-        extremeTurbo {
-            res.srcDirs = ['src/openftc/res', 'src/extremeTurbo/res']
-            java.srcDirs = ['src/openftc/java', 'src/extremeTurbo/java']
-        }
-    }
 }
+
+apply from: '../moduleFlavors.gradle'
 
 dependencies {
     /*
@@ -54,16 +29,12 @@ dependencies {
     turboImplementation project(':Inspection')
     turboImplementation project(':Blocks')
     turboImplementation project(':Hardware')
-    turboImplementation project(':OnBotJava')
     turboImplementation project(':RobotServer')
 
     extremeTurboImplementation project(':FtcCommon')
     extremeTurboImplementation project(':RobotCore')
     extremeTurboImplementation project(':Inspection')
-    extremeTurboImplementation project(':Blocks')
     extremeTurboImplementation project(':Hardware')
-    extremeTurboImplementation project(':OnBotJava')
-    extremeTurboImplementation project(':RobotServer')
 
     stockImplementation 'org.openftc:ftccommon-stock:5.0'
     stockImplementation 'org.openftc:robotcore-stock:5.0'
@@ -73,6 +44,9 @@ dependencies {
     stockImplementation 'org.openftc:onbotjava-stock:5.0'
     stockImplementation 'org.openftc:robotserver-stock:5.0'
 
+    /*
+     * Things needed regardless of turbo/extremeTurbo/stock
+     */
     stockApi 'com.android.support:support-annotations:28.0.0'
     stockApi 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
     stockApi 'org.openftc:tfod-ftc-repackaged:5.0'

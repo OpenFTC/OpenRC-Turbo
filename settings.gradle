@@ -1,1 +1,1 @@
-include ':Blocks', ':RobotCore', ':FtcRobotController', ':FtcCommon', ':Hardware', ':Inspection', ':OnBotJava', ':RobotServer', ':TeamCode'
+include ':RobotCore', ':Blocks', ':RobotServer', ':FtcRobotController', ':FtcCommon', ':Hardware', ':Inspection', ':TeamCode'
