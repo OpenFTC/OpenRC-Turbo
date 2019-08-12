@@ -1641,10 +1641,13 @@ public class AppUtil
 
     private native boolean nativeSetCurrentTimeMillis(long millis);
 
-    static
-        {
-        System.loadLibrary("RobotCore");
-        }
+// MODIFIED FOR OPENFTC
+// RobotCore depends on having the Vuforia lib loaded, so we'll load this
+// when we load the real Vuforia lib
+//    static
+//        {
+//        System.loadLibrary("RobotCore");
+//        }
 
     //----------------------------------------------------------------------------------------------
     // Inter-Process Communication
