@@ -11,6 +11,34 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 **HOWEVER**, in order to address this, OpenRC has a `stock` build variant which will compile the `TeamCode` and `FtcRobotController` modules against the official, unmodified AAR files, rather than against the extracted modules.
 
+## Build variants:
+
+ - Stock
+     - Competition legal
+     - 24MB APK
+
+ - Turbo
+     - OnBotJava removed
+     - 10MB APK
+
+ - Ultra Turbo
+     - OnBotJava removed
+     - Blocks removed
+     - Web management removed
+     - Sound files removed
+     - Old Vuforia targets removed
+     - 4MB APK
+
+## Switching build variants
+
+Switching between build variants is easy.
+
+ 1. Open the Build Variants tab in the lower left hand corner of Android Studio
+ 2. In the dropdown for the **TeamCode module**, select your desired variant
+ 3. Perform a Gradle sync
+
+![image-here](doc/readme_pics/switching_build_variants.png)
+
 ## Versioning Scheme
 
 To prevent confusion, OpenRC does not have its own version number. The version number will directly reflect the SDK version that the release is based on. However, the version number will have a letter appended to the end of it, which will be incremented (A-Z) for each release of OpenRC which is based on the same SDK version. When OpenRC is updated to be based on a new SDK version, the letter will reset to A.
