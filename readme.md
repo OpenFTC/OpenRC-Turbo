@@ -52,6 +52,13 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 ![image-here](doc/readme_pics/switching_build_variants.png)
 
+## Setup Process
+
+ 1. Fork this repository
+ 2. Clone your fork
+ 3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
+ 4. To update your fork when a new OpenRC release is available, simply do `git pull upstream master`
+
 ## Versioning Scheme
 
 To prevent confusion, OpenRC does not have its own version number. The version number will directly reflect the SDK version that the release is based on. However, the version number will have a letter appended to the end of it, which will be incremented (A-Z) for each release of OpenRC which is based on the same SDK version. When OpenRC is updated to be based on a new SDK version, the letter will reset to A.
