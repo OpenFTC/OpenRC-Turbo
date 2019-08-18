@@ -10,7 +10,7 @@ android {
     sourceSets {
 
         stock {
-            res.srcDirs = ['src/stockAndStdTurbo/res']
+            res.srcDirs = ['src/stock/res', 'src/stockAndStdTurbo/res']
             assets.srcDirs = ['src/stockAndStdTurbo/assets']
         }
 
