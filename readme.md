@@ -57,7 +57,12 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
  1. Fork this repository
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
- 4. To update your fork when a new OpenRC release is available, simply do `git pull upstream master`
+ 4. Copy `libVuforia.so` from the `doc` folder of this repo into the `FIRST` folder on the RC's internal storage
+ 5. Select your desired build variant
+
+## Update Process
+
+Assuming you followed the above setup process, all that you need to do to update your fork when a new OpenRC release is available is `git pull upstream master`
 
 ## Versioning Scheme
 
