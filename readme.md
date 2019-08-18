@@ -11,7 +11,9 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 **HOWEVER**, in order to address this, OpenRC has a `stock` build variant which will compile the `TeamCode` and `FtcRobotController` modules against the official, unmodified AAR files, rather than against the extracted modules.
 
-## Build variants:
+## Build variants
+
+### Variant Descriptions
 
  - Stock
      - Competition legal
@@ -29,9 +31,20 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
      - Old Vuforia targets removed
      - 4MB APK
 
-## Switching build variants
+### Benchmarks
 
-Switching between build variants is easy.
+
+|                            |**ZTE Speed (4.4.4)**|**Nexus 5 (7.1.2)**|**PadfoneX (6.0.1)**|
+|:--------------------------:|:-------------------:|:-----------------:|:------------------:|
+|**Stock over USB**          |    20 sec           |  13 sec           |   21 sec           |
+|**Turbo over USB**          |    15 sec           |  10 sec           |   13 sec           |
+|**Extreme Turbo over USB**  |    11 sec           |   9 sec           |   10 sec           |
+|                            |                     |                   |                    |
+|**Stock over WiFi**         |    40 sec           |  15 sec           |   85 sec           |
+|**Turbo over WiFi**         |    18 sec           |  11 sec           |   35 sec           |
+|**Extreme Turbo over WiFi** |    13 sec           |   9 sec           |   21 sec           |
+
+### Switching build variants
 
  1. Open the Build Variants tab in the lower left hand corner of Android Studio
  2. In the dropdown for the **TeamCode module**, select your desired variant
