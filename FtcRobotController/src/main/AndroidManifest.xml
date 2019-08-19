@@ -24,7 +24,8 @@
               android:screenOrientation="fullUser"
               android:configChanges="orientation|screenSize"
               android:label="@string/app_name"
-              android:launchMode="singleTask" >
+              android:launchMode="singleTask"
+              android:theme="@style/SplashTheme">
 
       <intent-filter>
         <category android:name="android.intent.category.LAUNCHER" />
