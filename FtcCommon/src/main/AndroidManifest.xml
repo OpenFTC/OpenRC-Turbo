@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- FtcCommon manifest -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.qualcomm.ftccommon"
-    android:versionCode="61"
-    android:versionName="11.3" >
-
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
+    package="com.qualcomm.ftccommon">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission

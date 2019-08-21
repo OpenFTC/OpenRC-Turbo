@@ -32,12 +32,6 @@
   ~ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.blocks.ftcrobotcontroller.onbotjava"
-    android:versionCode="35"
-    android:versionName="6.2" >
-
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
+    package="com.google.blocks.ftcrobotcontroller.onbotjava">
 
 </manifest>

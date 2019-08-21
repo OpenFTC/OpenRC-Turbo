@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.blocks"
-    android:versionCode="61"
-    android:versionName="11.3" >
-
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
+    package="com.google.blocks">
 
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
