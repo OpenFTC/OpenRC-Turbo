@@ -42,6 +42,7 @@ import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 public class RcInspectionActivity extends InspectionActivity
     {
@@ -50,6 +51,7 @@ public class RcInspectionActivity extends InspectionActivity
     //----------------------------------------------------------------------------------------------
 
     final boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
+    private AppUtil.DialogContext dialogContext; //added for OpenRC
 
     final RecvLoopRunnable.RecvLoopCallback recvLoopCallback = new RecvLoopRunnable.DegenerateCallback()
         {
@@ -98,6 +100,12 @@ public class RcInspectionActivity extends InspectionActivity
 
     @Override protected void refresh()
         {
+        //below if added for OpenRC
+        if(dialogContext == null || dialogContext.dismissed.getCount() == 0)
+            {
+            dialogContext = AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "Competition Legality", "In its default configuration, OpenRC is illegal for competition use.\n\nMake sure to switch to the stock build variant before going to competition!");
+            }
+
         if (remoteConfigure)
             {
             NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_REQUEST_INSPECTION_REPORT));

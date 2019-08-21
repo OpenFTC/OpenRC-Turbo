@@ -29,6 +29,7 @@ import android.text.Html;
 
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
@@ -41,7 +42,7 @@ public class LegalityNotification
     @OpModeRegistrar
     public static void showLegalityNotification(Context context, AnnotatedOpModeManager manager)
     {
-        if(Utils.hasAcknowledgedLegalityStatus() || alreadyShownWarningThisSession)
+        if(LynxConstants.isRevControlHub() || Utils.hasAcknowledgedLegalityStatus() || alreadyShownWarningThisSession)
         {
             return;
         }

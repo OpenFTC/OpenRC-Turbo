@@ -186,6 +186,7 @@ public abstract class FtcEventLoopBase implements EventLoop
     protected final OpModeRegister userOpmodeRegister;
 
     protected final RegisteredOpModes registeredOpModes;
+    private AppUtil.DialogContext dialogContext; //added for OpenRC
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -1156,6 +1157,12 @@ public abstract class FtcEventLoopBase implements EventLoop
         inspectionState.initializeLocal();
         String serialized = inspectionState.serialize();
         networkConnectionHandler.sendCommand(new Command(CommandList.CMD_REQUEST_INSPECTION_REPORT_RESP, serialized));
+
+        //below if added for OpenRC
+        if(dialogContext == null || dialogContext.dismissed.getCount() == 0)
+            {
+            dialogContext = AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "Competition Legality", "In its default configuration, OpenRC is illegal for competition use.\n\nMake sure to switch to the stock build variant before going to competition!");
+            }
         }
 
     protected void handleCommandRequestAboutInfo(Command command)
