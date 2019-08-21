@@ -48,6 +48,8 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 **IMPORTANT: make sure to test that your project compiles correctly with the stock variant at least a week before your competition!**
 
+Note: you may get a "variant conflict" when switching from `Turbo` to `ExtremeTurbo`. You can fix this by changing `Blocks` to `extremeTurboDebug`
+
  1. Open the Build Variants tab in the lower left hand corner of Android Studio
  2. In the dropdown for the **TeamCode module**, select your desired variant
  3. Perform a Gradle sync
