@@ -38,8 +38,6 @@ import android.support.annotation.Nullable;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 
-import androidx.versionedparcelable.ParcelImpl;
-
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
