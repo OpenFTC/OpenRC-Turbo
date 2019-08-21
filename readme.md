@@ -46,6 +46,8 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 ### Switching build variants
 
+**IMPORTANT: make sure to test that your project compiles correctly with the stock variant at least a week before your competition!**
+
  1. Open the Build Variants tab in the lower left hand corner of Android Studio
  2. In the dropdown for the **TeamCode module**, select your desired variant
  3. Perform a Gradle sync
@@ -62,7 +64,11 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 ## Update Process
 
-Assuming you followed the above setup process, all that you need to do to update your fork when a new OpenRC release is available is `git pull upstream master`
+Assuming you followed the above setup process, all that you need to do to update your fork when a new OpenRC release is available is:
+
+ 1. `git pull upstream master`
+ 2. Perform a Gradle Sync
+ 3. If the project fails to build, try *Clean Project*, *Rebuild Project*, and *Invalidate Caches / Restart*
 
 ## Versioning Scheme
 
