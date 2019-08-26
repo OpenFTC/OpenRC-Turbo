@@ -36,6 +36,8 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
 
 ### Benchmarks
 
+**Note:** While OpenRC is not compatible with the ZTE, and the PadfoneX is not legal for competition, benchmarks are provided for the purposes of comparison across a range of devices and Android versions.
+
 
 |                            |**ZTE Speed (4.4.4)**|**Nexus 5 (7.1.2)**|**PadfoneX (6.0.1)**|
 |:--------------------------:|:-------------------:|:-----------------:|:------------------:|
