@@ -26,10 +26,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Environment;
 
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
+import com.qualcomm.robotcore.util.Device;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
@@ -59,6 +61,20 @@ public class DynamicVuforiaNativeLibLoader
     @OpModeRegistrar
     public static void loadNativeLibOnStartRobot(Context context, AnnotatedOpModeManager manager)
     {
+        /*
+         * Dynamic loading of Vuforia is not compatible with < API 23 because otherwise when
+         * we go to load the robotcore lib, it will crash with a failed to find symbol error.
+         * This is due to the fact the robotcore lib now depends on the vuforia lib as the
+         * result of UVC support being added in SDK v4.x
+         *
+         * See the "Correct soname/path handling" section of this page for more details:
+         *     https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md
+         */
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+        {
+            showNotCompatibleDialog();
+        }
+
         /*
          * Because this is called every time the robot is "restarted" we
          * check to see whether we've already previously done our job here.
@@ -284,5 +300,29 @@ public class DynamicVuforiaNativeLibLoader
         {
             e.printStackTrace();
         }
+    }
+
+    private static void showNotCompatibleDialog()
+    {
+        AppUtil.getInstance().runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(AppUtil.getInstance().getActivity());
+                builder.setTitle("Incompatible");
+                builder.setMessage("OpenRC is incompatible with Android versions prior to 6.0 because of a bug in the dlopen() function of previous versions. The app will now be closed.");
+                builder.setCancelable(false);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i)
+                    {
+                        System.exit(1);
+                    }
+                });
+                builder.show();
+            }
+        });
     }
 }
