@@ -87,7 +87,7 @@ For instance, the 3rd release of OpenRC based on SDK v5.0 would be `5.0C`, where
 
 ### 5.1A
 
-Released on TBD
+Released on 26 August 2019
 
  - Update to SDK v5.1
  - Updated dynamic Vuforia loader to enforce being run on Android 6.0 or higher
