@@ -21,21 +21,18 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
 
 ### Variant Descriptions
 
- - Stock
+ - **Stock - 27MB APK** *(oof!)*
      - Competition legal
-     - 24MB APK
 
- - Turbo
+ - **Turbo - 12.5MB APK** *(2.2x smaller!)*
      - OnBotJava removed
-     - 10MB APK
 
- - Ultra Turbo
+ - **Ultra Turbo - 4MB APK** *(6.8x smaller!)*
      - OnBotJava removed
      - Blocks removed
      - Web management removed
      - Sound files removed
      - Old Vuforia targets removed
-     - 4MB APK
 
 ### Benchmarks
 
