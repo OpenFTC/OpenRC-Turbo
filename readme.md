@@ -66,7 +66,7 @@ Note: you may get a "variant conflict" when switching from `Turbo` to `ExtremeTu
  1. Fork this repository
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
- 4. Copy `libVuforia.so` from the `doc` folder of this repo into the `FIRST` folder on the RC's internal storage
+ 4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST` folder on the RC's internal storage
  5. Select your desired build variant
 
 ## Update Process
@@ -90,6 +90,8 @@ For instance, the 3rd release of OpenRC based on SDK v5.0 would be `5.0C`, where
 Released on TBD
 
  - Update to SDK v5.2
+ - **NOTE:** You will need to copy some additional files to the `FIRST` folder of the internal storage after you update. See step #4 in the Setup Process section
+ - **NOTE:** The TensorFlow and Vuforia sample OpModes for SKYSTONE have been modified slightly to load the datasets from internal storage. **Use the samples in this repo; the stock samples will fail.**
 
 ### 5.1A
 

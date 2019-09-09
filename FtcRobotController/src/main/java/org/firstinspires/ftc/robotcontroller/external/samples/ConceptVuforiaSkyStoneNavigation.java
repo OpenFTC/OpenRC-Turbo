@@ -155,9 +155,9 @@ public class ConceptVuforiaSkyStoneNavigation extends LinearOpMode {
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
-        // Load the data sets for the trackable objects. These particular data
-        // sets are stored in the 'assets' part of our application.
-        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
+        // Load the data sets for the trackable objects. For OpenRC, these are loaded from
+        // the internal storage to reduce APK size
+        VuforiaTrackables targetsSkyStone = this.vuforia.loadTrackablesFromFile("/sdcard/FIRST/Skystone");
 
         VuforiaTrackable stoneTarget = targetsSkyStone.get(0);
         stoneTarget.setName("Stone Target");

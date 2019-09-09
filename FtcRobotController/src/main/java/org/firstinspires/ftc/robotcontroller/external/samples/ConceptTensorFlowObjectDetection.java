@@ -52,7 +52,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 @TeleOp(name = "Concept: TensorFlow Object Detection", group = "Concept")
 @Disabled
 public class ConceptTensorFlowObjectDetection extends LinearOpMode {
-    private static final String TFOD_MODEL_ASSET = "Skystone.tflite";
+    private static final String TFOD_MODEL_ASSET = "/sdcard/FIRST/Skystone.tflite"; //For OpenRC, loaded from internal storage to reduce APK size
     private static final String LABEL_FIRST_ELEMENT = "Stone";
     private static final String LABEL_SECOND_ELEMENT = "Skystone";
 
@@ -164,6 +164,6 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfodParameters.minimumConfidence = 0.8;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+        tfod.loadModelFromFile(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
     }
 }
