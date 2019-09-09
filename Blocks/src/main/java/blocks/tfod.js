@@ -34,3 +34,62 @@ function tfod_initialize_FtcJava(block, className, vuforiaClassName) {
   return identifier + '.initialize(' + vuforiaIdentifier + ', ' +
       minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ');\n';
 }
+
+function tfod_activate_JavaScript(block, identifier) {
+  return identifier + '.activate();\n';
+}
+
+function tfod_activate_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  return identifier + '.activate();\n';
+}
+
+function tfod_deactivate_JavaScript(block, identifier) {
+  return identifier + '.deactivate();\n';
+}
+
+function tfod_deactivate_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  return identifier + '.deactivate();\n';
+}
+
+function tfod_setClippingMargins_JavaScript(block, identifier) {
+  var left = Blockly.JavaScript.valueToCode(block, 'LEFT', Blockly.JavaScript.ORDER_COMMA);
+  var top = Blockly.JavaScript.valueToCode(block, 'TOP', Blockly.JavaScript.ORDER_COMMA);
+  var right = Blockly.JavaScript.valueToCode(block, 'RIGHT', Blockly.JavaScript.ORDER_COMMA);
+  var bottom = Blockly.JavaScript.valueToCode(block, 'BOTTOM', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.setClippingMargins(' +
+      left + ', ' + top + ', ' + right + ', ' + bottom + ');\n';
+}
+
+function tfod_setClippingMargins_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var left = Blockly.FtcJava.valueToCode(block, 'LEFT', Blockly.FtcJava.ORDER_COMMA);
+  var top = Blockly.FtcJava.valueToCode(block, 'TOP', Blockly.FtcJava.ORDER_COMMA);
+  var right = Blockly.FtcJava.valueToCode(block, 'RIGHT', Blockly.FtcJava.ORDER_COMMA);
+  var bottom = Blockly.FtcJava.valueToCode(block, 'BOTTOM', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.setClippingMargins(' +
+      left + ', ' + top + ', ' + right + ', ' + bottom + ');\n';
+}
+
+function tfod_getRecognitions_JavaScript(block, identifier) {
+  var code = 'JSON.parse(' + identifier + '.getRecognitions())';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+}
+
+function tfod_getRecognitions_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var code = identifier + '.getRecognitions()';
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+}
+
+function tfod_typedEnum_label_JavaScript(block) {
+  var code = '"' + block.getFieldValue('LABEL') + '"';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+}
+
+function tfod_typedEnum_label_FtcJava(block) {
+  // Even in Java, a label is actually just a string, not an enum.
+  var code = '"' + block.getFieldValue('LABEL') + '"';
+  return [code, Blockly.FtcJava.ORDER_ATOMIC];
+}

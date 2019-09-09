@@ -17,7 +17,7 @@ Blockly.Blocks['vuforia_initialize'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('initialize'));
     this.appendValueInput('VUFORIA_LICENSE_KEY').setCheck('String')
@@ -139,7 +139,7 @@ Blockly.Blocks['vuforia_initializeExtended'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('initialize'));
     this.appendValueInput('VUFORIA_LICENSE_KEY').setCheck('String')
@@ -219,7 +219,7 @@ Blockly.Blocks['vuforia_initializeExtendedNoKey'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('initialize'));
     this.appendValueInput('CAMERA_DIRECTION').setCheck('VuforiaLocalizer.CameraDirection')
@@ -286,7 +286,7 @@ Blockly.Blocks['vuforia_initialize_withWebcam'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('initialize'));
     this.appendValueInput('CAMERA_NAME').setCheck(['CameraName', 'WebcamName'])
@@ -356,7 +356,7 @@ Blockly.Blocks['vuforia_activate'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('activate'));
     this.setPreviousStatement(true);
@@ -367,19 +367,18 @@ Blockly.Blocks['vuforia_activate'] = {
 };
 
 Blockly.JavaScript['vuforia_activate'] = function(block) {
-  return vuforiaIdentifierForJavaScript + '.activate();\n';
+  return vuforia_activate_JavaScript(block, vuforiaIdentifierForJavaScript);
 };
 
 Blockly.FtcJava['vuforia_activate'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'VuforiaRelicRecovery');
-  return identifier + '.activate();\n';
+  return vuforia_activate_FtcJava(block, 'VuforiaRelicRecovery');
 };
 
 Blockly.Blocks['vuforia_deactivate'] = {
   init: function() {
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('deactivate'));
     this.setPreviousStatement(true);
@@ -390,12 +389,11 @@ Blockly.Blocks['vuforia_deactivate'] = {
 };
 
 Blockly.JavaScript['vuforia_deactivate'] = function(block) {
-  return vuforiaIdentifierForJavaScript + '.deactivate();\n';
+  return vuforia_deactivate_JavaScript(block, vuforiaIdentifierForJavaScript);
 };
 
 Blockly.FtcJava['vuforia_deactivate'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'VuforiaRelicRecovery');
-  return identifier + '.deactivate();\n';
+  return vuforia_deactivate_FtcJava(block, 'VuforiaRelicRecovery');
 };
 
 Blockly.Blocks['vuforia_track'] = {
@@ -403,7 +401,7 @@ Blockly.Blocks['vuforia_track'] = {
     this.setOutput(true, 'VuforiaBase.TrackingResults');
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('track'));
     this.appendValueInput('TRACKABLE_NAME').setCheck('String')
@@ -415,18 +413,11 @@ Blockly.Blocks['vuforia_track'] = {
 };
 
 Blockly.JavaScript['vuforia_track'] = function(block) {
-  var trackableName = Blockly.JavaScript.valueToCode(
-      block, 'TRACKABLE_NAME', Blockly.JavaScript.ORDER_NONE);
-  var code = 'JSON.parse(' + vuforiaIdentifierForJavaScript + '.track(' + trackableName + '))';
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  return vuforia_track_JavaScript(block, vuforiaIdentifierForJavaScript);
 };
 
 Blockly.FtcJava['vuforia_track'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'VuforiaRelicRecovery');
-  var trackableName = Blockly.FtcJava.valueToCode(
-      block, 'TRACKABLE_NAME', Blockly.FtcJava.ORDER_NONE);
-  var code = identifier + '.track(' + trackableName + ')';
-  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+  return vuforia_track_FtcJava(block, 'VuforiaRelicRecovery');
 };
 
 Blockly.Blocks['vuforia_trackPose'] = {
@@ -434,7 +425,7 @@ Blockly.Blocks['vuforia_trackPose'] = {
     this.setOutput(true, 'VuforiaBase.TrackingResults');
     this.appendDummyInput()
         .appendField('call')
-        .appendField(createNonEditableField('Vuforia'))
+        .appendField(createNonEditableField('VuforiaRelicRecovery'))
         .appendField('.')
         .appendField(createNonEditableField('trackPose'));
     this.appendValueInput('TRACKABLE_NAME').setCheck('String')
@@ -447,18 +438,11 @@ Blockly.Blocks['vuforia_trackPose'] = {
 };
 
 Blockly.JavaScript['vuforia_trackPose'] = function(block) {
-  var trackableName = Blockly.JavaScript.valueToCode(
-      block, 'TRACKABLE_NAME', Blockly.JavaScript.ORDER_NONE);
-  var code = 'JSON.parse(' + vuforiaIdentifierForJavaScript + '.trackPose(' + trackableName + '))';
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  return vuforia_trackPose_JavaScript(block, vuforiaIdentifierForJavaScript);
 };
 
 Blockly.FtcJava['vuforia_trackPose'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'VuforiaRelicRecovery');
-  var trackableName = Blockly.FtcJava.valueToCode(
-      block, 'TRACKABLE_NAME', Blockly.FtcJava.ORDER_NONE);
-  var code = identifier + '.trackPose(' + trackableName + ')';
-  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+  return vuforia_trackPose_FtcJava(block, 'VuforiaRelicRecovery');
 };
 
 Blockly.Blocks['vuforia_typedEnum_trackableName'] = {
@@ -490,14 +474,11 @@ Blockly.Blocks['vuforia_typedEnum_trackableName'] = {
 };
 
 Blockly.JavaScript['vuforia_typedEnum_trackableName'] = function(block) {
-  var code = '"' + block.getFieldValue('TRACKABLE_NAME') + '"';
-  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+  return vuforia_typedEnum_trackableName_JavaScript(block);
 };
 
 Blockly.FtcJava['vuforia_typedEnum_trackableName'] = function(block) {
-  // Event in Java, trackable name is actually just a string, not an enum.
-  var code = '"' + block.getFieldValue('TRACKABLE_NAME') + '"';
-  return [code, Blockly.FtcJava.ORDER_ATOMIC];
+  return vuforia_typedEnum_trackableName_FtcJava(block);
 };
 
 Blockly.Blocks['vuforiaTrackingResults_getProperty_RelicRecoveryVuMark'] = {

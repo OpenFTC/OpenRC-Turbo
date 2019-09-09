@@ -72,8 +72,7 @@ Blockly.FtcJava['dcMotor_setProperty'] = function(block) {
     return '';
   }
   var identifier = Blockly.FtcJava.importDeclareAssign_(block, 'IDENTIFIER', 'DcMotor');
-  var value = Blockly.FtcJava.valueToCode(
-      block, 'VALUE', Blockly.FtcJava.ORDER_NONE);
+  var value = Blockly.FtcJava.valueToCode(block, 'VALUE', Blockly.FtcJava.ORDER_NONE);
   if (property == 'TargetPositionTolerance' || property == 'Velocity') {
     // This java code will throw ClassCastException if the DcMotor is not a DcMotorEx.
     Blockly.FtcJava.generateImport_('DcMotorEx');

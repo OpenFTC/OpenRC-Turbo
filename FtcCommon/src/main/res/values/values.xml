@@ -37,10 +37,10 @@
     <string name="about_activity">About</string>
     <string name="about_app_version">App Version</string>
     <string name="about_build_time">App Build Time</string>
+    <string name="about_ch_os_version">Control Hub OS Version</string>
     <string name="about_library_version">Library Version</string>
     <string name="about_network_connection_info">Network Connection Info</string>
     <string name="about_network_protocol_version">Robot Wifi Protocol Version</string>
-    <string name="about_os_version">Operating System Version</string>
     <string name="about_wifi_connected">Connected</string>
     <string name="about_wifi_direct_info">Wifi Direct Config Information</string>
     <string name="about_wifi_group_owner">Group Owner</string>

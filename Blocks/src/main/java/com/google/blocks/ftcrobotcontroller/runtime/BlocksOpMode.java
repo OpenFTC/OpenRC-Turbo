@@ -420,6 +420,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new TemperatureAccess(this, Identifier.TEMPERATURE.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.TFOD_ROVER_RUCKUS.identifierForJavaScript,
         new TfodRoverRuckusAccess(this, Identifier.TFOD_ROVER_RUCKUS.identifierForJavaScript, hardwareMap));
+    javascriptInterfaces.put(Identifier.TFOD_SKY_STONE.identifierForJavaScript,
+        new TfodSkyStoneAccess(this, Identifier.TFOD_SKY_STONE.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.VECTOR_F.identifierForJavaScript,
         new VectorFAccess(this, Identifier.VECTOR_F.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.VELOCITY.identifierForJavaScript,
@@ -428,6 +430,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new VuforiaRelicRecoveryAccess(this, Identifier.VUFORIA_RELIC_RECOVERY.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.VUFORIA_ROVER_RUCKUS.identifierForJavaScript,
         new VuforiaRoverRuckusAccess(this, Identifier.VUFORIA_ROVER_RUCKUS.identifierForJavaScript, hardwareMap));
+    javascriptInterfaces.put(Identifier.VUFORIA_SKY_STONE.identifierForJavaScript,
+        new VuforiaSkyStoneAccess(this, Identifier.VUFORIA_SKY_STONE.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.VUFORIA_LOCALIZER.identifierForJavaScript,
         new VuforiaLocalizerAccess(this, Identifier.VUFORIA_LOCALIZER.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.VUFORIA_LOCALIZER_PARAMETERS.identifierForJavaScript,

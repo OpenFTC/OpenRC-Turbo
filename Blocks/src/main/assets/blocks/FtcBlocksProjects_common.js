@@ -5,7 +5,6 @@
 
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
 // function isValidProjectName
-// function addReservedWordsForIdentifiersForJavaScript
 var projects = [];
 var checkedProjects = [];
 var sortByName = false;
@@ -330,8 +329,6 @@ function finishNewOrUploadProject(projectName, blkFileContent, errorElement, dia
     // For consistency with previous versions, we explicitly set oneBasedIndex to true.
     workspace.options.oneBasedIndex = true;
     Blockly.Xml.domToWorkspace(dom, workspace);
-    Blockly.JavaScript.addReservedWords('callRunOpMode');
-    addReservedWordsForIdentifiersForJavaScript();
     jsFileContent = Blockly.JavaScript.workspaceToCode(workspace);
   } catch (e) {
     errorElement.innerHTML = 'Error: Could not generate code for blocks. ' + e;

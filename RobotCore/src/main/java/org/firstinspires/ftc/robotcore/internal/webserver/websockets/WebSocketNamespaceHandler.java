@@ -33,22 +33,38 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.webserver.websockets;
 
 import android.support.annotation.CallSuper;
+import android.support.annotation.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class WebSocketNamespaceHandler {
-    private Map<String, WebSocketMessageTypeHandler> messageTypeHandlerMap;
+    private final Map<String, WebSocketMessageTypeHandler> messageTypeHandlerMap;
     private final String namespace;
 
     /**
-     * Constructor
+     * Simple constructor
      *
      * @param namespace The namespace that this handler will handle the messages of
      */
     public WebSocketNamespaceHandler(String namespace) {
+        this(namespace, null);
+    }
+
+    /**
+     * Constructor with parameter for a map of message type handlers. Can be used as
+     * an alternative to overriding {@link #registerMessageTypeHandlers(Map)}
+     *
+     * @param namespace The namespace that this handler will handle the messages of
+     * @param prepopulatedMessageTypeHandlerMap A map of message type Strings to WebSocketMessageTypeHandler implementations
+     */
+    public WebSocketNamespaceHandler(String namespace, @Nullable Map<String, WebSocketMessageTypeHandler> prepopulatedMessageTypeHandlerMap) {
         this.namespace = namespace;
-        registerMessageTypeHandlers(new ConcurrentHashMap<String, WebSocketMessageTypeHandler>());
+        this.messageTypeHandlerMap = new ConcurrentHashMap<>();
+        if (prepopulatedMessageTypeHandlerMap != null) {
+            this.messageTypeHandlerMap.putAll(prepopulatedMessageTypeHandlerMap);
+        }
+        registerMessageTypeHandlers(this.messageTypeHandlerMap);
     }
 
     /**
@@ -58,7 +74,7 @@ public abstract class WebSocketNamespaceHandler {
      * This should be called ONLY from the WebSocketNamespaceHandler constructor.
      */
     protected void registerMessageTypeHandlers(Map<String, WebSocketMessageTypeHandler> messageTypeHandlerMap) {
-        this.messageTypeHandlerMap = messageTypeHandlerMap;
+
     }
 
     /**

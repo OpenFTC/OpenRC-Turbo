@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class OnBotJavaWebSocketHandler extends WebSocketNamespaceHandler {
     public OnBotJavaWebSocketHandler(Map<String, WebSocketMessageTypeHandler> messageTypeHandlerMap) {
-        super(OnBotJavaProgrammingMode.WS_NAMESPACE);
-        registerMessageTypeHandlers(messageTypeHandlerMap);
+        super(OnBotJavaProgrammingMode.WS_NAMESPACE, messageTypeHandlerMap);
     }
 }

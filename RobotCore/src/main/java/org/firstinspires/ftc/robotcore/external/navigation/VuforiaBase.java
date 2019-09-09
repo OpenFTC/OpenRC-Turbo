@@ -50,15 +50,12 @@ public abstract class VuforiaBase {
 
   private final String assetName;
   private final String[] trackableNames;
-  private final OpenGLMatrix[] locationsOnField;
+  private final Map<String, OpenGLMatrix> locationsOnField = new HashMap<>();
   private volatile VuforiaLocalizer vuforiaLocalizer;
   private volatile VuforiaTrackables vuforiaTrackables;
-  private final Map<String, VuforiaTrackableDefaultListener> listenerMap =
-      new HashMap<String, VuforiaTrackableDefaultListener>();
-  private final Map<String, OpenGLMatrix> locationMap =
-      new HashMap<String, OpenGLMatrix>();
-  private final Map<String, OpenGLMatrix> poseMap =
-      new HashMap<String, OpenGLMatrix>();
+  private final Map<String, VuforiaTrackableDefaultListener> listenerMap = new HashMap<>();
+  private final Map<String, OpenGLMatrix> locationMap = new HashMap<>();
+  private final Map<String, OpenGLMatrix> poseMap = new HashMap<>();
 
   public static class TrackingResults {
     public String name;
@@ -121,7 +118,16 @@ public abstract class VuforiaBase {
   protected VuforiaBase(String assetName, String[] trackableNames, OpenGLMatrix[] locationsOnField) {
     this.assetName = assetName;
     this.trackableNames = trackableNames;
-    this.locationsOnField = locationsOnField;
+    for (int i = 0; i < trackableNames.length; i++) {
+      String name = trackableNames[i];
+      this.locationsOnField.put(name, locationsOnField[i]);
+    }
+  }
+
+  protected VuforiaBase(String assetName, String[] trackableNames, Map<String, OpenGLMatrix> locationsOnField) {
+    this.assetName = assetName;
+    this.trackableNames = trackableNames;
+    this.locationsOnField.putAll(locationsOnField);
   }
 
   /**
@@ -210,7 +216,7 @@ public abstract class VuforiaBase {
       String name = trackableNames[i];
       OpenGLMatrix locationOnField;
       if (useCompetitionFieldTargetLocations) {
-        locationOnField = locationsOnField[i];
+        locationOnField = locationsOnField.get(name);
       } else {
         // Create an image translation/rotation matrix to be used for all images.
         // Essentially put all the image centers at the 0:0:0 origin,

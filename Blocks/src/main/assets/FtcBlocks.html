@@ -112,6 +112,7 @@
       "blocks/tfod.js",
       "blocks/tfod_recognition.js",
       "blocks/tfod_rover_ruckus.js",
+      "blocks/tfod_sky_stone.js",
       "blocks/toolbox_util.js",
       "blocks/touch_sensor.js",
       "blocks/ultrasonic_sensor.js",
@@ -124,6 +125,7 @@
       "blocks/vuforia_localizer_parameters.js",
       "blocks/vuforia_relic_recovery.js",
       "blocks/vuforia_rover_ruckus.js",
+      "blocks/vuforia_sky_stone.js",
       "blocks/vuforia_trackable.js",
       "blocks/vuforia_trackable_default_listener.js",
       "blocks/vuforia_trackables.js"
@@ -146,8 +148,7 @@
     <td class="buttons_td" colspan="2">
       <table width="100%"><tr><td>
         <button onclick="saveButtonClicked()">Save Op Mode</button>
-        <button id="exportJavaButton" disabled="true"
-            onclick="exportJavaButtonClicked()">Export to Java</button>
+        <button onclick="exportJavaButtonClicked()">Export to Java</button>
         <button onclick="downloadButtonClicked()">Download Op Mode</button>
         <button id="downloadImageButton" style="display: none" disabled="true"
             onclick="downloadImageButtonClicked()">Download Image of Blocks</button>
@@ -236,6 +237,8 @@
           alert(errorMessage);
         }
       });
+    } else {
+      alert('Unable to export to Java. Sorry about that!');
     }
   }
 
