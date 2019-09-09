@@ -38,13 +38,13 @@ dependencies {
     extremeTurboImplementation project(':Hardware')
     extremeTurboImplementation project(':OpenRC')
 
-    stockImplementation 'org.openftc:ftccommon-stock:5.1'
-    stockImplementation 'org.openftc:robotcore-stock:5.1'
-    stockImplementation 'org.openftc:inspection-stock:5.1'
-    stockImplementation 'org.openftc:blocks-stock:5.1'
-    stockImplementation 'org.openftc:hardware-stock:5.1'
-    stockImplementation 'org.openftc:onbotjava-stock:5.1'
-    stockImplementation 'org.openftc:robotserver-stock:5.1'
+    stockImplementation 'org.openftc:ftccommon-stock:5.2'
+    stockImplementation 'org.openftc:robotcore-stock:5.2'
+    stockImplementation 'org.openftc:inspection-stock:5.2'
+    stockImplementation 'org.openftc:blocks-stock:5.2'
+    stockImplementation 'org.openftc:hardware-stock:5.2'
+    stockImplementation 'org.openftc:onbotjava-stock:5.2'
+    stockImplementation 'org.openftc:robotserver-stock:5.2'
     stockImplementation 'com.android.support:support-compat:26.0.0'
 
     /*
