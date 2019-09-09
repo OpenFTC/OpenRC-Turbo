@@ -5,7 +5,7 @@
 <variable type="" id="9ApQ8KvDslXqv}4}DDr:">sat</variable>
 <variable type="" id="B](w)xMp:/L@pXgq!?92">val</variable>
 </variables>
-<block type="procedures_defnoreturn" id="N5+,3)OebbE6UZcs_7Pq" deletable="false" editable="false" x="461" y="-233">
+<block type="procedures_defnoreturn" id="N5+,3)OebbE6UZcs_7Pq" deletable="false" editable="false" x="30" y="20">
 <field name="NAME">runOpMode</field>
 <comment pinned="false" h="80" w="160">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
@@ -58,7 +58,7 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getDistance_Number" id="G::~+y1/s{x=rqtZR5F1">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <value name="UNIT">
 <shadow type="navigation_typedEnum_distanceUnit" id="MkE2VUev],.AI8t*YC)w">
 <field name="DISTANCE_UNIT">CM</field>
@@ -81,7 +81,7 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="C@#iSBZd2CRv+p@dE;Xj">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">LightDetected</field>
 </block>
 </value>
@@ -101,7 +101,7 @@
 <field name="NUM">255</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="c5d=Yad!a=J}z]Y0Mw#S">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Alpha</field>
 </block>
 </value>
@@ -110,7 +110,7 @@
 <field name="NUM">255</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="tU#YV.pJZ]G7cM.QiDOf">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Red</field>
 </block>
 </value>
@@ -119,7 +119,7 @@
 <field name="NUM">255</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="ERz}nQ|7M`@?[Mdgu`6!">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Green</field>
 </block>
 </value>
@@ -128,7 +128,7 @@
 <field name="NUM">255</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="8zjF?qGNf?K/-_UdiP-a">
-<field name="IDENTIFIER">sensorColorRangeasLynxI2cColorRangeSensor</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Blue</field>
 </block>
 </value>

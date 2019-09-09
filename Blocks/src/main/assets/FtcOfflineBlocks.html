@@ -84,6 +84,7 @@
   <script type="text/javascript" src="blocks/tfod.js"></script>
   <script type="text/javascript" src="blocks/tfod_recognition.js"></script>
   <script type="text/javascript" src="blocks/tfod_rover_ruckus.js"></script>
+  <script type="text/javascript" src="blocks/tfod_sky_stone.js"></script>
   <script type="text/javascript" src="blocks/toolbox_util.js"></script>
   <script type="text/javascript" src="blocks/touch_sensor.js"></script>
   <script type="text/javascript" src="blocks/ultrasonic_sensor.js"></script>
@@ -96,6 +97,7 @@
   <script type="text/javascript" src="blocks/vuforia_localizer_parameters.js"></script>
   <script type="text/javascript" src="blocks/vuforia_relic_recovery.js"></script>
   <script type="text/javascript" src="blocks/vuforia_rover_ruckus.js"></script>
+  <script type="text/javascript" src="blocks/vuforia_sky_stone.js"></script>
   <script type="text/javascript" src="blocks/vuforia_trackable.js"></script>
   <script type="text/javascript" src="blocks/vuforia_trackable_default_listener.js"></script>
   <script type="text/javascript" src="blocks/vuforia_trackables.js"></script>
@@ -111,8 +113,7 @@
     <td class="buttons_td" colspan="2">
       <table width="100%"><tr><td>
         <button onclick="saveButtonClicked()">Save Op Mode</button>
-        <button id="exportJavaButton" disabled="true"
-            onclick="exportJavaButtonClicked()">Download Java</button>
+        <button onclick="exportJavaButtonClicked()">Download Java</button>
         <button onclick="downloadButtonClicked()">Download Op Mode</button>
         <button id="downloadImageButton" style="display: none" disabled="true"
             onclick="downloadImageButtonClicked()">Download Image of Blocks</button>
@@ -191,6 +192,8 @@
       a.download = currentClassName + '.java';
       a.target = '_blank';
       a.click();
+    } else {
+      alert('Unable to download Java. Sorry about that!');
     }
   }
 

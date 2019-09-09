@@ -38,7 +38,6 @@ function initializeBlocks() {
     fetchBlkFileContent(currentProjectName, function(blkFileContent, errorMessage) {
       if (blkFileContent) {
         var blocksLoadedCallback = function() {
-          checkExportJavaFeature();
           showJava();
         };
         document.getElementById('javaCodeHeading').style.display = 'block';
@@ -108,18 +107,22 @@ function projectEnabledChanged() {
  * Called from Save button onclick.
  */
 function saveButtonClicked() {
-  if (blockIdsWithWarnings.length == 0) {
+  if (blockIdsWithMissingHardware.length == 0) {
     saveProjectNow();
   } else {
     var messageDiv = document.getElementById('saveWithWarningsMessage');
-    if (blockIdsWithWarnings.length == 1) {
-      messageDiv.innerHTML = 'There is 1 block that uses a missing hardware device.';
+    if (blockIdsWithMissingHardware.length == 1) {
+      if (missingHardware.length == 1) {
+        messageDiv.innerHTML = 'There is 1 block that uses a missing hardware device.';
+      } else {
+        messageDiv.innerHTML = 'There is 1 block that uses missing hardware devices.';
+      }
     } else {
       if (missingHardware.length == 1) {
-        messageDiv.innerHTML = 'There are ' + blockIdsWithWarnings.length +
+        messageDiv.innerHTML = 'There are ' + blockIdsWithMissingHardware.length +
             ' blocks that use a missing hardware device.';
       } else {
-        messageDiv.innerHTML = 'There are ' + blockIdsWithWarnings.length +
+        messageDiv.innerHTML = 'There are ' + blockIdsWithMissingHardware.length +
             ' blocks that use missing hardware devices.';
       }
     }
@@ -146,8 +149,6 @@ function saveProjectNow(opt_success_callback) {
     if (blocksContent.indexOf('<block') > -1) {
       var disabled = disableOrphans();
       // Generate JavaScript code.
-      Blockly.JavaScript.addReservedWords('callRunOpMode');
-      addReservedWordsForIdentifiersForJavaScript();
       var jsFileContent = Blockly.JavaScript.workspaceToCode(workspace);
       reenableOrphans(disabled);
       var flavorSelect = document.getElementById('project_flavor');
@@ -222,6 +223,9 @@ function downloadButtonClicked() {
 
 // Initialize global variables & blockly itself
 function initializeBlockly() {
+  addReservedWordsForJavaScript();
+  addReservedWordsForFtcJava();
+
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('keydown', onKeyDown);
 
@@ -293,21 +297,20 @@ function initializeBlockly() {
     for (var i = 0; i < blockIds.length; i++) {
       var block = workspace.getBlockById(blockIds[i]);
       if (block) {
-        var hasWarning = checkBlock(block, missingHardware);
-        if (hasWarning) {
-          if (!blockIdsWithWarnings.includes(blockIds[i])) {
-            blockIdsWithWarnings.push(blockIds[i]);
+        var hasWarningBits = checkBlock(block, missingHardware);
+        if (hasWarningBits & WarningBits.MISSING_HARDWARE) {
+          if (!blockIdsWithMissingHardware.includes(blockIds[i])) {
+            blockIdsWithMissingHardware.push(blockIds[i]);
           }
         } else {
-          if (blockIdsWithWarnings.includes(blockIds[i])) {
-            var index = blockIdsWithWarnings.indexOf(blockIds[i]);
-            blockIdsWithWarnings.splice(index, 1);
+          if (blockIdsWithMissingHardware.includes(blockIds[i])) {
+            var index = blockIdsWithMissingHardware.indexOf(blockIds[i]);
+            blockIdsWithMissingHardware.splice(index, 1);
           }
           saveVisibleIdentifiers(block);
         }
       }
     }
-    checkExportJavaFeature();
     showJava();
   });
 }
@@ -410,17 +413,17 @@ function loadBlocksIntoWorkspace(blocksContent, opt_blocksLoaded_callback) {
   var escapedProjectName = currentProjectName.replace(/&/g, '&amp;');
   document.getElementById('project_name').innerHTML = escapedProjectName;
   missingHardware = [];
-  blockIdsWithWarnings = [];
+  blockIdsWithMissingHardware = [];
   workspace.clear();
   Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(blocksContent), workspace);
 
   // Use a timeout to allow the workspace change event to come through. Then, show an alert
   // if any blocks have warnings. Then clear isDirty.
   setTimeout(function() {
-    if (blockIdsWithWarnings.length > 0) {
-      var message = (blockIdsWithWarnings.length == 1)
+    if (blockIdsWithMissingHardware.length > 0) {
+      var message = (blockIdsWithMissingHardware.length == 1)
           ? 'An error occured when trying to find the hardware devices for 1 block.\n\n'
-          : 'Errors occured when trying to find the hardware devices for ' + blockIdsWithWarnings.length +
+          : 'Errors occured when trying to find the hardware devices for ' + blockIdsWithMissingHardware.length +
               ' blocks.\n\n';
       if (missingHardware.length > 0) {
         message += 'The following hardware devices were not found:\n';
@@ -446,6 +449,7 @@ function loadBlocksIntoWorkspace(blocksContent, opt_blocksLoaded_callback) {
  * configuration. Return true if the block now has a warning, false otherwise.
  */
 function checkBlock(block, missingHardware) {
+  var warningBits = 0;
   try {
     var warningText = null; // null will remove any previous warning.
     for (var iFieldName = 0; iFieldName < identifierFieldNames.length; iFieldName++) {
@@ -516,23 +520,59 @@ function checkBlock(block, missingHardware) {
           if (!missingHardware.includes(visibleIdentifierName)) {
             missingHardware.push(visibleIdentifierName);
           }
-          if (warningText == null) {
-            warningText = '';
-          } else {
-            warningText += '\n\n';
-          }
+          warningBits |= WarningBits.MISSING_HARDWARE;
           if (fieldHasOptions) {
-            warningText += '"' + visibleIdentifierName + '" is not in the current robot configuration.\n\n' +
+            warningText = addWarning(warningText,
+                '"' + visibleIdentifierName + '" is not in the current robot configuration.\n\n' +
                 'Please activate the configuration that contains the hardware device named "' +
-                visibleIdentifierName + '",\nor select a device that is in the current robot configuration.';
+                visibleIdentifierName + '",\nor select a device that is in the current robot configuration.');
           } else {
-            warningText += '"' + visibleIdentifierName + '" is not in the current robot configuration.\n\n' +
+            warningText = addWarning(warningText,
+                '"' + visibleIdentifierName + '" is not in the current robot configuration.\n\n' +
                 'Please activate the configuration that contains the hardware device named "' +
-                visibleIdentifierName + '".';
+                visibleIdentifierName + '".');
           }
         }
       }
     }
+    if (block.type == 'vuforia_initialize' ||
+        block.type == 'vuforia_initializeExtended' ||
+        block.type == 'vuforia_initializeExtendedNoKey' ||
+        block.type == 'vuforia_initialize_withWebcam' ||
+        block.type == 'vuforia_activate' ||
+        block.type == 'vuforia_deactivate' ||
+        block.type == 'vuforia_track' ||
+        block.type == 'vuforia_trackPose' ||
+        block.type == 'vuforia_typedEnum_trackableName' ||
+        block.type == 'vuforiaTrackingResults_getProperty_RelicRecoveryVuMark' ||
+        block.type == 'vuMarks_typedEnum_relicRecoveryVuMark') {
+      warningBits |= WarningBits.RELIC_RECOVERY;
+      warningText = addWarning(warningText,
+          'This block is optimized for Relic Recovery (2017-2018) and will not work correctly ' +
+          'for SKYSTONE (2019-2020).\n\n' +
+          'Please replace this block with the corresponding one from the Optimized for SKYSTONE ' +
+          'toolbox category.');
+    } else if (block.type == 'vuforiaRoverRuckus_initialize_withCameraDirection' ||
+        block.type == 'vuforiaRoverRuckus_initialize_withWebcam' ||
+        block.type == 'vuforiaRoverRuckus_activate' ||
+        block.type == 'vuforiaRoverRuckus_deactivate' ||
+        block.type == 'vuforiaRoverRuckus_track' ||
+        block.type == 'vuforiaRoverRuckus_trackPose' ||
+        block.type == 'vuforiaRoverRuckus_typedEnum_trackableName' ||
+        block.type == 'tfodRoverRuckus_initialize' ||
+        block.type == 'tfodRoverRuckus_activate' ||
+        block.type == 'tfodRoverRuckus_deactivate' ||
+        block.type == 'tfodRoverRuckus_setClippingMargins' ||
+        block.type == 'tfodRoverRuckus_getRecognitions' ||
+        block.type == 'tfodRoverRuckus_typedEnum_label') {
+      warningBits |= WarningBits.ROVER_RUCKUS;
+      warningText = addWarning(warningText,
+          'This block is optimized for Rover Ruckus (2018-2019) and will not work correctly ' +
+          'for SKYSTONE (2019-2020).\n\n' +
+          'Please replace this block with the corresponding one from the Optimized for SKYSTONE ' +
+          'toolbox category.');
+    }
+
     // If warningText is null, the following will clear a previous warning.
     block.setWarningText(warningText);
   } catch (e) {
@@ -540,10 +580,17 @@ function checkBlock(block, missingHardware) {
     console.log(block);
     console.log(e);
   }
-  if (warningText) {
-    return true;
+  return warningBits;
+}
+
+function addWarning(warningText, textToAdd) {
+  if (warningText == null) {
+    warningText = '';
+  } else {
+    warningText += '\n\n';
   }
-  return false;
+  warningText += textToAdd;
+  return warningText;
 }
 
 function removeHardwareIdentifierSuffix(identifierFieldValue) {
@@ -778,12 +825,6 @@ function isExternal(url) {
   return url && url.lastIndexOf('http', 0) == 0 && url.lastIndexOf(window.location.host) == -1;
 }
 
-function checkExportJavaFeature() {
-  // Enable the export to java button if there are zero blocks with warnings.
-  var exportJavaButton = document.getElementById('exportJavaButton');
-  exportJavaButton.disabled = (blockIdsWithWarnings.length == 0) ? false : true;
-}
-
 function projectFlavorChanged() {
   showJava();
 }
@@ -805,13 +846,11 @@ function showJavaChanged() {
 
 function showJava() {
   if (document.getElementById('show_java').checked) {
-    if (blockIdsWithWarnings.length == 0) {
-      var javaCode = generateJavaCode();
-      if (javaCode) {
-        javaContent.textContent = javaCode;
-        javaContent.style.color = 'black';
-        return;
-      }
+    var javaCode = generateJavaCode();
+    if (javaCode) {
+      javaContent.textContent = javaCode;
+      javaContent.style.color = 'black';
+      return;
     }
     javaContent.style.color = 'gray';
   }
@@ -824,8 +863,6 @@ function generateJavaCode() {
   if (blocksContent.indexOf('<block') > -1) {
     if (currentClassName) {
       // Generate Java code.
-      Blockly.FtcJava.addReservedWords('callRunOpMode');
-      addReservedWordsForIdentifiersForFtcJava();
       return Blockly.FtcJava.workspaceToCode(workspace);
     }
   }

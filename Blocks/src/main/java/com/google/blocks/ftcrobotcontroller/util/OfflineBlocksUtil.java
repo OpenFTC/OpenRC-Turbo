@@ -134,6 +134,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/tfod.js");
     assetsToInclude.add("blocks/tfod_recognition.js");
     assetsToInclude.add("blocks/tfod_rover_ruckus.js");
+    assetsToInclude.add("blocks/tfod_sky_stone.js");
     assetsToInclude.add("blocks/toolbox_util.js");
     assetsToInclude.add("blocks/touch_sensor.js");
     assetsToInclude.add("blocks/ultrasonic_sensor.js");
@@ -146,6 +147,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/vuforia_localizer_parameters.js");
     assetsToInclude.add("blocks/vuforia_relic_recovery.js");
     assetsToInclude.add("blocks/vuforia_rover_ruckus.js");
+    assetsToInclude.add("blocks/vuforia_sky_stone.js");
     assetsToInclude.add("blocks/vuforia_trackable.js");
     assetsToInclude.add("blocks/vuforia_trackable_default_listener.js");
     assetsToInclude.add("blocks/vuforia_trackables.js");

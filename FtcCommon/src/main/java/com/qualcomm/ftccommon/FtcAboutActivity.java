@@ -164,7 +164,7 @@ public class FtcAboutActivity extends ThemedActivity
                     {
                     PreferenceCategory prefAppCategoryRc = (PreferenceCategory) findPreference(getString(R.string.pref_app_category_rc));
                     Preference osVersionPreference = new Preference(getPreferenceScreen().getContext());
-                    osVersionPreference.setTitle(getString(R.string.about_os_version));
+                    osVersionPreference.setTitle(getString(R.string.about_ch_os_version));
                     osVersionPreference.setKey(getString(R.string.pref_os_version_rc));
                     prefAppCategoryRc.addPreference(osVersionPreference);
                     }
@@ -212,7 +212,7 @@ public class FtcAboutActivity extends ThemedActivity
             else if (LynxConstants.getControlHubOsVersion() != null)
                 {
                 Preference osVersionPreference = new Preference(getPreferenceScreen().getContext());
-                osVersionPreference.setTitle(getString(R.string.about_os_version));
+                osVersionPreference.setTitle(getString(R.string.about_ch_os_version));
                 osVersionPreference.setKey(getString(R.string.pref_os_version));
                 prefAppCategory.addPreference(osVersionPreference);
                 }

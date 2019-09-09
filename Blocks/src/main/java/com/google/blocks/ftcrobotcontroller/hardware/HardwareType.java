@@ -71,7 +71,7 @@ import java.util.List;
  */
 public enum HardwareType {
   ACCELERATION_SENSOR( // See acceleration_sensor.js
-      "createAccelerationSensorDropdown", "accelerationSensor", "", "_AccelerationSensor",
+      "createAccelerationSensorDropdown", "accelerationSensor", "AsAccelerationSensor", "_AccelerationSensor",
       ToolboxFolder.SENSORS, "AccelerationSensor", ToolboxIcon.ACCELERATION_SENSOR,
       AccelerationSensor.class,
       BuiltInConfigurationType.ACCELEROMETER.getXmlTag()),
@@ -92,24 +92,24 @@ public enum HardwareType {
       ConfigurationTypeManager.getXmlTag(AdafruitBNO055IMU.class),
       ConfigurationTypeManager.getXmlTag(LynxEmbeddedIMU.class)),
   COLOR_SENSOR( // see color_sensor.js
-      "createColorSensorDropdown", "colorSensor", "", "_ColorSensor",
+      "createColorSensorDropdown", "colorSensor", "AsColorSensor", "_ColorSensor",
       ToolboxFolder.SENSORS, "ColorSensor", ToolboxIcon.COLOR_SENSOR,
       ColorSensor.class,
       BuiltInConfigurationType.COLOR_SENSOR.getXmlTag(),
       BuiltInConfigurationType.ADAFRUIT_COLOR_SENSOR.getXmlTag(),
       ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   COMPASS_SENSOR( // see compass_sensor.js
-      "createCompassSensorDropdown", "compassSensor", "", "_CompassSensor",
+      "createCompassSensorDropdown", "compassSensor", "AsCompassSensor", "_CompassSensor",
       ToolboxFolder.SENSORS, "CompassSensor", ToolboxIcon.COMPASS_SENSOR,
       CompassSensor.class,
       BuiltInConfigurationType.COMPASS.getXmlTag()),
   CR_SERVO( // see cr_servo.js
-      "createCRServoDropdown", "crServo", "", "_CRServo",
+      "createCRServoDropdown", "crServo", "AsCRServo", "_CRServo",
       ToolboxFolder.ACTUATORS, "CRServo", ToolboxIcon.CR_SERVO,
       CRServo.class,
       getContinuousServoXmlTags()),
   DC_MOTOR( // see dc_motor.js
-      "createDcMotorDropdown", "dcMotor", "", "_DcMotor",
+      "createDcMotorDropdown", "dcMotor", "AsDcMotor", "_DcMotor",
       ToolboxFolder.ACTUATORS, "DcMotor", ToolboxIcon.DC_MOTOR,
       DcMotor.class,
       getMotorXmlTags()),
@@ -119,39 +119,39 @@ public enum HardwareType {
       DigitalChannel.class,
       ConfigurationTypeManager.getXmlTag(DigitalChannelImpl.class)),
   DISTANCE_SENSOR( // see distance_sensor.js
-      "createDistanceSensorDropdown", "distanceSensor", "", "_DistanceSensor",
+      "createDistanceSensorDropdown", "distanceSensor", "AsDistanceSensor", "_DistanceSensor",
       ToolboxFolder.SENSORS, "DistanceSensor", ToolboxIcon.ULTRASONIC_SENSOR, // Need to make artwork but the ultrasonic sensor is close to what we want.
       DistanceSensor.class,
       ConfigurationTypeManager.getXmlTag(Rev2mDistanceSensor.class),
       ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   GYRO_SENSOR( // see gyro_sensor.js
-      "createGyroSensorDropdown", "gyroSensor", "", "_GyroSensor",
+      "createGyroSensorDropdown", "gyroSensor", "AsGyroSensor", "_GyroSensor",
       ToolboxFolder.SENSORS, "GyroSensor", ToolboxIcon.GYRO_SENSOR,
       GyroSensor.class,
       BuiltInConfigurationType.GYRO.getXmlTag()),
   IR_SEEKER_SENSOR( // see ir_seeker_sensor.js
-      "createIrSeekerSensorDropdown", "irSeekerSensor", "", "_IrSeekerSensor",
+      "createIrSeekerSensorDropdown", "irSeekerSensor", "AsIrSeekerSensor", "_IrSeekerSensor",
       ToolboxFolder.SENSORS, "IrSeekerSensor", ToolboxIcon.IR_SEEKER_SENSOR,
       IrSeekerSensor.class,
       BuiltInConfigurationType.IR_SEEKER.getXmlTag(),
       BuiltInConfigurationType.IR_SEEKER_V3.getXmlTag()),
   LED( // see led.js
-      "createLedDropdown", "led", "", "_LED",
+      "createLedDropdown", "led", "AsLED", "_LED",
       ToolboxFolder.OTHER, "LED", ToolboxIcon.LED,
       LED.class,
       ConfigurationTypeManager.getXmlTag(LED.class)),
   LIGHT_SENSOR( // see light_sensor.js
-      "createLightSensorDropdown", "lightSensor", "", "_LightSensor",
+      "createLightSensorDropdown", "lightSensor", "AsLightSensor", "_LightSensor",
       ToolboxFolder.SENSORS, "LightSensor", ToolboxIcon.LIGHT_SENSOR,
       LightSensor.class,
       BuiltInConfigurationType.LIGHT_SENSOR.getXmlTag()),
   LYNX_MODULE( // No blocks provided.
-      null, null, "asLynxModule", "_REV_Module",
+      null, null, "AsREVModule", "_REV_Module",
       null, null, null,
       LynxModule.class,
       BuiltInConfigurationType.LYNX_MODULE.getXmlTag()),
   LYNX_I2C_COLOR_RANGE_SENSOR( // see lynx_i2c_color_range_sensor.js
-      "createLynxI2cColorRangeSensorDropdown", "lynxI2cColorRangeSensor", "asLynxI2cColorRangeSensor", "_REV_ColorRangeSensor",
+      "createLynxI2cColorRangeSensorDropdown", "lynxI2cColorRangeSensor", "AsREVColorRangeSensor", "_REV_ColorRangeSensor",
       ToolboxFolder.SENSORS, "REV Color/Range Sensor", ToolboxIcon.COLOR_SENSOR,
       LynxI2cColorRangeSensor.class,
       BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag()),
@@ -177,7 +177,7 @@ public enum HardwareType {
       RevBlinkinLedDriver.class,
       ConfigurationTypeManager.getXmlTag(RevBlinkinLedDriver.class)),
   SERVO( // see servo.js
-      "createServoDropdown", "servo", "", "_Servo",
+      "createServoDropdown", "servo", "AsServo", "_Servo",
       ToolboxFolder.ACTUATORS, "Servo", ToolboxIcon.SERVO,
       Servo.class,
       getStandardServoXmlTags()),
@@ -188,14 +188,14 @@ public enum HardwareType {
       BuiltInConfigurationType.SERVO_CONTROLLER.getXmlTag(),
       BuiltInConfigurationType.MATRIX_CONTROLLER.getXmlTag()),
   TOUCH_SENSOR( // see touch_sensor.js
-      "createTouchSensorDropdown", "touchSensor", "", "_TouchSensor",
+      "createTouchSensorDropdown", "touchSensor", "AsTouchSensor", "_TouchSensor",
       ToolboxFolder.SENSORS, "TouchSensor", ToolboxIcon.TOUCH_SENSOR,
       TouchSensor.class,
       BuiltInConfigurationType.TOUCH_SENSOR.getXmlTag(),
       ConfigurationTypeManager.getXmlTag(ModernRoboticsTouchSensor.class), // Only represents the analog mode of the MR Touch Sensor
       ConfigurationTypeManager.getXmlTag(RevTouchSensor.class)),
   ULTRASONIC_SENSOR( // see ultrasonic_sensor.js
-      "createUltrasonicSensorDropdown", "ultrasonicSensor", "", "_UltrasonicSensor",
+      "createUltrasonicSensorDropdown", "ultrasonicSensor", "AsUltrasonicSensor", "_UltrasonicSensor",
       ToolboxFolder.SENSORS, "UltrasonicSensor", ToolboxIcon.ULTRASONIC_SENSOR,
       UltrasonicSensor.class,
       BuiltInConfigurationType.ULTRASONIC_SENSOR.getXmlTag()),
@@ -297,6 +297,12 @@ public enum HardwareType {
       ToolboxFolder toolboxFolder, String toolboxCategoryName, ToolboxIcon toolboxIcon,
       Class<? extends HardwareDevice> deviceType,
       String... xmlTags) {
+    if (identifierSuffixForJavaScript == null || identifierSuffixForJavaScript.isEmpty()) {
+      throw new IllegalArgumentException("identifierSuffixForJavaScript");
+    }
+    if (identifierSuffixForFtcJava == null || identifierSuffixForFtcJava.isEmpty()) {
+      throw new IllegalArgumentException("identifierSuffixForFtcJava");
+    }
     this.createDropdownFunctionName = createDropdownFunctionName;
     this.blockTypePrefix = blockTypePrefix;
     this.identifierSuffixForJavaScript = identifierSuffixForJavaScript;

@@ -2,7 +2,7 @@
 <variables>
 <variable type="" id="Ivr#pnFgCLh`6~Jkb4fl">tgtPower</variable>
 </variables>
-<block type="procedures_defnoreturn" id="^h|yUs(BfxI3Q4gJLPyE" deletable="false" editable="false" x="-40" y="18">
+<block type="procedures_defnoreturn" id="^h|yUs(BfxI3Q4gJLPyE" deletable="false" editable="false" x="40" y="18">
 <field name="NAME">runOpMode</field>
 <comment pinned="false" h="80" w="160">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
@@ -11,7 +11,7 @@
 <comment pinned="false" h="109" w="311">This example op mode is used in the FTC Blocks Programming Tool training tutorial. It shows how to control a motor, a servo, and to read a couple of sensors.</comment>
 <next>
 <block type="digitalChannel_setProperty_DigitalChannelMode" id="jf~%z/q]FR]fmT+F^K0R">
-<field name="IDENTIFIER">digitalTouch</field>
+<field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">Mode</field>
 <value name="VALUE">
 <shadow type="digitalChannel_typedEnum_mode" id="!Lzj`p9[%o~T*sRY`_n1">
@@ -20,7 +20,7 @@
 </value>
 <next>
 <block type="servo_setProperty_Number" id="$xmGqzwi[Z@!^z-[7al4">
-<field name="IDENTIFIER">servoTest</field>
+<field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
 <value name="VALUE">
 <shadow type="math_number" id="$qcK(((c`oTX/`JfE3wr">
@@ -61,7 +61,7 @@
 </value>
 <statement name="DO0">
 <block type="servo_setProperty_Number" id="R@bPFyEdkAn%7,F6eBsC">
-<field name="IDENTIFIER">servoTest</field>
+<field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
 <value name="VALUE">
 <shadow type="math_number" id="6V*eT|Z0qAXoj](d41vH">
@@ -91,7 +91,7 @@
 </value>
 <statement name="DO1">
 <block type="servo_setProperty_Number" id="4oQ;}zJ/E3ibIUXP!8uN">
-<field name="IDENTIFIER">servoTest</field>
+<field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
 <value name="VALUE">
 <shadow type="math_number" id="_jf[,u{B(vXnF~)!Rn_}">
@@ -109,7 +109,7 @@
 </value>
 <statement name="DO2">
 <block type="servo_setProperty_Number" id="PEmEEf2`[R~C@RB|)Bc~">
-<field name="IDENTIFIER">servoTest</field>
+<field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
 <value name="VALUE">
 <shadow type="math_number" id="kgEFU_qL^`MM.^op;@{0">
@@ -130,7 +130,7 @@
 </value>
 <next>
 <block type="dcMotor_setProperty_Number" id="T3+%rH:9k)`BhpKY.B~#">
-<field name="IDENTIFIER">motorTest</field>
+<field name="IDENTIFIER">motorTestAsDcMotor</field>
 <field name="PROP">Power</field>
 <value name="VALUE">
 <shadow type="math_number" id="@vXY?/wC*kUZmBE)G.ZF">
@@ -167,7 +167,7 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="dcMotor_getProperty_Number" id="enzD;*zf?%K:;GJGLzw@">
-<field name="IDENTIFIER">motorTest</field>
+<field name="IDENTIFIER">motorTestAsDcMotor</field>
 <field name="PROP">Power</field>
 </block>
 </value>
@@ -183,7 +183,7 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="servo_getProperty_Number" id="v@tOCe6rROfae/)I}/j;">
-<field name="IDENTIFIER">servoTest</field>
+<field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
 </block>
 </value>
@@ -199,7 +199,7 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getDistance_Number" id="M_nC.00aZ8fEN=#^RY%d">
-<field name="IDENTIFIER">sensorColorRange</field>
+<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <value name="UNIT">
 <shadow type="navigation_typedEnum_distanceUnit" id=",5!M6Mj(h$S^`__gT|G1">
 <field name="DISTANCE_UNIT">CM</field>
@@ -213,7 +213,7 @@
 </mutation>
 <value name="IF0">
 <block type="digitalChannel_getProperty_Boolean" id="kP[|(lNx0J}@RjMo^ee1">
-<field name="IDENTIFIER">digitalTouch</field>
+<field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">State</field>
 </block>
 </value>

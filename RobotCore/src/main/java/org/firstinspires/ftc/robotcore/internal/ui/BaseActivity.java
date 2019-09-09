@@ -55,24 +55,33 @@ public abstract class BaseActivity extends Activity {
         return null;
     }
 
+    private void hideBackBar() {
+        FrameLayout backBar = getBackBar();
+        if (backBar != null) {
+            ViewGroup.LayoutParams backBarLayoutParams = backBar.getLayoutParams();
+            backBarLayoutParams.height = 0;
+            backBar.setLayoutParams(backBarLayoutParams);
+        }
+    }
+
+    private void setupBackButton() {
+        if (getBackBar() != null) {
+            final ImageButton backButton = findViewById(R.id.backButton);
+            backButton.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    BaseActivity.this.onBackPressed();
+                }
+            });
+        }
+    }
+
     @Override public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
 
-        FrameLayout backBar = getBackBar();
-        if (backBar != null) {
-            if (Device.deviceHasBackButton()) {
-                ((ViewGroup)backBar.getParent()).removeView(backBar);
-            }
-            else {
-                final ImageButton backButton = findViewById(R.id.backButton);
-                backButton.setOnClickListener(new View.OnClickListener()
-                {
-                    @Override public void onClick(View v)
-                    {
-                        BaseActivity.this.onBackPressed();
-                    }
-                });
-            }
+        if (Device.deviceHasBackButton()) {
+            hideBackBar();
+        } else {
+            setupBackButton();
         }
     }
 }

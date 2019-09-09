@@ -50,6 +50,7 @@ public class LynxConstants
 
     public static final int DRAGONBOARD_CH_VERSION = 0;
     private static final String DRAGONBOARD_MODEL = "FIRST Control Hub";
+    private static final String EMPTY_STRING = "";
 
     /** Are we running on an Android / Lynx combo device */
     public static boolean isRevControlHub()
@@ -79,10 +80,13 @@ public class LynxConstants
     /** Get the Control Hub OS version. Returns null if OS version property is not set.
      *
      * Value is human-readable, do not attempt to parse.
-     * Use ro.build.date.utc to differentiate between OS versions programmatically. */
+     * Use ro.controlhub.os.versionnum (added in OS version 1.0.1) to differentiate between OS
+     * versions programmatically. */
     @Nullable public static String getControlHubOsVersion()
         {
-        return SystemProperties.get("ro.controlhub.os.version", null);
+        String chOsVersion = SystemProperties.get("ro.controlhub.os.version", EMPTY_STRING);
+        if(EMPTY_STRING.equals(chOsVersion)) chOsVersion = null;
+        return chOsVersion;
         }
 
     /** When running on a Dragonboard / Lynx combo device, should the Dragonboard pretend

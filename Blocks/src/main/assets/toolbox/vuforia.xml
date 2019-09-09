@@ -1,16 +1,16 @@
   <category name="Vuforia">
-    <category name="Optimized for Rover Ruckus">
-      <placeholder_camera_vuforiaRoverRuckus_initialize_withCameraDirection/>
-      <placeholder_webcam_vuforiaRoverRuckus_initialize_withWebcam/>
-      <block type="vuforiaRoverRuckus_activate"></block>
-      <block type="vuforiaRoverRuckus_deactivate"></block>
-      <block type="vuforiaRoverRuckus_track">
-        <value name="TRACKABLE_NAME"><shadow type="vuforiaRoverRuckus_typedEnum_trackableName"></shadow></value>
+    <category name="Optimized for SKYSTONE">
+      <placeholder_camera_vuforiaSkyStone_initialize_withCameraDirection/>
+      <placeholder_webcam_vuforiaSkyStone_initialize_withWebcam/>
+      <block type="vuforiaSkyStone_activate"></block>
+      <block type="vuforiaSkyStone_deactivate"></block>
+      <block type="vuforiaSkyStone_track">
+        <value name="TRACKABLE_NAME"><shadow type="vuforiaSkyStone_typedEnum_trackableName"></shadow></value>
       </block>
-      <block type="vuforiaRoverRuckus_trackPose">
-        <value name="TRACKABLE_NAME"><shadow type="vuforiaRoverRuckus_typedEnum_trackableName"></shadow></value>
+      <block type="vuforiaSkyStone_trackPose">
+        <value name="TRACKABLE_NAME"><shadow type="vuforiaSkyStone_typedEnum_trackableName"></shadow></value>
       </block>
-      <block type="vuforiaRoverRuckus_typedEnum_trackableName"></block>
+      <block type="vuforiaSkyStone_typedEnum_trackableName"></block>
       <block type="vuforiaTrackingResults_getProperty_String">
           <field name="PROP">Name</field>
           <value name="VUFORIA_TRACKING_RESULTS"><block type="variables_get"><field name="VAR">{vuforiaTrackingResultsVariable}</field></block></value>

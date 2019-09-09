@@ -355,6 +355,38 @@ public class ProjectsUtil {
     blkContent = blkContent.replace(
         "<value name=\"ADAFRUIT_BNO055IMU_PARAMETERS\">",
         "<value name=\"BNO055IMU_PARAMETERS\">");
+
+    // In previous versions, identifier suffix AsREVModule was asLynxModule.
+    blkContent = replaceIdentifierSuffixInBlocks(blkContent,
+        hardwareItemMap.getHardwareItems(HardwareType.LYNX_MODULE),
+        "asLynxModule", "AsREVModule");
+    // In previous versions, identifier suffix AsREVColorRangeSensor was asLynxI2cColorRangeSensor.
+    blkContent = replaceIdentifierSuffixInBlocks(blkContent,
+        hardwareItemMap.getHardwareItems(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR),
+        "asLynxI2cColorRangeSensor", "AsREVColorRangeSensor");
+
+    // In previous versions, some hardware types didn't have suffices.
+    HardwareType[] typesThatDidntHaveSuffix = new HardwareType[] {
+      HardwareType.ACCELERATION_SENSOR,
+      HardwareType.COLOR_SENSOR,
+      HardwareType.COMPASS_SENSOR,
+      HardwareType.CR_SERVO,
+      HardwareType.DC_MOTOR,
+      HardwareType.DISTANCE_SENSOR,
+      HardwareType.GYRO_SENSOR,
+      HardwareType.IR_SEEKER_SENSOR,
+      HardwareType.LED,
+      HardwareType.LIGHT_SENSOR,
+      HardwareType.SERVO,
+      HardwareType.TOUCH_SENSOR,
+      HardwareType.ULTRASONIC_SENSOR
+    };
+    for (HardwareType hardwareType : typesThatDidntHaveSuffix) {
+      blkContent = replaceIdentifierSuffixInBlocks(blkContent,
+          hardwareItemMap.getHardwareItems(hardwareType),
+          "", hardwareType.identifierSuffixForJavaScript);
+    }
+
     return blkContent;
   }
 
@@ -368,11 +400,19 @@ public class ProjectsUtil {
       for (HardwareItem hardwareItem : hardwareItemList) {
         String newIdentifier = hardwareItem.identifier;
         if (newIdentifier.endsWith(newIdentifierSuffix)) {
-          String oldIdentifier = newIdentifier.substring(0, newIdentifier.length() - newIdentifierSuffix.length())
+          String oldIdentifier =
+              newIdentifier.substring(0, newIdentifier.length() - newIdentifierSuffix.length())
               + oldIdentifierSuffix;
-          String oldTag = "<field name=\"IDENTIFIER\">" + oldIdentifier + "</field>";
-          String newTag = "<field name=\"IDENTIFIER\">" + newIdentifier + "</field>";
-          blkContent = blkContent.replace(oldTag, newTag);
+          String[] identifierFieldNames = new String[] {
+            "IDENTIFIER",
+            "IDENTIFIER1",
+            "IDENTIFIER2",
+          };
+          for (String identifierFieldName : identifierFieldNames) {
+            String oldTag = "<field name=\"" + identifierFieldName + "\">" + oldIdentifier + "</field>";
+            String newTag = "<field name=\"" + identifierFieldName + "\">" + newIdentifier + "</field>";
+            blkContent = blkContent.replace(oldTag, newTag);
+          }
         }
       }
     }

@@ -165,6 +165,65 @@ function vuforia_initialize_withWebcam_FtcJava(block, className) {
       Blockly.FtcJava.INDENT_CONTINUE + useCompetitionFieldTargetLocations + '); // useCompetitionFieldTargetLocations\n';
 }
 
+function vuforia_activate_JavaScript(block, identifier) {
+  return identifier + '.activate();\n';
+}
+
+function vuforia_activate_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  return identifier + '.activate();\n';
+}
+
+function vuforia_deactivate_JavaScript(block, identifier) {
+  return identifier + '.deactivate();\n';
+}
+
+function vuforia_deactivate_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  return identifier + '.deactivate();\n';
+}
+
+function vuforia_track_JavaScript(block, identifier) {
+  var trackableName = Blockly.JavaScript.valueToCode(
+      block, 'TRACKABLE_NAME', Blockly.JavaScript.ORDER_NONE);
+  var code = 'JSON.parse(' + identifier + '.track(' + trackableName + '))';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+}
+
+function vuforia_track_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var trackableName = Blockly.FtcJava.valueToCode(
+      block, 'TRACKABLE_NAME', Blockly.FtcJava.ORDER_NONE);
+  var code = identifier + '.track(' + trackableName + ')';
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+}
+
+function vuforia_trackPose_JavaScript(block, identifier) {
+  var trackableName = Blockly.JavaScript.valueToCode(
+      block, 'TRACKABLE_NAME', Blockly.JavaScript.ORDER_NONE);
+  var code = 'JSON.parse(' + identifier + '.trackPose(' + trackableName + '))';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+}
+
+function vuforia_trackPose_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var trackableName = Blockly.FtcJava.valueToCode(
+      block, 'TRACKABLE_NAME', Blockly.FtcJava.ORDER_NONE);
+  var code = identifier + '.trackPose(' + trackableName + ')';
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+}
+
+function vuforia_typedEnum_trackableName_JavaScript(block) {
+  var code = '"' + block.getFieldValue('TRACKABLE_NAME') + '"';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+}
+
+function vuforia_typedEnum_trackableName_FtcJava(block) {
+  // Even in Java, a trackable name is actually just a string, not an enum.
+  var code = '"' + block.getFieldValue('TRACKABLE_NAME') + '"';
+  return [code, Blockly.FtcJava.ORDER_ATOMIC];
+}
+
 // TrackingResults
 
 Blockly.Blocks['vuforiaTrackingResults_getProperty_String'] = {

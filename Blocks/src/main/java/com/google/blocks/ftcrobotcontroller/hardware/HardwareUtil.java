@@ -52,7 +52,9 @@ import java.util.TreeMap;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
+import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
@@ -69,6 +71,8 @@ public class HardwareUtil {
   private static final String LINEAR_OP_MODE_CATEGORY_NAME = "LinearOpMode"; // see toolbox/linear_op_mode.xml
   private static final String COLOR_CATEGORY_NAME = "Color"; // see toolbox/utilities.xml
   private static final String ELAPSED_TIME_CATEGORY_NAME = "ElapsedTime"; // see toolbox/utilities.xml
+
+  private static final Set<String> reservedWordsForFtcJava = buildReservedWordsForFtcJava();
 
   /**
    * A {@link Map} from xmlTag to List of {@link HardwareType}.
@@ -302,6 +306,58 @@ public class HardwareUtil {
         .append(roverRuckusTrackableNameTooltips)
         .append("\n");
 
+    // SKYSTONE tfod labels
+    StringBuilder createSkyStoneTfodLabelDropdown = new StringBuilder();
+    StringBuilder skyStoneTfodLabelTooltips = new StringBuilder();
+    createSkyStoneTfodLabelDropdown
+        .append("function createSkyStoneTfodLabelDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    skyStoneTfodLabelTooltips
+        .append("var SKY_STONE_TFOD_LABEL_TOOLTIPS = [\n");
+    for (String tfodLabel : TfodSkyStone.LABELS) {
+      createSkyStoneTfodLabelDropdown
+          .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(tfodLabel))).append("', '")
+          .append(escapeSingleQuotes(tfodLabel)).append("'],\n");
+      skyStoneTfodLabelTooltips
+          .append("  ['").append(escapeSingleQuotes(tfodLabel)).append("', 'The Label value ")
+          .append(escapeSingleQuotes(tfodLabel)).append(".'],\n");
+    }
+    createSkyStoneTfodLabelDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    skyStoneTfodLabelTooltips
+        .append("];\n");
+    jsHardware
+        .append(createSkyStoneTfodLabelDropdown)
+        .append(skyStoneTfodLabelTooltips)
+        .append("\n");
+
+    // SKYSTONE trackable names
+    StringBuilder createSkyStoneTrackableNameDropdown = new StringBuilder();
+    StringBuilder skyStoneTrackableNameTooltips = new StringBuilder();
+    createSkyStoneTrackableNameDropdown
+        .append("function createSkyStoneTrackableNameDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    skyStoneTrackableNameTooltips
+        .append("var SKY_STONE_TRACKABLE_NAME_TOOLTIPS = [\n");
+    for (String trackableName : VuforiaSkyStone.TRACKABLE_NAMES) {
+      createSkyStoneTrackableNameDropdown
+          .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(trackableName))).append("', '")
+          .append(escapeSingleQuotes(trackableName)).append("'],\n");
+      skyStoneTrackableNameTooltips
+          .append("  ['").append(escapeSingleQuotes(trackableName)).append("', 'The TrackableName value ")
+          .append(escapeSingleQuotes(trackableName)).append(".'],\n");
+    }
+    createSkyStoneTrackableNameDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    skyStoneTrackableNameTooltips
+        .append("];\n");
+    jsHardware
+        .append(createSkyStoneTrackableNameDropdown)
+        .append(skyStoneTrackableNameTooltips)
+        .append("\n");
+
     // Hardware
     for (HardwareType hardwareType : HardwareType.values()) {
       // Some HardwareTypes might have a null createDropdownFunctionName. This allows us to support
@@ -321,16 +377,14 @@ public class HardwareUtil {
     jsHardware.append("function getHardwareIdentifierSuffixes() {\n")
         .append("  var suffixes = [\n");
     for (HardwareType hardwareType : HardwareType.values()) {
-      if (hardwareType.identifierSuffixForJavaScript != null &&
-          !hardwareType.identifierSuffixForJavaScript.isEmpty()) {
-        jsHardware.append("    '" + hardwareType.identifierSuffixForJavaScript + "',\n");
-      }
+      jsHardware.append("    '" + hardwareType.identifierSuffixForJavaScript + "',\n");
     }
     jsHardware.append("  ];\n")
         .append("  return suffixes;\n")
         .append("}\n\n");
 
-    jsHardware.append("function addReservedWordsForIdentifiersForJavaScript() {\n");
+    jsHardware.append("function addReservedWordsForJavaScript() {\n");
+    jsHardware.append("  Blockly.JavaScript.addReservedWords('callRunOpMode');\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware.append("  Blockly.JavaScript.addReservedWords('")
           .append(hardwareItem.identifier).append("');\n");
@@ -355,7 +409,7 @@ public class HardwareUtil {
       jsHardware.append("      return '").append(escapeSingleQuotes(hardwareItem.deviceName)).append("';\n");
     }
     jsHardware.append("  }\n");
-    jsHardware.append("  throw  'Unexpected identifier (' + identifier + ').';\n");
+    jsHardware.append("  throw 'Unexpected identifier (' + identifier + ').';\n");
     jsHardware.append("}\n\n");
 
     jsHardware.append("function getIdentifierForFtcJava(identifier) {\n");
@@ -364,21 +418,26 @@ public class HardwareUtil {
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware.append("    case '").append(hardwareItem.identifier).append("':\n");
       String identifierForFtcJava = HardwareItem.makeIdentifier(hardwareItem.deviceName);
+      // Check that it isn't a reserved word.
+      if (reservedWordsForFtcJava.contains(identifierForFtcJava)) {
+        identifierForFtcJava += hardwareItem.hardwareType.identifierSuffixForFtcJava;
+      }
       // Check if identifierForFtcJava is already in the set.
       if (!set.add(identifierForFtcJava)) {
         // Make the identifierForFtcJava unique by adding a hardware type suffix.
-        if (hardwareItem.hardwareType.identifierSuffixForFtcJava != null) {
-          identifierForFtcJava += hardwareItem.hardwareType.identifierSuffixForFtcJava;
-        }
+        identifierForFtcJava += hardwareItem.hardwareType.identifierSuffixForFtcJava;
         set.add(identifierForFtcJava);
       }
       jsHardware.append("      return '").append(identifierForFtcJava).append("';\n");
     }
     jsHardware.append("  }\n");
-    jsHardware.append("  throw  'Unexpected identifier (' + identifier + ').';\n");
+    jsHardware.append("  throw 'Unexpected identifier (' + identifier + ').';\n");
     jsHardware.append("}\n\n");
 
-    jsHardware.append("function addReservedWordsForIdentifiersForFtcJava() {\n");
+    jsHardware.append("function addReservedWordsForFtcJava() {\n");
+    for (String word : reservedWordsForFtcJava) {
+      jsHardware.append("  Blockly.FtcJava.addReservedWords('").append(word).append("');\n");
+    }
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware.append("  Blockly.FtcJava.addReservedWords(getIdentifierForFtcJava('")
           .append(hardwareItem.identifier).append("'));\n");
@@ -1645,5 +1704,310 @@ public class HardwareUtil {
     RobotConfigFileManager robotConfigFileManager = new RobotConfigFileManager();
     RobotConfigFile activeConfig = robotConfigFileManager.getActiveConfig();
     return activeConfig.getName();
+  }
+
+  private static Set<String> buildReservedWordsForFtcJava() {
+    Set<String> set = new HashSet<>();
+    // Include all the classes that we could import (see generateImport_).
+    // android.graphics
+    set.add("Color");
+    // com.qualcomm.ftccommon
+    set.add("SoundPlayer");
+    // com.qualcomm.hardware.modernrobotics
+    set.add("ModernRoboticsI2cCompassSensor");
+    set.add("ModernRoboticsI2cGyro");
+    set.add("ModernRoboticsI2cRangeSensor");
+    // com.qualcomm.hardware.bosch
+    set.add("BNO055IMU");
+    set.add("JustLoggingAccelerationIntegrator");
+    // com.qualcomm.hardware.rev
+    set.add("RevBlinkinLedDriver");
+    // com.qualcomm.robotcore.eventloop
+    set.add("Autonomous");
+    set.add("Disabled");
+    set.add("LinearOpMode");
+    set.add("TeleOp");
+    // com.qualcomm.robotcore.hardware
+    set.add("AccelerationSensor");
+    set.add("AnalogInput");
+    set.add("AnalogOutput");
+    set.add("CRServo");
+    set.add("ColorSensor");
+    set.add("CompassSensor");
+    set.add("DcMotor");
+    set.add("DcMotorEx");
+    set.add("DcMotorSimple");
+    set.add("DigitalChannel");
+    set.add("DistanceSensor");
+    set.add("GyroSensor");
+    set.add("Gyroscope");
+    set.add("I2cAddr");
+    set.add("I2cAddrConfig");
+    set.add("I2cAddressableDevice");
+    set.add("IrSeekerSensor");
+    set.add("LED");
+    set.add("Light");
+    set.add("LightSensor");
+    set.add("MotorControlAlgorithm");
+    set.add("NormalizedColorSensor");
+    set.add("NormalizedRGBA");
+    set.add("OpticalDistanceSensor");
+    set.add("OrientationSensor");
+    set.add("PIDCoefficients");
+    set.add("PIDFCoefficients");
+    set.add("PWMOutput");
+    set.add("Servo");
+    set.add("ServoController");
+    set.add("SwitchableLight");
+    set.add("TouchSensor");
+    set.add("UltrasonicSensor");
+    set.add("VoltageSensor");
+    // com.qualcomm.robotcore.util
+    set.add("ElapsedTime");
+    set.add("Range");
+    set.add("ReadWriteFile");
+    set.add("RobotLog");
+    // java.util
+    set.add("ArrayList");
+    set.add("Collections");
+    set.add("List");
+    // org.firstinspires.ftc.robotcore.external
+    set.add("ClassFactory");
+    set.add("JavaUtil");
+    // org.firstinspires.ftc.robotcore.external.android
+    set.add("AndroidAccelerometer");
+    set.add("AndroidGyroscope");
+    set.add("AndroidOrientation");
+    set.add("AndroidSoundPool");
+    set.add("AndroidTextToSpeech");
+    // org.firstinspires.ftc.robotcore.external.hardware.camera
+    set.add("WebcamName");
+    // org.firstinspires.ftc.robotcore.external.matrices
+    set.add("MatrixF");
+    set.add("OpenGLMatrix");
+    set.add("VectorF");
+    // org.firstinspires.ftc.robotcore.external.navigation
+    set.add("Acceleration");
+    set.add("AngleUnit");
+    set.add("AngularVelocity");
+    set.add("AxesOrder");
+    set.add("AxesReference");
+    set.add("Axis");
+    set.add("DistanceUnit");
+    set.add("MagneticFlux");
+    set.add("Orientation");
+    set.add("Position");
+    set.add("Quaternion");
+    set.add("RelicRecoveryVuMark");
+    set.add("Temperature");
+    set.add("TempUnit");
+    set.add("UnnormalizedAngleUnit");
+    set.add("Velocity");
+    set.add("VuforiaBase");
+    set.add("VuforiaLocalizer");
+    set.add("VuforiaRelicRecovery");
+    set.add("VuforiaRoverRuckus");
+    set.add("VuforiaTrackable");
+    set.add("VuforiaTrackableDefaultListener");
+    set.add("VuforiaTrackables");
+    // org.firstinspires.ftc.robotcore.internal.system
+    set.add("AppUtil");
+    // org.firstinspires.ftc.robotcore.external.tfod
+    set.add("Recognition");
+    set.add("TfodBase");
+    set.add("TfodRoverRuckus");
+    // LinearOpMode members
+    set.add("waitForStart");
+    set.add("idle");
+    set.add("sleep");
+    set.add("opModeIsActive");
+    set.add("isStarted");
+    set.add("isStopRequested");
+    set.add("init");
+    set.add("init_loop");
+    set.add("start");
+    set.add("loop");
+    set.add("stop");
+    set.add("handleLoop");
+    set.add("LinearOpModeHelper");
+    set.add("internalPostInitLoop");
+    set.add("internalPostLoop");
+    set.add("waitOneFullHardwareCycle");
+    set.add("waitForNextHardwareCycle");
+    set.add("OpMode");
+    set.add("gamepad1");
+    set.add("gamepad2");
+    set.add("telemetry");
+    set.add("time");
+    set.add("requestOpModeStop");
+    set.add("getRuntime");
+    set.add("resetStartTime");
+    set.add("updateTelemetry");
+    set.add("msStuckDetectInit");
+    set.add("msStuckDetectInitLoop");
+    set.add("msStuckDetectStart");
+    set.add("msStuckDetectLoop");
+    set.add("msStuckDetectStop");
+    set.add("internalPreInit");
+    set.add("internalOpModeServices");
+    set.add("internalUpdateTelemetryNow");
+    // https://docs.oracle.com/javase/tutorial/java/nutsandbolts/_keywords.html
+    set.add("abstract");
+    set.add("assert");
+    set.add("boolean");
+    set.add("break");
+    set.add("byte");
+    set.add("case");
+    set.add("catch");
+    set.add("char");
+    set.add("class");
+    set.add("const");
+    set.add("continue");
+    set.add("default");
+    set.add("do");
+    set.add("double");
+    set.add("else");
+    set.add("enum");
+    set.add("extends");
+    set.add("final");
+    set.add("finally");
+    set.add("float");
+    set.add("for");
+    set.add("goto");
+    set.add("if");
+    set.add("implements");
+    set.add("import");
+    set.add("instanceof");
+    set.add("int");
+    set.add("interface");
+    set.add("long");
+    set.add("native");
+    set.add("new");
+    set.add("package");
+    set.add("private");
+    set.add("protected");
+    set.add("public");
+    set.add("return");
+    set.add("short");
+    set.add("static");
+    set.add("strictfp");
+    set.add("super");
+    set.add("switch");
+    set.add("synchronized");
+    set.add("this");
+    set.add("throw");
+    set.add("throws");
+    set.add("transient");
+    set.add("try");
+    set.add("void");
+    set.add("volatile");
+    set.add("while");
+    // java.lang.*
+    set.add("AbstractMethodError");
+    set.add("Appendable");
+    set.add("ArithmeticException");
+    set.add("ArrayIndexOutOfBoundsException");
+    set.add("ArrayStoreException");
+    set.add("AssertionError");
+    set.add("AutoCloseable");
+    set.add("Boolean");
+    set.add("BootstrapMethodError");
+    set.add("Byte");
+    set.add("Character");
+    set.add("Character.Subset");
+    set.add("Character.UnicodeBlock");
+    set.add("Character.UnicodeScript");
+    set.add("CharSequence");
+    set.add("Class");
+    set.add("ClassCastException");
+    set.add("ClassCircularityError");
+    set.add("ClassFormatError");
+    set.add("ClassLoader");
+    set.add("ClassNotFoundException");
+    set.add("ClassValue");
+    set.add("Cloneable");
+    set.add("CloneNotSupportedException");
+    set.add("Comparable");
+    set.add("Compiler");
+    set.add("Deprecated");
+    set.add("Double");
+    set.add("Enum");
+    set.add("Enum");
+    set.add("EnumConstantNotPresentException");
+    set.add("Error");
+    set.add("Exception");
+    set.add("ExceptionInInitializerError");
+    set.add("Float");
+    set.add("FunctionalInterface");
+    set.add("IllegalAccessError");
+    set.add("IllegalAccessException");
+    set.add("IllegalArgumentException");
+    set.add("IllegalMonitorStateException");
+    set.add("IllegalStateException");
+    set.add("IllegalThreadStateException");
+    set.add("IncompatibleClassChangeError");
+    set.add("IndexOutOfBoundsException");
+    set.add("InheritableThreadLocal");
+    set.add("InstantiationError");
+    set.add("InstantiationException");
+    set.add("Integer");
+    set.add("InternalError");
+    set.add("InterruptedException");
+    set.add("Iterable");
+    set.add("LinkageError");
+    set.add("Long");
+    set.add("Math");
+    set.add("NegativeArraySizeException");
+    set.add("NoClassDefFoundError");
+    set.add("NoSuchFieldError");
+    set.add("NoSuchFieldException");
+    set.add("NoSuchMethodError");
+    set.add("NoSuchMethodException");
+    set.add("NullPointerException");
+    set.add("Number");
+    set.add("NumberFormatException");
+    set.add("Object");
+    set.add("OutOfMemoryError");
+    set.add("Override");
+    set.add("Package");
+    set.add("Process");
+    set.add("ProcessBuilder");
+    set.add("ProcessBuilder.Redirect");
+    set.add("ProcessBuilder.Redirect.Type");
+    set.add("Readable");
+    set.add("ReflectiveOperationException");
+    set.add("Runnable");
+    set.add("Runtime");
+    set.add("RuntimeException");
+    set.add("RuntimePermission");
+    set.add("SafeVarargs");
+    set.add("SecurityException");
+    set.add("SecurityManager");
+    set.add("Short");
+    set.add("StackOverflowError");
+    set.add("StackTraceElement");
+    set.add("StrictMath");
+    set.add("String");
+    set.add("StringBuffer");
+    set.add("StringBuilder");
+    set.add("StringIndexOutOfBoundsException");
+    set.add("SuppressWarnings");
+    set.add("System");
+    set.add("Thread");
+    set.add("ThreadDeath");
+    set.add("ThreadGroup");
+    set.add("ThreadLocal");
+    set.add("Thread.State");
+    set.add("Thread.UncaughtExceptionHandler");
+    set.add("Throwable");
+    set.add("TypeNotPresentException");
+    set.add("UnknownError");
+    set.add("UnsatisfiedLinkError");
+    set.add("UnsupportedClassVersionError");
+    set.add("UnsupportedOperationException");
+    set.add("VerifyError");
+    set.add("VirtualMachineError");
+    set.add("Void");
+    return set;
   }
 }

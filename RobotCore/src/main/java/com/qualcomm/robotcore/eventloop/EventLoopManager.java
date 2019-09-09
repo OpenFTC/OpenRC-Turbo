@@ -593,6 +593,12 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
   private void stopEventLoop() {
 
+    // Prevent stuck-loop LinearOpMode from staying in memory during Restart Robot action.
+    if(eventLoop.getOpModeManager() != null)
+    {
+      eventLoop.getOpModeManager().stopActiveOpMode();
+    }
+
     executorEventLoop.shutdownNow();
     ThreadPool.awaitTerminationOrExitApplication(executorEventLoop, 10, TimeUnit.SECONDS, "EventLoop", "possible infinite loop in user code?");
 
