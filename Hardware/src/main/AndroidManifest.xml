@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.qualcomm.hardware"
-    android:versionCode="64"
-    android:versionName="11.6" >
+    package="com.qualcomm.hardware">
 
-    <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
 
 </manifest>
