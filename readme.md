@@ -85,6 +85,12 @@ For instance, the 3rd release of OpenRC based on SDK v5.0 would be `5.0C`, where
 
 ## Release Notes:
 
+### 5.2A
+
+Released on TBD
+
+ - Update to SDK v5.2
+
 ### 5.1A
 
 Released on 26 August 2019
