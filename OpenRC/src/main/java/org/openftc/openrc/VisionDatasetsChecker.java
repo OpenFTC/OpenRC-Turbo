@@ -21,22 +21,19 @@
 
 package org.openftc.openrc;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.text.Html;
 
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
-import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
-public class SkyStoneVisionTargetsChecker
+public class VisionDatasetsChecker
 {
     private static boolean alreadyCheckedThisSession = false;
 
@@ -59,7 +56,7 @@ public class SkyStoneVisionTargetsChecker
                 {
                     AlertDialog.Builder builder = new AlertDialog.Builder(AppUtil.getInstance().getActivity());
                     builder.setTitle("Missing files!");
-                    builder.setMessage("Some required files are missing from the FIRST folder on the internal storage. Please check the setup instructions in the readme. The app will now be closed.");
+                    builder.setMessage("Some Vuforia / TensorFlow dataset files are missing from the FIRST folder on the internal storage. Please check to make sure you copied them as per the setup instructions in the readme. The app will now be closed.");
                     builder.setCancelable(false);
                     builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
                     {
@@ -88,7 +85,33 @@ public class SkyStoneVisionTargetsChecker
 
     public static boolean checkFiles()
     {
-        String[] files = new String[] {"/sdcard/FIRST/Skystone.xml", "/sdcard/FIRST/Skystone.dat", "/sdcard/FIRST/Skystone.tflite"};
+        String[] files = new String[] {
+
+                /*
+                 * Velocity Vortex
+                 */
+                "/sdcard/FIRST/FTC_2016-17.dat",
+                "/sdcard/FIRST/FTC_2016-17.xml",
+
+                /*
+                 * Relic Recovery
+                 */
+                "/sdcard/FIRST/RelicVuMark.dat",
+                "/sdcard/FIRST/RelicVuMark.xml",
+
+                /*
+                 * Rover Ruckus
+                 */
+                "/sdcard/FIRST/RoverRuckus.dat",
+                "/sdcard/FIRST/RoverRuckus.xml",
+                "/sdcard/FIRST/RoverRuckus.tflite",
+
+                /*
+                 * SkyStone
+                 */
+                "/sdcard/FIRST/Skystone.xml",
+                "/sdcard/FIRST/Skystone.dat",
+                "/sdcard/FIRST/Skystone.tflite"};
 
         for(String s : files)
         {
