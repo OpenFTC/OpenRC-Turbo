@@ -11,7 +11,7 @@ android {
 
         stock {
             res.srcDirs = ['src/stock/res', 'src/stockAndStdTurbo/res']
-            assets.srcDirs = ['src/stockAndStdTurbo/assets']
+            assets.srcDirs = ['src/stockAndStdTurbo/assets', 'src/stock/assets']
         }
 
         turbo {
