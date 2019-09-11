@@ -110,7 +110,7 @@ tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
 
 ### 5.2A
 
-Released on TBD
+Released on 11 September 2019
 
  - Update to SDK v5.2
  - **NOTE:** You will need to copy some additional files to the `FIRST` folder of the internal storage after you update. See step #4 in the *Setup Process* section
