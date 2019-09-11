@@ -21,33 +21,29 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
 
 ### Variant Descriptions
 
- - **Stock - 27MB APK** *(oof!)*
+ - **Stock - 40MB APK** *(oof!)*
      - Competition legal
 
- - **Turbo - 12.5MB APK** *(2.2x smaller!)*
+ - **Turbo - 10MB APK** *(4x smaller!)*
+     - Vuforia native library loaded dynamically
+     - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
 
- - **Ultra Turbo - 4MB APK** *(6.8x smaller!)*
+ - **Ultra Turbo - 4MB APK** *(10x smaller!)*
+     - Vuforia native library loaded dynamically
+     - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
      - Blocks removed
      - Web management removed
      - Sound files removed
-     - Old Vuforia targets removed
 
 ### Benchmarks
 
-**Note:** While OpenRC is not compatible with the ZTE, and the PadfoneX is not legal for competition, benchmarks are provided for the purposes of comparison across a range of devices and Android versions.
-
-
-|                            |**ZTE Speed (4.4.4)**|**Nexus 5 (7.1.2)**|**PadfoneX (6.0.1)**|
-|:--------------------------:|:-------------------:|:-----------------:|:------------------:|
-|**Stock over USB**          |    20 sec           |  13 sec           |   21 sec           |
-|**Turbo over USB**          |    15 sec           |  10 sec           |   13 sec           |
-|**Extreme Turbo over USB**  |    11 sec           |   9 sec           |   10 sec           |
-|                            |                     |                   |                    |
-|**Stock over WiFi**         |    40 sec           |  15 sec           |   85 sec           |
-|**Turbo over WiFi**         |    18 sec           |  11 sec           |   35 sec           |
-|**Extreme Turbo over WiFi** |    13 sec           |   9 sec           |   21 sec           |
+|                            |**Nexus 5 (7.1.2)<br>Intel Centrino Advanced-N 6205 on Linux**|**Nexus 5 (7.1.2)<br>Intel Wireless 8260 on Linux**|
+|:--------------------------:|:-----------------:|:------------------:|
+|**Stock over WiFi**         |    30 sec           |  20 sec           |
+|**Turbo over WiFi**         |    13 sec           |  11 sec           |
+|**Extreme Turbo over WiFi** |    10 sec           |   8 sec           |
 
 ### Switching build variants
 
