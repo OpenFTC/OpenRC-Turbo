@@ -139,7 +139,7 @@ public class ConceptVuforiaNavigation extends LinearOpMode {
          * example "StonesAndChips", datasets can be found in in this project in the
          * documentation directory.
          */
-        VuforiaTrackables stonesAndChips = this.vuforia.loadTrackablesFromAsset("StonesAndChips");
+        VuforiaTrackables stonesAndChips = this.vuforia.loadTrackablesFromFile("/sdcard/FIRST/StonesAndChips");
         VuforiaTrackable redTarget = stonesAndChips.get(0);
         redTarget.setName("RedTarget");  // Stones
 

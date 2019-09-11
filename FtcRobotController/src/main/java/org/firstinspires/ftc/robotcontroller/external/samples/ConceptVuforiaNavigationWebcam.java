@@ -178,7 +178,7 @@ public class ConceptVuforiaNavigationWebcam extends LinearOpMode {
          * example "StonesAndChips", datasets can be found in in this project in the
          * documentation directory.
          */
-        VuforiaTrackables stonesAndChips = vuforia.loadTrackablesFromAsset("StonesAndChips");
+        VuforiaTrackables stonesAndChips = vuforia.loadTrackablesFromFile("/sdcard/FIRST/StonesAndChips");
         VuforiaTrackable redTarget = stonesAndChips.get(0);
         redTarget.setName("RedTarget");  // Stones
 
