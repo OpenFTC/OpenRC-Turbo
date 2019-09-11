@@ -83,6 +83,33 @@ To prevent confusion, OpenRC does not have its own version number. The version n
 
 For instance, the 3rd release of OpenRC based on SDK v5.0 would be `5.0C`, whereas the first release of OpenRC based on SDK v5.1 would be `5.1A`.
 
+## Dynamic Loading of TensorFlow and Vuforia Datasets
+
+In order to reduce APK size, the Turbo and Extreme Turbo variants do not bundle the Vuforia and TensorFlow datasets in the APK. However, once copied onto the internal storage (see step #4 in the *Setup Process* section), you can still use them in your OpMode by making a very minor change.
+
+**NOTE:** The samples in this repo have already been adjusted with this change.
+
+```java
+/*
+ * For Vuforia
+ */
+// Find a line similar to this in the program
+vuforia.loadTrackablesFromAsset("DatasetName");
+// And replace it with this (obviously adjusting the DatasetName)
+vuforia.loadTrackablesFromFile("/sdcard/FIRST/DatasetName");
+
+/*
+ * For TensorFlow
+ */
+// Find a line similar to this in the program
+tfod.loadModelFromAsset("DatasetName.tflite");
+// And replace it with this (obviously adjusting the DatasetName)
+tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
+
+```
+
+
+
 ## Release Notes:
 
 ### 5.2A
@@ -90,8 +117,8 @@ For instance, the 3rd release of OpenRC based on SDK v5.0 would be `5.0C`, where
 Released on TBD
 
  - Update to SDK v5.2
- - **NOTE:** You will need to copy some additional files to the `FIRST` folder of the internal storage after you update. See step #4 in the Setup Process section
- - **NOTE:** The TensorFlow and Vuforia sample OpModes for SKYSTONE have been modified slightly to load the datasets from internal storage. **Use the samples in this repo; the stock samples will fail.**
+ - **NOTE:** You will need to copy some additional files to the `FIRST` folder of the internal storage after you update. See step #4 in the *Setup Process* section
+ - **NOTE:** The TensorFlow and Vuforia sample OpModes for SKYSTONE have been modified slightly to load the datasets from internal storage. **Use the samples in this repo; the stock samples will fail on variants other than stock.** Please also see the *Dynamic Loading of TensorFlow and Vuforia Datasets* section of this readme.
 
 ### 5.1A
 
