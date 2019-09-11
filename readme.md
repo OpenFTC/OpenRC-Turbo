@@ -45,25 +45,13 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
 |**Turbo over WiFi**         |    13 sec           |  11 sec           |
 |**Extreme Turbo over WiFi** |    10 sec           |   8 sec           |
 
-### Switching build variants
-
-**IMPORTANT: make sure to test that your project compiles correctly with the stock variant at least a week before your competition!**
-
-Note: you may get a "variant conflict" when switching from `Turbo` to `ExtremeTurbo`. You can fix this by changing `Blocks` to `extremeTurboDebug`
-
- 1. Open the Build Variants tab in the lower left hand corner of Android Studio
- 2. In the dropdown for the **TeamCode module**, select your desired variant
- 3. Perform a Gradle sync
-
-![image-here](doc/readme_pics/switching_build_variants.png)
-
 ## Setup Process
 
  1. Fork this repository
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
  4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST` folder on the RC's internal storage
- 5. Select your desired build variant
+ 5. Select your desired build variant (see the *Switching Build Variants* section)
 
 ## Update Process
 
@@ -72,6 +60,18 @@ Assuming you followed the above setup process, all that you need to do to update
  1. `git pull upstream master`
  2. Perform a Gradle Sync
  3. If the project fails to build, try *Clean Project*, *Rebuild Project*, and *Invalidate Caches / Restart*
+
+## Switching Build Variants
+
+**IMPORTANT: make sure to test that your project compiles correctly with the stock variant at least a week before your competition!**
+
+Note: you may get a "variant conflict" when switching variants. You can fix this by changing the conflicting module's variant to match the variant you want.
+
+ 1. Open the Build Variants tab in the lower left hand corner of Android Studio
+ 2. In the dropdown for the **TeamCode module**, select your desired variant
+ 3. Perform a Gradle sync
+
+![image-here](doc/readme_pics/switching_build_variants.png)
 
 ## Versioning Scheme
 
