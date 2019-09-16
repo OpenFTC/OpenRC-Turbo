@@ -33,7 +33,7 @@ public class Test extends LinearOpMode {
                 for (g = 0; g <= 255; g++) {
                     for (b = 0; b <= 255; b++) {
                         expansionHub1.setLedColor(r, g, b);
-                        totalCur.setValue(expansionHub1.getTotalModuleCurrentDraw(ExpansionHubEx.CurrentDrawUnits.MILLIAMPS);
+                        totalCur.setValue(expansionHub1.getTotalModuleCurrentDraw(ExpansionHubEx.CurrentDrawUnits.MILLIAMPS));
                         telemetry.update();
                         if (isStopRequested())
                             return;
