@@ -19,13 +19,17 @@ public class Test extends LinearOpMode {
         waitForStart();
         resetStartTime();
         expansionHub1.getMotorCurrentDraw(null, 1);
-        r = 0; g = 0; b = 0;
-        for (r = 0; r <= 255; r++) {
-            for (g = 0; g <= 255; g++) {
-                for (b = 0; b <= 255; b++) {
-                    expansionHub1.setLedColor(r, g, b);
-                    if (isStopRequested())
-                        return;
+        r = 0;
+        g = 0;
+        b = 0;
+        while (!isStopRequested()) {
+            for (r = 0; r <= 255; r++) {
+                for (g = 0; g <= 255; g++) {
+                    for (b = 0; b <= 255; b++) {
+                        expansionHub1.setLedColor(r, g, b);
+                        if (isStopRequested())
+                            return;
+                    }
                 }
             }
         }
