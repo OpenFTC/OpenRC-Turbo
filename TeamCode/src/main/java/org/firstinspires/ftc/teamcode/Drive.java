@@ -26,12 +26,14 @@ public class Drive extends OpMode {
     @Override
     public void init() {
         driveSpeed = 0.8;
+
         rightMotor = hardwareMap.get(DcMotor.class, "RightMotor");
         forRight = hardwareMap.get(DcMotor.class, "ForRight");
         leftMotor = hardwareMap.get(DcMotor.class, "LeftMotor");
         forLeft = hardwareMap.get(DcMotor.class, "ForLeft");
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
+
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
 
     }

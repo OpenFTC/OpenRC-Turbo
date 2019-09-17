@@ -13,16 +13,18 @@ import org.openftc.revextensions2.RevBulkData;
 @TeleOp(name="yay")
 public class Test extends LinearOpMode {
 
-    RevTouchSensor magnet;
+/*    RevTouchSensor magnet;
     ExpansionHubEx expansionHub1;
     RevBulkData bulkData;
     Telemetry.Item totalCur;
     Telemetry.Item total;
-    int r,g,b;
+    int r,g,b;*/ //              Expansionhub Ex testing
+
+    //TODO test telemetry.update without changing value.
 
     @Override
     public void runOpMode() throws InterruptedException {
-        magnet = hardwareMap.get(RevTouchSensor.class, "gh");
+/*        magnet = hardwareMap.get(RevTouchSensor.class, "gh");
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         waitForStart();
         resetStartTime();
@@ -45,6 +47,6 @@ public class Test extends LinearOpMode {
             totalCur.setValue(magnet.isPressed());
             total.setValue(magnet.getValue());
             telemetry.update();
-        }
+        }*///                    Expansionhub Ex testing
     }
 }
