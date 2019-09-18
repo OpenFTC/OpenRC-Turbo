@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -34,12 +35,39 @@ public class Drive extends OpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
 
+        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        forLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        microPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
 
     }
 
     @Override
     public void loop() {
+        rightMotor.setPower(-gamepad1.right_stick_y * driveSpeed);
+        forRight.setPower(-gamepad1.right_stick_y * driveSpeed);
+        leftMotor.setPower(-gamepad1.left_stick_y * driveSpeed);
+        forLeft.setPower(-gamepad1.left_stick_y * driveSpeed);
 
+        if (gamepad1.a) driveSpeed = 0.8;
+        else if (gamepad1.b) driveSpeed = 1;
+
+        if (gamepad2.dpad_up) microPolMotor.setPower(1);
+        else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
+        else microPolMotor.setPower(0);
+
+        if (gamepad2.a) intakeMotor.setPower(1);
+        else if (gamepad2.b) intakeMotor.setPower(-1);
+        else intakeMotor.setPower(0);
+
+        teleSpeed.setValue(driveSpeed);
+        telemetry.update();
     }
 }
