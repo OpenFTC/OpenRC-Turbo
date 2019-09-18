@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.openftc.revextensions2.ExpansionHubEx;
@@ -22,8 +23,17 @@ public class Test extends LinearOpMode {
 
     //TODO test telemetry.update without changing value.
 
+    DcMotor Motor;
+
     @Override
     public void runOpMode() throws InterruptedException {
+        Motor = hardwareMap.get(DcMotor.class, "Motor");
+        telemetry.addData("Power", Motor.getPower());
+        waitForStart();
+        while (!isStopRequested()) {
+            Motor.setPower(-gamepad1.right_stick_y);
+            telemetry.update();
+        }
 /*        magnet = hardwareMap.get(RevTouchSensor.class, "gh");
         expansionHub1 = hardwareMap.get(ExpansionHubEx.class, "Expansion Hub 1");
         waitForStart();
