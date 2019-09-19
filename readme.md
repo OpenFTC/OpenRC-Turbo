@@ -11,3 +11,4 @@ Notes:
  - tensorflow-lite AAR replaced with gradle line
  - tfod FTC AAR replaced with gradle line (repacked AAR for Bintray)
  - temporarily added OpenFTC maven repo to root gradle file so above line resolved before repo linked to jcenter
+ - Universal blocks vuforia key removed
