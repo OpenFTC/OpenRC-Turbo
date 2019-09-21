@@ -7,23 +7,51 @@ import org.opencv.core.*;
 
 public class GlobalPipline extends OpenCvPipeline {
 
-    public Result res;
+//    public Result res;
 
-    public void setRes(Result resInput) {
-        res = resInput;
+//    public void setRes(Result resInput) {
+//        res = resInput;
+//    }
+
+    private Result stageToRenderToViewport = Result.Thresh;
+    private Result[] stages = GlobalPipline.Result.values();
+
+    public GlobalPipline(Result resInput) {stageToRenderToViewport = resInput;}
+
+    @Override
+    public void onViewportTapped()
+    {
+        /*
+         * Note that this method is invoked from the UI thread
+         * so whatever we do here, we must do quickly.
+         */
+
+        int currentStageNum = stageToRenderToViewport.ordinal();
+
+        int nextStageNum = currentStageNum + 1;
+
+        if(nextStageNum >= stages.length)
+        {
+            nextStageNum = 0;
+        }
+
+        stageToRenderToViewport = stages[nextStageNum];
     }
 
     @Override
     public Mat processFrame(Mat input) {
-        Mat process = new Mat();
+        Mat blur = new Mat();
+        Mat thresh = new Mat();
         Mat maskedImg = new Mat();
         Mat canny = new Mat();
-        Imgproc.blur(input, process,new Size(640, 480));
+//        Imgproc.blur(input, process,new Size(640, 480));
+//        Imgproc.medianBlur(input, process,31);
+//        Imgproc.threshold()
 //        Imgproc.cvtColor(process, process, Imgproc.COLOR_RGB);
 //        Imgproc.threshold(process, process, );
-        Core.inRange(process, new Scalar(200,0,0,0), new Scalar(255,50,50,255), process);
-        Core.bitwise_and(input, process, maskedImg);
-        Imgproc.Canny(process, canny, 0,0, 3);
+//        Core.inRange(process, new Scalar(200,0,0,0), new Scalar(255,50,50,255), process);
+//        Core.bitwise_and(input, process, maskedImg);
+        Imgproc.Canny(thresh, canny, 0,0, 3);
 
 /*        Imgproc.rectangle(
                 input,
@@ -34,17 +62,19 @@ public class GlobalPipline extends OpenCvPipeline {
                         input.cols()*(3f/4f),
                         input.rows()*(3f/4f)),
                 new Scalar(0, 255, 0), 4);*/
-        switch (res) {
-            case Thresh: return process;
-            case Mask: return maskedImg;
+        switch (stageToRenderToViewport) {
+            case Input: return input;
+            case Blur: return blur;
+            case Thresh: return maskedImg;
             case Edges: return canny;
         }
         return input;
     }
 
     enum Result {
+        Input,
+        Blur,
         Thresh,
-        Mask,
         Edges
     }
 }
