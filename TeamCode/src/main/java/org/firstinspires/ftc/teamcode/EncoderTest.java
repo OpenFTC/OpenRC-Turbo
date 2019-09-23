@@ -16,18 +16,22 @@ public class EncoderTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         rightMotor = hardwareMap.get(DcMotor.class, "RightMotor");
-        rightMotor = hardwareMap.get(DcMotor.class, "ForRight");
-        rightMotor = hardwareMap.get(DcMotor.class, "LeftMotor");
-        rightMotor = hardwareMap.get(DcMotor.class, "ForLeft");
-        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        forRight = hardwareMap.get(DcMotor.class, "ForRight");
+        leftMotor = hardwareMap.get(DcMotor.class, "LeftMotor");
+        forLeft = hardwareMap.get(DcMotor.class, "ForLeft");
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
         forRight.setDirection(DcMotor.Direction.REVERSE);
         setMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
         waitForStart();
+        rightMotor.setPower(0.6);
+        forRight.setPower(0.6);
+        leftMotor.setPower(0.6);
+        forLeft.setPower(0.6);
         while (!isStopRequested()) {
             if (gamepad1.a) {
                 testing = true;
