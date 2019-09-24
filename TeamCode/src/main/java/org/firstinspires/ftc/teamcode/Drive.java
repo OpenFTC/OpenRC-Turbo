@@ -2,13 +2,21 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
+    //Constants
+    int ticksPerMicroRev = 778;
+    private final int[] rgbaUpper = new int[] {2100, 650, 480, 3500};
+    private final int[] rgbaLower = new int[] {2700, 1000, 590, 3900};
+    private final double maxDistance = 5.8;
+
     //Variables
     double driveSpeed;
 
@@ -19,6 +27,9 @@ public class Drive extends OpMode {
     private DcMotor forLeft;
     private DcMotor intakeMotor;
     private DcMotor microPolMotor;
+
+    private ColorSensor microColorSensor;
+    private DistanceSensor microDistanceSensor;
 
     //Telemetry
     Telemetry.Item teleSpeed;
@@ -69,5 +80,14 @@ public class Drive extends OpMode {
 
         teleSpeed.setValue(driveSpeed);
         telemetry.update();
+    }
+
+    public static boolean checkColor(ColorSensor colorSensor, int[] rgbaUpper, int[] rgbaLower) {
+        int[] rgba = new int[] {colorSensor.red(), colorSensor.green(), colorSensor.blue(), colorSensor.alpha()};
+        boolean compareResults = true;
+        for (int i = 0; i <= 3; i++) {
+            compareResults = (rgbaLower[i] <= rgba[i] && rgba[i] <= rgbaUpper[i]) && compareResults;
+        }
+        return compareResults;
     }
 }
