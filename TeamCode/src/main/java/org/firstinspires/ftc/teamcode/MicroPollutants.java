@@ -53,7 +53,7 @@ public class MicroPollutants extends LinearOpMode {
         int[] rgba = new int[] {colorSensor.red(), colorSensor.green(), colorSensor.blue(), colorSensor.alpha()};
         boolean compareResults = true;
         for (int i = 0; i <= 3; i++) {
-            compareResults = rgbaLower[i] <= rgba[i] && rgba[i] <= rgbaUpper[i] ? compareResults : false;
+            compareResults = (rgbaLower[i] <= rgba[i] && rgba[i] <= rgbaUpper[i]) && compareResults;
         }
         return compareResults;
     }
