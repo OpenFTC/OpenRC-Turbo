@@ -79,8 +79,8 @@ public class LogitechGamepadF310 extends Gamepad {
     left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Y));
     right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RX));
     right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RY));
-    left_trigger = (event.getAxisValue(MotionEvent.AXIS_Z) + 1f) / 2f;
-    right_trigger = (event.getAxisValue(MotionEvent.AXIS_RZ) + 1f) / 2f;
+    left_trigger = ((event.getAxisValue(MotionEvent.AXIS_Z) + 1f) / 2f == 1f);
+    right_trigger = ((event.getAxisValue(MotionEvent.AXIS_RZ) + 1f) / 2f == 1f);
     dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > dpadThreshold;
     dpad_up = event.getAxisValue(MotionEvent.AXIS_HAT_Y) < -dpadThreshold;
     dpad_right = event.getAxisValue(MotionEvent.AXIS_HAT_X) > dpadThreshold;
@@ -101,10 +101,10 @@ public class LogitechGamepadF310 extends Gamepad {
     right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RZ));
 
     //** left trigger mapped to AXIS_BRAKE on 5.0 **//
-    left_trigger = event.getAxisValue(MotionEvent.AXIS_BRAKE);
+    left_trigger = (event.getAxisValue(MotionEvent.AXIS_BRAKE) == 1f);
 
     //** right trigger mapped to AXIS_GAS on 5.0 **//
-    right_trigger = event.getAxisValue(MotionEvent.AXIS_GAS);
+    right_trigger = (event.getAxisValue(MotionEvent.AXIS_GAS) == 1f);
 
     dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > dpadThreshold;
     dpad_up = event.getAxisValue(MotionEvent.AXIS_HAT_Y) < -dpadThreshold;

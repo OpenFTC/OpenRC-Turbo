@@ -20,7 +20,7 @@ public class Vision extends OpMode {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         camera = new OpenCvWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         camera.openCameraDevice();
-        camera.setPipeline(new GlobalPipline());
+        camera.setPipeline(new GlobalPipline(GlobalPipline.Result.Thresh));
         camera.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
     }
 
@@ -34,4 +34,6 @@ public class Vision extends OpMode {
         telemetry.addData("Theoretical max FPS", camera.getCurrentPipelineMaxFps());
         telemetry.update();
     }
+
+
 }

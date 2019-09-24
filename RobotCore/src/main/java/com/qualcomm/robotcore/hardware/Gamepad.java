@@ -200,12 +200,12 @@ public class Gamepad extends RobocolParsableBase {
   /**
    * left trigger
    */
-  public float left_trigger = 0f;
+  public boolean left_trigger = false;
 
   /**
    * right trigger
    */
-  public float right_trigger = 0f;
+  public boolean right_trigger = false;
 
   /**
    * Which user is this gamepad used by
@@ -360,8 +360,8 @@ public class Gamepad extends RobocolParsableBase {
     left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Y));
     right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Z));
     right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RZ));
-    left_trigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-    right_trigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
+    left_trigger = (event.getAxisValue(MotionEvent.AXIS_LTRIGGER) == 1f) ? true : false;
+    right_trigger = (event.getAxisValue(MotionEvent.AXIS_RTRIGGER) == 1f) ? true: false;
     dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > dpadThreshold;
     dpad_up = event.getAxisValue(MotionEvent.AXIS_HAT_Y) < -dpadThreshold;
     dpad_right = event.getAxisValue(MotionEvent.AXIS_HAT_X) > dpadThreshold;
@@ -422,8 +422,8 @@ public class Gamepad extends RobocolParsableBase {
       buffer.putFloat(left_stick_y).array();
       buffer.putFloat(right_stick_x).array();
       buffer.putFloat(right_stick_y).array();
-      buffer.putFloat(left_trigger).array();
-      buffer.putFloat(right_trigger).array();
+//      buffer.putFloat(left_trigger).array();
+//      buffer.putFloat(right_trigger).array();
 
       buttons = (buttons << 1) + (left_stick_button ? 1 : 0);
       buttons = (buttons << 1) + (right_stick_button ? 1 : 0);
@@ -470,8 +470,8 @@ public class Gamepad extends RobocolParsableBase {
       left_stick_y = byteBuffer.getFloat();
       right_stick_x = byteBuffer.getFloat();
       right_stick_y = byteBuffer.getFloat();
-      left_trigger = byteBuffer.getFloat();
-      right_trigger = byteBuffer.getFloat();
+//      left_trigger = byteBuffer.getFloat();
+//      right_trigger = byteBuffer.getFloat();
 
       buttons = byteBuffer.getInt();
       left_stick_button   = (buttons & 0x04000) != 0;
@@ -507,7 +507,7 @@ public class Gamepad extends RobocolParsableBase {
     return (
         left_stick_x == 0f && left_stick_y == 0f &&
         right_stick_x == 0f && right_stick_y == 0f &&
-        left_trigger == 0f && right_trigger == 0f);
+        left_trigger && right_trigger);
   }
 
   /**

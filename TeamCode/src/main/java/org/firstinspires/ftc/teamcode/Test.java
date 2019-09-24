@@ -21,17 +21,16 @@ public class Test extends LinearOpMode {
     Telemetry.Item total;
     int r,g,b;*/ //              Expansionhub Ex testing
 
-    //TODO test telemetry.update without changing value.
-
-    DcMotor Motor;
+//     TODO test telemetry.update without changing value. DONE
+    DcMotor motor;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Motor = hardwareMap.get(DcMotor.class, "Motor");
-        telemetry.addData("Power", Motor.getPower());
+        motor = hardwareMap.get(DcMotor.class, "Motor");
         waitForStart();
+        telemetry.addData("Pow", motor.getPower());
         while (!isStopRequested()) {
-            Motor.setPower(-gamepad1.right_stick_y);
+            motor.setPower(-gamepad1.right_stick_y);
             telemetry.update();
         }
 /*        magnet = hardwareMap.get(RevTouchSensor.class, "gh");
