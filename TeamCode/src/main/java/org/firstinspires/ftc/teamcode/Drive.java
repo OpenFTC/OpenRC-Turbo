@@ -7,11 +7,13 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Dictionary;
+import java.util.concurrent.locks.Lock;
 
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
@@ -25,6 +27,7 @@ public class Drive extends OpMode {
     private final double fastSpeed = 0.9;
     private final double lowerLiftBound = 9;
     private final double upperLiftBound = 36.3;
+    private final double liftLockPosition = 20.9;
 
     //Variables
     private double driveSpeed;
@@ -33,6 +36,7 @@ public class Drive extends OpMode {
     private boolean constIntake;
 
     //Robot Hardware TODO: Fix motors naming scheme
+    //TODO: Change motors to DcMotorEx
     private DcMotor rightMotor;
     private DcMotor forRight;
     private DcMotor leftMotor;
@@ -41,10 +45,12 @@ public class Drive extends OpMode {
     private DcMotor microPolMotor;
     private DcMotor macroPolMotor;
     private DcMotor hangingMotor;
+    private Servo Locker;
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
     private DistanceSensor microDistanceSensor;
+    //TODO: Add Mag-limit and code.
 
     //Telemetry
     Telemetry.Item teleSpeed;
@@ -65,6 +71,7 @@ public class Drive extends OpMode {
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
         macroPolMotor = hardwareMap.get(DcMotor.class, "macroPolMotor");
         hangingMotor = hardwareMap.get(DcMotor.class, "hangingMotor");
+        Locker = hardwareMap.get(Servo.class, "Locker");
         //TODO: Add reveres
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         forRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -114,10 +121,15 @@ public class Drive extends OpMode {
             hangingMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
         else hangingMotor.setPower(0);
 
+        if (liftHeight < 20.9 && gamepad2.left_trigger)
+            Locker.setPosition(1);
+        if (gamepad2.x)
+            Locker.setPosition(0);
 
-        if (gamepad2.dpad_up) microPolMotor.setPower(1);
+
+        /*if (gamepad2.dpad_up) microPolMotor.setPower(1);
         else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
-        else microPolMotor.setPower(0);
+        else microPolMotor.setPower(0);*/
 
         if (gamepad2.a) intakeMotor.setPower(1);
         else if (gamepad2.b) intakeMotor.setPower(-1);
