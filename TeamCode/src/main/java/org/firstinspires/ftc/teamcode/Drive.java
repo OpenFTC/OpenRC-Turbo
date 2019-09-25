@@ -136,7 +136,9 @@ public class Drive extends OpMode {
         return compareResults;
     }
 
-    //TODO: make possibly make static, make the function take in a array of motors.
+    //TODO: Make possibly make static, make the function take in a array of motors.
+    //More: Passing through objects in java passes pointer to memory, as long as we don't = a object it stays the reference.
+    //https://stackoverflow.com/a/40523/6122159
     public void setMotor(double leftStick, double rightStick, double multiplier) { //Temporary function!
         rightMotor.setPower(rightStick * multiplier);
         forRight.setPower(rightStick * multiplier);
