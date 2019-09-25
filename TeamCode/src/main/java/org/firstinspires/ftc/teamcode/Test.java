@@ -20,8 +20,6 @@ public class Test extends LinearOpMode {
     Telemetry.Item totalCur;
     Telemetry.Item total;
     int r,g,b;*/ //              Expansionhub Ex testing
-
-//     TODO test telemetry.update without changing value. DONE
     DcMotor motor;
 
     @Override

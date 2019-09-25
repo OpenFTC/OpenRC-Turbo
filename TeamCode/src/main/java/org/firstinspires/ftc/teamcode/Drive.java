@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+import java.util.Dictionary;
 
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
@@ -16,22 +19,27 @@ public class Drive extends OpMode {
     int ticksPerMicroRev = 778;
     private final int[] rgbaUpper = new int[] {2100, 650, 480, 3500};
     private final int[] rgbaLower = new int[] {2700, 1000, 590, 3900};
-    private final double maxDistance = 5.8;
+    private final double microMaxDistance = 5.8;
+    private final double normalSpeed = 0.6;
+    private final double slowSpeed = 0.25;
+    private final double fastSpeed = 0.9;
+    private final double lowerLiftBound = 9;
+    private final double upperLiftBound = 36.3;
 
     //Variables
     private double driveSpeed;
     private DriveState driveState;
-    private final double normalSpeed = 0.6;
-    private final double slowSpeed = 0.25;
-    private final double fastSpeed = 0.9;
+    private double liftHeight;
+    private boolean constIntake;
 
-    //Robot Hardware
+    //Robot Hardware TODO: Fix motors
     private DcMotor rightMotor;
     private DcMotor forRight;
     private DcMotor leftMotor;
     private DcMotor forLeft;
     private DcMotor intakeMotor;
     private DcMotor microPolMotor;
+    private DcMotor hangingMotor;
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
@@ -45,17 +53,20 @@ public class Drive extends OpMode {
     public void init() {
         driveState = driveState.Normal;
         driveSpeed = normalSpeed;
+        constIntake = false;
 
+        //TODO: Fix Motors to correct names
         rightMotor = hardwareMap.get(DcMotor.class, "RightMotor");
         forRight = hardwareMap.get(DcMotor.class, "ForRight");
         leftMotor = hardwareMap.get(DcMotor.class, "LeftMotor");
         forLeft = hardwareMap.get(DcMotor.class, "ForLeft");
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
-
+        hangingMotor = hardwareMap.get(DcMotor.class, "hangingMotor");
+        //TODO: Add reveres
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         forRight.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        //TODO: Add brake button.
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -78,13 +89,29 @@ public class Drive extends OpMode {
         else if (gamepad1.left_bumper)
             driveState = DriveState.StraightNormal;
         else driveState = DriveState.Normal;
-        rightMotor.setPower(-gamepad1.right_stick_y * driveSpeed);
-        forRight.setPower(-gamepad1.right_stick_y * driveSpeed);
-        leftMotor.setPower(-gamepad1.left_stick_y * driveSpeed);
-        forLeft.setPower(-gamepad1.left_stick_y * driveSpeed);
 
-        if (gamepad1.a) driveSpeed = 0.8;
-        else if (gamepad1.b) driveSpeed = 1;
+        //Sets Drive Speed Based on driveState
+        driveSpeed = (driveState == DriveState.Slow || driveState == DriveState.StraightSlow)
+                ? slowSpeed : (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
+        if (driveState == DriveState.StraightNormal || driveState == DriveState.StraightSlow)
+            setMotor(-gamepad1.left_stick_y, -gamepad1.left_stick_y, driveSpeed);  //Temp code
+        else
+            setMotor(-gamepad1.left_stick_y, -gamepad1.right_stick_y, driveSpeed); //Temp code
+
+        //Activate constant intake if right_stick_y is bigger than 0.8 and right_bumper is pressed
+        constIntake = (0.8 < gamepad2.right_stick_y && gamepad2.right_bumper) || constIntake;
+        //Disable constant intake if right_stick_y is under -0.5
+        constIntake = (!(gamepad2.right_stick_y < -0.5)) && constIntake;
+        //Sets motor based on constant intake or right_stick_y
+        intakeMotor.setPower((constIntake) ? 1 : gamepad2.right_stick_y);
+
+        liftHeight = liftDistanceSensor.getDistance(DistanceUnit.CM); //Get distance from liftSensor
+
+        //Limit lift to the lift's bounds
+        if (lowerLiftBound < liftHeight || liftHeight < upperLiftBound)
+            hangingMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
+        else hangingMotor.setPower(0);
+
 
         if (gamepad2.dpad_up) microPolMotor.setPower(1);
         else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
@@ -105,6 +132,14 @@ public class Drive extends OpMode {
             compareResults = (rgbaLower[i] <= rgba[i] && rgba[i] <= rgbaUpper[i]) && compareResults;
         }
         return compareResults;
+    }
+
+    //TODO: make possibly make static, make the function take in a array of motors.
+    public void setMotor(double leftStick, double rightStick, double multiplier) { //Temporary function!
+        rightMotor.setPower(rightStick * multiplier);
+        forRight.setPower(rightStick * multiplier);
+        leftMotor.setPower(leftStick * multiplier);
+        forLeft.setPower(leftStick * multiplier);
     }
 
     //Enums / States
