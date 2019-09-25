@@ -32,13 +32,14 @@ public class Drive extends OpMode {
     private double liftHeight;
     private boolean constIntake;
 
-    //Robot Hardware TODO: Fix motors
+    //Robot Hardware TODO: Fix motors naming scheme
     private DcMotor rightMotor;
     private DcMotor forRight;
     private DcMotor leftMotor;
     private DcMotor forLeft;
     private DcMotor intakeMotor;
     private DcMotor microPolMotor;
+    private DcMotor macroPolMotor;
     private DcMotor hangingMotor;
 
     private Rev2mDistanceSensor liftDistanceSensor;
@@ -62,6 +63,7 @@ public class Drive extends OpMode {
         forLeft = hardwareMap.get(DcMotor.class, "ForLeft");
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
+        macroPolMotor = hardwareMap.get(DcMotor.class, "macroPolMotor");
         hangingMotor = hardwareMap.get(DcMotor.class, "hangingMotor");
         //TODO: Add reveres
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
