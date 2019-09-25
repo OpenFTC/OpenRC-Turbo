@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -18,7 +19,11 @@ public class Drive extends OpMode {
     private final double maxDistance = 5.8;
 
     //Variables
-    double driveSpeed;
+    private double driveSpeed;
+    private DriveState driveState;
+    private final double normalSpeed = 0.6;
+    private final double slowSpeed = 0.25;
+    private final double fastSpeed = 0.9;
 
     //Robot Hardware
     private DcMotor rightMotor;
@@ -28,6 +33,7 @@ public class Drive extends OpMode {
     private DcMotor intakeMotor;
     private DcMotor microPolMotor;
 
+    private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
     private DistanceSensor microDistanceSensor;
 
@@ -37,7 +43,8 @@ public class Drive extends OpMode {
 
     @Override
     public void init() {
-        driveSpeed = 0.8;
+        driveState = driveState.Normal;
+        driveSpeed = normalSpeed;
 
         rightMotor = hardwareMap.get(DcMotor.class, "RightMotor");
         forRight = hardwareMap.get(DcMotor.class, "ForRight");
@@ -46,13 +53,13 @@ public class Drive extends OpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
 
-        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        forLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        forRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         microPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -62,6 +69,15 @@ public class Drive extends OpMode {
 
     @Override
     public void loop() {
+        if (gamepad1.left_bumper && gamepad1.right_trigger)
+            driveState = DriveState.StraightSlow;
+        else if (gamepad1.right_trigger)
+            driveState = DriveState.Slow;
+        else if (gamepad1.left_trigger)
+            driveState = DriveState.Fast;
+        else if (gamepad1.left_bumper)
+            driveState = DriveState.StraightNormal;
+        else driveState = DriveState.Normal;
         rightMotor.setPower(-gamepad1.right_stick_y * driveSpeed);
         forRight.setPower(-gamepad1.right_stick_y * driveSpeed);
         leftMotor.setPower(-gamepad1.left_stick_y * driveSpeed);
@@ -90,4 +106,15 @@ public class Drive extends OpMode {
         }
         return compareResults;
     }
+
+    //Enums / States
+
+    public enum DriveState {
+        Normal,
+        Fast,
+        Slow,
+        StraightNormal,
+        StraightSlow
+    }
 }
+
