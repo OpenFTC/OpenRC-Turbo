@@ -40,7 +40,7 @@ public class MicroPollutants extends LinearOpMode {
         while (opModeIsActive()) {
             if (checkColor(colorSensor, rgbaUpper, rgbaLower) ||
                 distanceSensor.getDistance(DistanceUnit.CM) <= maxDistance) {
-                waitForStart();
+//                waitForStart();
                 if (!shooting)  { microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerRev); shooting = true;}
             }
             else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {

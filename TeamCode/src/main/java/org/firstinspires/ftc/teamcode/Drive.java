@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -46,10 +47,13 @@ public class Drive extends OpMode {
     private DcMotor macroPolMotor;
     private DcMotor hangingMotor;
     private Servo Locker;
+    private Servo Trigger;
+    private Servo microMover;
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
     private DistanceSensor microDistanceSensor;
+    private TouchSensor macroMagLimit;
     //TODO: Add Mag-limit and code.
 
     //Telemetry
@@ -72,9 +76,12 @@ public class Drive extends OpMode {
         macroPolMotor = hardwareMap.get(DcMotor.class, "macroPolMotor");
         hangingMotor = hardwareMap.get(DcMotor.class, "hangingMotor");
         Locker = hardwareMap.get(Servo.class, "Locker");
-        //TODO: Add reveres
+        Trigger = hardwareMap.get(Servo.class, "Trigger");
+        microMover = hardwareMap.get(Servo.class, "microMover");
+        //TODO: Add reverses
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         forRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        microPolMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //TODO: Add brake button.
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -83,6 +90,10 @@ public class Drive extends OpMode {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         microPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        microPolMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        microPolMotor.setTargetPosition(0);
+        microPolMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        microPolMotor.setPower(0.8);
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
 
     }
@@ -125,6 +136,26 @@ public class Drive extends OpMode {
             Locker.setPosition(1);
         if (gamepad2.x)
             Locker.setPosition(0);
+
+
+
+        if (macroMagLimit.isPressed())
+            Trigger.setPosition(0.5);
+        if (gamepad2.left_stick_button && gamepad2.right_stick_button)
+            Trigger.setPosition(0);
+
+        if (gamepad2.right_bumper)
+            macroPolMotor.setPower(1);
+        else if (gamepad2.left_bumper)
+            macroPolMotor.setPower(-1);
+        else macroPolMotor.setPower(0);
+
+        if (gamepad2.dpad_down)
+            microMover.setPosition(0.1);
+        else if (gamepad2.dpad_up)
+            microMover.setPosition(0.26);
+
+
 
 
         /*if (gamepad2.dpad_up) microPolMotor.setPower(1);
