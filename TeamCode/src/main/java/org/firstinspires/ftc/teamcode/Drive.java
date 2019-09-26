@@ -19,7 +19,7 @@ import java.util.concurrent.locks.Lock;
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
     //Constants
-    int ticksPerMicroRev = 778;
+    private final int ticksPerMicroRev = 778;
     private final int[] rgbaUpper = new int[] {2100, 650, 480, 3500};
     private final int[] rgbaLower = new int[] {2700, 1000, 590, 3900};
     private final double microMaxDistance = 5.8;
@@ -32,9 +32,12 @@ public class Drive extends OpMode {
 
     //Variables
     private double driveSpeed;
-    private DriveState driveState;
     private double liftHeight;
     private boolean constIntake;
+
+    //Robot States
+    private DriveState driveState;
+    private MicroState microState;
 
     //Robot Hardware TODO: Fix motors naming scheme
     //TODO: Change motors to DcMotorEx
@@ -82,7 +85,7 @@ public class Drive extends OpMode {
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         forRight.setDirection(DcMotorSimple.Direction.REVERSE);
         microPolMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        //TODO: Add brake button.
+        //TODO: Add brake button
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -137,7 +140,16 @@ public class Drive extends OpMode {
         if (gamepad2.x)
             Locker.setPosition(0);
 
-
+        if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
+                microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
+            if (microState != MicroState.Shooting)
+                microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
+            microState = MicroState.Shooting;
+        }
+        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
+            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
+            microState = MicroState.Idle;
+        }
 
         if (macroMagLimit.isPressed())
             Trigger.setPosition(0.5);
@@ -197,6 +209,12 @@ public class Drive extends OpMode {
         Slow,
         StraightNormal,
         StraightSlow
+    }
+
+    public enum MicroState {
+        Idle,
+        Shooting,
+        Feeding
     }
 }
 
