@@ -104,6 +104,8 @@ public class Drive extends OpMode {
         forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         microPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        macroPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         microPolMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         microPolMotor.setTargetPosition(0);
@@ -141,7 +143,7 @@ public class Drive extends OpMode {
             setMotor(-gamepad1.left_stick_y, -gamepad1.right_stick_y, driveSpeed); //Temp code
 
         //Activate constant intake if right_stick_y is bigger than 0.8 and right_bumper is pressed
-        constIntake = (0.8 < gamepad2.right_stick_y && gamepad2.right_bumper) || constIntake;
+        constIntake = (0.9 < gamepad2.right_stick_y && gamepad2.right_stick_button) || constIntake;
         //Disable constant intake if right_stick_y is under -0.5
         constIntake = (!(gamepad2.right_stick_y < -0.5)) && constIntake;
         //Sets motor based on constant intake or right_stick_y
