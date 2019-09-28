@@ -74,6 +74,7 @@ public class Drive extends OpMode {
         driveState = driveState.Normal;
         driveSpeed = normalSpeed;
         constIntake = false;
+        straightDrive = false;
 
         //Initialize all motors and Servos
         rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
