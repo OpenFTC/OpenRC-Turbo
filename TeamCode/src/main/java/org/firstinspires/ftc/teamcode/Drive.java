@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -28,7 +29,7 @@ public class Drive extends OpMode {
     private final double fastSpeed = 0.9;
     private final double lowerLiftBound = 9;
     private final double upperLiftBound = 36.3;
-    private final double liftLockPosition = 20.9;
+    private final double liftLockHeight = 20.9;
 
     //Variables
     private double driveSpeed;
@@ -41,26 +42,26 @@ public class Drive extends OpMode {
 
     //Robot Hardware TODO: Fix motors naming scheme
     //TODO: Change motors to DcMotorEx
-    private DcMotor rightMotor;
-    private DcMotor forRight;
-    private DcMotor leftMotor;
-    private DcMotor forLeft;
+    private DcMotorEx rightMotor;
+    private DcMotorEx forRight;
+    private DcMotorEx leftMotor;
+    private DcMotorEx forLeft;
     private DcMotor intakeMotor;
-    private DcMotor microPolMotor;
-    private DcMotor macroPolMotor;
-    private DcMotor hangingMotor;
-    private Servo Locker;
-    private Servo Trigger;
-    private Servo microMover;
+    private DcMotorEx microPolMotor;
+    private DcMotorEx macroPolMotor;
+    private DcMotorEx liftMotor;
+    private Servo liftLock;
+    private Servo macroTrigger;
+    private Servo microGate;
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
     private DistanceSensor microDistanceSensor;
     private TouchSensor macroMagLimit;
-    //TODO: Add Mag-limit and code.
 
     //Telemetry
     Telemetry.Item teleSpeed;
+    Telemetry.Item teleMicroState;
 
 
     @Override
@@ -69,27 +70,31 @@ public class Drive extends OpMode {
         driveSpeed = normalSpeed;
         constIntake = false;
 
-        //TODO: Fix Motors to correct names
-        rightMotor = hardwareMap.get(DcMotor.class, "RightMotor");
-        forRight = hardwareMap.get(DcMotor.class, "ForRight");
-        leftMotor = hardwareMap.get(DcMotor.class, "LeftMotor");
-        forLeft = hardwareMap.get(DcMotor.class, "ForLeft");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        microPolMotor = hardwareMap.get(DcMotor.class, "microPolMotor");
-        macroPolMotor = hardwareMap.get(DcMotor.class, "macroPolMotor");
-        hangingMotor = hardwareMap.get(DcMotor.class, "hangingMotor");
-        Locker = hardwareMap.get(Servo.class, "Locker");
-        Trigger = hardwareMap.get(Servo.class, "Trigger");
-        microMover = hardwareMap.get(Servo.class, "microMover");
+        rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
+        forRight = hardwareMap.get(DcMotorEx.class, "ForRight");
+        leftMotor = hardwareMap.get(DcMotorEx.class, "LeftMotor");
+        forLeft = hardwareMap.get(DcMotorEx.class, "ForLeft");
+        intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
+        microPolMotor = hardwareMap.get(DcMotorEx.class, "MicroPolMotor");
+        macroPolMotor = hardwareMap.get(DcMotorEx.class, "MacroPolMotor");
+        liftMotor = hardwareMap.get(DcMotorEx.class, "LiftMotor");
+        liftLock = hardwareMap.get(Servo.class, "LiftLock");
+        macroTrigger = hardwareMap.get(Servo.class, "MacroTrigger");
+        microGate = hardwareMap.get(Servo.class, "MicroGate");
+
+        liftDistanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "LiftDistance");
+        microColorSensor = hardwareMap.get(ColorSensor.class, "MicroColor");
+        microDistanceSensor = hardwareMap.get(DistanceSensor.class, "MicroColor");
+        macroMagLimit = hardwareMap.get(TouchSensor.class, "MacroMagLimit");
         //TODO: Add reverses
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         forRight.setDirection(DcMotorSimple.Direction.REVERSE);
         microPolMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //TODO: Add brake button
-        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        forLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         microPolMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -98,7 +103,7 @@ public class Drive extends OpMode {
         microPolMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         microPolMotor.setPower(0.8);
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
-
+        teleMicroState = telemetry.addData("Micro Pol State", microState);
     }
 
     @Override
@@ -132,13 +137,13 @@ public class Drive extends OpMode {
 
         //Limit lift to the lift's bounds
         if (lowerLiftBound < liftHeight || liftHeight < upperLiftBound)
-            hangingMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
-        else hangingMotor.setPower(0);
+            liftMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
+        else liftMotor.setPower(0);
 
-        if (liftHeight < 20.9 && gamepad2.left_trigger)
-            Locker.setPosition(1);
+        if (liftHeight < liftLockHeight && gamepad2.left_trigger)
+            liftLock.setPosition(1);
         if (gamepad2.x)
-            Locker.setPosition(0);
+            liftLock.setPosition(0);
 
         if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
                 microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
@@ -152,9 +157,9 @@ public class Drive extends OpMode {
         }
 
         if (macroMagLimit.isPressed())
-            Trigger.setPosition(0.5);
+            macroTrigger.setPosition(0.7);
         if (gamepad2.left_stick_button && gamepad2.right_stick_button)
-            Trigger.setPosition(0);
+            macroTrigger.setPosition(0);
 
         if (gamepad2.right_bumper)
             macroPolMotor.setPower(1);
@@ -163,12 +168,9 @@ public class Drive extends OpMode {
         else macroPolMotor.setPower(0);
 
         if (gamepad2.dpad_down)
-            microMover.setPosition(0.1);
+            microGate.setPosition(0.1);
         else if (gamepad2.dpad_up)
-            microMover.setPosition(0.26);
-
-
-
+            microGate.setPosition(0.26);
 
         /*if (gamepad2.dpad_up) microPolMotor.setPower(1);
         else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
@@ -179,6 +181,7 @@ public class Drive extends OpMode {
         else intakeMotor.setPower(0);
 
         teleSpeed.setValue(driveSpeed);
+        teleMicroState.setValue(driveState);
         telemetry.update();
     }
 
