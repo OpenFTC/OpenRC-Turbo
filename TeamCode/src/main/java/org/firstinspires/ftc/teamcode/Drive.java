@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /*
+//TODO: Fix servo delayed start
+//TODO: Fix straight drive for all modes
 TODO: Lift Height For lvl 2
 TODO: Automatic servo for Micro
 TODO: Automatic shooting for Macro
@@ -37,6 +39,7 @@ public class Drive extends OpMode {
     private double driveSpeed;
     private double liftHeight;
     private boolean constIntake;
+    private boolean straightDrive;
 
     //Robot States
     private DriveState driveState;
@@ -72,6 +75,7 @@ public class Drive extends OpMode {
         driveSpeed = normalSpeed;
         constIntake = false;
 
+        //Initialize all motors and Servos
         rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
         forRight = hardwareMap.get(DcMotorEx.class, "ForRight");
         leftMotor = hardwareMap.get(DcMotorEx.class, "LeftMotor");
@@ -83,7 +87,7 @@ public class Drive extends OpMode {
         liftLock = hardwareMap.get(Servo.class, "LiftLock");
         macroTrigger = hardwareMap.get(Servo.class, "MacroTrigger");
         microGate = hardwareMap.get(Servo.class, "MicroGate");
-
+        //Initialize all sensors
         liftDistanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "LiftDistance");
         microColorSensor = hardwareMap.get(ColorSensor.class, "MicroColorSensor");
         microDistanceSensor = hardwareMap.get(DistanceSensor.class, "MicroColorSensor");
@@ -104,6 +108,12 @@ public class Drive extends OpMode {
         microPolMotor.setTargetPosition(0);
         microPolMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         microPolMotor.setPower(0.8);
+
+        //Initialize Servos
+        liftLock.setPosition(0);
+        macroTrigger.setPosition(0);
+        microGate.setPosition(0.1);
+        //Initialize Telemetry
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
         teleMicroState = telemetry.addData("Micro Pol State", microState);
         teleLiftHeight = telemetry.addData("Lift Height", liftHeight);
@@ -111,20 +121,20 @@ public class Drive extends OpMode {
 
     @Override
     public void loop() {
-        if (gamepad1.left_bumper && gamepad1.right_trigger)
-            driveState = DriveState.StraightSlow;
-        else if (gamepad1.right_trigger)
+        if (gamepad1.right_trigger)
             driveState = DriveState.Slow;
         else if (gamepad1.left_trigger)
             driveState = DriveState.Fast;
-        else if (gamepad1.left_bumper)
-            driveState = DriveState.StraightNormal;
         else driveState = DriveState.Normal;
 
+        if (gamepad1.left_bumper)
+            straightDrive = true;
+        else straightDrive = false;
+
         //Sets Drive Speed Based on driveState
-        driveSpeed = (driveState == DriveState.Slow || driveState == DriveState.StraightSlow)
-                ? slowSpeed : (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
-        if (driveState == DriveState.StraightNormal || driveState == DriveState.StraightSlow)
+        driveSpeed = (driveState == DriveState.Slow) ? slowSpeed :
+                        (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
+        if (straightDrive)
             setMotor(-gamepad1.left_stick_y, -gamepad1.left_stick_y, driveSpeed);  //Temp code
         else
             setMotor(-gamepad1.left_stick_y, -gamepad1.right_stick_y, driveSpeed); //Temp code
@@ -214,9 +224,7 @@ public class Drive extends OpMode {
     public enum DriveState {
         Normal,
         Fast,
-        Slow,
-        StraightNormal,
-        StraightSlow
+        Slow
     }
 
     public enum MicroState {
