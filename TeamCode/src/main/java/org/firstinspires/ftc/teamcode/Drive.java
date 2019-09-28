@@ -20,7 +20,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 TODO: Lift Height For lvl 2
 TODO: Automatic servo for Micro
 TODO: Automatic shooting for Macro
+TODO: Start lift at height of 33
  */
+
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
     //Constants
@@ -40,6 +42,8 @@ public class Drive extends OpMode {
     private double liftHeight;
     private boolean constIntake;
     private boolean straightDrive;
+    private boolean microActive;
+    private long time = 0;
 
     //Robot States
     private DriveState driveState;
@@ -73,8 +77,10 @@ public class Drive extends OpMode {
     public void init() {
         driveState = driveState.Normal;
         driveSpeed = normalSpeed;
+        microState = MicroState.Idle;
         constIntake = false;
         straightDrive = false;
+        microActive = false;
 
         //Initialize all motors and Servos
         rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
@@ -142,7 +148,7 @@ public class Drive extends OpMode {
         else
             setMotor(-gamepad1.left_stick_y, -gamepad1.right_stick_y, driveSpeed); //Temp code
 
-        //Activate constant intake if right_stick_y is bigger than 0.8 and right_bumper is pressed
+        //Activate constant intake if right_stick_y is bigger than 0.8
         constIntake = (0.9 < gamepad2.right_stick_y && gamepad2.right_stick_button) || constIntake;
         //Disable constant intake if right_stick_y is under -0.5
         constIntake = (!(gamepad2.right_stick_y < -0.5)) && constIntake;
@@ -162,15 +168,26 @@ public class Drive extends OpMode {
         if (gamepad2.x)
             liftLock.setPosition(0);
 
-        if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
-                microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
-            if (microState != MicroState.Shooting)
-                microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
-            microState = MicroState.Shooting;
+        microActive = gamepad2.dpad_right;
+
+        if (microActive) {
+            microState = MicroState.Feeding;
+//            time = System.nanoTime() + (long)(1E6 * 300);
         }
-        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
-            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
-            microState = MicroState.Idle;
+
+        switch (microState) {
+            case Feeding: microState = FeedMicro(microGate, 0.26, 0.1, time);
+            case Ready: if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
+                            microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
+                        if (microState != MicroState.Shooting)
+                            microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
+                            microState = MicroState.Shooting;
+                        }
+                        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
+                            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
+                            if (!microActive)
+                                microState = MicroState.Feeding;
+                        }
         }
 
         if (macroMagLimit.isPressed())
@@ -193,10 +210,6 @@ public class Drive extends OpMode {
         else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
         else microPolMotor.setPower(0);*/
 
-        if (gamepad2.a) intakeMotor.setPower(1);
-        else if (gamepad2.b) intakeMotor.setPower(-1);
-        else intakeMotor.setPower(0);
-
         teleSpeed.setValue(driveSpeed);
         teleMicroState.setValue(driveState);
         teleLiftHeight.setValue(liftHeight);
@@ -210,6 +223,15 @@ public class Drive extends OpMode {
             compareResults = (rgbaLower[i] <= rgba[i] && rgba[i] <= rgbaUpper[i]) && compareResults;
         }
         return compareResults;
+    }
+
+    public static MicroState FeedMicro(Servo servoFeeder, double firstPos, double secondPos, long time) {
+        servoFeeder.setPosition(firstPos);
+        if ((!(servoFeeder.getPosition() == firstPos))) {// && System.nanoTime() > time) {
+            servoFeeder.setPosition(secondPos);
+            return MicroState.Ready;
+        }
+        else return MicroState.Feeding;
     }
 
     //TODO: Make possibly make static, make the function take in a array of motors.
@@ -233,7 +255,9 @@ public class Drive extends OpMode {
     public enum MicroState {
         Idle,
         Shooting,
-        Feeding
+        Feeding,
+        Ready,
+        ShootingAndFeeding
     }
 }
 
