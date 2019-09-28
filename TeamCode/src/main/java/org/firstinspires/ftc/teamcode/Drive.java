@@ -14,6 +14,11 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+/*
+TODO: Lift Height For lvl 2
+TODO: Automatic servo for Micro
+TODO: Automatic shooting for Macro
+ */
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
     //Constants
@@ -59,7 +64,7 @@ public class Drive extends OpMode {
     //Telemetry
     Telemetry.Item teleSpeed;
     Telemetry.Item teleMicroState;
-
+    Telemetry.Item teleLiftHeight;
 
     @Override
     public void init() {
@@ -74,7 +79,7 @@ public class Drive extends OpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
         microPolMotor = hardwareMap.get(DcMotorEx.class, "MicroPolMotor");
         macroPolMotor = hardwareMap.get(DcMotorEx.class, "MacroPolMotor");
-        liftMotor = hardwareMap.get(DcMotorEx.class, "LiftMotoKr");
+        liftMotor = hardwareMap.get(DcMotorEx.class, "LiftMotor");
         liftLock = hardwareMap.get(Servo.class, "LiftLock");
         macroTrigger = hardwareMap.get(Servo.class, "MacroTrigger");
         microGate = hardwareMap.get(Servo.class, "MicroGate");
@@ -101,6 +106,7 @@ public class Drive extends OpMode {
         microPolMotor.setPower(0.8);
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
         teleMicroState = telemetry.addData("Micro Pol State", microState);
+        teleLiftHeight = telemetry.addData("Lift Height", liftHeight);
     }
 
     @Override
@@ -133,7 +139,8 @@ public class Drive extends OpMode {
         liftHeight = liftDistanceSensor.getDistance(DistanceUnit.CM); //Get distance from liftSensor
 
         //Limit lift to the lift's bounds
-        if (lowerLiftBound < liftHeight || liftHeight < upperLiftBound)
+        if ((lowerLiftBound < liftHeight && gamepad2.left_stick_y > 0) ||
+                (liftHeight < upperLiftBound && gamepad2.left_stick_y < 0)) //TODO: Correct sticks and optimize.
             liftMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
         else liftMotor.setPower(0);
 
@@ -179,6 +186,7 @@ public class Drive extends OpMode {
 
         teleSpeed.setValue(driveSpeed);
         teleMicroState.setValue(driveState);
+        teleLiftHeight.setValue(liftHeight);
         telemetry.update();
     }
 
