@@ -14,9 +14,6 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-import java.util.Dictionary;
-import java.util.concurrent.locks.Lock;
-
 @TeleOp(name="Drive", group="Drive")
 public class Drive extends OpMode {
     //Constants
@@ -77,14 +74,14 @@ public class Drive extends OpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "IntakeMotor");
         microPolMotor = hardwareMap.get(DcMotorEx.class, "MicroPolMotor");
         macroPolMotor = hardwareMap.get(DcMotorEx.class, "MacroPolMotor");
-        liftMotor = hardwareMap.get(DcMotorEx.class, "LiftMotor");
+        liftMotor = hardwareMap.get(DcMotorEx.class, "LiftMotoKr");
         liftLock = hardwareMap.get(Servo.class, "LiftLock");
         macroTrigger = hardwareMap.get(Servo.class, "MacroTrigger");
         microGate = hardwareMap.get(Servo.class, "MicroGate");
 
         liftDistanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "LiftDistance");
-        microColorSensor = hardwareMap.get(ColorSensor.class, "MicroColor");
-        microDistanceSensor = hardwareMap.get(DistanceSensor.class, "MicroColor");
+        microColorSensor = hardwareMap.get(ColorSensor.class, "MicroColorSensor");
+        microDistanceSensor = hardwareMap.get(DistanceSensor.class, "MicroColorSensor");
         macroMagLimit = hardwareMap.get(TouchSensor.class, "MacroMagLimit");
         //TODO: Add reverses
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
