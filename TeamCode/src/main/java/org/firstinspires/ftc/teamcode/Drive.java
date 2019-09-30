@@ -42,8 +42,6 @@ public class Drive extends OpMode {
     private double liftHeight;
     private boolean constIntake;
     private boolean straightDrive;
-    private boolean microActive;
-    private long time = 0;
 
     //Robot States
     private DriveState driveState;
@@ -76,10 +74,9 @@ public class Drive extends OpMode {
     public void init() {
         driveState = driveState.Normal;
         driveSpeed = normalSpeed;
-        microState = MicroState.Idle;
         constIntake = false;
         straightDrive = false;
-        microActive = false;
+        microState = MicroState.Idle;
 
         //Initialize all motors and Servos
         rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
@@ -243,15 +240,6 @@ public class Drive extends OpMode {
         return compareResults;
     }
 
-    public static MicroState FeedMicro(Servo servoFeeder, double firstPos, double secondPos, long time) {
-        servoFeeder.setPosition(firstPos);
-        if ((!(servoFeeder.getPosition() == firstPos))) {// && System.nanoTime() > time) {
-            servoFeeder.setPosition(secondPos);
-            return MicroState.Ready;
-        }
-        else return MicroState.Feeding;
-    }
-
     //TODO: Make possibly make static, make the function take in a array of motors.
     //More: Passing through objects in java passes pointer to memory, as long as we don't = a object it stays the reference.
     //https://stackoverflow.com/a/40523/6122159
@@ -272,10 +260,10 @@ public class Drive extends OpMode {
 
     public enum MicroState {
         Idle,
-        Shooting,
+        StartFeed,
         Feeding,
-        Ready,
-        ShootingAndFeeding
+        StartShoot,
+        Shooting
     }
 }
 
