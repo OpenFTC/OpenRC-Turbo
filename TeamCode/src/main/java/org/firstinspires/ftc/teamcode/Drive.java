@@ -15,10 +15,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /*
-//TODO: Fix servo delayed start
-//TODO: Fix straight drive for all modes
-TODO: Lift Height For lvl 2
-//TODO: Automatic servo for Micro
+DONE: Fix servo delayed start
+DONE: Fix straight drive for all modes
+DONE: Lift Height For lvl 2
+DONE: Automatic servo for Micro
 TODO: Automatic shooting for Macro
 TODO: Start lift at height of 33
  */
@@ -36,12 +36,14 @@ public class Drive extends OpMode {
     private final double lowerLiftBound = 9;
     private final double upperLiftBound = 36.3;
     private final double liftLockHeight = 20.9;
+    private final double startLiftHeight = 33;
 
     //Variables
     private double driveSpeed;
     private double liftHeight;
     private boolean constIntake;
     private boolean straightDrive;
+    private boolean liftAtStart;
 
     //Robot States
     private DriveState driveState;
@@ -76,6 +78,7 @@ public class Drive extends OpMode {
         driveSpeed = normalSpeed;
         constIntake = false;
         straightDrive = false;
+        liftAtStart = false;
         microState = MicroState.Idle;
 
         //Initialize all motors and Servos
@@ -113,6 +116,8 @@ public class Drive extends OpMode {
         microPolMotor.setTargetPosition(0);
         microPolMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         microPolMotor.setPower(0.8);
+        //TODO: Test default targetPositionTolerance
+        microPolMotor.setTargetPositionTolerance(4);
 
         //Initialize Servos
         liftLock.setPosition(0);
@@ -153,16 +158,29 @@ public class Drive extends OpMode {
 
         liftHeight = liftDistanceSensor.getDistance(DistanceUnit.CM); //Get distance from liftSensor
 
-        //Limit lift to the lift's bounds
-        if ((lowerLiftBound < liftHeight && gamepad2.left_stick_y > 0) ||
-                (liftHeight < upperLiftBound && gamepad2.left_stick_y < 0)) //TODO: Correct sticks and optimize.
-            liftMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
-        else liftMotor.setPower(0);
-
-        if (liftHeight < liftLockHeight && gamepad2.left_trigger)
-            liftLock.setPosition(1);
-        if (gamepad2.x)
-            liftLock.setPosition(0);
+        //Get lift to start position before giving up control
+        if (!liftAtStart) {
+            if (liftHeight <= startLiftHeight - 0.2)
+                liftMotor.setPower(-1);
+            else if (startLiftHeight + 0.2 <= liftHeight)
+                liftMotor.setPower(1);
+            else {
+                liftMotor.setPower(0);
+                liftAtStart = true;
+            }
+        }
+        else {
+            //Limit lift to the lift's bounds
+            if ((lowerLiftBound < liftHeight && gamepad2.left_stick_y > 0) ||
+                    (liftHeight < upperLiftBound && gamepad2.left_stick_y < 0)) //TODO: Correct sticks and optimize.
+                liftMotor.setPower(gamepad2.left_stick_y); //TODO: invert gamepad stick, correct motor direction.
+            else liftMotor.setPower(0);
+            //Let the lift locking servo extend when the lift is at the proper height
+            if (liftHeight < liftLockHeight && gamepad2.left_trigger)
+                liftLock.setPosition(1);
+            if (gamepad2.x)
+                liftLock.setPosition(0);
+        }
 
         switch (microState) {
             case Idle:
@@ -194,17 +212,6 @@ public class Drive extends OpMode {
             default: microState = MicroState.Idle; break;
         }
 
-        /*if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
-                microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
-            if (microState != MicroState.Shooting)
-                microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
-            microState = MicroState.Shooting;
-        }
-        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
-            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
-            microState = MicroState.Idle;
-        }*/
-
         if (macroMagLimit.isPressed())
             macroTrigger.setPosition(0.7);
         if (gamepad2.left_stick_button && gamepad2.right_stick_button)
@@ -221,9 +228,10 @@ public class Drive extends OpMode {
         else if (gamepad2.dpad_up)
             microGate.setPosition(0.26);
 
-        /*if (gamepad2.dpad_up) microPolMotor.setPower(1);
-        else if (gamepad2.dpad_up) microPolMotor.setPower(-1);
-        else microPolMotor.setPower(0);*/
+        if (gamepad2.dpad_up)
+            microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + 10);
+        else if (gamepad2.dpad_up)
+            microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() - 10);
 
         teleSpeed.setValue(driveSpeed);
         teleMicroState.setValue(driveState);
