@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //TODO: Fix servo delayed start
 //TODO: Fix straight drive for all modes
 TODO: Lift Height For lvl 2
-TODO: Automatic servo for Micro
+//TODO: Automatic servo for Micro
 TODO: Automatic shooting for Macro
 TODO: Start lift at height of 33
  */
@@ -49,8 +49,7 @@ public class Drive extends OpMode {
     private DriveState driveState;
     private MicroState microState;
 
-    //Robot Hardware TODO: Fix motors naming scheme
-    //TODO: Change motors to DcMotorEx
+    //Robot Hardware
     private DcMotorEx rightMotor;
     private DcMotorEx forRight;
     private DcMotorEx leftMotor;
@@ -168,27 +167,46 @@ public class Drive extends OpMode {
         if (gamepad2.x)
             liftLock.setPosition(0);
 
-        microActive = gamepad2.dpad_right;
-
-        if (microActive) {
-            microState = MicroState.Feeding;
-//            time = System.nanoTime() + (long)(1E6 * 300);
-        }
-
         switch (microState) {
-            case Feeding: microState = FeedMicro(microGate, 0.26, 0.1, time);
-            case Ready: if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
+            case Idle:
+                if (gamepad2.dpad_right)
+                    microState = MicroState.StartFeed;
+            case StartFeed:
+                microGate.setPosition(0.26);
+                microState = MicroState.Feeding;
+                break;
+            case Feeding:
+                if (microGate.getPosition() == 0.26) {
+                microGate.setPosition(0.1);
+                microState = MicroState.StartShoot;
+                }
+                break;
+            case StartShoot:
+                if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
                             microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
-                        if (microState != MicroState.Shooting)
-                            microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
-                            microState = MicroState.Shooting;
-                        }
-                        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
-                            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
-                            if (!microActive)
-                                microState = MicroState.Feeding;
-                        }
+                    microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
+                    microState = MicroState.Shooting;
+                }
+                break;
+            case Shooting:
+                if (microPolMotor.getTargetPosition() - 15 < microPolMotor.getCurrentPosition()) {
+                    microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
+                    microState = MicroState.Idle;
+                }
+                break;
+            default: microState = MicroState.Idle; break;
         }
+
+        /*if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
+                microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
+            if (microState != MicroState.Shooting)
+                microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
+            microState = MicroState.Shooting;
+        }
+        else if (microPolMotor.getCurrentPosition() - 30 < microPolMotor.getTargetPosition()) {
+            microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
+            microState = MicroState.Idle;
+        }*/
 
         if (macroMagLimit.isPressed())
             macroTrigger.setPosition(0.7);
