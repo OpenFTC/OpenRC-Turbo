@@ -48,6 +48,7 @@ public class Drive extends OpMode {
     //Robot States
     private DriveState driveState;
     private MicroState microState;
+    private MacroState macroState;
 
     //Robot Hardware
     private DcMotorEx rightMotor;
@@ -74,12 +75,13 @@ public class Drive extends OpMode {
 
     @Override
     public void init() {
-        driveState = driveState.Normal;
+        driveState = DriveState.Normal;
         driveSpeed = normalSpeed;
         constIntake = false;
         straightDrive = false;
         liftAtStart = false;
         microState = MicroState.Idle;
+        macroState = MacroState.Idle;
 
         //Initialize all motors and Servos
         rightMotor = hardwareMap.get(DcMotorEx.class, "RightMotor");
@@ -143,7 +145,7 @@ public class Drive extends OpMode {
 
         //Sets Drive Speed Based on driveState
         driveSpeed = (driveState == DriveState.Slow) ? slowSpeed :
-                        (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
+                (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
         if (straightDrive)
             setMotor(-gamepad1.left_stick_y, -gamepad1.left_stick_y, driveSpeed);  //Temp code
         else
@@ -192,13 +194,13 @@ public class Drive extends OpMode {
                 break;
             case Feeding:
                 if (microGate.getPosition() == 0.26) {
-                microGate.setPosition(0.1);
-                microState = MicroState.StartShoot;
+                    microGate.setPosition(0.1);
+                    microState = MicroState.StartShoot;
                 }
                 break;
             case StartShoot:
                 if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
-                            microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
+                        microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
                     microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
                     microState = MicroState.Shooting;
                 }
@@ -210,6 +212,19 @@ public class Drive extends OpMode {
                 }
                 break;
             default: microState = MicroState.Idle; break;
+        }
+
+        //TODO: Check position of macroMotor when shooting.
+
+        switch (macroState) {
+            case Idle: //if () {}
+            case StartLoading: break;
+            case Loading: break;
+            case StartLock: break;
+            case Locked:
+            case LockedAndLoaded:
+            case Shoot:
+            default: macroState = MacroState.Idle; break;
         }
 
         if (macroMagLimit.isPressed())
@@ -273,5 +288,14 @@ public class Drive extends OpMode {
         StartShoot,
         Shooting
     }
-}
 
+    public enum MacroState {
+        Idle,
+        StartLoading,
+        Loading,
+        StartLock,
+        Locked,
+        LockedAndLoaded,
+        Shoot
+    }
+}
