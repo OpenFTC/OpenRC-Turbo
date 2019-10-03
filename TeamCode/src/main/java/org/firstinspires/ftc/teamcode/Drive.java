@@ -65,7 +65,8 @@ public class Drive extends OpMode {
     private Servo macroTrigger;
     private Servo microGate;
 
-    private ElapsedTime roboRuntime = new ElapsedTime();
+    private ElapsedTime microRuntime = new ElapsedTime();
+    private ElapsedTime macroRuntime = new ElapsedTime();
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
@@ -200,13 +201,13 @@ public class Drive extends OpMode {
             case StartFeed:
                 microGate.setPosition(0.26);
                 microState = MicroState.Feeding;
-                roboRuntime.reset();
+                microRuntime.reset();
                 break;
             case Feeding:
-                if (360 < roboRuntime.milliseconds()) {
+                if (360 < microRuntime.milliseconds()) {
                     microGate.setPosition(0.1);
                     microState = MicroState.StartShoot;
-                    roboRuntime.reset();
+                    microRuntime.reset();
                 }
                 break;
             case StartShoot:
@@ -215,7 +216,7 @@ public class Drive extends OpMode {
                     microPolMotor.setTargetPosition(microPolMotor.getTargetPosition() + ticksPerMicroRev); //Change to target position to allow feeding before shooting has finished
                     microState = MicroState.Shooting;
                 }
-                else if (3000 < roboRuntime.milliseconds())
+                else if (3000 < microRuntime.milliseconds())
                     microState = microState.Idle;
                 break;
             case Shooting:
@@ -234,15 +235,28 @@ public class Drive extends OpMode {
                 if (gamepad2.left_stick_button && gamepad2.right_stick_button)
                     macroState = MacroState.StartLoading;
             case StartLoading:
-                macroPolMotor.setTargetPosition(1200);
+                macroPolMotor.setTargetPosition(ticksForLoad + 100);
                 break;
             case Loading:
-
+                if (macroPolMotor.getCurrentPosition() > ticksForLoad)
+                    macroState = MacroState.StartLock;
                 break;
-            case StartLock: break;
+            case StartLock:
+                macroTrigger.setPosition(0.7);
+                macroState = MacroState.Locked;
+                macroRuntime.reset();
+                break;
             case Locked:
+                if (300 < macroRuntime.milliseconds()) {
+                    macroPolMotor.setTargetPosition(0);
+                    macroState = MacroState.LockedAndLoaded;
+                }
             case LockedAndLoaded:
+                if ((gamepad2.right_stick_button && gamepad2.left_stick_button) && macroPolMotor.getCurrentPosition() < -10)
+                    macroState = MacroState.Shoot;
             case Shoot:
+                macroTrigger.setPosition(0);
+                macroState = MacroState.Idle;
             default: macroState = MacroState.Idle; break;
         }
 
