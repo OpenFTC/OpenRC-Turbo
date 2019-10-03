@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -36,7 +37,7 @@ public class Drive extends OpMode {
     private final double lowerLiftBound = 9;
     private final double upperLiftBound = 36.3;
     private final double liftLockHeight = 20.9;
-    private final double startLiftHeight = 33;
+    private final double startLiftHeight = 32.5;
 
     //Variables
     private double driveSpeed;
@@ -61,6 +62,8 @@ public class Drive extends OpMode {
     private Servo liftLock;
     private Servo macroTrigger;
     private Servo microGate;
+
+    private ElapsedTime roboRuntime = new ElapsedTime();
 
     private Rev2mDistanceSensor liftDistanceSensor;
     private ColorSensor microColorSensor;
@@ -143,7 +146,7 @@ public class Drive extends OpMode {
 
         //Sets Drive Speed Based on driveState
         driveSpeed = (driveState == DriveState.Slow) ? slowSpeed :
-                        (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
+                (driveState == DriveState.Fast) ? fastSpeed : normalSpeed;
         if (straightDrive)
             setMotor(-gamepad1.left_stick_y, -gamepad1.left_stick_y, driveSpeed);  //Temp code
         else
@@ -184,27 +187,32 @@ public class Drive extends OpMode {
 
         switch (microState) {
             case Idle:
-                if (gamepad2.dpad_right)
+                if (gamepad2.a)
                     microState = MicroState.StartFeed;
+                break;
             case StartFeed:
                 microGate.setPosition(0.26);
                 microState = MicroState.Feeding;
+                roboRuntime.reset();
                 break;
             case Feeding:
-                if (microGate.getPosition() == 0.26) {
-                microGate.setPosition(0.1);
-                microState = MicroState.StartShoot;
+                if (360 < roboRuntime.milliseconds()) {
+                    microGate.setPosition(0.1);
+                    microState = MicroState.StartShoot;
+                    roboRuntime.reset();
                 }
                 break;
             case StartShoot:
                 if (checkColor(microColorSensor, rgbaUpper, rgbaLower) ||
-                            microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
-                    microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() + ticksPerMicroRev);
+                        microDistanceSensor.getDistance(DistanceUnit.CM) <= microMaxDistance) {
+                    microPolMotor.setTargetPosition(microPolMotor.getTargetPosition() + ticksPerMicroRev); //Change to target position to allow feeding before shooting has finished
                     microState = MicroState.Shooting;
                 }
+                else if (3000 < roboRuntime.milliseconds())
+                    microState = microState.Idle;
                 break;
             case Shooting:
-                if (microPolMotor.getTargetPosition() - 15 < microPolMotor.getCurrentPosition()) {
+                if (microPolMotor.getTargetPosition() - (ticksPerMicroRev / 2) - (ticksPerMicroRev / 8) < microPolMotor.getCurrentPosition()) {
                     microPolMotor.setTargetPosition(microPolMotor.getTargetPosition());
                     microState = MicroState.Idle;
                 }
@@ -234,7 +242,7 @@ public class Drive extends OpMode {
             microPolMotor.setTargetPosition(microPolMotor.getCurrentPosition() - 10);
 
         teleSpeed.setValue(driveSpeed);
-        teleMicroState.setValue(driveState);
+        teleMicroState.setValue(microState);
         teleLiftHeight.setValue(liftHeight);
         telemetry.update();
     }
