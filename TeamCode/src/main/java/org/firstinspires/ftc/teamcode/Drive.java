@@ -198,7 +198,7 @@ public class Drive extends OpMode {
 
         switch (microState) {
             case Idle:
-                if (false)//gamepad2.a)
+                if (gamepad2.a)
                     microState = MicroState.StartFeed;
                 break;
             case StartFeed:
@@ -237,10 +237,10 @@ public class Drive extends OpMode {
             case Idle:
 //                if (gamepad2.a)
 //                    macroState = MacroState.StartLoading;
-                macroState = (gamepad2.a) ? MacroState.StartLoading : MacroState.Idle;
+                macroState = (gamepad2.y) ? MacroState.StartLoading : macroState;
                 break;
             case StartLoading:
-                macroPolMotor.setTargetPosition(ticksForLoad + 200);
+                macroPolMotor.setTargetPosition(ticksForLoad + 250);
                 macroState = MacroState.Loading;
                 break;
             case Loading:
@@ -248,21 +248,24 @@ public class Drive extends OpMode {
                     macroState = MacroState.StartLock;
                 break;
             case StartLock:
-                macroTrigger.setPosition(0.7);
+                macroTrigger.setPosition(0.75);
                 macroState = MacroState.Locked;
                 macroRuntime.reset();
                 break;
             case Locked:
-                if (3000 < macroRuntime.milliseconds()) {
+                if (700 < macroRuntime.milliseconds()) {
                     macroPolMotor.setTargetPosition(0);
                     macroState = MacroState.LockedAndLoaded;
                 }
+                break;
             case LockedAndLoaded:
-                if ((gamepad2.right_stick_button && gamepad2.left_stick_button) && macroPolMotor.getCurrentPosition() < -10)
+                if ((gamepad2.right_stick_button && gamepad2.left_stick_button) && macroPolMotor.getCurrentPosition() < 10)
                     macroState = MacroState.Shoot;
+                break;
             case Shoot:
                 macroTrigger.setPosition(0);
                 macroState = MacroState.Idle;
+                break;
             default: macroState = MacroState.Idle; break;
         }
 
