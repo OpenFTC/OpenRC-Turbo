@@ -76,6 +76,7 @@ public class Drive extends OpMode {
     //Telemetry
     Telemetry.Item teleSpeed;
     Telemetry.Item teleMicroState;
+    Telemetry.Item teleMacroState;
     Telemetry.Item teleLiftHeight;
 
     @Override
@@ -129,6 +130,7 @@ public class Drive extends OpMode {
         macroPolMotor.setPower(1);
         //TODO: Test default targetPositionTolerance
         microPolMotor.setTargetPositionTolerance(4);
+        macroPolMotor.setTargetPositionTolerance(4);
 
         //Initialize Servos
         liftLock.setPosition(0);
@@ -137,6 +139,7 @@ public class Drive extends OpMode {
         //Initialize Telemetry
         teleSpeed = telemetry.addData("Drive Speed", driveSpeed);
         teleMicroState = telemetry.addData("Micro Pol State", microState);
+        teleMacroState = telemetry.addData("Macro Pol State", macroState);
         teleLiftHeight = telemetry.addData("Lift Height", liftHeight);
     }
 
@@ -195,7 +198,7 @@ public class Drive extends OpMode {
 
         switch (microState) {
             case Idle:
-                if (gamepad2.a)
+                if (false)//gamepad2.a)
                     microState = MicroState.StartFeed;
                 break;
             case StartFeed:
@@ -232,13 +235,16 @@ public class Drive extends OpMode {
 
         switch (macroState) {
             case Idle:
-                if (gamepad2.left_stick_button && gamepad2.right_stick_button)
-                    macroState = MacroState.StartLoading;
+//                if (gamepad2.a)
+//                    macroState = MacroState.StartLoading;
+                macroState = (gamepad2.a) ? MacroState.StartLoading : MacroState.Idle;
+                break;
             case StartLoading:
-                macroPolMotor.setTargetPosition(ticksForLoad + 100);
+                macroPolMotor.setTargetPosition(ticksForLoad + 200);
+                macroState = MacroState.Loading;
                 break;
             case Loading:
-                if (macroPolMotor.getCurrentPosition() > ticksForLoad)
+                if (ticksForLoad < macroPolMotor.getCurrentPosition())
                     macroState = MacroState.StartLock;
                 break;
             case StartLock:
@@ -247,7 +253,7 @@ public class Drive extends OpMode {
                 macroRuntime.reset();
                 break;
             case Locked:
-                if (300 < macroRuntime.milliseconds()) {
+                if (3000 < macroRuntime.milliseconds()) {
                     macroPolMotor.setTargetPosition(0);
                     macroState = MacroState.LockedAndLoaded;
                 }
@@ -265,11 +271,11 @@ public class Drive extends OpMode {
         if (gamepad2.left_stick_button && gamepad2.right_stick_button)
             macroTrigger.setPosition(0);*/
 
-        if (gamepad2.right_bumper)
+        /*if (gamepad2.right_bumper)
             macroPolMotor.setPower(1);
         else if (gamepad2.left_bumper)
             macroPolMotor.setPower(-1);
-        else macroPolMotor.setPower(0);
+        else macroPolMotor.setPower(0);*/
 
         if (gamepad2.dpad_down)
             microGate.setPosition(0.1);
@@ -283,8 +289,8 @@ public class Drive extends OpMode {
 
         teleSpeed.setValue(driveSpeed);
         teleMicroState.setValue(microState);
+        teleMacroState.setValue(macroState);
         teleLiftHeight.setValue(liftHeight);
-        telemetry.addData("MacroMotor", macroPolMotor.getCurrentPosition());
         telemetry.update();
     }
 
