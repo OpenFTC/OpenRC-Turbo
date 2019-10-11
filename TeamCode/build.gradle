@@ -15,7 +15,6 @@ dependencies {
      * Other Modules
      */
     implementation project(':FtcRobotController')
-    implementation project(':DogeCommander')
 
     turboImplementation project(':Hardware')
     turboImplementation project(':RobotCore')
