@@ -1,0 +1,3 @@
+[submodule "DogeCommander"]
+	path = DogeCommander
+	url = https://github.com/kfajdsl/DogeCommander.git
