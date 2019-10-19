@@ -23,8 +23,4 @@ dependencies {
     extremeTurboImplementation project(':Hardware')
     extremeTurboImplementation project(':RobotCore')
     extremeTurboImplementation project(':FtcCommon')
-
-    stockImplementation 'org.openftc:hardware-stock:5.2'
-    stockImplementation 'org.openftc:robotcore-stock:5.2'
-    stockImplementation 'org.openftc:ftccommon-stock:5.2'
 }

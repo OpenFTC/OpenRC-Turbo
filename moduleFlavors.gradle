@@ -4,24 +4,12 @@ android {
     productFlavors {
         stock {
             dimension 'type'
-
-            ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a"
-            }
         }
         turbo {
             dimension 'type'
-
-            ndk {
-                abiFilters "armeabi-v7a"
-            }
         }
         extremeTurbo {
             dimension 'type'
-
-            ndk {
-                abiFilters "armeabi-v7a"
-            }
         }
     }
 
