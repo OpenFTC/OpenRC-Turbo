@@ -12,8 +12,6 @@
     <string name="not_available">&lt;NOT AVAILABLE></string>
     <string name="passphrase_label">Use the following passphrase to gain access to the network:</string>
     <string name="program_and_manage_activity">Program &amp; Manage</string>
-    <string name="programming_mode">Programming Mode</string>
-    <string name="programming_mode_activity">Programming Mode</string>
     <string name="server_not_ok">Server not OK.</string>
     <string name="server_ok">Server OK (Running since %1$s)</string>
     <string name="server_status_label">Server status:</string>

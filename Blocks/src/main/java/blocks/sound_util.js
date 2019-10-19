@@ -7,10 +7,7 @@
  * Fetches the list of sounds (as json) and calls the callback.
  */
 function fetchSounds(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchSoundsViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchSoundsViaHttp(callback);
   }
@@ -20,10 +17,7 @@ function fetchSounds(callback) {
  * Opens the sound with the given name.
  */
 function playSoundFile(soundName) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    playSoundFileViaBlocksIO(soundName);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     playSoundFileViaHttp(soundName);
   }
@@ -33,125 +27,37 @@ function playSoundFile(soundName) {
  * Fetches the content of an existing sound file and calls the callback
  */
 function fetchSoundFileContent(soundName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchSoundFileContentViaBlocksIO(soundName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchSoundFileContentViaHttp(soundName, callback);
   }
 }
 
 function saveSound(soundName, base64Content, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    saveSoundViaBlocksIO(soundName, base64Content, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     saveSoundViaHttp(soundName, base64Content, callback);
   }
 }
 
 function renameSound(oldSoundName, newSoundName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    renameSoundViaBlocksIO(oldSoundName, newSoundName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     renameSoundViaHttp(oldSoundName, newSoundName, callback);
   }
 }
 
 function copySound(oldSoundName, newSoundName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    copySoundViaBlocksIO(oldSoundName, newSoundName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     copySoundViaHttp(oldSoundName, newSoundName, callback);
   }
 }
 
 function deleteSounds(starDelimitedSoundNames, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    deleteSoundsViaBlocksIO(starDelimitedSoundNames, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     deleteSoundsViaHttp(starDelimitedSoundNames, callback);
-  }
-}
-
-//..........................................................................
-// Code used when html/js is within the WebView component within the
-// Android app.
-
-function fetchSoundsViaBlocksIO(callback) {
-  var jsonSounds = blocksIO.fetchSounds();
-  if (jsonSounds) {
-    callback(jsonSounds, '');
-  } else {
-    callback(null, 'Fetch sounds failed.');
-  }
-}
-
-function playSoundFileViaBlocksIO(soundName) {
-  var mimeType = blocksIO.fetchSoundFileMimeType(soundName);
-  if (mimeType) {
-    var base64Content = blocksIO.fetchSoundFileContent(soundName);
-    if (base64Content) {
-      var audio = new Audio('data:' + mimeType + ';base64,' + base64Content);
-      audio.play()
-    }
-  }
-}
-
-function fetchSoundFileContentViaBlocksIO(soundName, callback) {
-  var base64Content = blocksIO.fetchSoundFileContent(soundName);
-  if (base64Content) {
-    callback(base64Content, '');
-  } else {
-    callback(null, 'Fetch sound failed.');
-  }
-}
-
-function saveSoundViaBlocksIO(soundName, base64Content, callback) {
-  var success = blocksIO.saveSound(soundName, base64Content, group);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Save sound failed.');
-  }
-}
-
-function renameSoundViaBlocksIO(oldSoundName, newSoundName, callback) {
-  var success = blocksIO.renameSound(oldSoundName, newSoundName);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Rename sound failed.');
-  }
-}
-
-function copySoundViaBlocksIO(oldSoundName, newSoundName, callback) {
-  var success = blocksIO.copySound(oldSoundName, newSoundName);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Copy sound failed.');
-  }
-}
-
-function deleteSoundsViaBlocksIO(starDelimitedSoundNames, callback) {
-  var success = blocksIO.deleteSounds(starDelimitedSoundNames);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Delete sounds failed.');
   }
 }
 

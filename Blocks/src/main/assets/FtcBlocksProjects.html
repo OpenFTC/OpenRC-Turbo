@@ -148,7 +148,7 @@
     <td class="blank_td" colspan="2"></td>
   </tr>
 </table>
-<div id="projectsTableScroll">
+<div id="projectsTableScroll" class="scrolling_table_container">
   <table id="projectsTable" width="100%">
     <tr class="header_tr">
       <td><input type="checkbox" id="checkbox_all" onclick="projectCheckAllChanged()"></td>
@@ -166,7 +166,7 @@
   <input type="text" id="newProjectName" style="width: 40ch"><br>
   <div id="newProjectSamplesArea"><br><br>
     Sample:
-    <select id="newProjectSamplesSelect" style="width: 40ch">
+    <select id="newProjectSamplesSelect" onchange="sampleSelected()" style="width: 40ch">
       <option value=""></option>
     </select><br>
   </div>

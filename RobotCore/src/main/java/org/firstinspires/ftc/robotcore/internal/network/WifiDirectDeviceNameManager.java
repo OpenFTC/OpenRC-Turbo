@@ -216,7 +216,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
     //  next set of phones on team;         9999-B-RC, 9999-B-DS
     public static boolean validDeviceName(@NonNull String deviceName)
         {
-        return deviceName.matches("[a-zA-Z0-9]+(-[B-Z])?-(DS|RC)");
+        return deviceName.matches("[a-zA-Z0-9]+(-[a-zA-Z])?-(?i)(DS|RC)");
         }
 
     /**

@@ -28,9 +28,9 @@ public class FtcEventLoopIdle extends FtcEventLoopBase
     {
     public static final String TAG = "FtcEventLoopIdle";
 
-    public FtcEventLoopIdle(HardwareFactory hardwareFactory, OpModeRegister userOpmodeRegister, UpdateUI.Callback callback, Activity activityContext, ProgrammingModeController programmingModeController)
+    public FtcEventLoopIdle(HardwareFactory hardwareFactory, OpModeRegister userOpmodeRegister, UpdateUI.Callback callback, Activity activityContext)
         {
-        super(hardwareFactory, userOpmodeRegister, callback, activityContext, programmingModeController);
+        super(hardwareFactory, userOpmodeRegister, callback, activityContext);
         }
 
     @Override

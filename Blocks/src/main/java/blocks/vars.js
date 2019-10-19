@@ -14,16 +14,17 @@ var mouseX, mouseY;
 var previousClipboardXml;
 var savedClipboardContent;
 
-var minBlocksWidth = 100;
-var savedBlocksWidth = 0;
-var minJavaWidth = 1;
+var showJavaCheckbox;
 var javaArea;
 var javaContent;
 var parentArea;
-var dragBar;
-var dragImage;
+var blocksAndBannerArea;
 var blocklyArea;
 var blocklyDiv;
+var banner;
+var bannerText;
+var bannerButton;
+var split;
 var workspace;
 
 var projectEnabled = true;
@@ -46,7 +47,13 @@ function createFieldDropdown(choices) {
   if (choices.length == 0) {
     return createNonEditableField('');
   }
-  return new Blockly.FieldDropdown(choices);
+  // Disable validation. We'll show a warning if the newValue is not in the choices. This can
+  // happen if the hardware configuration has changed.
+  var field = new Blockly.FieldDropdown(choices);
+  field.doClassValidation_ = function(newValue) {
+    return newValue;
+  };
+  return field;
 }
 
 function isJavaIdentifierStart(c) {

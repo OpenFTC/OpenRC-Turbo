@@ -52,6 +52,8 @@ public class OfflineBlocksUtil {
 
     Set<String> assetsToInclude = new HashSet<>();
 
+    assetsToInclude.add("js/split.min.js");
+
     assetsToInclude.add("blocks/images.css");
     for (String blocksImagesFile : assetManager.list("blocks/images")) {
       assetsToInclude.add("blocks/images/" + blocksImagesFile);
@@ -343,8 +345,8 @@ public class OfflineBlocksUtil {
         .append("function getOfflineConfigurationName() {\n")
         .append("  return '").append(escapeSingleQuotes(configName)).append("';\n")
         .append("}\n\n")
-        .append("function getSampleNames() {\n")
-        .append("  var SAMPLE_NAMES = ").append(ProjectsUtil.fetchSampleNames()).append(";\n")
+        .append("function getSampleNamesJson() {\n")
+        .append("  var SAMPLE_NAMES = '").append(ProjectsUtil.fetchSampleNames()).append("';\n")
         .append("  return SAMPLE_NAMES;\n")
         .append("}\n\n")
         .append("function getSampleBlkFileContent(sampleName) {\n")

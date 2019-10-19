@@ -7,10 +7,7 @@
  * Fetches the list of projects (as json) and calls the callback.
  */
 function fetchProjects(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchProjectsViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchProjectsViaHttp(callback);
   } else if  (window.location.protocol === 'file:') {
@@ -23,10 +20,7 @@ function fetchProjects(callback) {
  * Fetches the list of samples (as json) and calls the callback.
  */
 function fetchSamples(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchSamplesViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchSamplesViaHttp(callback);
   } else if (window.location.protocol === 'file:') {
@@ -39,10 +33,7 @@ function fetchSamples(callback) {
  * Opens the project with the given name.
  */
 function openProjectBlocks(projectName) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    openProjectBlocksViaBlocksIO(projectName);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     openProjectBlocksViaHttp(projectName);
   } else if (window.location.protocol === 'file:') {
@@ -55,10 +46,7 @@ function openProjectBlocks(projectName) {
  * Fetches the blocks of an existing project and calls the callback
  */
 function fetchBlkFileContent(projectName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchBlkFileContentViaBlocksIO(projectName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchBlkFileContentViaHttp(projectName, callback);
   } else if (window.location.protocol === 'file:') {
@@ -68,10 +56,7 @@ function fetchBlkFileContent(projectName, callback) {
 }
 
 function newProject(projectName, sampleName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    newProjectViaBlocksIO(projectName, sampleName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     newProjectViaHttp(projectName, sampleName, callback);
   } else if (window.location.protocol === 'file:') {
@@ -81,10 +66,7 @@ function newProject(projectName, sampleName, callback) {
 }
 
 function saveProject(projectName, blkFileContent, jsFileContent, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    saveProjectViaBlocksIO(projectName, blkFileContent, jsFileContent, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     saveProjectViaHttp(projectName, blkFileContent, jsFileContent, callback);
   } else if (window.location.protocol === 'file:') {
@@ -94,10 +76,7 @@ function saveProject(projectName, blkFileContent, jsFileContent, callback) {
 }
 
 function renameProject(oldProjectName, newProjectName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    renameProjectViaBlocksIO(oldProjectName, newProjectName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     renameProjectViaHttp(oldProjectName, newProjectName, callback);
   } else if (window.location.protocol === 'file:') {
@@ -107,10 +86,7 @@ function renameProject(oldProjectName, newProjectName, callback) {
 }
 
 function copyProject(oldProjectName, newProjectName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    copyProjectViaBlocksIO(oldProjectName, newProjectName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     copyProjectViaHttp(oldProjectName, newProjectName, callback);
   } else if (window.location.protocol === 'file:') {
@@ -120,10 +96,7 @@ function copyProject(oldProjectName, newProjectName, callback) {
 }
 
 function enableProject(projectName, enable, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    enableProjectViaBlocksIO(projectName, enable, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     enableProjectViaHttp(projectName, enable, callback);
   } else if (window.location.protocol === 'file:') {
@@ -133,10 +106,7 @@ function enableProject(projectName, enable, callback) {
 }
 
 function deleteProjects(starDelimitedProjectNames, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    deleteProjectsViaBlocksIO(starDelimitedProjectNames, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     deleteProjectsViaHttp(starDelimitedProjectNames, callback);
   } else if (window.location.protocol === 'file:') {
@@ -146,10 +116,7 @@ function deleteProjects(starDelimitedProjectNames, callback) {
 }
 
 function getBlocksJavaClassName(projectName, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    getBlocksJavaClassNameViaBlocksIO(projectName, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     getBlocksJavaClassNameViaHttp(projectName, callback);
   } else if (window.location.protocol === 'file:') {
@@ -159,131 +126,12 @@ function getBlocksJavaClassName(projectName, callback) {
 }
 
 function saveBlocksJava(relativeFileName, javaCode, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    saveBlocksJavaViaBlocksIO(relativeFileName, javaCode, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     saveBlocksJavaViaHttp(relativeFileName, javaCode, callback);
   } else if (window.location.protocol === 'file:') {
     // html/js is in a browser, loaded as an file:// URL.
     saveBlocksJavaViaFile(relativeFileName, javaCode, callback);
-  }
-}
-
-//..........................................................................
-// Code used when html/js is within the WebView component within the
-// Android app.
-
-function fetchProjectsViaBlocksIO(callback) {
-  var jsonProjects = blocksIO.fetchProjects();
-  if (jsonProjects) {
-    callback(jsonProjects, '');
-  } else {
-    callback(null, 'Fetch projects failed.');
-  }
-}
-
-function fetchSamplesViaBlocksIO(callback) {
-  var jsonSamples = blocksIO.fetchSamples();
-  if (jsonSamples) {
-    callback(jsonSamples, '');
-  } else {
-    callback(null, 'Fetch samples failed.');
-  }
-}
-
-function openProjectBlocksViaBlocksIO(projectName) {
-  // Go to FtcBlocks.html?project=<projectName>.
-  blocksIO.openProjectBlocks(projectName);
-}
-
-function fetchBlkFileContentViaBlocksIO(projectName, callback) {
-  var blkFileContent = blocksIO.fetchBlkFileContent(projectName);
-  if (blkFileContent) {
-    callback(blkFileContent, '');
-  } else {
-    callback(null, 'Fetch blocks failed.');
-  }
-}
-
-function newProjectViaBlocksIO(projectName, sampleName, callback) {
-  var blkFileContent = blocksIO.newProject(projectName, sampleName, enable);
-  if (blkFileContent) {
-    callback(blkFileContent, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(null, 'New project failed.');
-  }
-}
-
-function saveProjectViaBlocksIO(projectName, blkFileContent, jsFileContent, callback) {
-  var success = blocksIO.saveProject(projectName, blkFileContent, jsFileContent);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Save project failed.');
-  }
-}
-
-function renameProjectViaBlocksIO(oldProjectName, newProjectName, callback) {
-  var success = blocksIO.renameProject(oldProjectName, newProjectName);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Rename project failed.');
-  }
-}
-
-function copyProjectViaBlocksIO(oldProjectName, newProjectName, callback) {
-  var success = blocksIO.copyProject(oldProjectName, newProjectName);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Copy project failed.');
-  }
-}
-
-function enableProjectViaBlocksIO(oldProjectName, enable, callback) {
-  var success = blocksIO.enableProject(oldProjectName, enable);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Enable project failed.');
-  }
-}
-
-function deleteProjectsViaBlocksIO(starDelimitedProjectNames, callback) {
-  var success = blocksIO.deleteProjects(starDelimitedProjectNames);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Delete projects failed.');
-  }
-}
-
-function getBlocksJavaClassNameViaBlocksIO(projectName, callback) {
-  var className = blocksIO.getBlocksJavaClassName(projectName);
-  if (className) {
-    callback(className, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(null, 'Get blocks java class name failed.');
-  }
-}
-
-function saveBlocksJavaViaBlocksIO(relativeFileName, javaCode, callback) {
-  var success = blocksIO.saveBlocksJava(relativeFileName, javaCode);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Save Java code failed.');
   }
 }
 
@@ -606,14 +454,7 @@ function fetchProjectsViaFile(callback) {
 }
 
 function fetchSamplesViaFile(callback) {
-  var jsonSamples = '[';
-  var samples = getSampleNames();
-  var delimiter = '';
-  for (var i = 0; i < samples.length; i++) {
-    jsonSamples += delimiter + '"' + samples[i] + '"';
-    delimiter = ',';
-  }
-  jsonSamples += ']';
+  var jsonSamples = getSampleNamesJson();
   setTimeout(function() {
     callback(jsonSamples, '');
   }, 0);

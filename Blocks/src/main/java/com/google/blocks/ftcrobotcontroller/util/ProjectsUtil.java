@@ -2,6 +2,11 @@
 
 package com.google.blocks.ftcrobotcontroller.util;
 
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_VUFORIA;
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_CAMERA;
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_WEBCAM;
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_TFOD;
+
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCKS_BLK_EXT;
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCKS_JS_EXT;
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCK_OPMODES_DIR;
@@ -37,6 +42,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.List;
 import java.util.Locale;
@@ -188,6 +195,8 @@ public class ProjectsUtil {
    * Returns the names of blocks samples
    */
   public static String fetchSampleNames() throws IOException {
+    HardwareItemMap hardwareItemMap = HardwareItemMap.newHardwareItemMap();
+
     StringBuilder jsonSamples = new StringBuilder();
     jsonSamples.append("[");
 
@@ -200,8 +209,25 @@ public class ProjectsUtil {
         if (filename.endsWith(BLOCKS_BLK_EXT)) {
           String sampleName = filename.substring(0, filename.length() - BLOCKS_BLK_EXT.length());
           if (!sampleName.equals(DEFAULT_BLOCKS_SAMPLE_NAME)) {
-            jsonSamples.append(delimiter)
-                .append("\"").append(escapeDoubleQuotes(sampleName)).append("\"");
+            String blkFileContent = readSample(sampleName, hardwareItemMap);
+            Set<String> requestedCapabilities = getRequestedCapabilities(blkFileContent);
+            // TODO(lizlooney): Consider adding required hardware.
+            jsonSamples
+                .append(delimiter)
+                .append("{")
+                .append("\"name\":\"").append(escapeDoubleQuotes(sampleName)).append("\", ")
+                .append("\"escapedName\":\"").append(escapeDoubleQuotes(Html.escapeHtml(sampleName))).append("\", ")
+                .append("\"requestedCapabilities\":[");
+            String delimiter2 = "";
+            for (String requestedCapability : requestedCapabilities) {
+              jsonSamples
+                  .append(delimiter2)
+                  .append("\"").append(requestedCapability).append("\"");
+              delimiter2 = ",";
+            }
+            jsonSamples
+                .append("]")
+                .append("}");
             delimiter = ",";
           }
         }
@@ -226,6 +252,26 @@ public class ProjectsUtil {
       }
     }
     return map;
+  }
+
+  /**
+   * Returns the set of capabilities used by the given blocks content.
+   */
+  private static Set<String> getRequestedCapabilities(String blkFileContent) {
+    Set<String> requestedCapabilities = new HashSet<>();
+    if (blkFileContent.contains("<block type=\"vuforia")) {
+      requestedCapabilities.add(CAPABILITY_VUFORIA);
+    }
+    if (blkFileContent.contains("<block type=\"vuforiaSkyStone_initialize_withCameraDirection")) {
+      requestedCapabilities.add(CAPABILITY_CAMERA);
+    }
+    if (blkFileContent.contains("<block type=\"vuforiaSkyStone_initialize_withWebcam")) {
+      requestedCapabilities.add(CAPABILITY_WEBCAM);
+    }
+    if (blkFileContent.contains("<block type=\"tfod")) {
+      requestedCapabilities.add(CAPABILITY_TFOD);
+    }
+    return requestedCapabilities;
   }
 
   /**

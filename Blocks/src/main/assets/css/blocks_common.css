@@ -3,6 +3,8 @@
  * FtcOfflineBlocksProjects.html, and FtcOfflineBlocks.html
  */
 
+/* Element-level rules  */
+
 html, body {
   height: 100%;
   margin: 0;
@@ -22,14 +24,29 @@ table {
 button {
   font-size: small;
   cursor: pointer;
+  color: black;
+}
+
+button:disabled {
+  color: gray;
+}
+
+input[type=text], select {
+  height: 20px;
+}
+
+/* Table layout rules */
+
+.scrolling_table_container {
+  height: 200px;
+  overflow: auto;
+  background: white;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .buttons_td {
   padding: 5px;
-}
-
-a.help {
-  color: white;
 }
 
 .blank_td {
@@ -43,22 +60,6 @@ a.help {
   font-weight: bold;
 }
 
-#saveSuccess {
-  color: #ffffff;
-}
-
-#saveFailure {
-  color: #ffffff;
-  padding: 0px 10px 0px 10px;
-  background-color: #f0ad4e;
-  border: 1px solid transparent;
-  border-radius: 4px;
-}
-
-.error_message {
-  color: red;
-}
-
 .header_tr {
   background: #eeeeee;
 }
@@ -69,42 +70,75 @@ a.help {
   cursor: pointer;
 }
 
-#projectsTableScroll, #soundsTableScroll {
-  height: 200px;
-  overflow: auto;
-  background: white;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
 .project_row_tr {
   color: white;
-  padding: 5px;
   font-weight: bold;
+}
+
+.project_row_td {
+  padding: 5px;
+}
+
+.project_row_checkbox.project_row_checkbox { /* hack: we chain the selector with itself to increase specificity */
+  margin: 0 ;
+  vertical-align: middle;
 }
 
 .project_tr, .sound_tr {
   border-bottom: 1pt solid white;
 }
 
-.project_name, .sound_name {
-  font-family: sans-serif;
-  font-weight: bold;
-  cursor: pointer;
-}
+/* Main Blocks project layout rules (uses flexbox) */
 
-#project_flavor, #project_group {
-  font-weight: normal;
-}
-
-.workspace_td {
+.horizontal_area {
+  display: flex;
+  flex-direction: row;
   background-color: white;
-  height: 100%;
 }
 
-svg.blocklyWsDragSurface {
-  overflow: visible;
+.vertical_area {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
 }
+
+.fill_area {
+  flex-grow: 4;
+}
+
+.parent_area {
+  margin: 2px;
+}
+
+.no_min_height {
+  min-height:0;
+}
+
+.no_min_width {
+  min-width: 0;
+}
+
+.content_border {
+  border: 1px solid #909090; /* Same color as gutter */
+}
+
+.banner {
+  display: flex;
+  width: 100%;
+  background: slategrey;
+  padding: 5px;
+  margin-bottom: 2px;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner_text {
+  color: white;
+  margin-right: 10px;
+  font-size: 1.7rem;
+}
+
+/* Modal dialog rules */
 
 .modal_dialog {
   display: none;
@@ -134,24 +168,39 @@ svg.blocklyWsDragSurface {
   background-color: #fefefe;
 }
 
-.dragBar {
-  cursor: col-resize;
-  background-color: #909090;
-  position: absolute;
-  width: 4px;
-  height: 1px; /* calculated later */
+/* Text formatting rules */
+
+a.help {
+  color: white;
 }
 
-.area {
-  display: inline-block;
-  height: 100%;
-  background-color: white;
-  vertical-align: top;
+#saveSuccess {
+  color: #ffffff;
 }
 
-.parent{
-  width: 100%;
+#saveFailure {
+  color: #ffffff;
+  padding: 0px 10px 0px 10px;
+  background-color: #f0ad4e;
+  border: 1px solid transparent;
+  border-radius: 4px;
 }
+
+.error_message {
+  color: red;
+}
+
+.project_name, .sound_name {
+  font-family: sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.not_bold {
+  font-weight: normal;
+}
+
+/* Java pane rules */
 
 #javaCodeHeading {
   padding-left: 4px;
@@ -159,13 +208,17 @@ svg.blocklyWsDragSurface {
   color: white;
 }
 
+#javaContentContainer {
+  overflow:auto;
+  margin-top: 2px;
+  padding: 2px 4px;
+}
+
 #javaContent {
   display: block;
-  height: 100%;
-  overflow: auto;
-  margin: 2px 4px 2px 4px;
+  overflow: visible;
+  padding:0;
   border: none;
-  padding: 0px;
   background-color: white;
   color: black;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -174,4 +227,22 @@ svg.blocklyWsDragSurface {
   white-space: pre;
   word-break: break-all;
   word-wrap: break-word;
+}
+
+/* CSS overrides for third-party libraries */
+
+svg.blocklyWsDragSurface {
+  overflow: visible;
+}
+
+/* Add border between toolbox and Blocks program */
+.blocklyToolboxDiv {
+  border-right: 1px solid #909090; /* Same color as content_border */
+}
+
+/* split.js gutter style */
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+  background-color: #909090; /* Same color as content_border */
+  margin: 0 2px;
 }

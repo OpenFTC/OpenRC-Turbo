@@ -11,6 +11,7 @@
 <block type="digitalChannel_setProperty_DigitalChannelMode" id=",-`xZf=E?2`Zlgn},e5=">
 <field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">Mode</field>
+<data>{"IDENTIFIER":"digitalTouch"}</data>
 <value name="VALUE">
 <shadow type="digitalChannel_typedEnum_mode" id="cI2W{t_kB?W2BW8k45D5">
 <field name="MODE">INPUT</field>
@@ -62,6 +63,7 @@
 <block type="digitalChannel_getProperty_Boolean" id="@4k*`V]^5YyenOS(=tYn">
 <field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">State</field>
+<data>{"IDENTIFIER":"digitalTouch"}</data>
 </block>
 </value>
 <value name="B">

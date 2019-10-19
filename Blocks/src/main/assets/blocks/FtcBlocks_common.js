@@ -40,8 +40,6 @@ function initializeBlocks() {
         var blocksLoadedCallback = function() {
           showJava();
         };
-        document.getElementById('javaCodeHeading').style.display = 'block';
-        document.getElementById('javaContent').style.display = 'block';
         loadBlocks(blkFileContent, blocksLoadedCallback);
       } else {
         alert(errorMessage);
@@ -50,6 +48,19 @@ function initializeBlocks() {
   } else {
     alert('Error: The specified project name is not valid.');
   }
+}
+
+function displayBanner(text, buttonText, buttonCallback) {
+  banner.style.display = 'flex';
+  bannerText.innerHTML = text;
+  bannerButton.innerHTML = buttonText;
+  bannerButton.onclick = buttonCallback;
+  resizeBlocklyArea();
+}
+
+function hideBanner() {
+  banner.style.display = 'none';
+  resizeBlocklyArea();
 }
 
 /**
@@ -143,6 +154,10 @@ function yesSaveWithWarningsDialog() {
 
 function saveProjectNow(opt_success_callback) {
   if (currentProjectName) {
+    var allBlocks = workspace.getAllBlocks();
+    for (var iBlock = 0, block; block = allBlocks[iBlock]; iBlock++) {
+      saveBlockWarningHidden(block);
+    }
     // Get the blocks as xml (text).
     var blocksContent = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace));
     // Don't bother saving if there are no blocks.
@@ -185,9 +200,10 @@ function disableOrphans() {
   var blocks = workspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
     if (block.type != 'procedures_defnoreturn' &&
-        block.type != 'procedures_defreturn') {
+        block.type != 'procedures_defreturn' &&
+        block.isEnabled()) {
       do {
-        block.setDisabled(true);
+        block.setEnabled(false);
         disabled.push(block);
         block = block.getNextBlock();
       } while (block);
@@ -200,7 +216,7 @@ function disableOrphans() {
 function reenableOrphans(disabled) {
   Blockly.Events.disable();
   for (var x = 0, block; block = disabled[x]; x++) {
-    block.setDisabled(false);
+    block.setEnabled(true);
   }
   Blockly.Events.enable();
 }
@@ -218,6 +234,17 @@ function downloadButtonClicked() {
         alert(errorMessage);
       }
     });
+  });
+}
+
+function initializeSplit() {
+  split = window.Split([blocksAndBannerArea, javaArea], {
+    direction: 'horizontal',
+    sizes: [75, 25],
+    minSize: [200, 100],
+    gutterSize: 4,
+    snapOffset: 0,
+    onDrag: resizeBlocklyArea,
   });
 }
 
@@ -246,18 +273,16 @@ function initializeBlockly() {
   };
 
   isDirty = false;
+  showJavaCheckbox = document.getElementById('show_java');
   javaArea = document.getElementById('javaArea');
   javaContent = document.getElementById('javaContent');
   parentArea = document.getElementById('parentArea');
-  dragBar = document.getElementById('dragBar');
-  dragImage = new Image();
-  dragImage.onload = function () {
-    dragBar.addEventListener('dragstart', dragStart, false);
-    dragBar.addEventListener('drag', drag, false);
-  }
-  dragImage.src = 'blocks/images/ghost.png';
+  blocksAndBannerArea = document.getElementById('blocksAndBannerArea');
   blocklyArea = document.getElementById('blocklyArea');
   blocklyDiv = document.getElementById('blocklyDiv');
+  banner = document.getElementById('banner');
+  bannerText = document.getElementById('bannerText');
+  bannerButton = document.getElementById('bannerBtn');
   workspace = Blockly.inject(blocklyDiv, {
     media: 'blockly/media/',
     zoom: {
@@ -271,9 +296,15 @@ function initializeBlockly() {
     toolbox: document.getElementById('toolbox')
   });
 
-  window.addEventListener('resize', resize, false);
-  resize();
-  Blockly.svgResize(workspace);
+  if (parentArea.clientWidth >= 800) {
+    showJavaCheckbox.checked = true;
+  }
+  showJavaChanged();
+
+  parentArea.style.visibility = 'visible'; // Unhide parentArea
+
+  window.addEventListener('resize', resizeBlocklyArea, false);
+  resizeBlocklyArea();
   window.addEventListener('beforeunload', function(e) {
     if (!isDirty) {
       return undefined;
@@ -286,13 +317,27 @@ function initializeBlockly() {
 
   workspace.addChangeListener(function(event) {
     isDirty = true;
+
+    // Check blocks.
     var blockIds = [];
-    if (event.type == Blockly.Events.BLOCK_CREATE) {
-      Array.prototype.push.apply(blockIds, event.ids)
-    } else if (event.type == Blockly.Events.BLOCK_CHANGE) {
-      if (event.blockId) {
-        blockIds.push(event.blockId);
-      }
+    switch (event.type) {
+      case Blockly.Events.BLOCK_CREATE:
+        Array.prototype.push.apply(blockIds, event.ids);
+        break;
+      case Blockly.Events.BLOCK_CHANGE:
+        if (event.blockId) {
+          blockIds.push(event.blockId);
+        }
+        break;
+      case Blockly.Events.BLOCK_DELETE:
+        // Remove deleted blocks from blockIdsWithMissingHardware.
+        for (var iId = 0, blockId; blockId = event.ids[iId]; iId++) {
+          if (blockIdsWithMissingHardware.includes(blockId)) {
+            var index = blockIdsWithMissingHardware.indexOf(blockId);
+            blockIdsWithMissingHardware.splice(index, 1);
+          }
+        }
+        break;
     }
     for (var i = 0; i < blockIds.length; i++) {
       var block = workspace.getBlockById(blockIds[i]);
@@ -313,51 +358,6 @@ function initializeBlockly() {
     }
     showJava();
   });
-}
-
-function resize() {
-  var parentHeight = parentArea.clientHeight - 6;
-  blocklyArea.style.height = parentHeight + 'px';
-  javaArea.style.height = parentHeight + 'px';
-
-  var y = 0;
-  var element = parentArea;
-  do {
-    y += element.offsetTop;
-    element = element.offsetParent;
-  } while (element);
-  dragBar.style.top = y + 'px';
-
-  dragBar.style.height = parentHeight + 'px';
-  adjustAreaWidths(blocklyArea.clientWidth);
-}
-
-function dragStart(event) {
-  event.dataTransfer.setDragImage(dragImage, 0, 0);
-}
-
-function drag(event) {
-  if (event.x > 0) {
-    var x = event.x;
-    adjustAreaWidths(x - 2);
-  }
-}
-
-function adjustAreaWidths(desiredBlocksWidth) {
-  var parentWidth = parentArea.clientWidth - 6;
-  var blocksWidth;
-  if (document.getElementById('show_java').checked) {
-    blocksWidth = Math.max(Math.min(desiredBlocksWidth, parentWidth - minJavaWidth - 2), minBlocksWidth);
-    blocklyArea.style.width = blocksWidth + 'px';
-    dragBar.style.left = (blocksWidth + 2) + 'px';
-    javaArea.style.width = (parentWidth - blocksWidth - 2) + 'px';
-  } else {
-    blocksWidth = Math.max(parentWidth, minBlocksWidth);
-    blocklyArea.style.width = blocksWidth + 'px';
-    dragBar.style.left = '-10px'; // off screen
-  }
-
-  resizeBlocklyArea();
 }
 
 function resizeBlocklyArea() {
@@ -441,7 +441,7 @@ function loadBlocksIntoWorkspace(blocksContent, opt_blocksLoaded_callback) {
     if (opt_blocksLoaded_callback) {
       opt_blocksLoaded_callback();
     }
-  }, 10);
+  }, 50);
 }
 
 /**
@@ -574,7 +574,13 @@ function checkBlock(block, missingHardware) {
     }
 
     // If warningText is null, the following will clear a previous warning.
-    block.setWarningText(warningText);
+    var previousWarningText = block.warning ? block.warning.getText() : null;
+    if (previousWarningText != warningText) {
+      block.setWarningText(warningText);
+      if (warningText && block.warning && !readBlockWarningHidden(block)) {
+        block.warning.setVisible(true);
+      }
+    }
   } catch (e) {
     console.log('Unable to verify the following block due to exception.');
     console.log(block);
@@ -606,9 +612,41 @@ function removeHardwareIdentifierSuffix(identifierFieldValue) {
   return identifierFieldValue;
 }
 
+function saveBlockWarningHidden(block) {
+  var data = (block.data && block.data.startsWith('{'))
+      ? JSON.parse(block.data) : null;
+
+  if (block.warning) {
+    if (!block.warning.isVisible()) {
+      if (!data) {
+        data = Object.create(null);
+      }
+      data.block_warning_hidden = true;
+    } else {
+      if (data) {
+        delete data.block_warning_hidden;
+      }
+    }
+  }
+
+  block.data = data ? JSON.stringify(data) : null;
+}
+
+function readBlockWarningHidden(block) {
+  if (block.data && block.data.startsWith('{')) {
+    var data = JSON.parse(block.data);
+    if (data.block_warning_hidden) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function saveVisibleIdentifiers(block) {
-  var visibleIdentifierNames = '';
-  var delimiter = '';
+  var data = (block.data && block.data.startsWith('{'))
+      ? JSON.parse(block.data) : null;
+
   for (var iFieldName = 0; iFieldName < identifierFieldNames.length; iFieldName++) {
     var identifierFieldName = identifierFieldNames[iFieldName];
     var field = block.getField(identifierFieldName);
@@ -617,15 +655,15 @@ function saveVisibleIdentifiers(block) {
         // The identifier field is a dropdown field with options.
         // Save the user visible identifiers using block.data, so we can use it in the future if
         // the hardware device is not found in the configuration.
-        var visibleIdentifierName = field.getText();
-        visibleIdentifierNames += delimiter + '"' + identifierFieldName + '":"' + visibleIdentifierName + '"';
-        delimiter = ', ';
+        if (!data) {
+          data = Object.create(null);
+        }
+        data[identifierFieldName] = field.getText();
       }
     }
   }
-  if (visibleIdentifierNames) {
-    block.data = '{' + visibleIdentifierNames + '}';
-  }
+
+  block.data = data ? JSON.stringify(data) : null;
 }
 
 function onMouseMove(e) {
@@ -835,12 +873,14 @@ function projectGroupChanged() {
 
 function showJavaChanged() {
   if (document.getElementById('show_java').checked) {
-    javaArea.style.display = 'inline-block';
+    javaArea.style.display = 'flex';
+    initializeSplit();
   } else {
-    savedBlocksWidth = blocklyArea.clientWidth;
+    if (split) split.destroy();
+    blocksAndBannerArea.style.width="100%";
     javaArea.style.display = 'none';
   }
-  adjustAreaWidths(savedBlocksWidth);
+  resizeBlocklyArea();
   showJava();
 }
 

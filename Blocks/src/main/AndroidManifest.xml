@@ -11,24 +11,9 @@
 
     <application>
         <activity
-            android:name="com.google.blocks.ftcrobotcontroller.ProgrammingModeActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/programming_mode_activity" >
-        </activity>
-        <activity
             android:name="org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/program_and_manage_activity" >
-        </activity>
-        <activity
-            android:name="com.google.blocks.ftcdriverstation.RemoteProgrammingModeActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/programming_mode_activity" >
-        </activity>
-        <activity
-            android:name="com.google.blocks.ftcrobotcontroller.BlocksActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/blocks_activity" >
         </activity>
     </application>
 

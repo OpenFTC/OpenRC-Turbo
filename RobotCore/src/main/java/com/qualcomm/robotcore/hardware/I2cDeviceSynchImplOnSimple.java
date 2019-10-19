@@ -56,8 +56,6 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
     protected I2cDeviceSynchReadHistory i2cDeviceSynchSimpleHistory;
     protected boolean                   isSimpleOwned;
 
-    protected ReadWindow            readWindow;                 // the set of registers to look at when we are in read mode. May be null, indicating no read needed
-
     protected int                   iregReadLast, cregReadLast;
     protected int                   iregWriteLast;
     protected byte[]                rgbWriteLast;
@@ -86,7 +84,6 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         this.msHeartbeatInterval    = 0;
         this.heartbeatAction        = null;
         this.heartbeatExecutor      = null;
-        this.readWindow             = null;
         this.cregReadLast           = 0;
         this.rgbWriteLast           = null;
         this.isEngaged              = false;
@@ -306,37 +303,24 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
     @Override
     public void setReadWindow(ReadWindow window)
         {
-        synchronized (concurrentClientLock)
-            {
-            this.readWindow = window.readableCopy();
-            }
+
         }
 
     @Override
     public ReadWindow getReadWindow()
         {
-        synchronized (concurrentClientLock)
-            {
-            return this.readWindow;
-            }
+            return null;
         }
 
     @Override
     public void ensureReadWindow(ReadWindow windowNeeded, ReadWindow windowToSet)
         {
-        synchronized (concurrentClientLock)
-            {
-            if (this.readWindow == null || !this.readWindow.containsWithSameMode(windowNeeded))
-                {
-                setReadWindow(windowToSet);
-                }
-            }
+
         }
 
     @Override
     public TimestampedData readTimeStamped(int ireg, int creg, ReadWindow readWindowNeeded, ReadWindow readWindowSet)
         {
-        ensureReadWindow(readWindowNeeded, readWindowSet);
         return readTimeStamped(ireg, creg);
         }
 
@@ -372,7 +356,6 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
     public void resetDeviceConfigurationForOpMode()
         {
         this.i2cDeviceSynchSimple.resetDeviceConfigurationForOpMode();
-        this.readWindow = null;
         // TODO: more to come
         }
 
@@ -504,32 +487,11 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
             result.i2cAddr  = this.getI2cAddress();
             result.register = ireg;
 
-            TimestampedI2cData readData = null;
+            TimestampedData justData = this.i2cDeviceSynchSimple.readTimeStamped(ireg, creg);
+            result.data       = justData.data;
+            result.nanoTime   = justData.nanoTime;
 
-            if (this.readWindow != null && this.readWindow.contains(ireg, creg))
-                {
-                TimestampedData windowedData = this.i2cDeviceSynchSimple.readTimeStamped(this.readWindow.getRegisterFirst(), this.readWindow.getRegisterCount());
-
-                int ibFirst     = ireg - this.readWindow.getRegisterFirst();
-                result.data     = Arrays.copyOfRange(windowedData.data, ibFirst, ibFirst + creg);
-                result.nanoTime = windowedData.nanoTime;
-
-                readData = new TimestampedI2cData();
-                readData.data     = windowedData.data;
-                readData.nanoTime = windowedData.nanoTime;
-                readData.register = this.readWindow.getRegisterFirst();
-                readData.i2cAddr  = result.i2cAddr;
-                }
-            else
-                {
-                TimestampedData justData = this.i2cDeviceSynchSimple.readTimeStamped(ireg, creg);
-                result.data       = justData.data;
-                result.nanoTime   = justData.nanoTime;
-
-                readData = result;
-                }
-
-            addToHistoryQueue(readData);
+            addToHistoryQueue(result);
             return result;
             }
         }

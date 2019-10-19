@@ -13,6 +13,7 @@
 <block type="digitalChannel_setProperty_DigitalChannelMode" id="jf~%z/q]FR]fmT+F^K0R">
 <field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">Mode</field>
+<data>{"IDENTIFIER":"digitalTouch"}</data>
 <value name="VALUE">
 <shadow type="digitalChannel_typedEnum_mode" id="!Lzj`p9[%o~T*sRY`_n1">
 <field name="MODE">INPUT</field>
@@ -22,6 +23,7 @@
 <block type="servo_setProperty_Number" id="$xmGqzwi[Z@!^z-[7al4">
 <field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"servoTest"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="$qcK(((c`oTX/`JfE3wr">
 <field name="NUM">0.5</field>
@@ -63,6 +65,7 @@
 <block type="servo_setProperty_Number" id="R@bPFyEdkAn%7,F6eBsC">
 <field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"servoTest"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="6V*eT|Z0qAXoj](d41vH">
 <field name="NUM">0</field>
@@ -93,6 +96,7 @@
 <block type="servo_setProperty_Number" id="4oQ;}zJ/E3ibIUXP!8uN">
 <field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"servoTest"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="_jf[,u{B(vXnF~)!Rn_}">
 <field name="NUM">0.5</field>
@@ -111,6 +115,7 @@
 <block type="servo_setProperty_Number" id="PEmEEf2`[R~C@RB|)Bc~">
 <field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"servoTest"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="kgEFU_qL^`MM.^op;@{0">
 <field name="NUM">1</field>
@@ -132,6 +137,7 @@
 <block type="dcMotor_setProperty_Number" id="T3+%rH:9k)`BhpKY.B~#">
 <field name="IDENTIFIER">motorTestAsDcMotor</field>
 <field name="PROP">Power</field>
+<data>{"IDENTIFIER":"motorTest"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="@vXY?/wC*kUZmBE)G.ZF">
 <field name="NUM">1</field>
@@ -169,6 +175,7 @@
 <block type="dcMotor_getProperty_Number" id="enzD;*zf?%K:;GJGLzw@">
 <field name="IDENTIFIER">motorTestAsDcMotor</field>
 <field name="PROP">Power</field>
+<data>{"IDENTIFIER":"motorTest"}</data>
 </block>
 </value>
 <next>
@@ -185,6 +192,7 @@
 <block type="servo_getProperty_Number" id="v@tOCe6rROfae/)I}/j;">
 <field name="IDENTIFIER">servoTestAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"servoTest"}</data>
 </block>
 </value>
 <next>
@@ -200,6 +208,7 @@
 </shadow>
 <block type="lynxI2cColorRangeSensor_getDistance_Number" id="M_nC.00aZ8fEN=#^RY%d">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 <value name="UNIT">
 <shadow type="navigation_typedEnum_distanceUnit" id=",5!M6Mj(h$S^`__gT|G1">
 <field name="DISTANCE_UNIT">CM</field>
@@ -215,6 +224,7 @@
 <block type="digitalChannel_getProperty_Boolean" id="kP[|(lNx0J}@RjMo^ee1">
 <field name="IDENTIFIER">digitalTouchAsDigitalChannel</field>
 <field name="PROP">State</field>
+<data>{"IDENTIFIER":"digitalTouch"}</data>
 </block>
 </value>
 <statement name="DO0">

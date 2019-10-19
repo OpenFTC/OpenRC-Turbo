@@ -38,6 +38,8 @@ import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -54,6 +56,8 @@ public class MessageKeyedLock
 
     private final    String        name;
     private final    Lock          lock;
+    private final    Lock          acquisitionsLock;
+    private volatile boolean       tryingToHangAcquisitions;
     private final    Condition     condition;
     private volatile LynxMessage   lockOwner;
     private          int           lockCount;
@@ -71,8 +75,23 @@ public class MessageKeyedLock
 
     public MessageKeyedLock(String name, int msAquisitionTimeout)
         {
-        this.name       = name;
+        /**
+         * Note: this lock needs to be "fair" (threads are served in a first-come, first-serve manner)
+         * to prevent a rogue user OpMode from continually "barging in" on the lock and thus never letting
+         * anyone else grab it. The primary use case for this lock needing to be fair is to allow the code
+         * that gives the robot controller a "lethal injection" (I love Bob's comments :D) to bust its way
+         * in here and try to send failsafe commands to all the Lynx modules as a last ditch effort to
+         * shutdown the robot before the app is restarted. The Java documentation states that a "fair" lock
+         * is considerably slower than a non-fair one, but I tested loop speed both before this modification
+         * and after, and found no quantifiable difference.
+         *
+         * Also see: {@link OpModeManagerImpl.OpModeStuckCodeMonitor.Runner#run()} // Arrghh 'protected' breaks JavaDocs
+         *           {@link #lockAcquisitions()}
+         */
+        this.acquisitionsLock = new ReentrantLock(true);
+        this.tryingToHangAcquisitions = false;
         this.lock       = new ReentrantLock();
+        this.name       = name;
         this.condition  = this.lock.newCondition();
         this.lockOwner  = null;
         this.lockCount  = 0;
@@ -112,7 +131,35 @@ public class MessageKeyedLock
         {
         if (message == null) throw new IllegalArgumentException("MessageKeyedLock.acquire: null message");
 
-        this.lock.lockInterruptibly();
+        /*
+         * We check whether we're supposed to lock 'acquisitionsLock' interruptibly or
+         * not. Basically, we want user code to be able to gracefully exit when interrupted
+         * whenever possible. However, in the case of a rogue OpMode (that we're attempting
+         * to block from sending further commands to the Lynx module), rather than letting
+         * it burn a ridiculous amount of CPU cycles continually eating interrupted exceptions,
+         * we choose to instead lock un-interruptibly, so as to hang it here peacefully until
+         * the JVM kills it when we restart the app.
+         *
+         */
+        if(tryingToHangAcquisitions)
+        {
+            this.acquisitionsLock.lock();
+        }
+        else
+        {
+            this.acquisitionsLock.lockInterruptibly();
+        }
+
+        try
+        {
+            this.lock.lockInterruptibly();
+        }
+        catch (Exception e)
+        {
+            this.acquisitionsLock.unlock();
+            throw e;
+        }
+
         try {
             if (this.lockOwner != message)
                 {
@@ -144,6 +191,7 @@ public class MessageKeyedLock
         finally
             {
             this.lock.unlock();
+            this.acquisitionsLock.unlock();
             }
         }
 
@@ -151,6 +199,23 @@ public class MessageKeyedLock
         {
         if (message == null) throw new IllegalArgumentException("MessageKeyedLock.release: null message");
 
+        /**
+         * NOTE: because lockInterruptibly() is used, this has the potential to cause
+         * a message to never release its lock, because if we were interrupted while a
+         * command was in flight, then ann InterruptedException will be thrown and we
+         * will not ever get to the part where we clear the lock owner and release.
+         *
+         * This is never really an issue, since any messages after interruption are
+         * simply suppressed - see https://github.com/FIRST-Tech-Challenge/SkyStone/issues/20
+         * (Since the lockInterruptibly() call in {@link #acquire(LynxMessage)} would immediately throw).
+         *
+         * However, now that we try to send a failsafe command restarting the app if the user code
+         * doesn't exit on time, (see {@link OpModeManagerImpl.OpModeStuckCodeMonitor.Runner#run()}),
+         * one might think this would be an issue. (I.e. that the last ditch effort failsafe would
+         * have to wait until an old lock was abandoned). However, that is actually not the case,
+         * because the last ditch effort failsafe only runs 1000ms after a stop is requested, and
+         * the timeout for abandoning a lock is 500ms, so the lock will be immediately abandoned.
+         */
         this.lock.lockInterruptibly();
         try {
             if (this.lockOwner == message)
@@ -190,4 +255,15 @@ public class MessageKeyedLock
             this.lock.unlock();
             }
         }
+
+    public void lockAcquisitions()
+        {
+        if(LynxUsbDeviceImpl.DEBUG_LOG_DATAGRAMS_LOCK)
+            {
+            logv("***ALL FUTURE ACQUISITION ATTEMPTS FROM THREADS OTHER THAN %s WILL NOW HANG!***", Thread.currentThread().getName());
+            }
+        this.acquisitionsLock.lock();
+        this.tryingToHangAcquisitions = true;
+        }
+
     }
