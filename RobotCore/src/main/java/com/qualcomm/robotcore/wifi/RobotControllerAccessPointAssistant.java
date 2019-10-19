@@ -253,7 +253,7 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
      */
     @Override
     public void detectWifiReset() {
-        RobotLog.dd("Noah", "detectWifiReset button=%b", AndroidBoard.getInstance().getUserButtonPin().getState());
+        RobotLog.dd(TAG, "detectWifiReset button=%b", AndroidBoard.getInstance().getUserButtonPin().getState());
         if (LynxConstants.isRevControlHub() && AndroidBoard.getInstance().getUserButtonPin().getState()) {
             RobotLog.ii(TAG, "Wifi settings reset requested through the Control Hub button");
             Intent wifiResetIntent = new Intent(Intents.ACTION_FTC_WIFI_FACTORY_RESET);

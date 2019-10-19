@@ -72,6 +72,13 @@ public class HardwareUtil {
   private static final String COLOR_CATEGORY_NAME = "Color"; // see toolbox/utilities.xml
   private static final String ELAPSED_TIME_CATEGORY_NAME = "ElapsedTime"; // see toolbox/utilities.xml
 
+  // TODO(lizlooney): use an enum for capabilities.
+  public static final String CAPABILITY_VUFORIA = "vuforia";
+  public static final String CAPABILITY_CAMERA = "camera";
+  public static final String CAPABILITY_WEBCAM = "webcam";
+  public static final String CAPABILITY_TFOD = "tfod";
+  private static final Map<String, String> capabilityWarnings = buildCapabilityWarnings();
+
   private static final Set<String> reservedWordsForFtcJava = buildReservedWordsForFtcJava();
 
   /**
@@ -128,7 +135,9 @@ public class HardwareUtil {
     AssetManager assetManager = AppUtil.getDefContext().getAssets();
     StringBuilder jsHardware = new StringBuilder().append("\n");
 
-    String toolbox = generateToolbox(hardwareItemMap, assetManager)
+    Map<String, Boolean> capabilities = getCapabilities(hardwareItemMap);
+
+    String toolbox = generateToolbox(hardwareItemMap, capabilities, assetManager)
         .replace("\n", " ")
         .replaceAll("\\> +\\<", "><");
     jsHardware
@@ -247,10 +256,11 @@ public class HardwareUtil {
         hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME);
     for (HardwareItem hardwareItemForWebcam : hardwareItemsForWebcam) {
       jsHardware
-          .append("      ['").append(escapeSingleQuotes(hardwareItemForWebcam.visibleName)).append("', '")
+          .append("    ['").append(escapeSingleQuotes(hardwareItemForWebcam.visibleName)).append("', '")
           .append(escapeSingleQuotes(hardwareItemForWebcam.deviceName)).append("'],\n");
     }
-    jsHardware.append("  ];\n")
+    jsHardware
+        .append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
 
@@ -374,19 +384,24 @@ public class HardwareUtil {
         }
       }
     }
-    jsHardware.append("function getHardwareIdentifierSuffixes() {\n")
+    jsHardware
+        .append("function getHardwareIdentifierSuffixes() {\n")
         .append("  var suffixes = [\n");
     for (HardwareType hardwareType : HardwareType.values()) {
-      jsHardware.append("    '" + hardwareType.identifierSuffixForJavaScript + "',\n");
+      jsHardware
+          .append("    '" + hardwareType.identifierSuffixForJavaScript + "',\n");
     }
-    jsHardware.append("  ];\n")
+    jsHardware
+        .append("  ];\n")
         .append("  return suffixes;\n")
         .append("}\n\n");
 
-    jsHardware.append("function addReservedWordsForJavaScript() {\n");
-    jsHardware.append("  Blockly.JavaScript.addReservedWords('callRunOpMode');\n");
+    jsHardware
+        .append("function addReservedWordsForJavaScript() {\n")
+        .append("  Blockly.JavaScript.addReservedWords('callRunOpMode');\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
-      jsHardware.append("  Blockly.JavaScript.addReservedWords('")
+      jsHardware
+          .append("  Blockly.JavaScript.addReservedWords('")
           .append(hardwareItem.identifier).append("');\n");
     }
     List<String> identifiersForJavaScript = new ArrayList<>();
@@ -397,26 +412,31 @@ public class HardwareUtil {
     }
     Collections.sort(identifiersForJavaScript);
     for (String identifierForJavaScript : identifiersForJavaScript) {
-      jsHardware.append("  Blockly.JavaScript.addReservedWords('")
+      jsHardware
+          .append("  Blockly.JavaScript.addReservedWords('")
           .append(identifierForJavaScript).append("');\n");
     }
-    jsHardware.append("}\n\n");
+    jsHardware
+        .append("}\n\n");
 
-    jsHardware.append("function getHardwareItemDeviceName(identifier) {\n");
-    jsHardware.append("  switch (identifier) {\n");
+    jsHardware
+        .append("function getHardwareItemDeviceName(identifier) {\n")
+        .append("  switch (identifier) {\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
-      jsHardware.append("    case '").append(hardwareItem.identifier).append("':\n");
-      jsHardware.append("      return '").append(escapeSingleQuotes(hardwareItem.deviceName)).append("';\n");
+      jsHardware
+          .append("    case '").append(hardwareItem.identifier).append("':\n")
+          .append("      return '").append(escapeSingleQuotes(hardwareItem.deviceName)).append("';\n");
     }
-    jsHardware.append("  }\n");
-    jsHardware.append("  throw 'Unexpected identifier (' + identifier + ').';\n");
-    jsHardware.append("}\n\n");
+    jsHardware
+        .append("  }\n")
+        .append("  throw 'Unexpected identifier (' + identifier + ').';\n")
+        .append("}\n\n");
 
-    jsHardware.append("function getIdentifierForFtcJava(identifier) {\n");
-    jsHardware.append("  switch (identifier) {\n");
+    jsHardware
+        .append("function getIdentifierForFtcJava(identifier) {\n")
+        .append("  switch (identifier) {\n");
     Set<String> set = new HashSet<>();
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
-      jsHardware.append("    case '").append(hardwareItem.identifier).append("':\n");
       String identifierForFtcJava = HardwareItem.makeIdentifier(hardwareItem.deviceName);
       // Check that it isn't a reserved word.
       if (reservedWordsForFtcJava.contains(identifierForFtcJava)) {
@@ -428,57 +448,94 @@ public class HardwareUtil {
         identifierForFtcJava += hardwareItem.hardwareType.identifierSuffixForFtcJava;
         set.add(identifierForFtcJava);
       }
-      jsHardware.append("      return '").append(identifierForFtcJava).append("';\n");
+      jsHardware
+          .append("    case '").append(hardwareItem.identifier).append("':\n")
+          .append("      return '").append(identifierForFtcJava).append("';\n");
     }
-    jsHardware.append("  }\n");
-    jsHardware.append("  throw 'Unexpected identifier (' + identifier + ').';\n");
-    jsHardware.append("}\n\n");
+    jsHardware
+        .append("  }\n")
+        .append("  throw 'Unexpected identifier (' + identifier + ').';\n")
+        .append("}\n\n");
 
-    jsHardware.append("function addReservedWordsForFtcJava() {\n");
+    jsHardware
+        .append("function addReservedWordsForFtcJava() {\n");
     for (String word : reservedWordsForFtcJava) {
-      jsHardware.append("  Blockly.FtcJava.addReservedWords('").append(word).append("');\n");
+      jsHardware
+          .append("  Blockly.FtcJava.addReservedWords('").append(word).append("');\n");
     }
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
-      jsHardware.append("  Blockly.FtcJava.addReservedWords(getIdentifierForFtcJava('")
+      jsHardware
+          .append("  Blockly.FtcJava.addReservedWords(getIdentifierForFtcJava('")
           .append(hardwareItem.identifier).append("'));\n");
     }
     for (Identifier identifier : Identifier.values()) {
       if (identifier.identifierForFtcJava != null && !identifier.identifierForFtcJava.isEmpty()) {
-        jsHardware.append("  Blockly.FtcJava.addReservedWords('")
+        jsHardware
+            .append("  Blockly.FtcJava.addReservedWords('")
             .append(identifier.identifierForFtcJava).append("');\n");
       }
     }
-    jsHardware.append("}\n\n");
+    jsHardware
+        .append("}\n\n");
 
-    jsHardware.append("function getIconClass(categoryName) {\n");
+    jsHardware
+        .append("function getIconClass(categoryName) {\n");
     for (HardwareType hardwareType : HardwareType.values()) {
       // Some HardwareTypes might have a null toolboxCategoryName. This allows us to support
       // certain hardware types, even though we don't actually provide blocks.
       // Also, some HardwareTypes, such as BNO055IMU, do not (yet) have a toolbox icon.
       if (hardwareType.toolboxCategoryName != null &&
           hardwareType.toolboxIcon != null) {
-        jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(hardwareType.toolboxCategoryName)).append("') {\n")
+        jsHardware
+            .append("  if (categoryName == '").append(escapeSingleQuotes(hardwareType.toolboxCategoryName)).append("') {\n")
             .append("    return '").append(escapeSingleQuotes(hardwareType.toolboxIcon.cssClass)).append("';\n")
             .append("  }\n");
       }
     }
-    jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(DC_MOTOR_DUAL_CATEGORY_NAME)).append("') {\n")
+    jsHardware
+        .append("  if (categoryName == '").append(escapeSingleQuotes(DC_MOTOR_DUAL_CATEGORY_NAME)).append("') {\n")
         .append("    return '").append(escapeSingleQuotes(ToolboxIcon.DC_MOTOR.cssClass)).append("';\n")
-        .append("  }\n");
-    jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(GAMEPAD_CATEGORY_NAME)).append("') {\n")
+        .append("  }\n")
+        .append("  if (categoryName == '").append(escapeSingleQuotes(GAMEPAD_CATEGORY_NAME)).append("') {\n")
         .append("    return '").append(escapeSingleQuotes(ToolboxIcon.GAMEPAD.cssClass)).append("';\n")
-        .append("  }\n");
-    jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(LINEAR_OP_MODE_CATEGORY_NAME)).append("') {\n")
+        .append("  }\n")
+        .append("  if (categoryName == '").append(escapeSingleQuotes(LINEAR_OP_MODE_CATEGORY_NAME)).append("') {\n")
         .append("    return '").append(escapeSingleQuotes(ToolboxIcon.LINEAR_OPMODE.cssClass)).append("';\n")
-        .append("  }\n");
-    jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(COLOR_CATEGORY_NAME)).append("') {\n")
+        .append("  }\n")
+        .append("  if (categoryName == '").append(escapeSingleQuotes(COLOR_CATEGORY_NAME)).append("') {\n")
         .append("    return '").append(escapeSingleQuotes(ToolboxIcon.COLOR_SENSOR.cssClass)).append("';\n")
-        .append("  }\n");
-    jsHardware.append("  if (categoryName == '").append(escapeSingleQuotes(ELAPSED_TIME_CATEGORY_NAME)).append("') {\n")
+        .append("  }\n")
+        .append("  if (categoryName == '").append(escapeSingleQuotes(ELAPSED_TIME_CATEGORY_NAME)).append("') {\n")
         .append("    return '").append(escapeSingleQuotes(ToolboxIcon.ELAPSED_TIME.cssClass)).append("';\n")
-        .append("  }\n");
-    jsHardware.append("  return '';\n")
-        .append("}\n");
+        .append("  }\n")
+        .append("  return '';\n")
+        .append("}\n\n");
+
+
+    // If there's no built-in camera, but there is a webcam, our code will use the webcam. So,
+    // no warning is necessary.
+    Map<String, Boolean> capabilitiesForWarnings = new HashMap<>();
+    capabilitiesForWarnings.putAll(capabilities);
+    if (capabilitiesForWarnings.get(CAPABILITY_WEBCAM)) {
+      capabilitiesForWarnings.put(CAPABILITY_CAMERA, true);
+    }
+    jsHardware
+        .append("function getCapabilityWarning(capability) {\n")
+        .append("  switch (capability) {\n");
+    for (Map.Entry<String, Boolean> entry : capabilitiesForWarnings.entrySet()) {
+      String capability = entry.getKey();
+      boolean capable = entry.getValue();
+      if (!capable) {
+        String warning = capabilityWarnings.get(capability);
+        jsHardware
+            .append("    case '").append(capability).append("':\n")
+            .append("      return '").append(warning).append("';\n");
+      }
+    }
+    jsHardware
+        .append("  }\n")
+        .append("  return '';\n")
+        .append("}\n\n");
 
     return jsHardware.toString();
   }
@@ -511,7 +568,8 @@ public class HardwareUtil {
           .append("      ['").append(escapeSingleQuotes(hardwareItem.visibleName)).append("', '")
           .append(hardwareItem.identifier).append("'],\n");
     }
-    jsHardware.append("  ];\n")
+    jsHardware
+        .append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
   }
@@ -531,21 +589,10 @@ public class HardwareUtil {
    * that do not exist in the given {@link HardwareItemMap}.
    */
   @SuppressWarnings("deprecation")
-  private static String generateToolbox(HardwareItemMap hardwareItemMap, AssetManager assetManager)
-      throws IOException {
+  private static String generateToolbox(HardwareItemMap hardwareItemMap,
+      Map<String, Boolean> capabilities, AssetManager assetManager) throws IOException {
     StringBuilder xmlToolbox = new StringBuilder();
     xmlToolbox.append("<xml id=\"toolbox\" style=\"display: none\">\n");
-
-    Map<String, Boolean> placeholders = new HashMap<>();
-    // PackageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA) incorrectly returns true on a
-    // control hub, so here I use Camera.getNumberOfCameras() to determine whether there are any
-    // built-in cameras.
-    boolean camera = android.hardware.Camera.getNumberOfCameras() > 0;
-    boolean webcam = !hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME).isEmpty();
-    placeholders.put("vuforia", camera || webcam);
-    placeholders.put("camera", camera);
-    placeholders.put("webcam", webcam);
-    placeholders.put("tfod", ClassFactory.getInstance().canCreateTFObjectDetector());
 
     // assetManager can be null during tests.
     if (assetManager != null) {
@@ -578,12 +625,35 @@ public class HardwareUtil {
     addAndroidCategoriesToToolbox(xmlToolbox, assetManager);
 
     if (assetManager != null) {
-      addAssetWithPlaceholders(xmlToolbox, assetManager, "toolbox/utilities.xml", placeholders);
+      addAssetWithPlaceholders(xmlToolbox, assetManager, "toolbox/utilities.xml", capabilities);
       addAsset(xmlToolbox, assetManager, "toolbox/misc.xml");
     }
 
     xmlToolbox.append("</xml>");
     return xmlToolbox.toString();
+  }
+
+  private static Map<String, String> buildCapabilityWarnings() {
+    Map<String, String> map = new HashMap<>();
+    // No warning for CAPABILITY_VUFORIA. The user will see the warning about camera/webcam.
+    map.put(CAPABILITY_CAMERA, "This device does not have a camera.");
+    map.put(CAPABILITY_WEBCAM, "The current configuration has no webcam.");
+    map.put(CAPABILITY_TFOD, "This device is not compatible with TFOD.");
+    return map;
+  }
+
+  public static Map<String, Boolean> getCapabilities(HardwareItemMap hardwareItemMap) {
+    Map<String, Boolean> capabilities = new HashMap<>();
+    // PackageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA) incorrectly returns true on a
+    // control hub, so here I use Camera.getNumberOfCameras() to determine whether there are any
+    // built-in cameras.
+    boolean camera = android.hardware.Camera.getNumberOfCameras() > 0;
+    boolean webcam = !hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME).isEmpty();
+    capabilities.put(CAPABILITY_VUFORIA, camera || webcam);
+    capabilities.put(CAPABILITY_CAMERA, camera);
+    capabilities.put(CAPABILITY_WEBCAM, webcam);
+    capabilities.put(CAPABILITY_TFOD, ClassFactory.getInstance().canCreateTFObjectDetector());
+    return capabilities;
   }
 
   /**
@@ -595,7 +665,7 @@ public class HardwareUtil {
   }
 
   private static void addAssetWithPlaceholders(StringBuilder xmlToolbox, AssetManager assetManager,
-      String assetName, Map<String, Boolean> placeholders) throws IOException {
+      String assetName, Map<String, Boolean> capabilities) throws IOException {
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(assetManager.open(assetName)))) {
       String line = null;
@@ -610,10 +680,10 @@ public class HardwareUtil {
             String type = line.substring(startOfType, endOfType);
             String childAssetName = "toolbox/" +
                 line.substring(endOfType + 1, line.length() - suffix.length()).trim() + ".xml";
-            Boolean allowed = placeholders.get(type);
+            Boolean allowed = capabilities.get(type);
             if (allowed != null) {
               if (allowed) {
-                addAssetWithPlaceholders(xmlToolbox, assetManager, childAssetName, placeholders);
+                addAssetWithPlaceholders(xmlToolbox, assetManager, childAssetName, capabilities);
               } else {
                 RobotLog.w("Skipping " + childAssetName + " because type \"" + type + "\" " +
                     "is not supported by this device and/or hardware.");

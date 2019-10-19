@@ -299,7 +299,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
         }
 
         if (isFirstRun) {
-          RobotLog.dd("Noah", "Detecting WiFi reset");
+          RobotLog.dd(TAG, "Detecting WiFi reset");
           networkConnection.detectWifiReset();
         }
       }});

@@ -182,7 +182,6 @@ public abstract class FtcEventLoopBase implements EventLoop
     protected RobotConfigFileManager robotCfgFileMgr;
     protected FtcEventLoopHandler ftcEventLoopHandler;
     protected boolean runningOnDriverStation = false;
-    protected final ProgrammingModeController programmingModeController;
     protected USBScanManager usbScanManager;
     protected final OpModeRegister userOpmodeRegister;
 
@@ -193,14 +192,13 @@ public abstract class FtcEventLoopBase implements EventLoop
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    protected FtcEventLoopBase(HardwareFactory hardwareFactory, OpModeRegister userOpmodeRegister, UpdateUI.Callback callback, Activity activityContext, ProgrammingModeController programmingModeController)
+    protected FtcEventLoopBase(HardwareFactory hardwareFactory, OpModeRegister userOpmodeRegister, UpdateUI.Callback callback, Activity activityContext)
         {
         this.userOpmodeRegister = userOpmodeRegister;
         this.registeredOpModes = RegisteredOpModes.getInstance();
         this.activityContext = activityContext;
         this.robotCfgFileMgr = new RobotConfigFileManager(activityContext);
         this.ftcEventLoopHandler = new FtcEventLoopHandler(hardwareFactory, callback, activityContext);
-        this.programmingModeController = programmingModeController;
         this.usbScanManager = null;
         }
 
@@ -309,17 +307,9 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             handleCommandDeleteConfiguration(extra);
             }
-        else if (name.equals(CommandList.CMD_START_PROGRAMMING_MODE))
-            {
-            handleCommandStartProgrammingMode();
-            }
         else if (name.equals(CommandList.CMD_START_DS_PROGRAM_AND_MANAGE))
             {
             handleCommandStartDriverStationProgramAndManage();
-            }
-        else if (name.equals(CommandList.CMD_STOP_PROGRAMMING_MODE))
-            {
-            handleCommandStopProgrammingMode();
             }
         else if (name.equals(CommandList.CMD_SHOW_TOAST))
             {
@@ -1087,13 +1077,6 @@ public abstract class FtcEventLoopBase implements EventLoop
         networkConnectionHandler.sendCommand(new Command(CommandList.CMD_REQUEST_CONFIGURATION_TEMPLATES_RESP, objsSerialized));
         }
 
-    /**
-     * Starts programming mode on the robot controller, as requested by driver station.
-     */
-    protected void handleCommandStartProgrammingMode()
-        {
-        programmingModeController.startProgrammingMode(ftcEventLoopHandler);
-        }
     protected void handleCommandStartDriverStationProgramAndManage()
         {
         EventLoopManager eventLoopManager = ftcEventLoopHandler.getEventLoopManager();
@@ -1108,14 +1091,6 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             RobotLog.vv(TAG, "handleCommandStartDriverStationProgramAndManage() with null EventLoopManager; ignored");
             }
-        }
-
-    /**
-     * Stops programming mode on the robot controller, as requested by driver station.
-     */
-    protected void handleCommandStopProgrammingMode()
-        {
-        programmingModeController.stopProgrammingMode();
         }
 
     protected void handleCommandShowDialog(Command command)

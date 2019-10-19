@@ -253,6 +253,7 @@
 <block type="revBlinkinLedDriver_setProperty_BlinkinPattern" id=";4|/WV+UMmf$|(*5q,1r">
 <field name="IDENTIFIER">blinkinAsRevBlinkinLedDriver</field>
 <field name="PROP">Pattern</field>
+<data>{"IDENTIFIER":"blinkin"}</data>
 <value name="VALUE">
 <block type="variables_get" id="6b7t,.O0vNTAGPj;K+r$">
 <field name="VAR" id="Kx;-bsrNjMPTZ?Gh/@;H" variabletype="">pattern</field>
@@ -505,6 +506,7 @@
 <block type="revBlinkinLedDriver_setProperty_BlinkinPattern" id="75E@YsddAw$=T-xwv/Wo">
 <field name="IDENTIFIER">blinkinAsRevBlinkinLedDriver</field>
 <field name="PROP">Pattern</field>
+<data>{"IDENTIFIER":"blinkin"}</data>
 <value name="VALUE">
 <block type="variables_get" id="k=L[IrIhdp8l2-GpSXJF">
 <field name="VAR" id="Kx;-bsrNjMPTZ?Gh/@;H" variabletype="">pattern</field>
@@ -551,6 +553,7 @@
 <block type="revBlinkinLedDriver_setProperty_BlinkinPattern" id="ZzbYfh,WK=2a|q!C=|$A">
 <field name="IDENTIFIER">blinkinAsRevBlinkinLedDriver</field>
 <field name="PROP">Pattern</field>
+<data>{"IDENTIFIER":"blinkin"}</data>
 <value name="VALUE">
 <block type="variables_get" id="b6@f;).ukVj6=OFENT~w">
 <field name="VAR" id="Kx;-bsrNjMPTZ?Gh/@;H" variabletype="">pattern</field>
@@ -629,6 +632,7 @@
 <block type="revBlinkinLedDriver_setProperty_BlinkinPattern" id="Pnhosf=i,c.9H`|K:bK;">
 <field name="IDENTIFIER">blinkinAsRevBlinkinLedDriver</field>
 <field name="PROP">Pattern</field>
+<data>{"IDENTIFIER":"blinkin"}</data>
 <value name="VALUE">
 <block type="variables_get" id="^_^DokO8=,w:mSsV|Ip/">
 <field name="VAR" id="Kx;-bsrNjMPTZ?Gh/@;H" variabletype="">pattern</field>

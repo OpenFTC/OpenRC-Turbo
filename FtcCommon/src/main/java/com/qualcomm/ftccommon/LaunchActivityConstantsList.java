@@ -40,15 +40,11 @@ public class LaunchActivityConstantsList {
   public static final String ZTE_WIFI_CHANNEL_EDITOR_PACKAGE = "com.zte.wifichanneleditor";
   public static final String VIEW_LOGS_ACTIVITY_FILENAME     = "org.firstinspires.ftc.ftccommon.logFilename";
 
-  // Related to programming mode.
   /**
    * The intent extra name for JSON encoded {@link org.firstinspires.ftc.robotcore.internal.webserver.RobotControllerWebInfo} used when launching
    * RemoteProgrammingModeActivity on the driver station.
    */
   public static final String RC_WEB_INFO = "RC_WEB_INFO";
-
-  /** Used to pass in ProgrammingWebHandlers to a local activity */
-  public static final String PROGRAMMING_MODE_ACTIVITY_PROGRAMMING_WEB_HANDLERS = "PROGRAMMING_MODE_ACTIVITY_PROGRAMMING_WEB_HANDLERS";
 
   /** Used internally to distinguish the results coming back from various launched
    * (sub)activities */
@@ -56,7 +52,6 @@ public class LaunchActivityConstantsList {
     UNKNOWN,
     CONFIGURE_ROBOT_CONTROLLER,
     CONFIGURE_DRIVER_STATION,
-    PROGRAMMING_MODE,
     PROGRAM_AND_MANAGE,
     SETTINGS_DRIVER_STATION,
     SETTINGS_ROBOT_CONTROLLER,

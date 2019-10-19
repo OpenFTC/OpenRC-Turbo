@@ -43,6 +43,7 @@
 <block type="gamepad_getProperty_Boolean" id="/qKLph4pP@n*|A8?$L.G">
 <field name="IDENTIFIER">gamepad1</field>
 <field name="PROP">B</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
 </block>
 </value>
 <statement name="DO0">
@@ -64,6 +65,7 @@
 <block type="gamepad_getProperty_Boolean" id="Ay9iah13`httI@e2Qy#:">
 <field name="IDENTIFIER">gamepad1</field>
 <field name="PROP">X</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
 </block>
 </value>
 <statement name="DO0">
@@ -119,6 +121,7 @@
 <block type="servo_setProperty_Number" id="A/XQW=0I}=j?ubS%dI!D">
 <field name="IDENTIFIER">left_handAsServo</field>
 <field name="PROP">Position</field>
+<data>{"IDENTIFIER":"left_hand"}</data>
 <value name="VALUE">
 <shadow type="math_number" id="ka1-!?g/GmU))xwHzaey">
 <field name="NUM">0</field>

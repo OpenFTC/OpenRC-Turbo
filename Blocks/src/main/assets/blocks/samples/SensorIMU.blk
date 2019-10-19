@@ -68,6 +68,7 @@
 <next>
 <block type="bno055imu_initialize" id="L)mUPf_*~9K0lQKKU{7k">
 <field name="IDENTIFIER">imuAsBNO055IMU</field>
+<data>{"IDENTIFIER":"imu"}</data>
 <value name="PARAMETERS">
 <block type="variables_get" id="gi_FUMi?IOZAHjgYL|n!">
 <field name="VAR" id="FbaKvU!;|Tlp/}9nA2Ob" variabletype="">imuParameters</field>
@@ -120,6 +121,7 @@
 <value name="VALUE">
 <block type="bno055imu_getAngularOrientation" id="*~!pw]|@:UffO+DP~Oth">
 <field name="IDENTIFIER">imuAsBNO055IMU</field>
+<data>{"IDENTIFIER":"imu"}</data>
 <value name="AXES_REFERENCE">
 <shadow type="navigation_typedEnum_axesReference" id="!uSPH#9gEQjmYd!!L*Zu">
 <field name="AXES_REFERENCE">INTRINSIC</field>
@@ -144,6 +146,7 @@
 <block type="bno055imu_getProperty_Acceleration" id="sI7xC=zc);0tA95zW([5">
 <field name="IDENTIFIER">imuAsBNO055IMU</field>
 <field name="PROP">Gravity</field>
+<data>{"IDENTIFIER":"imu"}</data>
 </block>
 </value>
 <next>

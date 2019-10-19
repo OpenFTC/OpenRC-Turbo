@@ -27,9 +27,6 @@ public class LoggingHandler extends WebHandlerDecorator {
   }
 
   private void addLogging(NanoHTTPD.IHTTPSession session) {
-    if (programmingModeManager != null && programmingModeManager.getProgrammingModeLog() != null) {
-      programmingModeManager.getProgrammingModeLog().addToLog(session.getUri());
-    }
     RobotLog.vv(ProgrammingModeManager.TAG, "serve uri=%s", session.getUri());
   }
 }

@@ -4,7 +4,6 @@
  */
 
 // The following are defined in vars.js:
-// createFieldDropdown
 // getPropertyColor
 
 function createGamepadDropdown() {
@@ -12,7 +11,7 @@ function createGamepadDropdown() {
       ['gamepad1', 'gamepad1'],
       ['gamepad2', 'gamepad2'],
       ];
-  return createFieldDropdown(CHOICES);
+  return new Blockly.FieldDropdown(CHOICES);
 }
 
 Blockly.Blocks['gamepad_getProperty'] = {

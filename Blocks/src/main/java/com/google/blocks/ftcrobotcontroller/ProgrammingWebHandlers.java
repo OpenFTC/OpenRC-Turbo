@@ -2,8 +2,6 @@
 
 package com.google.blocks.ftcrobotcontroller;
 
-import android.support.annotation.Nullable;
-
 import com.google.blocks.ftcrobotcontroller.util.ClipboardUtil;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil;
 import com.google.blocks.ftcrobotcontroller.util.OfflineBlocksUtil;
@@ -50,7 +48,6 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
   private static String URI_NAV_ONBOTJAVA = "/java/editor.html";
 
   private static final String URI_SERVER = "/server";
-  private static final String URI_PING = RobotControllerWebHandlers.URI_PING;
   private static final String URI_HARDWARE = "/hardware";
   private static final String URI_GET_CONFIGURATION_NAME = "/get_config_name";
   private static final String URI_FETCH_OFFLINE_BLOCKS_EDITOR = "/offline_blocks_editor";
@@ -91,19 +88,6 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Respond to a ping.
-   */
-  private class LoggingClientPing extends RobotControllerWebHandlers.ClientPing {
-
-    @Override protected void logPing(NanoHTTPD.IHTTPSession session) {
-
-      if (programmingModeManager.getProgrammingModeLog() != null) {
-        programmingModeManager.getProgrammingModeLog().ping(getPingDetails(session));
-      }
-    }
-  }
-
-  /**
    * Fetch the javaScript for the server.
    */
   private static class Server implements WebHandler {
@@ -116,7 +100,6 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
     @SuppressWarnings("StringBufferReplaceableByString")
     private Response fetchJavaScriptForServer(NanoHTTPD.IHTTPSession session) throws IOException {
       StringBuilder js = new StringBuilder();
-      js.append("var URI_PING = '").append(URI_PING).append("';\n");
       js.append("var URI_HARDWARE = '").append(URI_HARDWARE).append("';\n");
       js.append("var URI_GET_CONFIGURATION_NAME = '").append(URI_GET_CONFIGURATION_NAME).append("';\n");
       js.append("var URI_FETCH_OFFLINE_BLOCKS_EDITOR = '").append(URI_FETCH_OFFLINE_BLOCKS_EDITOR).append("';\n");
@@ -700,7 +683,6 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
   public void register(ProgrammingModeManager manager) {
     programmingModeManager = manager;
     manager.register(URI_NAV_BLOCKS_OLD,   new RobotControllerWebHandlers.Redirection("/"));
-    manager.register(URI_PING,             decorateWithParms(new LoggingClientPing()));
     manager.register(URI_SERVER,           decorateWithLogging(new Server()));
     manager.register(URI_HARDWARE,         decorateWithLogging(new Hardware()));
     manager.register(URI_GET_CONFIGURATION_NAME, decorateWithLogging(decorateWithParms(new GetConfigurationName())));

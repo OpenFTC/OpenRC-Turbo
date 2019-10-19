@@ -122,7 +122,7 @@ public class FileObserverManager
 
         protected FakeObserver(OmniscientObserver omniscientObserver, int mask, Listener listener)
             {
-            super(null, 0);
+            super("/dev/null", 0);
             this.omniscientObserver = omniscientObserver;
             this.mask = mask;
             this.listener = listener;

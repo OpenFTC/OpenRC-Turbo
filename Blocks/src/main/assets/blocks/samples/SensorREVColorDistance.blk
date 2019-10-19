@@ -59,6 +59,7 @@
 </shadow>
 <block type="lynxI2cColorRangeSensor_getDistance_Number" id="G::~+y1/s{x=rqtZR5F1">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 <value name="UNIT">
 <shadow type="navigation_typedEnum_distanceUnit" id="MkE2VUev],.AI8t*YC)w">
 <field name="DISTANCE_UNIT">CM</field>
@@ -83,6 +84,7 @@
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="C@#iSBZd2CRv+p@dE;Xj">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">LightDetected</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 </block>
 </value>
 <next>
@@ -103,6 +105,7 @@
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="c5d=Yad!a=J}z]Y0Mw#S">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Alpha</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 </block>
 </value>
 <value name="RED">
@@ -112,6 +115,7 @@
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="tU#YV.pJZ]G7cM.QiDOf">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Red</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 </block>
 </value>
 <value name="GREEN">
@@ -121,6 +125,7 @@
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="ERz}nQ|7M`@?[Mdgu`6!">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Green</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 </block>
 </value>
 <value name="BLUE">
@@ -130,6 +135,7 @@
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="8zjF?qGNf?K/-_UdiP-a">
 <field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
 <field name="PROP">Blue</field>
+<data>{"IDENTIFIER":"sensorColorRange"}</data>
 </block>
 </value>
 </block>

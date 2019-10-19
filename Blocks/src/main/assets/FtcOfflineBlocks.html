@@ -13,6 +13,7 @@
   <link rel="stylesheet" type="text/css" href="css/blocks_common_less.css">
   <link rel="stylesheet" type="text/css" href="css/blocks_common.css">
 
+  <script type="text/javascript" src="js/split.min.js"></script>
   <script type="text/javascript" src="blockly/blockly_compressed.js"></script>
   <script type="text/javascript" src="blockly/msg/messages.js"></script>
   <script type="text/javascript" src="blockly/blocks_compressed.js"></script>
@@ -105,81 +106,85 @@
   <title>FTC</title>
 </head>
 <body onload="initializeFtcBlocks()">
-<table class="top" width="100%" height="100%">
-  <tr>
-    <td class="blank_td" colspan="2"></td>
-  </tr>
-  <tr>
-    <td class="buttons_td" colspan="2">
-      <table width="100%"><tr><td>
-        <button onclick="saveButtonClicked()">Save Op Mode</button>
-        <button onclick="exportJavaButtonClicked()">Download Java</button>
-        <button onclick="downloadButtonClicked()">Download Op Mode</button>
-        <button id="downloadImageButton" style="display: none" disabled="true"
-            onclick="downloadImageButtonClicked()">Download Image of Blocks</button>
-        <a id="download_link"></a>
-        <span id="saveSuccess" style="display: none">Save completed successfully.</span>
-        <span id="saveFailure" style="display: none"></span>
-      </td></tr></table>
-    </td>
-  </tr>
-  <tr>
-    <td class="blank_td" colspan="2"></td>
-  </tr>
-  <tr class="project_row_tr">
-    <td>
-      Op Mode Name:&nbsp;<span id="project_name"></span>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <select id="project_flavor" onchange="projectFlavorChanged()">
-        <option value="TELEOP">TeleOp</option>
-        <option value="AUTONOMOUS">Autonomous</option>
-      </select>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      Group:&nbsp;<input type="text" id="project_group" oninput="projectGroupChanged()">
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <input type="checkbox" id="project_enabled" onclick="projectEnabledChanged()">Enabled
-    </td>
-    <td align="right">
-      <input type="checkbox" id="show_java" onclick="showJavaChanged()" checked>Show Java&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    </td>
-  </tr>
-  <tr>
-    <td class="blank_td" colspan="2"></td>
-  </tr>
-  <tr>
-    <td class="workspace_td" colspan="2">
-      <div class="parent area" id="parentArea">
-        <div class="area" id='blocklyArea' style="width: 80%;"></div>
-        <div class="area" id='javaArea'>
-          <div id="javaCodeHeading" style="display: none;">Java Code:</div>
-          <pre id="javaContent" style="display: none;"></pre>
-        </div>
-      </div>
-    </td>
-  </tr>
-</table>
-
-<div class="dragBar" id="dragBar" draggable="true"></div>
-<div id="blocklyDiv" style="position: absolute"></div>
-
-<xml id="toolbox" style="display: none">
-  <category name="Miscellaneous">
-  </category>
-</xml>
-
-<div id="saveWithWarningsDialog" class="modal_dialog"><div class="modal_dialog_container"><div class="modal_dialog_content">
-  <center>
-  <h3 style="margin-top: 0px">Save Op Mode</h3><br>
-  <div id="saveWithWarningsMessage"></div><br>
-  Are you sure you want to save now?<br><br>
-  <table width="100%">
+<div class="vertical_area" style="height:100%; padding: 0;">
+  <table class="top" width="100%">
     <tr>
-      <td align="center"><button onclick="noSaveWithWarningsDialog()">No</button></td>
-      <td align="center"><button onclick="yesSaveWithWarningsDialog()">Yes</button></td>
+      <td class="blank_td" colspan="2"></td>
+    </tr>
+    <tr>
+      <td class="buttons_td" colspan="2">
+        <table width="100%"><tr><td>
+          <button onclick="saveButtonClicked()">Save Op Mode</button>
+          <button onclick="exportJavaButtonClicked()">Download Java</button>
+          <button onclick="downloadButtonClicked()">Download Op Mode</button>
+          <button id="downloadImageButton" style="display: none" disabled="true"
+                  onclick="downloadImageButtonClicked()">Download Image of Blocks</button>
+          <a id="download_link"></a>
+          <span id="saveSuccess" style="display: none">Save completed successfully.</span>
+          <span id="saveFailure" style="display: none"></span>
+        </td></tr></table>
+      </td>
+    </tr>
+    <tr>
+      <td class="blank_td" colspan="2"></td>
+    </tr>
+    <tr class="project_row_tr">
+      <td class="project_row_td">
+        Op Mode Name:&nbsp;<span id="project_name" class="not_bold"></span>
+        &nbsp;
+        <select id="project_flavor" class="not_bold" onchange="projectFlavorChanged()">
+          <option value="TELEOP">TeleOp</option>
+          <option value="AUTONOMOUS">Autonomous</option>
+        </select>
+        &nbsp;
+        Group:&nbsp;<input type="text" id="project_group" class="not_bold" oninput="projectGroupChanged()">
+        &nbsp;
+        <input type="checkbox" id="project_enabled" class="project_row_checkbox" onclick="projectEnabledChanged()">&nbsp;Enabled
+      </td>
+      <td align="right">
+        <input type="checkbox" id="show_java" class="project_row_checkbox" onclick="showJavaChanged()">&nbsp;Show Java&nbsp;&nbsp;
+      </td>
     </tr>
   </table>
-  </center>
-</div></div></div>
+
+  <div id="parentArea" class="parent_area horizontal_area fill_area no_min_height" style="visibility: hidden;">
+    <div id="blocksAndBannerArea" class="vertical_area">
+      <div id="banner" class="banner" style="display: none;">
+        <span id="bannerText" class="banner_text"></span>
+        <button id="bannerBtn" class="btn btn-default btn-xs" type="button">Button</button>
+      </div>
+      <div id='blocklyArea' class="fill_area"></div>
+    </div>
+    <div class="dragBar" id="dragBar" draggable="true"></div>
+    <div id="javaArea" class="vertical_area no_min_width">
+      <div id="javaCodeHeading">Java Code:</div>
+      <div id="javaContentContainer" class="fill_area content_border">
+        <pre id="javaContent"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div id="blocklyDiv" class="content_border" style="position: absolute;"></div>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Miscellaneous">
+    </category>
+  </xml>
+
+  <div id="saveWithWarningsDialog" class="modal_dialog"><div class="modal_dialog_container"><div class="modal_dialog_content">
+    <center>
+      <h3 style="margin-top: 0px">Save Op Mode</h3><br>
+      <div id="saveWithWarningsMessage"></div><br>
+      Are you sure you want to save now?<br><br>
+      <table width="100%">
+        <tr>
+          <td align="center"><button onclick="noSaveWithWarningsDialog()">No</button></td>
+          <td align="center"><button onclick="yesSaveWithWarningsDialog()">Yes</button></td>
+        </tr>
+      </table>
+    </center>
+  </div></div></div>
+</div>
 
 <script type="text/javascript">
 

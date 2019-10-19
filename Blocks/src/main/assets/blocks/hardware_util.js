@@ -10,10 +10,7 @@
  * callback.
  */
 function fetchJavaScriptForHardware(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchJavaScriptForHardwareViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchJavaScriptForHardwareViaHttp(callback);
   } else if (window.location.protocol === 'file:') {
@@ -23,10 +20,7 @@ function fetchJavaScriptForHardware(callback) {
 }
 
 function getConfigurationName(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    getConfigurationNameViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     getConfigurationNameViaHttp(callback);
   } else if (window.location.protocol === 'file:') {
@@ -44,29 +38,6 @@ function sendPing(name, callback) {
     sendPingViaHttp(name, callback);
   } else {
     callback(false);
-  }
-}
-
-//..........................................................................
-// Code used when html/js is within the WebView component within the
-// Android app.
-
-function fetchJavaScriptForHardwareViaBlocksIO(callback) {
-  var jsHardware = blocksIO.fetchJavaScriptForHardware();
-  if (jsHardware) {
-    callback(jsHardware, '');
-  } else {
-    callback(null, 'Fetch JavaScript for Hardware failed.');
-  }
-}
-
-function getConfigurationNameViaBlocksIO(projectName, callback) {
-  var configName = blocksIO.getConfigurationName();
-  if (configName) {
-    callback(configName, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(null, 'Get configuration name failed.');
   }
 }
 

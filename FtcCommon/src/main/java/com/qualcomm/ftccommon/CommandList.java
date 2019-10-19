@@ -155,37 +155,16 @@ public class CommandList extends RobotCoreCommandList {
   //------------------------------------------------------------------------------------------------
 
   /**
-   * Command to start programming mode (blocks).
+   * Command to start Program and Manage mode.
    */
-  public static final String CMD_START_PROGRAMMING_MODE = "CMD_START_PROGRAMMING_MODE";
   public static final String CMD_START_DS_PROGRAM_AND_MANAGE = "CMD_START_DS_PROGRAM_AND_MANAGE";
 
   /**
-   * Response to a command to start programming mode (blocks).
+   * Response to a command to start Program and Manage mode.
    *
-   * Programming mode connection information will be in extra data.
+   * Connection information will be in extra data.
    */
-  public static final String CMD_START_PROGRAMMING_MODE_RESP = "CMD_START_PROGRAMMING_MODE_RESP";
   public static final String CMD_START_DS_PROGRAM_AND_MANAGE_RESP = "CMD_START_DS_PROGRAM_AND_MANAGE_RESP";
-
-  /**
-   * Notification that a message was logged during programming mode (blocks).
-   *
-   * Log message will be in extra data.
-   */
-  public static final String CMD_PROGRAMMING_MODE_LOG_NOTIFICATION = "CMD_PROGRAMMING_MODE_LOG_NOTIFICATION";
-
-  /**
-   * Notification that the programming mode (blocks) server received a ping request.
-   *
-   * PingDetails (encoded as json) will be in extra data.
-   */
-  public static final String CMD_PROGRAMMING_MODE_PING_NOTIFICATION = "CMD_PROGRAMMING_MODE_PING_NOTIFICATION";
-
-  /**
-   * Command to stop programming mode (blocks).
-   */
-  public static final String CMD_STOP_PROGRAMMING_MODE = "CMD_STOP_PROGRAMMING_MODE";
 
   public static final String CMD_SET_MATCH_NUMBER = "CMD_SET_MATCH_NUMBER";
 

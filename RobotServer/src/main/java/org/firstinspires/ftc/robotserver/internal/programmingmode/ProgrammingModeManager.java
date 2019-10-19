@@ -55,7 +55,6 @@ public class ProgrammingModeManager {
     private volatile WebServer webServer;
     private volatile WebSocketManager webSocketManager;
     private volatile WebHandlerManager webHandlerManager;
-    private volatile ProgrammingModeLog programmingModeLog;
     private final List<ProgrammingMode> registeredProgrammingModes;
     private final ProgrammingModeWebHandlerDecorator webHandlerDecorator;
 
@@ -117,20 +116,6 @@ public class ProgrammingModeManager {
      */
     public WebHandler getRegisteredHandler(String uri) {
         return webHandlerManager.getRegistered(uri);
-    }
-
-    /**
-     * Returns the current programming mode log
-     */
-    public ProgrammingModeLog getProgrammingModeLog() {
-        return programmingModeLog;
-    }
-
-    /**
-     * Sets the Programming Mode Log
-     */
-    public void setProgrammingModeLog(@NonNull ProgrammingModeLog programmingModeLog) {
-        this.programmingModeLog = programmingModeLog;
     }
 
     /**

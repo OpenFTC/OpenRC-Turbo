@@ -35,6 +35,8 @@ package com.qualcomm.hardware.motors;
 import com.qualcomm.robotcore.hardware.configuration.DistributorInfo;
 import com.qualcomm.robotcore.hardware.configuration.ModernRoboticsMotorControllerParams;
 import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
+import com.qualcomm.robotcore.hardware.configuration.annotations.ExpansionHubPIDFPositionParams;
+import com.qualcomm.robotcore.hardware.configuration.annotations.ExpansionHubPIDFVelocityParams;
 import com.qualcomm.robotcore.hardware.configuration.annotations.MotorType;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
@@ -43,6 +45,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 @DeviceProperties(xmlTag="NeveRest20Gearmotor", name="NeveRest 20 Gearmotor", builtIn = true)
 @DistributorInfo(distributor="AndyMark", model="am-3102", url="http://www.andymark.com/NeveRest-20-12V-Gearmotor-p/am-3102.htm")
 @ModernRoboticsMotorControllerParams(P=160, I=32, D=112, ratio=25)
+@ExpansionHubPIDFVelocityParams(P=2.0, I=0.5, F=11.0)
+@ExpansionHubPIDFPositionParams(P=5.0)
 public interface NeveRest20Gearmotor
     {
     }

@@ -30,6 +30,7 @@
 goog.provide('Blockly.FtcJava');
 
 goog.require('Blockly.Generator');
+goog.require('Blockly.utils.string');
 
 
 /**
@@ -122,6 +123,7 @@ Blockly.FtcJava.init = function(workspace) {
   } else {
     Blockly.FtcJava.variableDB_.reset();
   }
+  Blockly.FtcJava.variableDB_.setVariableMap(workspace.getVariableMap());
 
   Blockly.FtcJava.variableDeclarationsByScope_ = Object.create(null);
 
@@ -237,7 +239,6 @@ Blockly.FtcJava.init = function(workspace) {
             // Skip procedure arguments.
             continue;
           }
-
 
           var functionName = Blockly.FtcJava.getFunctionName_(rootBlock);
           if (functionNames.indexOf(functionName) == -1) {
@@ -527,9 +528,28 @@ Blockly.FtcJava.getOutputType_ = function(block) {
     // If the block is a variable getter, see if we already know the type of that variable.
     if (block.type == 'variables_get') {
       var variableName = Blockly.FtcJava.getVariableName_(block);
+      // Maybe it's a variable.
       var variableType = Blockly.FtcJava.variableTypes_[variableName];
-      if (variableType != '') {
-        return variableType;
+      if (variableType != undefined) {
+        if (variableType != '') {
+          return variableType;
+        }
+      } else {
+        // Or, maybe it's an argument.
+        var rootBlock = block.getRootBlock();
+        if (Blockly.FtcJava.isFunctionDefinitionBlock_(rootBlock)) {
+          var functionName = Blockly.FtcJava.getFunctionName_(rootBlock);
+          var procedureArgumentNames = Blockly.FtcJava.procedureArgumentNames_[functionName];
+          var procedureArgumentTypes = Blockly.FtcJava.procedureArgumentTypes_[functionName];
+          for (var i = 0; i < procedureArgumentNames.length; i++) {
+            if (procedureArgumentNames[i] == variableName) {
+              var argumentType = procedureArgumentTypes[i];
+              if (argumentType != '') {
+                return argumentType;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -893,7 +913,7 @@ Blockly.FtcJava.scrub_ = function(block, code) {
   if (!block.outputConnection || !block.outputConnection.targetConnection) {
     // Collect comment for this block.
     var comment = block.getCommentText();
-    comment = Blockly.utils.wrap(comment, Blockly.FtcJava.COMMENT_WRAP - 3);
+    comment = Blockly.utils.string.wrap(comment, Blockly.FtcJava.COMMENT_WRAP - 3);
     if (comment) {
       if (block.getProcedureDef) {
         // Use a comment block for function comments.

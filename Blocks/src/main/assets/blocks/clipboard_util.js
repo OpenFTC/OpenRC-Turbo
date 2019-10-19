@@ -7,10 +7,7 @@
  * Saves the clipboard content and calls the callback.
  */
 function saveClipboardContent(clipboardContent, callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    saveClipboardContentViaBlocksIO(clipboardContent, callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     saveClipboardContentViaHttp(clipboardContent, callback);
   } else if (window.location.protocol === 'file:') {
@@ -23,38 +20,12 @@ function saveClipboardContent(clipboardContent, callback) {
  * Fetches the previously saved clipboard content and calls the callback.
  */
 function fetchClipboardContent(callback) {
-  if (typeof blocksIO !== 'undefined') {
-    // html/js is within the WebView component within the Android app.
-    fetchClipboardContentViaBlocksIO(callback);
-  } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     // html/js is in a browser, loaded as an http:// URL.
     fetchClipboardContentViaHttp(callback);
   } else if (window.location.protocol === 'file:') {
     // html/js is in a browser, loaded as an file:// URL.
     fetchClipboardContentViaFile(callback);
-  }
-}
-
-//..........................................................................
-// Code used when html/js is within the WebView component within the
-// Android app.
-
-function saveClipboardContentViaBlocksIO(clipboardContent, callback) {
-  var success = blocksIO.saveClipboardContent(clipboardContent);
-  if (success) {
-    callback(true, '');
-  } else {
-    // TODO(lizlooney): Provide more information about the error.
-    callback(false, 'Save clipboard failed.');
-  }
-}
-
-function fetchClipboardContentViaBlocksIO(callback) {
-  var clipboardContent = blocksIO.fetchClipboardContent();
-  if (clipboardContent) {
-    callback(clipboardContent, '');
-  } else {
-    callback(null, 'Fetch clipboard failed.');
   }
 }
 
