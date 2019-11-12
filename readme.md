@@ -31,7 +31,7 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
 
- - **Ultra Turbo - 4MB APK** *(10x smaller!)*
+ - **Extreme Turbo - 4MB APK** *(10x smaller!)*
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
