@@ -110,6 +110,12 @@ tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
 
 ## Release Notes:
 
+### 5.3B
+
+Released on 22 November 2019
+
+ - Fix TFOD crash on stock due to incorrect version of TFOD library being used (which conflicted with pre-compiled official FTC SDK AARs)
+
 ### 5.3A
 
 Released on 19 October 2019

@@ -24,19 +24,19 @@ dependencies {
     /*
      * Other Modules
      */
-    turboImplementation project(':FtcCommon')
-    turboImplementation project(':RobotCore')
-    turboImplementation project(':Inspection')
-    turboImplementation project(':Blocks')
-    turboImplementation project(':Hardware')
-    turboImplementation project(':RobotServer')
-    turboImplementation project(':OpenRC')
+    turboApi project(':FtcCommon')
+    turboApi project(':RobotCore')
+    turboApi project(':Inspection')
+    turboApi project(':Blocks')
+    turboApi project(':Hardware')
+    turboApi project(':RobotServer')
+    turboApi project(':OpenRC')
 
-    extremeTurboImplementation project(':FtcCommon')
-    extremeTurboImplementation project(':RobotCore')
-    extremeTurboImplementation project(':Inspection')
-    extremeTurboImplementation project(':Hardware')
-    extremeTurboImplementation project(':OpenRC')
+    extremeTurboApi project(':FtcCommon')
+    extremeTurboApi project(':RobotCore')
+    extremeTurboApi project(':Inspection')
+    extremeTurboApi project(':Hardware')
+    extremeTurboApi project(':OpenRC')
 
     stockApi 'org.openftc:ftccommon-stock:5.3'
     stockApi 'org.openftc:robotcore-stock:5.3'
@@ -49,10 +49,12 @@ dependencies {
 
     /*
      * Things needed regardless of turbo/extremeTurbo/stock
+     * that are normally pulled in by modules but must be
+     * pulled in here for stock
      */
     stockApi 'com.android.support:support-annotations:28.0.0'
-    stockApi 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
-    stockApi 'org.openftc:tfod-ftc-repackaged:5.0'
+    stockApi 'org.openftc:tfod-google-ftcsdk-repackaged:5.0' //Specific version of TFOD core library used by FTC SDK
+    stockApi 'org.openftc:tfod-ftc-repackaged:5.0' //FTC specific addons to core TFOD lib
 
     /*
      * External
