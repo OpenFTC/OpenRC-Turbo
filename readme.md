@@ -110,6 +110,12 @@ tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
 
 ## Release Notes:
 
+### 5.4A
+
+Released on 15 January 2020
+
+ - Update to SDK v5.4
+
 ### 5.3B
 
 Released on 22 November 2019
