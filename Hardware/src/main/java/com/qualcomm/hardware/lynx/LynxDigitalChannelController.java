@@ -206,6 +206,17 @@ public class LynxDigitalChannelController extends LynxController implements Digi
             {
             // For input pins, we ask the controller, then remember what he said
             LynxGetSingleDIOInputCommand command = new LynxGetSingleDIOInputCommand(this.getModule(), pin);
+
+            if (getModule() instanceof LynxModule)
+                {
+                LynxModule module = (LynxModule) getModule();
+                if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                    {
+                    LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command);
+                    return bulkData.getDigitalChannelState(pin);
+                    }
+                }
+
             try {
                 LynxGetSingleDIOInputResponse response = command.sendReceive();
                 boolean result = response.getValue();

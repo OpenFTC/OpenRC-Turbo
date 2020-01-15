@@ -32,12 +32,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.hardware.lynx;
 
-import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.standard.LynxNack;
 import com.qualcomm.robotcore.exception.TargetPositionNotSetException;
 import com.qualcomm.robotcore.util.RobotLog;
-
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
  * Created by bob on 2016-12-11.
@@ -73,7 +70,7 @@ public class LynxCommExceptionHandler
     // Exceptions
     //----------------------------------------------------------------------------------------------
 
-    /** Returns true if command was supported (so: exception was something else) or false if the exception indicated that the command wasn't supported */ 
+    /** Returns true if command was supported (so: exception was something else) or false if the exception indicated that the command wasn't supported */
     protected boolean handleException(Exception e)
         {
         boolean commandIsSupported = true;
@@ -118,13 +115,11 @@ public class LynxCommExceptionHandler
     /** @see LynxNack.ReasonCode#isUnsupportedReason() */
     protected void handleSpecificException(LynxNackException nackException)
         {
-        switch (nackException.getNack().getNackReasonCode())
+        switch (nackException.getNack().getNackReasonCodeAsEnum())
             {
             case ABANDONED_WAITING_FOR_ACK:
-                RobotLog.ww(getTag(), "%s was abandoned waiting for ack", nackException.getCommand().getClass().getSimpleName());
-                break;
             case ABANDONED_WAITING_FOR_RESPONSE:
-                RobotLog.ww(getTag(), "%s was abandoned waiting for response", nackException.getCommand().getClass().getSimpleName());
+                // This is logged elsewhere.
                 break;
             case COMMAND_IMPL_PENDING:
                 RobotLog.ww(getTag(), "%s not implemented by lynx hw; ignoring", nackException.getCommand().getClass().getSimpleName());
@@ -136,10 +131,8 @@ public class LynxCommExceptionHandler
                 RobotLog.ee(getTag(), "%s not supported by module mod#=%d cmd#=%d", nackException.getCommand().getClass().getSimpleName(), nackException.getNack().getModuleAddress(), nackException.getNack().getCommandNumber());
                 break;
             case BATTERY_TOO_LOW_TO_RUN_MOTOR:
-                RobotLog.setGlobalWarningMessage(AppUtil.getDefContext().getString(R.string.lynxBatteryToLowMotor));
-                break;
             case BATTERY_TOO_LOW_TO_RUN_SERVO:
-                RobotLog.setGlobalWarningMessage(AppUtil.getDefContext().getString(R.string.lynxBatteryToLowServo));
+                // Ignore, the low battery condition is logged and reported as soon as it happens.
                 break;
             default:
                 RobotLog.ee(getTag(), nackException, "exception thrown during lynx communication");

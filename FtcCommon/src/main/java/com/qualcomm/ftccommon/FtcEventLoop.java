@@ -68,6 +68,7 @@ import android.os.Build;
 import com.qualcomm.ftccommon.configuration.FtcConfigurationActivity;
 import com.qualcomm.ftccommon.configuration.USBScanManager;
 import com.qualcomm.hardware.HardwareFactory;
+import com.qualcomm.hardware.lynx.LynxModuleWarningManager;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
@@ -186,6 +187,8 @@ public class FtcEventLoop extends FtcEventLoopBase {
     opModeManager.setHardwareMap(hardwareMap);
     hardwareMap.logDevices();
     InspectionState.cacheFirmwareInspectionVersion(hardwareMap);
+
+    LynxModuleWarningManager.getInstance().init(opModeManager);
 
     RobotLog.ii(TAG, "======= INIT FINISH =======");
   }

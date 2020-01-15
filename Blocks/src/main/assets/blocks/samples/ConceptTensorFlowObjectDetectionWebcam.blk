@@ -35,7 +35,7 @@
 </value>
 <value name="ENABLE_CAMERA_MONITORING">
 <shadow type="logic_boolean" id="y/~?GcC]T),;cIU(d`Cc">
-<field name="BOOL">TRUE</field>
+<field name="BOOL">FALSE</field>
 </shadow>
 </value>
 <value name="CAMERA_MONITOR_FEEDBACK">

@@ -44,8 +44,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 @MotorType(ticksPerRev=2786, gearing=99.5, maxRPM=60, orientation=Rotation.CCW)
 @DeviceProperties(xmlTag="goBILDA5202SeriesMotor", name="GoBILDA 5202 series", builtIn = true)
 @DistributorInfo(distributor="goBILDA_distributor", model="goBILDA-5202", url="https://www.gobilda.com/5202-series-yellow-jacket-planetary-gear-motors/")
-@ExpansionHubPIDFVelocityParams(P=2.0, I=0.5, F=11.1)
-@ExpansionHubPIDFPositionParams(P=5.0)
 public interface GoBILDA5202Series
     {
     }

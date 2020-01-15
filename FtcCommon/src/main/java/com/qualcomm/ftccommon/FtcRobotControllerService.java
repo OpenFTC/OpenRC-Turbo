@@ -509,10 +509,6 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
         break;
       case CONNECTION_INFO_AVAILABLE:
         RobotLog.ii(TAG, "Network Connection Passphrase: " + networkConnection.getPassphrase());
-        // Handling the case where we are changing networks and the web server has already been started.
-        if (webServer.wasStarted()) {
-          webServer.stop();
-        }
         webServer.start();
         break;
       case ERROR:

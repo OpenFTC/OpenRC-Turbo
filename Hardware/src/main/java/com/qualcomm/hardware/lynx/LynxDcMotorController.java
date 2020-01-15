@@ -36,8 +36,12 @@ import android.content.Context;
 
 import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetADCCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetADCResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxGetBulkInputDataCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxGetBulkInputDataResponse;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorChannelCurrentAlertLevelCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorChannelCurrentAlertLevelResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorChannelEnableCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorChannelEnableResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorChannelModeCommand;
@@ -57,6 +61,7 @@ import com.qualcomm.hardware.lynx.commands.core.LynxGetMotorTargetVelocityRespon
 import com.qualcomm.hardware.lynx.commands.core.LynxIsMotorAtTargetCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxIsMotorAtTargetResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxResetMotorEncoderCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorChannelCurrentAlertLevelCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorChannelEnableCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorChannelModeCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorConstantPowerCommand;
@@ -81,6 +86,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 
@@ -120,6 +126,7 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
         LastKnown<DcMotor.RunMode>              lastKnownMode               = new LastKnown<DcMotor.RunMode>();
         LastKnown<DcMotor.ZeroPowerBehavior>    lastKnownZeroPowerBehavior  = new LastKnown<DcMotor.ZeroPowerBehavior>();
         LastKnown<Boolean>                      lastKnownEnable             = new LastKnown<Boolean>();
+        LastKnown<Double>                       lastKnownCurrentAlert       = new LastKnown<Double>(); // mA
 
         // The remainder of the data is authoritative, here
         MotorConfigurationType                  motorType = MotorConfigurationType.getUnspecifiedMotorType();
@@ -224,7 +231,7 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
             catch (LynxNackException e)
                 {
                 LynxNack.ReasonCode reason = e.getNack().getNackReasonCode();
-                if (reason == LynxNack.ReasonCode.MOTOR_NOT_CONFIG_BEFORE_ENABLED)
+                if (reason == LynxNack.StandardReasonCode.MOTOR_NOT_CONFIG_BEFORE_ENABLED)
                     {
                     throw new TargetPositionNotSetException();
                     }
@@ -616,6 +623,17 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
         {
         this.validateMotor(motor); motor -= apiMotorFirst;
         LynxIsMotorAtTargetCommand command = new LynxIsMotorAtTargetCommand(this.getModule(), motor);
+
+        if (getModule() instanceof LynxModule)
+            {
+            LynxModule module = (LynxModule) getModule();
+            if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                {
+                LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command);
+                return bulkData.isMotorBusy(motor);
+                }
+            }
+
         try {
             LynxIsMotorAtTargetResponse response = command.sendReceive();
             return !response.isAtTarget();  // isBusy is true when motor is not at target position.
@@ -692,6 +710,17 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
         {
         this.validateMotor(motor); motor -= apiMotorFirst;
         LynxGetMotorEncoderPositionCommand command = new LynxGetMotorEncoderPositionCommand(this.getModule(), motor);
+
+        if (getModule() instanceof LynxModule)
+            {
+            LynxModule module = (LynxModule) getModule();
+            if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                {
+                LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command);
+                return bulkData.getMotorCurrentPosition(motor);
+                }
+            }
+
         try {
             LynxGetMotorEncoderPositionResponse response = command.sendReceive();
             return response.getPosition();
@@ -764,6 +793,17 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
     int internalGetMotorTicksPerSecond(int motorZ)
         {
         LynxGetBulkInputDataCommand command = new LynxGetBulkInputDataCommand(this.getModule());
+
+        if (getModule() instanceof LynxModule)
+            {
+            LynxModule module = (LynxModule) getModule();
+            if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                {
+                LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command, "motorVelocity" + motorZ);
+                return bulkData.getMotorVelocity(motorZ);
+                }
+            }
+
         try {
             LynxGetBulkInputDataResponse response = command.sendReceive();
             return response.getVelocity(motorZ);      // in encoder counts per second
@@ -875,7 +915,7 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
             }
         catch (LynxNackException e)
             {
-            if (e.getNack().getNackReasonCode() == LynxNack.ReasonCode.PARAM2)
+            if (e.getNack().getNackReasonCode() == LynxNack.StandardReasonCode.PARAM2)
                 {
                 // There's a non-zero F coefficient; ignore it
                 PIDFCoefficients pidfCoefficients = getPIDFCoefficients(motor + apiMotorFirst, mode);
@@ -918,6 +958,86 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
             return new PIDFCoefficients(getPIDCoefficients(motor, mode));
             }
         }
+
+    @Override public double getMotorCurrent(int motor, CurrentUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this.getModule(), LynxGetADCCommand.Channel.motorCurrent(motor), LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), CurrentUnit.MILLIAMPS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    @Override public double getMotorCurrentAlert(int motor, CurrentUnit unit)
+        {
+        Double cachedCurrent = motors[motor].lastKnownCurrentAlert.getValue();
+        if (cachedCurrent != null)
+            {
+            return unit.convert(cachedCurrent, CurrentUnit.MILLIAMPS);
+            }
+
+        LynxGetMotorChannelCurrentAlertLevelCommand command = new LynxGetMotorChannelCurrentAlertLevelCommand(this.getModule(), motor);
+        try
+            {
+            LynxGetMotorChannelCurrentAlertLevelResponse response = command.sendReceive();
+            double limit = response.getCurrentLimit();
+            motors[motor].lastKnownCurrentAlert.setValue(limit);
+            return unit.convert(limit, CurrentUnit.MILLIAMPS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    @Override public void setMotorCurrentAlert(int motor, double current, CurrentUnit unit)
+        {
+        LynxSetMotorChannelCurrentAlertLevelCommand command = new LynxSetMotorChannelCurrentAlertLevelCommand(
+                this.getModule(), motor, (int) Math.round(unit.toMilliAmps(current)));
+        try
+            {
+            command.send();
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        }
+
+    @Override public boolean isMotorOverCurrent(int motor)
+        {
+        LynxGetBulkInputDataCommand command = new LynxGetBulkInputDataCommand(this.getModule());
+
+        if (getModule() instanceof LynxModule)
+            {
+            LynxModule module = (LynxModule) getModule();
+            if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                {
+                LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command, "motorOverCurrent" + motor);
+                return bulkData.isMotorOverCurrent(motor);
+                }
+            }
+
+        try
+            {
+            LynxGetBulkInputDataResponse response = command.sendReceive();
+            return response.isOverCurrent(motor);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(false);
+        }
+
+
     //------------------------------------------------------------------------------------------------
     // Utility
     //------------------------------------------------------------------------------------------------

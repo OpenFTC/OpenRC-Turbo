@@ -48,4 +48,21 @@ class TelemetryAccess extends Access {
     startBlockExecution(BlockType.FUNCTION, ".update");
     telemetry.update();
   }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void speakTextData(String data, String languageCode, String countryCode) {
+    startBlockExecution(BlockType.FUNCTION, ".speak");
+    if (data != null) {
+      telemetry.speak(data, languageCode, countryCode);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void speakObjectData(Object data, String languageCode, String countryCode) {
+    startBlockExecution(BlockType.FUNCTION, ".speak");
+    // Avoid calling data.toString() in case data is null.
+    telemetry.speak("" + data, languageCode, countryCode);
+  }
 }

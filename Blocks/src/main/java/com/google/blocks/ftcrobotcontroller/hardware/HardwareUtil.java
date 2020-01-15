@@ -19,10 +19,11 @@ package com.google.blocks.ftcrobotcontroller.hardware;
 import static com.google.blocks.ftcrobotcontroller.util.ProjectsUtil.escapeSingleQuotes;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+
+import com.google.blocks.ftcrobotcontroller.util.AvailableTtsLocalesProvider;
 import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
 import com.google.blocks.ftcrobotcontroller.util.ProjectsUtil;
@@ -51,6 +52,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool;
+import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
@@ -132,7 +134,8 @@ public class HardwareUtil {
    */
   // visible for testing
   public static String fetchJavaScriptForHardware(HardwareItemMap hardwareItemMap) throws IOException {
-    AssetManager assetManager = AppUtil.getDefContext().getAssets();
+    Context context = AppUtil.getDefContext();
+    AssetManager assetManager = context.getAssets();
     StringBuilder jsHardware = new StringBuilder().append("\n");
 
     Map<String, Boolean> capabilities = getCapabilities(hardwareItemMap);
@@ -185,6 +188,74 @@ public class HardwareUtil {
         .append(blinkinPatternTooltips)
         .append("\n")
         .append(blinkinPatternFromTextTooltip)
+        .append("\n");
+
+    // Locales
+    SortedMap<String, String> languageCodes = new TreeMap<String, String>();
+    SortedMap<String, String> countryCodes = new TreeMap<String, String>();
+    for (Locale locale : AvailableTtsLocalesProvider.getInstance().getAvailableTtsLocales()) {
+      languageCodes.put(locale.getLanguage(), locale.getDisplayLanguage());
+      String countryCode = locale.getCountry();
+      if (!countryCode.isEmpty()) {
+        countryCodes.put(countryCode, locale.getDisplayCountry());
+      }
+    }
+    Locale defaultLocale = Locale.getDefault();
+    // Languages
+    String defaultLanguageCode = defaultLocale.getLanguage();
+    StringBuilder createLanguageCodeDropdown = new StringBuilder();
+    StringBuilder languageCodeTooltips = new StringBuilder();
+    createLanguageCodeDropdown
+        .append("function createLanguageCodeDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    languageCodeTooltips
+        .append("var LANGUAGE_CODE_TOOLTIPS = [\n");
+    // First item is the default language.
+    addLanguage(defaultLanguageCode, defaultLocale.getDisplayLanguage(), createLanguageCodeDropdown, languageCodeTooltips);
+    // Remaining lanuages are sorted alphabetically.
+    for (Map.Entry<String, String> entry : languageCodes.entrySet()) {
+      String languageCode = entry.getKey();
+      if (!languageCode.equals(defaultLanguageCode)) {
+        String languageName = entry.getValue();
+        addLanguage(languageCode, languageName, createLanguageCodeDropdown, languageCodeTooltips);
+      }
+    }
+    createLanguageCodeDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    languageCodeTooltips
+        .append("];\n");
+    jsHardware
+        .append(createLanguageCodeDropdown)
+        .append(languageCodeTooltips)
+        .append("\n");
+    // Countries
+    String defaultCountryCode = defaultLocale.getCountry();
+    StringBuilder createCountryCodeDropdown = new StringBuilder();
+    StringBuilder countryCodeTooltips = new StringBuilder();
+    createCountryCodeDropdown
+        .append("function createCountryCodeDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    countryCodeTooltips
+        .append("var COUNTRY_CODE_TOOLTIPS = [\n");
+    // First item is the default country.
+    addCountry(defaultCountryCode, defaultLocale.getDisplayCountry(), createCountryCodeDropdown, countryCodeTooltips);
+    // Remaining countries are sorted alphabetically.
+    for (Map.Entry<String, String> entry : countryCodes.entrySet()) {
+      String countryCode = entry.getKey();
+      if (!countryCode.equals(defaultCountryCode)) {
+        String countryName = entry.getValue();
+        addCountry(countryCode, countryName, createCountryCodeDropdown, countryCodeTooltips);
+      }
+    }
+    createCountryCodeDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    countryCodeTooltips
+        .append("];\n");
+    jsHardware
+        .append(createCountryCodeDropdown)
+        .append(countryCodeTooltips)
         .append("\n");
 
     // SkyStone sound resources
@@ -556,6 +627,36 @@ public class HardwareUtil {
       }
     }
     return visibleName.toString();
+  }
+
+  private static void addLanguage(String languageCode, String languageName, StringBuilder dropdown, StringBuilder tooltips) {
+    dropdown
+        .append("      ['")
+        .append(escapeSingleQuotes(makeVisibleNameForDropdownItem(languageCode)))
+        .append("', '")
+        .append(escapeSingleQuotes(languageCode))
+        .append("'],\n");
+    tooltips
+        .append("  ['")
+        .append(escapeSingleQuotes(languageCode))
+        .append("', 'The language code for ")
+        .append(escapeSingleQuotes(languageName))
+        .append(".'],\n");
+  }
+
+  private static void addCountry(String countryCode, String countryName, StringBuilder dropdown, StringBuilder tooltips) {
+    dropdown
+        .append("      ['")
+        .append(escapeSingleQuotes(makeVisibleNameForDropdownItem(countryCode)))
+        .append("', '")
+        .append(escapeSingleQuotes(countryCode))
+        .append("'],\n");
+    tooltips
+        .append("  ['")
+        .append(escapeSingleQuotes(countryCode))
+        .append("', 'The country code for ")
+        .append(escapeSingleQuotes(countryName))
+        .append(".'],\n");
   }
 
   private static void appendCreateDropdownFunction(StringBuilder jsHardware,
@@ -1059,11 +1160,13 @@ public class HardwareUtil {
     String identifier = hardwareItems.get(0).identifier;
     String zero = ToolboxUtil.makeNumberShadow(0);
     String one = ToolboxUtil.makeNumberShadow(1);
+    String five = ToolboxUtil.makeNumberShadow(5);
     String ten = ToolboxUtil.makeNumberShadow(10);
     String runMode = ToolboxUtil.makeTypedEnumShadow(hardwareType, "runMode");
     String zeroPowerBehavior = ToolboxUtil.makeTypedEnumShadow(hardwareType, "zeroPowerBehavior");
     String direction = ToolboxUtil.makeTypedEnumShadow(hardwareType, "direction");
     String angleUnit = ToolboxUtil.makeTypedEnumShadow("navigation", "angleUnit");
+    String currentUnit = ToolboxUtil.makeTypedEnumShadow("navigation", "currentUnit");
     String runModeRunUsingEncoder =
         ToolboxUtil.makeTypedEnumShadow(hardwareType, "runMode", "RUN_MODE", "RUN_USING_ENCODER");
 
@@ -1183,6 +1286,17 @@ public class HardwareUtil {
       Map<String, String> getPIDFCoefficientsArgs = new LinkedHashMap<String, String>();
       getPIDFCoefficientsArgs.put("RUN_MODE", runModeRunUsingEncoder);
       functions.put("getPIDFCoefficients", getPIDFCoefficientsArgs);
+      Map<String, String> getCurrentArgs = new LinkedHashMap<String, String>();
+      getCurrentArgs.put("CURRENT_UNIT", currentUnit);
+      functions.put("getCurrent", getCurrentArgs);
+      Map<String, String> setCurrentAlertArgs = new LinkedHashMap<String, String>();
+      setCurrentAlertArgs.put("CURRENT", five);
+      setCurrentAlertArgs.put("CURRENT_UNIT", currentUnit);
+      functions.put("setCurrentAlert", setCurrentAlertArgs);
+      Map<String, String> getCurrentAlertArgs = new LinkedHashMap<String, String>();
+      getCurrentAlertArgs.put("CURRENT_UNIT", currentUnit);
+      functions.put("getCurrentAlert", getCurrentAlertArgs);
+      functions.put("isOverCurrent", null);
       ToolboxUtil.addFunctions(xmlToolbox, hardwareType, identifierForDcMotorEx, functions);
 
       xmlToolbox.append("    </category>\n");
@@ -1553,173 +1667,6 @@ public class HardwareUtil {
     properties.put("Voltage", "Number");
     ToolboxUtil.addProperties(xmlToolbox, hardwareType, identifier, properties,
         null /* setterValues */, null /* enumBlocks */);
-  }
-
-  /**
-   * Replaces the hardware identifiers in the given blocks content based on the active
-   * configuration.
-   */
-  public static String replaceHardwareIdentifiers(String blkContent) {
-    return replaceHardwareIdentifiers(blkContent, HardwareItemMap.newHardwareItemMap());
-  }
-
-  /**
-   * Replaces the hardware identifiers in the given blocks content based on the given {@link
-   * HardwareItemMap}.
-   */
-  private static String replaceHardwareIdentifiers(String blkContent, HardwareItemMap hardwareItemMap) {
-    // The following handles the identifier that are hardcoded in the sample blocks op modes.
-    if (hardwareItemMap.contains(HardwareType.DC_MOTOR)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.DC_MOTOR);
-      if (!items.isEmpty()) {
-        String anyDcMotor = items.get(0).identifier;
-        String leftDcMotor = null;
-        String rightDcMotor = null;
-        for (HardwareItem item : items) {
-          String lower = item.deviceName.toLowerCase(Locale.ENGLISH);
-          if (leftDcMotor == null && lower.contains("left")) {
-            leftDcMotor = item.identifier;
-          }
-          if (rightDcMotor == null && lower.contains("right")) {
-            rightDcMotor = item.identifier;
-          }
-        }
-        if (leftDcMotor == null) {
-          leftDcMotor = anyDcMotor;
-        }
-        if (rightDcMotor == null) {
-          rightDcMotor = anyDcMotor;
-        }
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "motorTest", anyDcMotor, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "left_drive", leftDcMotor, "IDENTIFIER", "IDENTIFIER1");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "right_drive", rightDcMotor, "IDENTIFIER", "IDENTIFIER2");
-      }
-    }
-    if (hardwareItemMap.contains(HardwareType.DIGITAL_CHANNEL)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.DIGITAL_CHANNEL);
-      if (!items.isEmpty()) {
-        String anyDigitalChannel = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "digitalTouchAsDigitalChannel", anyDigitalChannel, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "digitalTouch", anyDigitalChannel, "IDENTIFIER");
-      }
-    }
-    if (hardwareItemMap.contains(HardwareType.BNO055IMU)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.BNO055IMU);
-      if (!items.isEmpty()) {
-        String anyBno055imu = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "imu", anyBno055imu, "IDENTIFIER");
-      }
-    }
-    if (hardwareItemMap.contains(HardwareType.SERVO)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.SERVO);
-      if (!items.isEmpty()) {
-        String anyServo = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "left_hand", anyServo, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "servoTest", anyServo, "IDENTIFIER");
-      }
-    }
-    if (hardwareItemMap.contains(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR);
-      if (!items.isEmpty()) {
-        String anyLynxI2cColorRangeSensor = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "sensorColorRange", anyLynxI2cColorRangeSensor, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "sensorColorRangeasLynxI2cColorRangeSensor", anyLynxI2cColorRangeSensor, "IDENTIFIER");
-      }
-    }
-    if (hardwareItemMap.contains(HardwareType.REV_BLINKIN_LED_DRIVER)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.REV_BLINKIN_LED_DRIVER);
-      if (!items.isEmpty()) {
-        String anyRevBlinkinLedDriver = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "servoAsRevBlinkinLedDriver", anyRevBlinkinLedDriver, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, items,
-            "blinkinAsRevBlinkinLedDriver", anyRevBlinkinLedDriver, "IDENTIFIER");
-      }
-    }
-    return blkContent;
-  }
-
-  /**
-   * Replaces an identifier in blocks.
-   */
-  private static String replaceIdentifierInBlocks(String blkContent, List<HardwareItem> items,
-      String oldIdentifier, String newIdentifier, String... fieldNames) {
-    for (HardwareItem item : items) {
-      if (item.identifier.equals(oldIdentifier)) {
-        return blkContent;
-      }
-    }
-    for (String fieldName : fieldNames) {
-      String oldTag = "<field name=\"" + fieldName + "\">" + oldIdentifier + "</field>";
-      String newTag = "<field name=\"" + fieldName + "\">" + newIdentifier + "</field>";
-      blkContent = blkContent.replace(oldTag, newTag);
-    }
-    return blkContent;
-  }
-
-  /**
-   * Upgrades the given blocks content based on the active configuration.
-   */
-  public static String upgradeBlocks(String blkContent) {
-    return upgradeBlocks(blkContent, HardwareItemMap.newHardwareItemMap());
-  }
-
-  /**
-   * Upgrades the given blocks content based on the given {@link HardwareItemMap}.
-   */
-  private static String upgradeBlocks(String blkContent, HardwareItemMap hardwareItemMap) {
-    // In previous versions, block type prefix bno055imu_ was adafruitBNO055IMU_.
-    blkContent = blkContent.replace(
-        "<block type=\"adafruitBNO055IMU_",
-        "<block type=\"bno055imu_");
-    // In previous versions, identifier suffix AsBNO055IMU was AsAdafruitBNO055IMU.
-    blkContent = replaceIdentifierSuffixInBlocks(blkContent,
-        hardwareItemMap.getHardwareItems(HardwareType.BNO055IMU),
-        "AsAdafruitBNO055IMU", "AsBNO055IMU");
-    // In previous versions, block type prefix bno055imuParameters_ was adafruitBNO055IMUParameters_.
-    blkContent = blkContent.replace(
-        "<block type=\"adafruitBNO055IMUParameters_",
-        "<block type=\"bno055imuParameters_");
-    // In previous versions, shadow type prefix bno055imuParameters_ was adafruitBNO055IMUParameters_.
-    blkContent = blkContent.replace(
-        "<shadow type=\"adafruitBNO055IMUParameters_",
-        "<shadow type=\"bno055imuParameters_");
-    // In previous version, value name BNO055IMU_PARAMETERS was ADAFRUIT_BNO055IMU_PARAMETERS.
-    blkContent = blkContent.replace(
-        "<value name=\"ADAFRUIT_BNO055IMU_PARAMETERS\">",
-        "<value name=\"BNO055IMU_PARAMETERS\">");
-    return blkContent;
-  }
-
-  /**
-   * Replaces an identifier suffix in blocks.
-   */
-  private static String replaceIdentifierSuffixInBlocks(
-      String blkContent, List<HardwareItem> hardwareItemList,
-      String oldIdentifierSuffix, String newIdentifierSuffix) {
-    if (hardwareItemList != null) {
-      for (HardwareItem hardwareItem : hardwareItemList) {
-        String newIdentifier = hardwareItem.identifier;
-        if (newIdentifier.endsWith(newIdentifierSuffix)) {
-          String oldIdentifier = newIdentifier.substring(0, newIdentifier.length() - newIdentifierSuffix.length())
-              + oldIdentifierSuffix;
-          String oldTag = "<field name=\"IDENTIFIER\">" + oldIdentifier + "</field>";
-          String newTag = "<field name=\"IDENTIFIER\">" + newIdentifier + "</field>";
-          blkContent = blkContent.replace(oldTag, newTag);
-        }
-      }
-    }
-    return blkContent;
   }
 
   /**

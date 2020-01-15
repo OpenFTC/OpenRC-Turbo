@@ -64,23 +64,25 @@ public final class FtcWebSocketImpl implements FtcWebSocket {
         this.manager = webSocketManager;
     }
 
-
-    //----------------------------------------------------------------------------------------------
-    // Interface Method Overrides
-    //----------------------------------------------------------------------------------------------
-
-    @Override public void send(@NonNull FtcWebSocketMessage message) {
+    void internalSend(@NonNull FtcWebSocketMessage message) {
         String json = message.toJson();
 
         if (DEBUG) {
             RobotLog.vv(TAG, "sending message to %s: %s", this, json);
         }
 
-        if (message.getNamespace().equals(WebSocketManager.SYSTEM_NAMESPACE)) {
-            throw new IllegalArgumentException("System namespace messages should ONLY go from the client to the server.");
-        }
-
         rawWebSocket.send(json);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Interface Method Overrides
+    //----------------------------------------------------------------------------------------------
+
+    @Override public void send(@NonNull FtcWebSocketMessage message) {
+        if (message.getNamespace().equals(WebSocketManager.SYSTEM_NAMESPACE)) {
+            throw new IllegalArgumentException("System namespace messages cannot be sent using this method.");
+        }
+        internalSend(message);
     }
 
     @Override public InetAddress getRemoteIpAddress() {
@@ -112,6 +114,7 @@ public final class FtcWebSocketImpl implements FtcWebSocket {
     //----------------------------------------------------------------------------------------------
     private void onOpen() {
         RobotLog.vv(TAG, "Opening %s", this);
+        ((WebSocketManagerImpl)manager).onWebSocketConnected(this);
     }
 
     private void onClose(CloseCode closeCode, String reason, boolean initiatedByRemote) {

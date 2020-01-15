@@ -163,3 +163,80 @@ Blockly.JavaScript['telemetry_update'] = function(block) {
 Blockly.FtcJava['telemetry_update'] = function(block) {
   return 'telemetry.update();\n';
 };
+
+Blockly.Blocks['telemetry_speak'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Telemetry'))
+        .appendField('.')
+        .appendField(createNonEditableField('speak'));
+    this.appendValueInput('TEXT') // all types allowed
+        .appendField('text')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Directs the Driver Station device to speak the given text using ' +
+        'TextToSpeech functionality, with the same language and country codes that ' +
+        'were previously used, or the default language and country.');
+  }
+};
+
+Blockly.JavaScript['telemetry_speak'] = function(block) {
+  var text = Blockly.JavaScript.valueToCode(
+      block, 'TEXT', Blockly.JavaScript.ORDER_NONE);
+  var languageCode = "''";
+  var countryCode = "''";
+  return 'telemetrySpeak(' + text + ', ' + languageCode + ', ' + countryCode + ');\n';
+};
+
+Blockly.FtcJava['telemetry_speak'] = function(block) {
+  var text = Blockly.FtcJava.valueToCode(
+      block, 'TEXT', Blockly.FtcJava.ORDER_NONE);
+  return 'telemetry.speak(' + text + ', null, null);\n';
+};
+
+Blockly.Blocks['telemetry_speak_withLanguage'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Telemetry'))
+        .appendField('.')
+        .appendField(createNonEditableField('speak'));
+    this.appendValueInput('TEXT') // all types allowed
+        .appendField('text')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('LANGUAGE_CODE').setCheck('String')
+        .appendField('languageCode')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('COUNTRY_CODE').setCheck('String')
+        .appendField('countryCode')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Directs the Driver Station device to speak the given text using ' +
+        'TextToSpeech functionality, with the given language and country codes.');
+  }
+};
+
+Blockly.JavaScript['telemetry_speak_withLanguage'] = function(block) {
+  var text = Blockly.JavaScript.valueToCode(
+      block, 'TEXT', Blockly.JavaScript.ORDER_COMMA);
+  var languageCode = Blockly.JavaScript.valueToCode(
+      block, 'LANGUAGE_CODE', Blockly.JavaScript.ORDER_COMMA);
+  var countryCode = Blockly.JavaScript.valueToCode(
+      block, 'COUNTRY_CODE', Blockly.JavaScript.ORDER_COMMA);
+  return 'telemetrySpeak(' + text + ', ' + languageCode + ', ' + countryCode + ');\n';
+};
+
+Blockly.FtcJava['telemetry_speak_withLanguage'] = function(block) {
+  var text = Blockly.FtcJava.valueToCode(
+      block, 'TEXT', Blockly.FtcJava.ORDER_COMMA);
+  var languageCode = Blockly.FtcJava.valueToCode(
+      block, 'LANGUAGE_CODE', Blockly.FtcJava.ORDER_COMMA);
+  var countryCode = Blockly.FtcJava.valueToCode(
+      block, 'COUNTRY_CODE', Blockly.FtcJava.ORDER_COMMA);
+  return 'telemetry.speak(' + text + ', ' + languageCode + ', ' + countryCode + ');\n';
+};

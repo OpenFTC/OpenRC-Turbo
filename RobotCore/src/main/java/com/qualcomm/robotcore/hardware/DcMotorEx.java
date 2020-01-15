@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /**
  * The DcMotorEx interface provides enhanced motor functionality which is available with some
@@ -193,4 +194,31 @@ public interface DcMotorEx extends DcMotor
      * @return the current target positioning tolerance of this motor
      */
     int getTargetPositionTolerance();
+
+    /**
+     * Returns the current consumed by this motor.
+     * @param unit current units
+     * @return the current consumed by this motor.
+     */
+    double getCurrent(CurrentUnit unit);
+
+    /**
+     * Returns the current alert for this motor.
+     * @param unit current units
+     * @return the current alert for this motor
+     */
+    double getCurrentAlert(CurrentUnit unit);
+
+    /**
+     * Sets the current alert for this motor
+     * @param current current alert
+     * @param unit current units
+     */
+    void setCurrentAlert(double current, CurrentUnit unit);
+
+    /**
+     * Returns whether the current consumption of this motor exceeds the alert threshold.
+     * @return whether the current consumption of this motor exceeds the alert threshold.
+     */
+    boolean isOverCurrent();
     }

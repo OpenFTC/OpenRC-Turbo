@@ -94,6 +94,17 @@ public class LynxAnalogInputController extends LynxController implements AnalogI
         {
         validatePort(port); port -= apiPortFirst;
         LynxGetADCCommand command = new LynxGetADCCommand(this.getModule(), LynxGetADCCommand.Channel.user(port), LynxGetADCCommand.Mode.ENGINEERING);
+
+        if (getModule() instanceof LynxModule)
+            {
+            LynxModule module = (LynxModule) getModule();
+            if (module.getBulkCachingMode() != LynxModule.BulkCachingMode.OFF)
+                {
+                LynxModule.BulkData bulkData = module.recordBulkCachingCommandIntent(command);
+                return bulkData.getAnalogInputVoltage(port);
+                }
+            }
+
         try {
             LynxGetADCResponse response = command.sendReceive();
             return response.getValue() * 0.001;

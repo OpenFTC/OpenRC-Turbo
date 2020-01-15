@@ -63,6 +63,17 @@ public class LynxGetADCCommand extends LynxDekaInterfaceCommand<LynxGetADCRespon
         SERVO_CURRENT(6), BATTERY_CURRENT(7), MOTOR0_CURRENT(8), MOTOR1_CURRENT(9), MOTOR2_CURRENT(10),
         MOTOR3_CURRENT(11), FIVE_VOLT_MONITOR(12), BATTERY_MONITOR(13), CONTROLLER_TEMPERATURE(14);
         public final byte bVal; Channel(int bVal) {this.bVal = (byte)bVal; }
+        public static Channel motorCurrent(int port)
+            {
+            switch (port)
+                {
+                case 0: return MOTOR0_CURRENT;
+                case 1: return MOTOR1_CURRENT;
+                case 2: return MOTOR2_CURRENT;
+                case 3: return MOTOR3_CURRENT;
+                default: throw new IllegalArgumentException(String.format("illegal motor port %d", port));
+                }
+            }
         public static Channel user(int port)
             {
             switch (port)
@@ -78,7 +89,7 @@ public class LynxGetADCCommand extends LynxDekaInterfaceCommand<LynxGetADCRespon
 
     public enum Mode
         {
-        /** units are in millivolts, milliamps, or degC as appropriate */
+        /** units are in millivolts, milliamps, or deci-degC as appropriate */
         ENGINEERING(0),
         /** units are raw counts */
         RAW(1);

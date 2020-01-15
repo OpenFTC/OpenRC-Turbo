@@ -74,6 +74,7 @@ public final class BlocksOpMode extends LinearOpMode {
   private volatile BlockType currentBlockType;
   private volatile String currentBlockFirstName;
   private volatile String currentBlockLastName;
+  private volatile Thread javaBridgeThread;
 
   /**
    * Instantiates a BlocksOpMode that loads JavaScript from a file and executes it when the op mode
@@ -260,6 +261,11 @@ public final class BlocksOpMode extends LinearOpMode {
             RobotLog.e(getLogPrefix() + "runOpMode - caught InterruptedException during scriptFinishedLock.wait");
             interrupted = true;
             interruptedTime.set(System.currentTimeMillis());
+            /* Non-blocks specific code running on the Java bridge thread is unable to call isStopRequestedForBlocks.
+               For that code, it's important to interrupt the thread, so that the normal interrupt handling code runs. */
+            if (javaBridgeThread != null) {
+              javaBridgeThread.interrupt();
+            }
           }
         }
         RobotLog.i(getLogPrefix() + "runOpMode - after while !scriptFinished loop");
@@ -489,6 +495,18 @@ public final class BlocksOpMode extends LinearOpMode {
     @JavascriptInterface
     public void scriptStarting() {
       RobotLog.i(getLogPrefix() + "scriptStarting");
+      /* Clear the interrupt flag on this thread (the JavaBridge thread), which may have been set
+         during a previous Blocks Op Mode run.
+
+         Note that this thread is tied to the WebView, which is why it is reused for all Blocks
+         Op Modes.
+
+         We clear the interrupt flag by calling the (normally undesirable) method Thread.interrupted().
+      */
+
+      //noinspection ResultOfMethodCallIgnored
+      Thread.interrupted();
+      javaBridgeThread = Thread.currentThread();
     }
 
     @SuppressWarnings("unused")
@@ -558,6 +576,24 @@ public final class BlocksOpMode extends LinearOpMode {
         + "      break;\n"
         + "    default:\n"
         + "      telemetry.addTextData(key, String(data));\n"
+        + "      break;\n"
+        + "  }\n"
+        + "}\n"
+        + "\n"
+        + "function telemetrySpeak(data, languageCode, countryCode) {\n"
+        + "  switch (typeof data) {\n"
+        + "    case 'string':\n"
+        + "      telemetry.speakTextData(data, languageCode, countryCode);\n"
+        + "      break;\n"
+        + "    case 'object':\n"
+        + "      if (data instanceof Array) {\n"
+        + "        telemetry.speakTextData(String(data), languageCode, countryCode);\n"
+        + "      } else {\n"
+        + "        telemetry.speakObjectData(data, languageCode, countryCode);\n"
+        + "      }\n"
+        + "      break;\n"
+        + "    default:\n"
+        + "      telemetry.speakTextData(String(data), languageCode, countryCode);\n"
         + "      break;\n"
         + "  }\n"
         + "}\n"

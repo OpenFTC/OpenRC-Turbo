@@ -46,6 +46,10 @@ import com.qualcomm.hardware.lynx.commands.LynxRespondable;
 import com.qualcomm.hardware.lynx.commands.LynxResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxDekaInterfaceCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxFtdiResetControlCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetADCCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetADCResponse;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetBulkInputDataCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxGetBulkInputDataResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxPhoneChargeControlCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxPhoneChargeQueryCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxPhoneChargeQueryResponse;
@@ -79,8 +83,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.ThreadPool;
+import com.qualcomm.robotcore.util.TypeConversion;
 
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.TempUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectInviteDialogMonitor;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
@@ -91,11 +99,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -230,6 +238,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     protected boolean               isEngaged;
     protected final Object          engagementLock = this; // 'this' for historical reasons; optimization might be possible
     protected boolean               isOpen;
+    protected volatile boolean      isNotResponding = false;
     protected final Object          startStopLock;
 
     /** maps message number to command we've issued with said number */
@@ -259,6 +268,11 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     protected final Object                                    futureLock;
     protected boolean                                         ftdiResetWatchdogActive; // our actual current status
     protected boolean                                         ftdiResetWatchdogActiveWhenEngaged; // status when we were last engaged
+
+    protected BulkCachingMode                                 bulkCachingMode;
+    protected Map<String, List<LynxDekaInterfaceCommand<?>>>  bulkCachingHistory;
+    protected BulkData                                        lastBulkData;
+    protected final Object                                    bulkCachingLock;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -300,6 +314,10 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         this.futureLock         = new Object();
         this.ftdiResetWatchdogActive = false;
         this.ftdiResetWatchdogActiveWhenEngaged = false;
+
+        this.bulkCachingMode = BulkCachingMode.OFF;
+        this.bulkCachingHistory = new HashMap<>();
+        this.bulkCachingLock = new Object();
 
         startExecutor();
 
@@ -392,10 +410,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         for (;;)
             {
             byte result = (byte)this.nextMessageNumber.getAndIncrement();
+            int intResult = TypeConversion.unsignedByteToInt(result); // Convert to integer in 0-255 range (same format returned by LynxMessage.getMessageNumber)
 
             // message numbers may never be zero, and we don't want to reuse a number
-            // that's currently already in use
-            if (result != 0 && !this.unfinishedCommands.containsKey((int)result))
+            // that's currently already in use.
+            // It's important that we use a consistent format for the keys in unfinishedCommmands.
+            // Don't directly cast result to int.
+            if (result != 0 && !this.unfinishedCommands.containsKey(intResult))
                 {
                 return result;
                 }
@@ -431,6 +452,25 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             }
         }
 
+    public void noteDatagramReceived()
+        {
+        if (this.isNotResponding)
+            {
+            this.isNotResponding = false;
+            RobotLog.vv(TAG, "REV Hub #%d has reconnected", moduleAddress);
+            }
+        }
+
+    public void noteNotResponding()
+        {
+        this.isNotResponding = true;
+        }
+
+    public boolean isNotResponding()
+        {
+        return this.isNotResponding;
+        }
+
     protected void stopAttentionRequired()
         {
         synchronized (futureLock)
@@ -449,9 +489,10 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         LynxGetModuleStatusCommand command = new LynxGetModuleStatusCommand(LynxModule.this, clearStatus);
         try {
             LynxGetModuleStatusResponse response = command.sendReceive();
-            if (response.testAnyBits(~LynxGetModuleStatusResponse.bitFailSafe))
+            // If any bit other than bitFailSafe or bitBatteryLow is present, log the current status.
+            // Fail safe is explicitly entered normally, and the battery low condition is logged less aggressively by LynxModuleWarningManager.
+            if (response.testAnyBits(~(LynxGetModuleStatusResponse.bitFailSafe | LynxGetModuleStatusResponse.bitBatteryLow)))
                 {
-                // We *explicitly* enter fail safe so often (in the default opmode) that this log is too much
                 RobotLog.vv(TAG, "received status: %s", response.toString());
                 }
             if (response.isKeepAliveTimeout())
@@ -459,6 +500,15 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
                 // The keep alive timeout made the module forget what we were using. Now that
                 // we're back, re-establish what the user expects to be blinking.
                 resendCurrentPattern();
+                }
+            if (response.isDeviceReset())
+                {
+                LynxModuleWarningManager.getInstance().reportModuleReset(this);
+                resendCurrentPattern();
+                }
+            if (response.isBatteryLow())
+                {
+                LynxModuleWarningManager.getInstance().reportModuleLowBattery(this);
                 }
             }
         catch (LynxNackException|RuntimeException|InterruptedException e)
@@ -530,6 +580,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     @Override
     public void resetDeviceConfigurationForOpMode()
         {
+        setBulkCachingMode(BulkCachingMode.OFF);
         }
 
     // Separate here for deadlock paranoia. Used only where we know we need it. Could
@@ -1254,6 +1305,193 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         }
 
     //----------------------------------------------------------------------------------------------
+    // Bulk read caching
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Container for the values retrieved with a bulk read.
+     *
+     * @see LynxGetBulkInputDataResponse
+     */
+    public static class BulkData
+        {
+        private LynxGetBulkInputDataResponse resp;
+
+        private BulkData(LynxGetBulkInputDataResponse resp)
+            {
+            this.resp = resp;
+            }
+
+        public boolean getDigitalChannelState(int digitalInputZ)
+            {
+            return resp.getDigitalInput(digitalInputZ);
+            }
+
+        public int getMotorCurrentPosition(int motorZ)
+            {
+            return resp.getEncoder(motorZ);
+            }
+
+        /** Returns (signed) motor velocity in encoder counts per second */
+        public int getMotorVelocity(int motorZ)
+            {
+            return resp.getVelocity(motorZ);
+            }
+
+        public boolean isMotorBusy(int motorZ)
+            {
+            return !resp.isAtTarget(motorZ);
+            }
+
+        public boolean isMotorOverCurrent(int motorZ)
+            {
+            return resp.isOverCurrent(motorZ);
+            }
+
+        /** Returns the analog input in V */
+        public double getAnalogInputVoltage(int inputZ)
+            {
+            return getAnalogInputVoltage(inputZ, VoltageUnit.VOLTS);
+            }
+
+        public double getAnalogInputVoltage(int inputZ, VoltageUnit unit)
+            {
+            return unit.convert(resp.getAnalogInput(inputZ), VoltageUnit.MILLIVOLTS);
+            }
+        }
+
+    /**
+     * Returns bulk data for this module. Note this is not affected by the bulk caching mode.
+     * @return bulk data
+     *
+     * @see #getBulkCachingMode()
+     */
+    public BulkData getBulkData()
+        {
+        clearBulkCache();
+
+        LynxGetBulkInputDataCommand command = new LynxGetBulkInputDataCommand(this);
+        try
+            {
+            LynxGetBulkInputDataResponse response = command.sendReceive();
+            synchronized (bulkCachingLock)
+                {
+                lastBulkData = new BulkData(response);
+                return lastBulkData;
+                }
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+
+        return LynxUsbUtil.makePlaceholderValue(new BulkData(new LynxGetBulkInputDataResponse(this)));
+        }
+
+    /**
+     * Bulk caching mode that controls the behavior of certain read commands.
+     *
+     * @see BulkData
+     */
+    public enum BulkCachingMode
+        {
+        /**
+         * Never replace commands with cached bulk read results.
+         */
+        OFF,
+        /**
+         * Replace eligible commands with the results of a cached bulk read. The cache must be
+         * manually cleared with {@link #clearBulkCache()} before another bulk read is issued. This
+         * should only be used by advanced users. A common pattern is placing a single
+         * {@link #clearBulkCache()} call at the start of every hardware loop.
+         */
+        MANUAL,
+        /**
+         * Same as {@link #MANUAL} except the cache is also cleared automatically when the same
+         * command is issued twice. This mode is intended for beginning users that want to benefit
+         * from bulk reads without explicit cache-handling code.
+         */
+        AUTO
+        }
+
+    /**
+     * Returns the current bulk caching mode.
+     * @return current bulk caching mode
+     */
+    public BulkCachingMode getBulkCachingMode()
+        {
+        return bulkCachingMode;
+        }
+
+    /**
+     * Sets the bulk caching mode and clears the cache if necessary.
+     * @param mode new bulk caching mode
+     */
+    public void setBulkCachingMode(BulkCachingMode mode)
+        {
+        if (bulkCachingMode == BulkCachingMode.OFF && mode != BulkCachingMode.OFF)
+            {
+            clearBulkCache();
+            }
+        bulkCachingMode = mode;
+        }
+
+    /**
+     * Clears the bulk read cache.
+     */
+    public void clearBulkCache()
+        {
+        synchronized (bulkCachingLock)
+            {
+            for (List<LynxDekaInterfaceCommand<?>> commands : bulkCachingHistory.values())
+                {
+                commands.clear();
+                }
+            lastBulkData = null;
+            }
+        }
+
+    BulkData recordBulkCachingCommandIntent(LynxDekaInterfaceCommand<?> command)
+        {
+        return recordBulkCachingCommandIntent(command, "");
+        }
+
+    BulkData recordBulkCachingCommandIntent(LynxDekaInterfaceCommand<?> command, String tag)
+        {
+        synchronized (bulkCachingLock)
+            {
+            List<LynxDekaInterfaceCommand<?>> commands = bulkCachingHistory.get(tag);
+            if (commands == null)
+                {
+                commands = new ArrayList<>();
+                bulkCachingHistory.put(tag, commands);
+                }
+            if (bulkCachingMode == BulkCachingMode.AUTO)
+                {
+                for (LynxDekaInterfaceCommand<?> otherCommand : commands)
+                    {
+                    if (otherCommand.getDestModuleAddress() == command.getDestModuleAddress() &&
+                            otherCommand.getCommandNumber() == command.getCommandNumber() &&
+                            Arrays.equals(otherCommand.toPayloadByteArray(), command.toPayloadByteArray()))
+                        {
+                        clearBulkCache();
+                        break;
+                        }
+                    }
+                }
+
+            if (lastBulkData == null)
+                {
+                getBulkData();
+                }
+
+            commands.add(command);
+            }
+
+        return lastBulkData;
+        }
+
+    //----------------------------------------------------------------------------------------------
     // Misc other commands
     //----------------------------------------------------------------------------------------------
 
@@ -1276,6 +1514,126 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         LynxPhoneChargeQueryCommand command = new LynxPhoneChargeQueryCommand(this);
         LynxPhoneChargeQueryResponse response = command.sendReceive();
         return response.isChargeEnabled();
+        }
+
+    /**
+     * Returns the current consumption of the whole module.
+     * @param unit current units
+     * @return module current consumption
+     */
+    public double getCurrent(CurrentUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.BATTERY_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), CurrentUnit.MILLIAMPS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    /**
+     * Returns the current consumption of the GPIO bus.
+     * @param unit current units
+     * @return GPIO bus current consumption
+     */
+    public double getGpioBusCurrent(CurrentUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.GPIO_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), CurrentUnit.MILLIAMPS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    /**
+     * Returns the current consumption of the I2C bus.
+     * @param unit current units
+     * @return I2C bus current consumption
+     */
+    public double getI2cBusCurrent(CurrentUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.I2C_BUS_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), CurrentUnit.MILLIAMPS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    /**
+     * Returns the input (battery) voltage.
+     * @param unit voltage units
+     * @return input voltage
+     */
+    public double getInputVoltage(VoltageUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.BATTERY_MONITOR, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), VoltageUnit.MILLIVOLTS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    /**
+     * Returns the auxiliary (5V) voltage.
+     * @param unit voltage units
+     * @return auxiliary voltage
+     */
+    public double getAuxiliaryVoltage(VoltageUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.FIVE_VOLT_MONITOR, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.convert(response.getValue(), VoltageUnit.MILLIVOLTS);
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
+        }
+
+    /**
+     * Returns the module temperature.
+     * @param unit temperature units
+     * @return module temperature
+     */
+    public double getTemperature(TempUnit unit)
+        {
+        LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.CONTROLLER_TEMPERATURE, LynxGetADCCommand.Mode.ENGINEERING);
+        try
+            {
+            LynxGetADCResponse response = command.sendReceive();
+            return unit.fromCelsius(response.getValue() / 10.0); // Temperature units are provided as deci-Celsius.
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue(0.0);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -1414,6 +1772,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     public void onIncomingDatagramReceived(LynxDatagram datagram)
     // We've received a datagram from our module.
         {
+        noteDatagramReceived();
         // Reify the incoming command. First, what kind of command is that guy?
         try {
             MessageClassAndCtor pair = this.commandClasses.get(datagram.getCommandNumber());
@@ -1502,7 +1861,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             for (LynxRespondable respondable : unfinishedCommands.values())
                 {
                 RobotLog.vv(RobotLog.TAG, "force-nacking unfinished command=%s mod=%d msg#=%d", respondable.getClass().getSimpleName(), respondable.getModuleAddress(), respondable.getMessageNumber());
-                LynxNack nack = new LynxNack(this, respondable.isResponseExpected() ? LynxNack.ReasonCode.ABANDONED_WAITING_FOR_RESPONSE : LynxNack.ReasonCode.ABANDONED_WAITING_FOR_ACK);
+                LynxNack nack = new LynxNack(this, respondable.isResponseExpected() ? LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_RESPONSE : LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_ACK);
                 respondable.onNackReceived(nack);
                 finishedWithMessage(respondable);
                 }

@@ -22,6 +22,13 @@ public interface PasswordManager {
     boolean resetPassword();
 
     /**
+     * isDefault
+     *
+     * Answers whether or not the password is the factory default.
+     */
+    boolean isDefault();
+
+    /**
      * getPassword
      *
      * Return the current password of the device

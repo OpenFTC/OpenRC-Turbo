@@ -621,3 +621,45 @@ Blockly.FtcJava['navigation_typedEnum_axis'] = function(block) {
   Blockly.FtcJava.generateImport_('Axis');
   return [code, Blockly.FtcJava.ORDER_MEMBER];
 };
+
+// CurrentUnit
+Blockly.Blocks['navigation_typedEnum_currentUnit'] = {
+  init: function() {
+    var CURRENT_UNIT_CHOICES = [
+        ['AMPS', 'AMPS'],
+        ['MILLIAMPS', 'MILLIAMPS'],
+    ];
+    this.setOutput(true, 'CurrentUnit');
+    this.appendDummyInput()
+        .appendField(createNonEditableField('CurrentUnit'))
+        .appendField('.')
+        .appendField(new Blockly.FieldDropdown(CURRENT_UNIT_CHOICES), 'CURRENT_UNIT');
+    this.setColour(getPropertyColor);
+    // Assign 'this' to a variable for use in the tooltip closure below.
+    var thisBlock = this;
+    var TOOLTIPS = [
+        ['AMPS', 'The CurrentUnit value AMPS.'],
+        ['MILLIAMPS', 'The CurrentUnit value MILLIAMPS.'],
+    ];
+    this.setTooltip(function() {
+      var key = thisBlock.getFieldValue('CURRENT_UNIT');
+      for (var i = 0; i < TOOLTIPS.length; i++) {
+        if (TOOLTIPS[i][0] == key) {
+          return TOOLTIPS[i][1];
+        }
+      }
+      return '';
+    });
+  }
+};
+
+Blockly.JavaScript['navigation_typedEnum_currentUnit'] = function(block) {
+  var code = '"' + block.getFieldValue('CURRENT_UNIT') + '"';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.FtcJava['navigation_typedEnum_currentUnit'] = function(block) {
+  var code = 'CurrentUnit.' + block.getFieldValue('CURRENT_UNIT');
+  Blockly.FtcJava.generateImport_('CurrentUnit');
+  return [code, Blockly.FtcJava.ORDER_MEMBER];
+};

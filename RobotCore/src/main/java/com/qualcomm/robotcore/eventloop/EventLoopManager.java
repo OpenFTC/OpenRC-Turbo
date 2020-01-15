@@ -658,21 +658,17 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
     currentHeartbeat.setRobotState(state);
 
     /**
-     * We've just received an indication of our partner's time. If our own time is insane, and theirs
-     * is sane, and we haven't bothered trying before, then try to make our own time sane using their
-     * sane value.
+     * We've just received an indication of our partner's time. On the Control Hub, our partner's time
+     * is the source of truth. If their time is sane, attempt to set our system time to match theirs.
      */
     if (!attemptedSetTime) {
-      boolean ourSanity = appUtil.isSaneWalkClockTime(appUtil.getWallClockTime());
-      if (!ourSanity) {
-        long theirMillis = currentHeartbeat.t0;
-        boolean theirSanity = appUtil.isSaneWalkClockTime(theirMillis);
-        // RobotLog.vv(TAG, "our sanity: %s their sanity: %s", ourSanity, theirSanity);
-        if (theirSanity && !ourSanity) {
-          attemptedSetTime = true;
-          appUtil.setWallClockTime(theirMillis);
-          appUtil.setTimeZone(currentHeartbeat.getTimeZoneId());
-        }
+      long theirMillis = currentHeartbeat.t0;
+      boolean theirSanity = appUtil.isSaneWalkClockTime(theirMillis);
+      if (theirSanity) {
+        attemptedSetTime = true;
+        RobotLog.vv(TAG, "Setting authoritative wall clock based on connected DS.");
+        appUtil.setWallClockTime(theirMillis);
+        appUtil.setTimeZone(currentHeartbeat.getTimeZoneId());
       }
     }
 

@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /**
  * A class that provides JavaScript access to a {@link DcMotor}.
@@ -438,4 +439,65 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     }
     return 0;
   }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {DcMotorEx.class}, methodName = "getCurrent")
+  public double getCurrent(String currentUnitString) {
+    startBlockExecution(BlockType.FUNCTION, ".getCurrent");
+    CurrentUnit currentUnit = checkArg(currentUnitString, CurrentUnit.class, "");
+    if (currentUnit != null) {
+      if (dcMotor instanceof DcMotorEx) {
+        return ((DcMotorEx) dcMotor).getCurrent(currentUnit);
+      } else {
+        reportWarning("This DcMotor is not a DcMotorEx.");
+      }
+    }
+    return 0.0;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {DcMotorEx.class}, methodName = "getCurrentAlert")
+  public double getCurrentAlert(String currentUnitString) {
+    startBlockExecution(BlockType.FUNCTION, ".getCurrentAlert");
+    CurrentUnit currentUnit = checkArg(currentUnitString, CurrentUnit.class, "");
+    if (currentUnit != null) {
+      if (dcMotor instanceof DcMotorEx) {
+        return ((DcMotorEx) dcMotor).getCurrentAlert(currentUnit);
+      } else {
+        reportWarning("This DcMotor is not a DcMotorEx.");
+      }
+    }
+    return 0.0;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {DcMotorEx.class}, methodName = "setCurrentAlert")
+  public void setCurrentAlert(double current, String currentUnitString) {
+    startBlockExecution(BlockType.FUNCTION, ".setCurrentAlert");
+    CurrentUnit currentUnit = checkArg(currentUnitString, CurrentUnit.class, "");
+    if (currentUnit != null) {
+      if (dcMotor instanceof DcMotorEx) {
+        ((DcMotorEx) dcMotor).setCurrentAlert(current, currentUnit);
+      } else {
+        reportWarning("This DcMotor is not a DcMotorEx.");
+      }
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {DcMotorEx.class}, methodName = "isOverCurrent")
+  public boolean isOverCurrent() {
+    startBlockExecution(BlockType.FUNCTION, ".isOverCurrent");
+    if (dcMotor instanceof DcMotorEx) {
+      return ((DcMotorEx) dcMotor).isOverCurrent();
+    } else {
+      reportWarning("This DcMotor is not a DcMotorEx.");
+    }
+    return false;
+  }
+
 }

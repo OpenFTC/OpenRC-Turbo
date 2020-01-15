@@ -45,8 +45,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 @DeviceProperties(xmlTag="NeveRest40Gearmotor", name="NeveRest 40 Gearmotor", builtIn = true)
 @DistributorInfo(distributor="AndyMark", model="am-2964a", url="http://www.andymark.com/NeveRest-40-Gearmotor-p/am-2964a.htm")
 @ModernRoboticsMotorControllerParams(P=160, I=32, D=112, ratio=25)
-@ExpansionHubPIDFVelocityParams(P=2.0, I=0.5, F=11.0)
-@ExpansionHubPIDFPositionParams(P=5.0)
 public interface NeveRest40Gearmotor
     {
     }

@@ -455,9 +455,9 @@ public class ProjectsUtil {
             "IDENTIFIER2",
           };
           for (String identifierFieldName : identifierFieldNames) {
-            String oldTag = "<field name=\"" + identifierFieldName + "\">" + oldIdentifier + "</field>";
-            String newTag = "<field name=\"" + identifierFieldName + "\">" + newIdentifier + "</field>";
-            blkContent = blkContent.replace(oldTag, newTag);
+            String oldElement = "<field name=\"" + identifierFieldName + "\">" + oldIdentifier + "</field>";
+            String newElement = "<field name=\"" + identifierFieldName + "\">" + newIdentifier + "</field>";
+            blkContent = blkContent.replace(oldElement, newElement);
           }
         }
       }
@@ -516,7 +516,8 @@ public class ProjectsUtil {
     if (hardwareItemMap.contains(HardwareType.DC_MOTOR)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.DC_MOTOR);
       if (!items.isEmpty()) {
-        String anyDcMotor = items.get(0).identifier;
+        String firstDcMotor = items.get(0).identifier;
+        String secondDcMotor = (items.size() > 1) ? items.get(1).identifier : firstDcMotor;
         String leftDcMotor = null;
         String rightDcMotor = null;
         for (HardwareItem item : items) {
@@ -529,74 +530,68 @@ public class ProjectsUtil {
           }
         }
         if (leftDcMotor == null) {
-          leftDcMotor = anyDcMotor;
+          leftDcMotor = firstDcMotor;
         }
         if (rightDcMotor == null) {
-          rightDcMotor = anyDcMotor;
+          rightDcMotor = secondDcMotor;
         }
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "motorTest", anyDcMotor, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "left_drive", leftDcMotor, "IDENTIFIER", "IDENTIFIER1");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "right_drive", rightDcMotor, "IDENTIFIER", "IDENTIFIER2");
+        blkContent = replaceIdentifierInBlocks("motorTestAsDcMotor",
+            firstDcMotor, blkContent, false, items, "IDENTIFIER");
+        blkContent = replaceIdentifierInBlocks("left_driveAsDcMotor",
+            leftDcMotor, blkContent, false, items, "IDENTIFIER", "IDENTIFIER1");
+        blkContent = replaceIdentifierInBlocks("right_driveAsDcMotor",
+            rightDcMotor, blkContent, false, items, "IDENTIFIER", "IDENTIFIER2");
       }
     }
     if (hardwareItemMap.contains(HardwareType.DIGITAL_CHANNEL)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.DIGITAL_CHANNEL);
       if (!items.isEmpty()) {
-        String anyDigitalChannel = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "digitalTouchAsDigitalChannel", anyDigitalChannel, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "digitalTouch", anyDigitalChannel, "IDENTIFIER");
+        String firstDigitalChannel = items.get(0).identifier;
+        blkContent = replaceIdentifierInBlocks("digitalTouchAsDigitalChannel",
+            firstDigitalChannel, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.BNO055IMU)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.BNO055IMU);
       if (!items.isEmpty()) {
-        String anyBno055imu = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "imu", anyBno055imu, "IDENTIFIER");
+        String firstBno055imu = items.get(0).identifier;
+        blkContent = replaceIdentifierInBlocks("imuAsBNO055IMU",
+            firstBno055imu, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.SERVO)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.SERVO);
       if (!items.isEmpty()) {
-        String anyServo = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "left_hand", anyServo, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "servoTest", anyServo, "IDENTIFIER");
+        String firstServo = items.get(0).identifier;
+        blkContent = replaceIdentifierInBlocks("left_handAsServo",
+            firstServo, blkContent, false, items, "IDENTIFIER");
+        blkContent = replaceIdentifierInBlocks("servoTestAsServo",
+            firstServo, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR);
       if (!items.isEmpty()) {
-        String anyLynxI2cColorRangeSensor = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "sensorColorRange", anyLynxI2cColorRangeSensor, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "sensorColorRangeasLynxI2cColorRangeSensor", anyLynxI2cColorRangeSensor, "IDENTIFIER");
+        String firstLynxI2cColorRangeSensor = items.get(0).identifier;
+        blkContent = replaceIdentifierInBlocks("sensorColorRangeAsREVColorRangeSensor",
+            firstLynxI2cColorRangeSensor, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.REV_BLINKIN_LED_DRIVER)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.REV_BLINKIN_LED_DRIVER);
       if (!items.isEmpty()) {
-        String anyRevBlinkinLedDriver = items.get(0).identifier;
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "servoAsRevBlinkinLedDriver", anyRevBlinkinLedDriver, "IDENTIFIER");
-        blkContent = replaceIdentifierInBlocks(blkContent, false, items,
-            "blinkinAsRevBlinkinLedDriver", anyRevBlinkinLedDriver, "IDENTIFIER");
+        String firstRevBlinkinLedDriver = items.get(0).identifier;
+        blkContent = replaceIdentifierInBlocks("blinkinAsRevBlinkinLedDriver",
+            firstRevBlinkinLedDriver, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.WEBCAM_NAME)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME);
       if (!items.isEmpty()) {
         // The webcam block uses the deviceName, rather than the identifier.
-        String anyWebcamName = items.get(0).deviceName;
-        blkContent = replaceIdentifierInBlocks(blkContent, true, items,
-            "Webcam 1", anyWebcamName, "WEBCAM_NAME");
+        String firstWebcamName = items.get(0).deviceName;
+        blkContent = replaceIdentifierInBlocks("Webcam 1",
+            firstWebcamName, blkContent, true, items, "WEBCAM_NAME");
       }
     }
     return blkContent;
@@ -605,8 +600,8 @@ public class ProjectsUtil {
   /**
    * Replaces an identifier in blocks.
    */
-  private static String replaceIdentifierInBlocks(String blkContent, boolean useDeviceName,
-      List<HardwareItem> items, String oldIdentifier, String newIdentifier, String... fieldNames) {
+  private static String replaceIdentifierInBlocks(String oldIdentifier, String newIdentifier,
+      String blkContent, boolean useDeviceName, List<HardwareItem> items, String... fieldNames) {
     for (HardwareItem item : items) {
       String identifier = useDeviceName ? item.deviceName : item.identifier;
       if (identifier.equals(oldIdentifier)) {
@@ -614,9 +609,9 @@ public class ProjectsUtil {
       }
     }
     for (String fieldName : fieldNames) {
-      String oldTag = "<field name=\"" + fieldName + "\">" + oldIdentifier + "</field>";
-      String newTag = "<field name=\"" + fieldName + "\">" + newIdentifier + "</field>";
-      blkContent = blkContent.replace(oldTag, newTag);
+      String oldElement = "<field name=\"" + fieldName + "\">" + oldIdentifier + "</field>";
+      String newElement = "<field name=\"" + fieldName + "\">" + newIdentifier + "</field>";
+      blkContent = blkContent.replace(oldElement, newElement);
     }
     return blkContent;
   }

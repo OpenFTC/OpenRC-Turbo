@@ -139,7 +139,7 @@ Blockly.Blocks['colorSensor_getProperty'] = {
   init: function() {
     var PROPERTY_CHOICES = [
         ['Alpha', 'Alpha'],
-        ['Argb', 'Arbg'],
+        ['Argb', 'Argb'],
         ['Blue', 'Blue'],
         ['Green', 'Green'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
@@ -212,7 +212,7 @@ Blockly.Blocks['colorSensor_getProperty_Number'] = {
   init: function() {
     var PROPERTY_CHOICES = [
         ['Alpha', 'Alpha'],
-        ['Argb', 'Arbg'],
+        ['Argb', 'Argb'],
         ['Blue', 'Blue'],
         ['Green', 'Green'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],

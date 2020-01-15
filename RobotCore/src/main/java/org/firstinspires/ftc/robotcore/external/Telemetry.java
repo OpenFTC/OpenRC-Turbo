@@ -286,6 +286,30 @@ public interface Telemetry
     boolean removeAction(Object token);
 
     //----------------------------------------------------------------------------------------------
+    // Text to Speech
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Directs the Driver Station device to speak the given text using TextToSpeech functionality,
+     * with the same language and country codes that were previously used, or the default language
+     * and country.
+     *
+     * @param text the text to be spoken
+     */
+    void speak(String text);
+
+    /**
+     * Directs the Driver Station device to speak the given text using TextToSpeech functionality,
+     * with the given language and country codes.
+     *
+     * @param text          the text to be spoken
+     * @param languageCode  an ISO 639 alpha-2 or alpha-3 language code, or a language subtag up to
+     *                      8 characters in length
+     * @param countryCode   an ISO 3166 alpha-2 country code, or a UN M.49 numeric-3 area code
+     */
+    void speak(String text, String languageCode, String countryCode);
+
+    //----------------------------------------------------------------------------------------------
     // Transmission
     //----------------------------------------------------------------------------------------------
 

@@ -175,6 +175,12 @@ public class ControlHubPasswordManager implements PasswordManager {
     }
 
     @Override
+    public boolean isDefault()
+    {
+        return getPassword().equals(FACTORY_DEFAULT_PASSWORD);
+    }
+
+    @Override
     public String getPassword()
     {
         initializePasswordIfNecessary();

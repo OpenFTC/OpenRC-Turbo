@@ -89,6 +89,7 @@ public abstract class InspectionActivity extends ThemedActivity
     TextView trafficCountLabel, bytesPerSecondLabel;
     TextView txtManufacturer, txtModel, txtAppVersion;
     TextView txtIsRCInstalled, txtIsDSInstalled, txtIsCCInstalled;
+    TextView txtIsDefaultPassword;
     Pattern teamNoRegex;
     Future refreshFuture = null;
     int textOk = AppUtil.getInstance().getColor(R.color.text_okay);
@@ -131,10 +132,18 @@ public abstract class InspectionActivity extends ThemedActivity
         wifiConnected = (TextView) findViewById(R.id.wifiConnected);
         appsStatus = (TextView) findViewById(R.id.appsStatus);
         txtAppVersion = (TextView) findViewById(R.id.textDeviceName);
+        txtIsDefaultPassword = (TextView) findViewById(R.id.isDefaultPassword);
+
 
         txtAppVersion.setText(inspectingRobotController()
             ? getString(R.string.titleInspectionReportRC)
             : getString(R.string.titleInspectionReportDS));
+
+        if (!inspectingRobotController())
+            {
+            txtIsDefaultPassword.setVisibility(View.GONE);
+            findViewById(R.id.textViewPassword).setVisibility(View.GONE);
+            }
 
         txtManufacturer = (TextView) findViewById(R.id.txtManufacturer);
         txtModel = (TextView) findViewById(R.id.txtModel);
@@ -387,6 +396,7 @@ public abstract class InspectionActivity extends ThemedActivity
         refresh(widiName, state.deviceName, isValidDeviceName(state));
         batteryLevel.setText(Math.round(state.batteryFraction * 100f) + "%");
         batteryLevel.setTextColor(state.batteryFraction > 0.6 ? textOk : textWarning);
+        refresh(txtIsDefaultPassword, !state.isDefaultPassword);
 
         // check the installed apps.
         boolean appsOkay = true;
