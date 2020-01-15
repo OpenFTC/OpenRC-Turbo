@@ -205,13 +205,11 @@ Blockly.FtcJava.init = function(workspace) {
   if (variables.length) {
     for (var iVariable = 0; iVariable < variables.length; iVariable++) {
       var variable = variables[iVariable];
-      var variableName = Blockly.FtcJava.variableDB_.getName(variable.name, Blockly.Variables.NAME_TYPE);
       var functionNames = [];
       var variableGetterBlocks = [];
       var variableSetterBlocks = [];
       for (var iBlock = 0, block; block = allBlocks[iBlock]; iBlock++) {
-        var variableNames = block.getVars();
-        if (variableNames.indexOf(variable.name) == -1) {
+        if (!Blockly.FtcJava.blockUsesVariable(block, variable)) {
           continue;
         }
         // Look at the function that contains this block.
@@ -236,7 +234,7 @@ Blockly.FtcJava.init = function(workspace) {
             b = b.getParent();
           } while (b);
           if (isForEachLoopVariable) {
-            // Skip procedure arguments.
+            // Skip for each loop variables.
             continue;
           }
 
@@ -255,6 +253,7 @@ Blockly.FtcJava.init = function(workspace) {
         // This variable is never used, or it's only used as a procedure argument.
         continue;
       }
+      var variableName = Blockly.FtcJava.variableDB_.getName(variable.name, Blockly.Variables.NAME_TYPE);
       Blockly.FtcJava.variableScopes_[variableName] = (functionNames.length == 1)
           ? functionNames[0] : Blockly.FtcJava.CLASS_SCOPE;
       Blockly.FtcJava.variableGetterBlocks_[variableName] = variableGetterBlocks;
@@ -332,6 +331,21 @@ Blockly.FtcJava.init = function(workspace) {
 
   Blockly.FtcJava.generateImport_('LinearOpMode');
 };
+
+Blockly.FtcJava.blockUsesVariable = function(block, variable) {
+  for (var i = 0, input; input = block.inputList[i]; i++) {
+    for (var j = 0, field; field = input.fieldRow[j]; j++) {
+      if (field.referencesVariables()) {
+        var model = block.workspace.getVariableById(field.getValue());
+        if (model == variable) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
 
 Blockly.FtcJava.addVariableDefinition_ = function(variableName, variableType, scope) {
   var variableDefinition;
@@ -1145,6 +1159,7 @@ Blockly.FtcJava.generateImport_ = function(type) {
     case 'AxesOrder':
     case 'AxesReference':
     case 'Axis':
+    case 'CurrentUnit':
     case 'DistanceUnit':
     case 'MagneticFlux':
     case 'Orientation':

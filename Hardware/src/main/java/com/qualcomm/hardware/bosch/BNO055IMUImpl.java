@@ -235,7 +235,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
         SystemStatus expectedStatus = parameters.mode.isFusionMode() ? SystemStatus.RUNNING_FUSION : SystemStatus.RUNNING_NO_FUSION;
 
-        for (int attempt=0; !Thread.currentThread().isInterrupted() && attempt < 5; attempt++)
+        for (int attempt=0; !isStopRequested() && attempt < 5; attempt++)
             {
             if (internalInitializeOnce(expectedStatus))
                 {
@@ -295,7 +295,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         try {
             elapsed.reset();
             write8(Register.SYS_TRIGGER, 0x20);
-            for (;;)
+            while (!isStopRequested())
                 {
                 chipId = read8(Register.CHIP_ID);
                 if (chipId == bCHIP_ID_VALUE)
@@ -368,7 +368,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         final int successfulResult = 0x07;
         final int successfulResultMask = 0x07;
         boolean selfTestSuccessful = false;
-        while (!selfTestSuccessful && elapsed.milliseconds() < msAwaitSelfTest)
+        while (!selfTestSuccessful && elapsed.milliseconds() < msAwaitSelfTest && !isStopRequested())
             {
             selfTestSuccessful = (read8(Register.SELFTEST_RESULT)&successfulResultMask) == successfulResult;    // SELFTEST_RESULT=0x36
             }

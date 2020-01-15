@@ -59,6 +59,8 @@ var WEBSOCKET_CORE = function () {
     const SYSTEM_NAMESPACE = 'system';
     const SUBSCRIBE_TO_NAMESPACE_MESSAGE_TYPE = 'subscribeToNamespace';
     const UNSUBSCRIBE_FROM_NAMESPACE_MESSAGE_TYPE = 'unsubscribeFromNamespace';
+    const REQUEST_CURRENT_TIME_MESSAGE_TYPE = "requestCurrentTime";
+    const NOTIFY_CURRENT_TIME_MESSAGE_TYPE = "notifyCurrentTime";
 
     function WebSocketMessage(namespace, type, payload) {
         this.namespace = namespace;
@@ -371,7 +373,9 @@ var WEBSOCKET_CORE = function () {
                 console.log(message);
             }
 
-            if (globalState.namespaceMap.has(message.namespace)) {
+            if (message.namespace === SYSTEM_NAMESPACE) {
+                handleSystemMessage(message);
+            } else if (globalState.namespaceMap.has(message.namespace)) {
                 let namespaceObject = globalState.namespaceMap.get(message.namespace);
                 namespaceObject.handlers.forEach( function (handler) {
                     handler(message);
@@ -390,6 +394,17 @@ var WEBSOCKET_CORE = function () {
         globalState.webSocket.onerror = function (errorEvent) {
             console.error("Websocket error:", errorEvent);
         };
+    }
+
+    function handleSystemMessage(message) {
+        if (message.type === REQUEST_CURRENT_TIME_MESSAGE_TYPE) {
+            var payload = {
+                timeMs: Date.now(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+            var timeNotificationMessage = new WebSocketMessage(SYSTEM_NAMESPACE, NOTIFY_CURRENT_TIME_MESSAGE_TYPE, JSON.stringify(payload));
+            internalSendMessage(timeNotificationMessage);
+        }
     }
 
     console.log("Log all incoming and outgoing WebSocket messages by running WEBSOCKET_CORE.enableLogging('messages') from the console");

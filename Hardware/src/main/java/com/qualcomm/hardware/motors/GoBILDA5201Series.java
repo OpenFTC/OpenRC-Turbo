@@ -43,8 +43,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 @MotorType(ticksPerRev=1500, gearing=54, maxRPM=104, orientation=Rotation.CCW)
 @DeviceProperties(xmlTag="goBILDA5201SeriesMotor", name="GoBILDA 5201 series", builtIn = true)
 @DistributorInfo(distributor="goBILDA_distributor", model="goBILDA-5201", url="https://www.gobilda.com/5201-series-spur-gear-motors/")
-@ExpansionHubPIDFVelocityParams(P=2.0, I=0.5, F=11.0)
-@ExpansionHubPIDFPositionParams(P=5.0)
 public interface GoBILDA5201Series
     {
     }

@@ -37,12 +37,11 @@ import android.support.annotation.Nullable;
 
 import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
-import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadMultipleBytesCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxI2cConfigureChannelCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadSingleByteCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadStatusQueryCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadStatusQueryResponse;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteMultipleBytesCommand;
-import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteReadMultipleBytesCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteSingleByteCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteStatusQueryCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteStatusQueryResponse;
@@ -353,7 +352,7 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
                 }
             catch (LynxNackException e)
                 {
-                switch (e.getNack().getNackReasonCode())
+                switch (e.getNack().getNackReasonCodeAsEnum())
                     {
                     case I2C_MASTER_BUSY:
                     case I2C_OPERATION_IN_PROGRESS:
@@ -394,7 +393,7 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
                     }
                 catch (LynxNackException e)
                     {
-                    switch (e.getNack().getNackReasonCode())
+                    switch (e.getNack().getNackReasonCodeAsEnum())
                         {
                         case I2C_NO_RESULTS_PENDING:
                             return;
@@ -452,7 +451,7 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
                 }
             catch (LynxNackException e)
                 {
-                switch (e.getNack().getNackReasonCode())
+                switch (e.getNack().getNackReasonCodeAsEnum())
                     {
                     case I2C_MASTER_BUSY:               // TODO: REVIEW: is this ever actually returned in this situation?
                     case I2C_OPERATION_IN_PROGRESS:
@@ -480,4 +479,52 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
         return readStatusQueryPlaceholder.log(TimestampedI2cData.makeFakeData(deviceHavingProblems, i2cAddr, ireg, creg));
         }
 
+    //----------------------------------------------------------------------------------------------
+    // Miscellaneous methods
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Lynx I2C bus speed.
+     */
+    public enum BusSpeed
+        {
+        STANDARD_100K
+            {
+            @Override
+            protected LynxI2cConfigureChannelCommand.SpeedCode toSpeedCode()
+                {
+                return LynxI2cConfigureChannelCommand.SpeedCode.STANDARD_100K;
+                }
+            },
+        FAST_400K
+            {
+            @Override
+            protected LynxI2cConfigureChannelCommand.SpeedCode toSpeedCode()
+                {
+                return LynxI2cConfigureChannelCommand.SpeedCode.FAST_400K;
+                }
+            };
+
+        protected LynxI2cConfigureChannelCommand.SpeedCode toSpeedCode()
+            {
+            throw new AbstractMethodError();
+            }
+        }
+
+    /**
+     * Sets the bus speed.
+     * @param speed new bus speed
+     */
+    public void setBusSpeed(BusSpeed speed)
+        {
+        LynxI2cConfigureChannelCommand command = new LynxI2cConfigureChannelCommand(this.getModule(), bus, speed.toSpeedCode());
+        try
+            {
+            command.send();
+            }
+        catch (InterruptedException|RuntimeException|LynxNackException e)
+            {
+            handleException(e);
+            }
+        }
     }

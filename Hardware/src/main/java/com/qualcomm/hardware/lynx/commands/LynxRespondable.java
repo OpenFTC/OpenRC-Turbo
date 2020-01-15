@@ -32,6 +32,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.hardware.lynx.commands;
 
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.lynx.LynxModuleWarningManager;
 import com.qualcomm.hardware.lynx.LynxUnsupportedCommandException;
 import com.qualcomm.hardware.lynx.LynxModuleIntf;
 import com.qualcomm.hardware.lynx.LynxNackException;
@@ -203,11 +205,15 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
     public void onNackReceived(LynxNack nack)
         {
         // Avoid logging 'expected' nacks
-        switch (nack.getNackReasonCode())
+        switch (nack.getNackReasonCodeAsEnum())
             {
             case COMMAND_IMPL_PENDING:
             case I2C_NO_RESULTS_PENDING:
             case I2C_OPERATION_IN_PROGRESS:
+            case ABANDONED_WAITING_FOR_ACK:
+            case ABANDONED_WAITING_FOR_RESPONSE:
+            case BATTERY_TOO_LOW_TO_RUN_MOTOR:
+            case BATTERY_TOO_LOW_TO_RUN_SERVO:
                 break;
             default:
                 RobotLog.v("nack rec'd mod=%d msg#=%d ref#=%d reason=%s:%d", this.getModuleAddress(), this.getMessageNumber(), this.getReferenceNumber(), nack.getNackReasonCode().toString(), nack.getNackReasonCode().getValue());
@@ -298,7 +304,7 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
 
     protected void throwNackForUnsupportedCommand(LynxUnsupportedCommandException e) throws LynxNackException
         {
-        this.nackReceived = new LynxNack(this.getModule(), LynxNack.ReasonCode.PACKET_TYPE_ID_UNKNOWN);
+        this.nackReceived = new LynxNack(this.getModule(), LynxNack.StandardReasonCode.PACKET_TYPE_ID_UNKNOWN);
         throw new LynxNackException(this, "%s: command %s(#0x%04x) not supported by mod#=%d",
                 this.getClass().getSimpleName(),
                 e.getClazz().getSimpleName(),
@@ -332,7 +338,7 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
 
     protected int getMsRetransmissionInterval()
         {
-        return 100;
+        return 100; // From spec (in section about the Message Number).
         }
 
     protected void awaitAndRetransmit(CountDownLatch latch, LynxNack.ReasonCode nackCode, String message) throws InterruptedException
@@ -341,14 +347,35 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         final int msWaitInterval = getMsAwaitInterval();
         final int msRetransmit = getMsRetransmissionInterval();
 
+        if (this.module.isNotResponding())
+            {
+                // This module is not currently responding. Quickly pretend we got a nack, so we don't
+                // hold up other commands from being sent. If a response does come, it will be
+                // discarded, but the module will immediately be marked as responsive again.
+                if (this.module instanceof LynxModule)
+                    {
+                    LynxModuleWarningManager.getInstance().reportModuleUnresponsive((LynxModule) this.module);
+                    }
+                this.onNackReceived(new LynxNack(this.module, nackCode));
+                this.module.finishedWithMessage(this);
+                return;
+            }
+
         for (;;)
             {
             long nsRemaining = nsDeadline - System.nanoTime();
             if (nsRemaining <= 0)
                 {
                 // Timed out. Pretend we got a nack.
-                RobotLog.v("timeout: abandoning waiting %dms for %s: cmd=%s mod=%d msg#=%d", msWaitInterval, message, this.getClass().getSimpleName(), this.getModuleAddress(), this.getMessageNumber());
+                RobotLog.e("timeout: abandoning waiting %dms for %s: cmd=%s mod=%d msg#=%d", msWaitInterval, message, this.getClass().getSimpleName(), this.getModuleAddress(), this.getMessageNumber());
+                RobotLog.e("Marking module #%d as unresponsive until we receive some data back", this.getModuleAddress());
                 this.onNackReceived(new LynxNack(this.module, nackCode));
+                if (this.module instanceof LynxModule)
+                    {
+                    LynxModuleWarningManager.getInstance().reportModuleUnresponsive((LynxModule) this.module);
+                    }
+                this.module.noteNotResponding();
+                this.module.finishedWithMessage(this);
                 return;
                 }
 
@@ -370,11 +397,11 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         {
         if (this.isResponseExpected())
             {
-            awaitAndRetransmit(this.responseOrNackReceived, LynxNack.ReasonCode.ABANDONED_WAITING_FOR_RESPONSE, "response");
+            awaitAndRetransmit(this.responseOrNackReceived, LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_RESPONSE, "response");
             }
         else
             {
-            awaitAndRetransmit(this.ackOrNackReceived, LynxNack.ReasonCode.ABANDONED_WAITING_FOR_ACK, "ack");
+            awaitAndRetransmit(this.ackOrNackReceived, LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_ACK, "ack");
             }
         }
     }

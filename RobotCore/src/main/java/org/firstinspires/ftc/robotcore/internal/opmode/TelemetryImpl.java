@@ -36,17 +36,22 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Predicate;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList.TextToSpeech;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList.CMD_TEXT_TO_SPEECH;
 
 /**
  * {@link TelemetryImpl} is the system-provided implementation of the {@link Telemetry} interface.
@@ -946,5 +951,21 @@ public class TelemetryImpl implements Telemetry, TelemetryInternal
                     }
                 });
             }
+        }
+
+    //----------------------------------------------------------------------------------------------
+    // Text to Speech
+    //----------------------------------------------------------------------------------------------
+
+    @Override public void speak(String text)
+        {
+        speak(text, null, null);
+        }
+
+    @Override public void speak(String text, String languageCode, String countryCode)
+        {
+        TextToSpeech textToSpeech = new TextToSpeech(text, languageCode, countryCode);
+        NetworkConnectionHandler.getInstance()
+            .sendCommand(new Command(CMD_TEXT_TO_SPEECH, textToSpeech.serialize()));
         }
     }

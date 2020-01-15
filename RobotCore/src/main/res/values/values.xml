@@ -305,8 +305,8 @@
     <string name="pairing_kind_title">"Pairing Method"</string>
     <string name="peerStatusConnected">connected</string>
     <string name="peerStatusDisconnected">disconnected</string>
-    <string name="permAccessCoarseLocationExplain">The SDK infrastructure does WiFi scans to help with pairing of
-    phones.  Knowing what access points are available can allow an application to know a coarse approximation of its
+    <string name="permAccessLocationExplain">The SDK infrastructure does WiFi scans to help with pairing of
+    phones.  Knowing what access points are available can allow an application to know an approximation of its
     location.  Even though the SDK does not use location information, Android requires that we ask for this permission.
     It is not possible to run the application without this permission.  You must allow all permissions.</string>
     <string name="permDsReadExternalStorageExplain">The Driver Station must be able to access external storage
@@ -328,6 +328,10 @@
     <string name="permRcWriteExternalStorageExplain">The Robot Controller must be able to access external storage
     for the Blocks and OnBot Java developement environments and robot logging.  It is not possible to run the
     application without this permission.  You must allow all permissions.</string>
+    <string name="permReadPhoneState">The SDK uses this to access the device serial number.  This may be used
+    for diagnostic purposes.  FIRST does not store the serial number off device or use it in any other fashion.
+    Android requires that we ask for this permission.
+    It is not possible to run the application without this permission.  You must allow all permissions.</string>
     <string name="pref_app_category">pref_app_category</string>
     <string name="pref_app_category_rc">pref_app_category_rc</string>
     <string name="pref_app_theme">pref_app_theme</string>
@@ -487,6 +491,7 @@
     <string name="usb_vid_name_microsoft">Microsoft</string>
     <string name="usb_vid_name_qualcomm">Qualcomm</string>
     <string name="warningProblemCommunicatingWithUSBDevice">problem communicating with %s</string>
+    <string name="warningTtsFailedToInitialize">Text-to-speech failed to initialize</string>
     <string name="warningUSBDeviceDetached">%s detached</string>
     <string name="warningUnableToOpen">unable to open %s</string>
     <string name="webcamNotFound">unable to find webcam with serial number %s</string>

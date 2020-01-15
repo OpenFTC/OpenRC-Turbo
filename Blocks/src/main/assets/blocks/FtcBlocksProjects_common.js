@@ -19,6 +19,8 @@ function initializeFtcBlocksProjects() {
   window.addEventListener('resize', resize, false);
   resize();
 
+  setUpWebSocket();
+
   fetchJavaScriptForHardware(function(jsHardware, errorMessage) {
     if (jsHardware) {
       var newScript = document.createElement('script');
@@ -44,6 +46,14 @@ function resize() {
     element = element.offsetParent;
   } while (element);
   projectsTableScroll.style.height = (window.innerHeight - y) + 'px';
+}
+
+
+// TODO(Noah): Replace this placeholder function used to enable time syncing with correct implementation
+function setUpWebSocket() {
+  if (typeof WEBSOCKET_LIB !== 'undefined') {
+    WEBSOCKET_LIB.webSocketManager.subscribeToNamespace("ControlHubUpdater");
+  }
 }
 
 function initializeProjects() {

@@ -136,7 +136,13 @@ public final class Device {
    * @throws AndroidSerialNumberNotFoundException if the serial number could not be determined
    */
   public static String getSerialNumber() throws AndroidSerialNumberNotFoundException {
-    String serialNumber = Build.SERIAL;
+    String serialNumber;
+    if (Build.VERSION.SDK_INT < 28) {
+      serialNumber = Build.SERIAL;
+    } else {
+      serialNumber = Build.getSerial();
+    }
+
     if (!serialNumber.equals(UNKNOWN_SERIAL_NUMBER)) return serialNumber;
     serialNumber = SystemProperties.get(SERIAL_NUMBER_PROPERTY, UNKNOWN_SERIAL_NUMBER);
     if (!serialNumber.equals(UNKNOWN_SERIAL_NUMBER)) return serialNumber;

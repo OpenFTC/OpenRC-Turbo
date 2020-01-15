@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="controllerPortConnectionInfoFormat">%1$s; port %2$d</string>
-    <string name="errorExpansionHubIsMissing">Expansion Hub \"%s\" is missing</string>
+    <string name="errorExpansionHubIsMissing">Expansion Hub \"%s\" was missing at startup. Robot Restart required for hub operation</string>
     <string name="hwDeviceDescriptionAndConnection">\"%1$s [%2$s]\"</string>
     <string name="hwPoorlyNamedDevice">an attached device</string>
-    <string name="lynxBatteryToLowMotor">The expansion hub reported that the battery is too low to run motors.  Please check the battery connection and/or replace with a charged battery.</string>
-    <string name="lynxBatteryToLowServo">The expansion hub reported that the battery is too low to run servos.  Please check the battery connection and/or replace with a charged battery.</string>
+    <string name="lynxModuleBatteryIsCurrentlyLow">reported that the battery is currently too low to run motors and servos.</string>
+    <string name="lynxModuleBatteryWasLow">temporarily reported that the battery was too low to run motors and servos while an Op Mode was running.</string>
+    <string name="lynxModuleCurrentlyNotResponding">not currently responding to commands</string>
+    <string name="lynxModulePowerLost">reported a temporary complete power loss while an Op Mode was running. Unexpected behavior may result.</string>
+    <string name="lynxModulePreviouslyNotResponding">temporarily stopped responding to commands while an Op Mode was running</string>
+    <string name="powerIssueTip">Check your wiring, battery, and power switch</string>
     <string name="progressUpdatingDeviceFirmware">Updating Expansion Hub firmware (%s)</string>
     <string name="quotes">\"%s\"</string>
+    <string name="robotOffTip">Make sure that your robot is turned on</string>
     <string name="unhealthyDevice">problem with %s</string>
 </resources>

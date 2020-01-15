@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /**
  * DcMotorControllerEx is an optional motor controller interface supported by some hardware
@@ -155,4 +156,49 @@ public interface DcMotorControllerEx extends DcMotorController
      * @param tolerance the tolerance of the desired target position, in encoder ticks
      */
     void setMotorTargetPosition(int motor, int position, int tolerance);
+
+    /**
+     * Returns the current consumed by the indicated motor.
+     * @param motor motor whose current consumption is desired
+     * @param unit current units
+     * @return the current consumed by motor
+     *
+     * @see DcMotorEx#getCurrent(CurrentUnit)
+     */
+    double getMotorCurrent(int motor, CurrentUnit unit);
+
+    /**
+     * Returns the current alert for the indicated motor.
+     * @param motor motor whose alert is desired
+     * @param unit current units
+     * @return the current alert of motor
+     *
+     * @see #setMotorCurrentAlert(int, double, CurrentUnit)
+     * @see DcMotorEx#setCurrentAlert(double, CurrentUnit)
+     * @see #isMotorOverCurrent(int)
+     */
+    double getMotorCurrentAlert(int motor, CurrentUnit unit);
+
+    /**
+     * Sets the current alert for the indicated motor
+     * @param motor motor whose alert is to be set
+     * @param current current alert
+     * @param unit current units
+     *
+     * @see #getMotorCurrentAlert(int, CurrentUnit)
+     * @see DcMotorEx#getCurrentAlert(CurrentUnit)
+     * @see #isMotorOverCurrent(int)
+     */
+    void setMotorCurrentAlert(int motor, double current, CurrentUnit unit);
+
+    /**
+     * Returns whether the indicated motor current consumption has exceeded the alert threshold.
+     * @param motor desired motor
+     * @return whether the indicated motor current consumption has exceeded the alert threshold
+     *
+     * @see DcMotorEx#isOverCurrent()
+     * @see #getMotorCurrentAlert(int, CurrentUnit)
+     * @see #setMotorCurrentAlert(int, double, CurrentUnit)
+     */
+    boolean isMotorOverCurrent(int motor);
     }

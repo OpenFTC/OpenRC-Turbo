@@ -50,6 +50,8 @@ import com.qualcomm.robotcore.wifi.NetworkType;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.PasswordManager;
+import org.firstinspires.ftc.robotcore.internal.network.PasswordManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectDeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -102,6 +104,7 @@ public class InspectionState
     public long    rxDataCount;
     public long    txDataCount;
     public long    bytesPerSecond;
+    public boolean isDefaultPassword;
 
     //----------------------------------------------------------------------------------------------
     // Construction and initialization
@@ -150,6 +153,7 @@ public class InspectionState
             {
             if (Device.isRevControlHub())
                 {
+                this.isDefaultPassword = PasswordManagerFactory.getInstance().isDefault();
                 this.wifiEnabled = WifiUtil.isWifiApEnabled();
                 if (this.wifiEnabled) this.wifiConnected = true;
                 }

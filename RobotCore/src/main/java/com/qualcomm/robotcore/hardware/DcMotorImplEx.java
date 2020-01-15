@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 /**
  * {@link DcMotorImplEx} is a motor that supports the {@link DcMotorEx} interface in addition
@@ -171,5 +172,28 @@ public class DcMotorImplEx extends DcMotorImpl implements DcMotorEx
     @Override protected void internalSetTargetPosition(int position)
         {
         this.controllerEx.setMotorTargetPosition(portNumber, position, this.targetPositionTolerance);
+        }
+
+    @Override public double getCurrent(CurrentUnit unit)
+        {
+        return this.controllerEx.getMotorCurrent(portNumber, unit);
+        }
+
+    @Override
+    public double getCurrentAlert(CurrentUnit unit)
+        {
+        return this.controllerEx.getMotorCurrentAlert(portNumber, unit);
+        }
+
+    @Override
+    public void setCurrentAlert(double current, CurrentUnit unit)
+        {
+        this.controllerEx.setMotorCurrentAlert(portNumber, current, unit);
+        }
+
+    @Override
+    public boolean isOverCurrent()
+        {
+        return this.controllerEx.isMotorOverCurrent(portNumber);
         }
     }

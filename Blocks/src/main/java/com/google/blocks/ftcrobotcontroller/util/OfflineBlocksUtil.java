@@ -111,6 +111,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/led.js");
     assetsToInclude.add("blocks/light_sensor.js");
     assetsToInclude.add("blocks/linear_op_mode.js");
+    assetsToInclude.add("blocks/locale.js");
     assetsToInclude.add("blocks/lynx_i2c_color_range_sensor.js");
     assetsToInclude.add("blocks/magnetic_flux.js");
     assetsToInclude.add("blocks/matrix_f.js");

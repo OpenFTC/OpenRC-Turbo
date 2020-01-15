@@ -41,9 +41,13 @@ public class DegeneratePasswordManager implements PasswordManager {
     }
 
     @Override
-    public boolean resetPassword()
-    {
+    public boolean resetPassword() {
         return true;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return false;
     }
 
     @Override

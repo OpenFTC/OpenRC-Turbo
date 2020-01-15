@@ -65,6 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.qualcomm.robotcore.R;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -184,6 +185,7 @@ public class AppUtil
 
     private final Object        usbfsRootLock = new Object();
     private final Object        dialogLock = new Object();
+    private final Object        timeLock = new Object();
     private @NonNull Application application;
     private LifeCycleMonitor    lifeCycleMonitor;
     private Activity            rootActivity;
@@ -1542,11 +1544,13 @@ public class AppUtil
         }
 
     /**
-     * Attempts to set the clock returned by {@link #getWallClockTime()}. W/o a modified Android
-     * kernel, this will be unsuccessful, due to a check in kernel/security/commoncap.c. On the Control
-     * Hub, that has been disabled. Note that no error is reported on failure.
+     * Attempts to set the clock returned by {@link #getWallClockTime()}.
      *
-     * Also attempts to set the current time zone for the system, not just this process.
+     * W/o a modified Android kernel, this will be unsuccessful, due to a check in
+     * kernel/security/commoncap.c. On the Control Hub, that has been disabled. Note that no error
+     * is reported on failure.
+     *
+     * Note that this attempts to set the current time for the whole system, not just this process.
      */
     public void setWallClockTime(long millis)
         {
@@ -1554,15 +1558,48 @@ public class AppUtil
         }
 
     /**
-     * Set the system timezone by whatever means necessary :-)
+     * Attempts to atomically set the timezone and clock returned by {@link #getWallClockTime()},
+     * if we know that the currently set time cannot be correct.
+     *
+     * W/o a modified Android kernel, this will be unsuccessful, due to a check in
+     * kernel/security/commoncap.c. On the Control Hub, that has been disabled. Note that no error
+     * is reported on failure.
+     *
+     * Note that this attempts to set the timezone and current time for the whole system,
+     * not just this process.
+     */
+    public void setWallClockIfCurrentlyInsane(long timeMillis, @Nullable String timezone)
+        {
+        synchronized (timeLock)
+            {
+            boolean timeCurrentlySane = isSaneWalkClockTime(getWallClockTime());
+            boolean acceptableTimezone = (timezone != null && !timezone.isEmpty());
+            if (!timeCurrentlySane && isSaneWalkClockTime(timeMillis) && acceptableTimezone)
+                {
+                setWallClockTime(timeMillis);
+                setTimeZone(timezone);
+                }
+            }
+        }
+
+    /**
+     * Set the system timezone, if we are running on a Control Hub.
      */
     public void setTimeZone(String timeZone)
         {
+        if (!LynxConstants.isRevControlHub()) return; // If this code runs on a non-CH device, an exception is thrown
         TimeZone before = TimeZone.getDefault();
         AlarmManager alarmManager = (AlarmManager)AppUtil.getDefContext().getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setTimeZone(timeZone);
-        TimeZone.setDefault(null); TimeZone after = TimeZone.getDefault();
-        RobotLog.vv(TAG, "attempted to set timezone: before=%s after=%s", before.getID(), after.getID());
+        try
+            {
+            alarmManager.setTimeZone(timeZone);
+            TimeZone.setDefault(null); TimeZone after = TimeZone.getDefault();
+            RobotLog.vv(TAG, "attempted to set timezone: before=%s after=%s", before.getID(), after.getID());
+            }
+        catch (IllegalArgumentException e)
+            {
+            RobotLog.ee(TAG, "Attempted to set invalid timezone: %s", before.getID());
+            }
         }
 
     /**

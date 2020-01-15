@@ -511,7 +511,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     @Override public void noteMissingModule(LynxModule module, String moduleName)
         {
         this.missingModules.put(module.getModuleAddress(), moduleName);
-        RobotLog.ee(TAG, "module #%d is missing: ignoring", module.getModuleAddress());
+        RobotLog.ee(TAG, "module #%d did not connect at startup: skip adding its hardware items to the hardwareMap", module.getModuleAddress());
         }
 
     /** For lynx modules, in addition to reporting arming issues, we also need to report
@@ -566,8 +566,10 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
                 }
             catch (RobotCoreException|InterruptedException|RuntimeException e)
                 {
-                RobotLog.logExceptionHeader(TAG, e, "addConfiguredModule() module#=%d", module.getModuleAddress());
                 // If we don't full add, then we don't add at all
+                RobotLog.logExceptionHeader(TAG, e, "addConfiguredModule() module#=%d", module.getModuleAddress());
+                RobotLog.ee(TAG, "Unable to communicate with REV Hub #%d at robot startup. A Robot Restart will be required to use this hub.");
+                module.close();
                 synchronized (this.knownModules)
                     {
                     this.knownModules.remove(module.getModuleAddress());

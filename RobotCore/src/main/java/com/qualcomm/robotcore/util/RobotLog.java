@@ -602,7 +602,7 @@ public class RobotLog {
    * If we have a cached start time, then dump the log to the desired filename and exit.
    * This has the effect of capturing the log between Init and Stop of any given opmode.
    */
-  public static void stopMatchLogging() {
+  public static synchronized void stopMatchLogging() {
     if (matchStartTime != null) {
       RobotLog.ii(TAG, String.format(OPMODE_STOP_TAG, matchLogFilename));
       logMatch();

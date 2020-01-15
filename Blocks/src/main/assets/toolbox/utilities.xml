@@ -700,6 +700,14 @@
     </block>
     <block type="telemetry_update">
     </block>
+    <block type="telemetry_speak">
+      <value name="TEXT"><shadow type="text"><field name="TEXT">text</field></shadow></value>
+    </block>
+    <block type="telemetry_speak_withLanguage">
+      <value name="TEXT"><shadow type="text"><field name="TEXT">text</field></shadow></value>
+      <value name="LANGUAGE_CODE"><shadow type="text"><field name="TEXT">en</field></shadow><block type="locale_languageCode"></block></value>
+      <value name="COUNTRY_CODE"><shadow type="text"><field name="TEXT">US</field></shadow><block type="locale_countryCode"></block></value>
+    </block>
   </category>
   <category name="Temperature">
     <block type="temperature_getProperty_TempUnit">

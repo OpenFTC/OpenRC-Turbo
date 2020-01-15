@@ -32,6 +32,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.network;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
@@ -292,4 +294,48 @@ public class RobotCoreCommandList
             return cmd;
             }
         }
+
+    //----------------------------------------------------------------------------------------------
+    // Telemetry text-to-speech
+    //----------------------------------------------------------------------------------------------
+    public static final String CMD_TEXT_TO_SPEECH = "CMD_TEXT_TO_SPEECH";
+    static public class TextToSpeech
+        {
+        private String text;
+        private @NonNull String languageCode;
+        private @NonNull String countryCode;
+
+        public TextToSpeech(String text, @Nullable String languageCode, @Nullable String countryCode)
+            {
+            this.text = text;
+            this.languageCode = (languageCode != null) ? languageCode : "";
+            this.countryCode = (countryCode != null) ? countryCode : "";
+            }
+
+
+        public String getText()
+            {
+            return text;
+            }
+
+        public String getLanguageCode()
+            {
+            return languageCode;
+            }
+
+        public String getCountryCode()
+            {
+            return countryCode;
+            }
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static TextToSpeech deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, TextToSpeech.class);
+            }
+        }
+
     }

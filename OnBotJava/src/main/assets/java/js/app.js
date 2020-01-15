@@ -280,7 +280,9 @@
                         setupEditorWithData(data, readonly);
                         env.loadError = false;
                         whitespace.detectIndentation(_editor.session);
-                        if (document.URL.indexOf(env.javaUrlRoot) === -1) $scope.outsideSource = true;
+                        if (document.URL.indexOf(env.javaUrlRoot) === -1) {
+                            $scope.outsideSource = true;
+                        }
                     } else {
                         setupEditorWithData('// An unknown error occurred', true);
                     }
@@ -344,6 +346,7 @@
                 if (!newDocumentId) {
                     console.warn("Can't change document id. newDocumentId is invalid");
                 }
+
                 if (env.documentId === newDocumentId) {
                     if ($scope.error) {
                         env.editor.gotoLine($scope.error.line, $scope.error.col - 1, true);
@@ -351,6 +354,12 @@
                     }
 
                     return;
+                }
+
+                $scope.editor.setReadOnly(true);
+                if ($scope.changed) {
+                    save();
+                    $scope.changed = false;
                 }
 
                 var oldDocumentId = env.documentId;
@@ -516,8 +525,9 @@
 
             $scope.aceBlurred = function () {
                 $scope.blurred = true;
-
-                save();
+                if ($scope.changed) {
+                    save();
+                }
             };
 
             $scope.aceChanged = function () {

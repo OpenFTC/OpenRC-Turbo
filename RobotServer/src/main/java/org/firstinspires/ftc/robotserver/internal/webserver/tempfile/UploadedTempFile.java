@@ -32,7 +32,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotserver.internal.webserver.tempfile;
 
+import android.support.annotation.Nullable;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -42,16 +45,17 @@ import fi.iki.elonen.NanoHTTPD;
 public final class UploadedTempFile implements NanoHTTPD.TempFile {
 
     private final File file;
-    private final OutputStream outputStream;
+    private @Nullable OutputStream outputStream;
 
     // Should only be instantiated by UploadedTempFileManager
     UploadedTempFile(File tempDir) throws IOException {
         file = File.createTempFile("upload-", "", tempDir);
-        outputStream = new FileOutputStream(file);
     }
 
     @Override public void delete() throws IOException {
-        outputStream.close();
+        if (outputStream != null) {
+            outputStream.close();
+        }
         if (!file.exists()) return; // The file was almost certainly moved to its intended location. There's nothing to delete!
 
         if (!file.delete()) {
@@ -63,7 +67,10 @@ public final class UploadedTempFile implements NanoHTTPD.TempFile {
         return file.getAbsolutePath();
     }
 
-    @Override public OutputStream open() {
+    @Override public OutputStream open() throws FileNotFoundException {
+        if (outputStream == null) {
+            outputStream = new FileOutputStream(file);
+        }
         return outputStream;
     }
 }

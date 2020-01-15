@@ -47,7 +47,14 @@ public class LynxNack extends LynxMessage
     // Types
     //----------------------------------------------------------------------------------------------
 
-    public enum ReasonCode
+    public interface ReasonCode
+        {
+        String toString();
+        int getValue();
+        boolean isUnsupportedReason();
+        }
+
+    public enum StandardReasonCode implements ReasonCode
         {
         PARAM0(0), PARAM1(1), PARAM2(2), PARAM3(3), PARAM4(4), PARAM5(5), PARAM6(6), PARAM7(7), PARAM8(8), PARAM9(9),
             GPIO_OUT0(10), GPIO_OUT1(11), GPIO_OUT2(12), GPIO_OUT3(13), GPIO_OUT4(14), GPIO_OUT5(15), GPIO_OUT6(16), GPIO_OUT7(17), GPIO_NO_OUTPUT(18),
@@ -58,6 +65,10 @@ public class LynxNack extends LynxMessage
             I2C_OPERATION_IN_PROGRESS(41),      // poll again for completion status
             I2C_NO_RESULTS_PENDING(42),         // read results were requested but there's no oustanding read request
             I2C_QUERY_MISMATCH(43),             // query doesn't match last operation (read query for write req, or visa versa)
+            I2C_TIMEOUT_SDA_STUCK(44),          // I2C data line is stuck down (resend command?)
+            I2C_TIMEOUT_SCK_STUCK(45),          // I2C clock line is stuck down (resend command?)
+            I2C_TIMEOUT_UNKNOWN_CAUSE(46),      // I2C operation timed out for unknown reason (resend command?)
+
             MOTOR_NOT_CONFIG_BEFORE_ENABLED(50),
             COMMAND_INVALID_FOR_MOTOR_MODE(51),
             BATTERY_TOO_LOW_TO_RUN_MOTOR(52),
@@ -67,25 +78,14 @@ public class LynxNack extends LynxMessage
 
             // codes bigger than a byte are internal here to the SDK; they must never be transmitted
             ABANDONED_WAITING_FOR_RESPONSE(256),
-            ABANDONED_WAITING_FOR_ACK(257);
+            ABANDONED_WAITING_FOR_ACK(257),
+            UNRECOGNIZED_REASON_CODE(258);
 
         private int iVal;
-        ReasonCode(int i) { this.iVal = i; }
-        public int getValue() { return this.iVal; }
-        public static ReasonCode fromInt(int i)
-            {
-            // handle a couple specially, for speed
-            if (i == I2C_OPERATION_IN_PROGRESS.getValue())  return I2C_OPERATION_IN_PROGRESS;
-            if (i == I2C_MASTER_BUSY.getValue())            return I2C_MASTER_BUSY;
-            for (ReasonCode reasonCode : ReasonCode.values())
-                {
-                if (i == reasonCode.getValue())
-                    return reasonCode;
-                }
-            return PACKET_TYPE_ID_UNKNOWN;
-            }
+        StandardReasonCode(int i) { this.iVal = i; }
+        @Override public int getValue() { return this.iVal; }
 
-        public boolean isUnsupportedReason()
+        @Override public boolean isUnsupportedReason()
             {
             switch (this)
                 {
@@ -96,6 +96,31 @@ public class LynxNack extends LynxMessage
                 default:
                     return false;
                 }
+            }
+        }
+
+    private static class UnrecognizedReasonCode implements ReasonCode
+        {
+        private final int value;
+
+        UnrecognizedReasonCode(int value)
+            {
+            this.value = value;
+            }
+
+        @Override public String toString()
+            {
+            return "Unrecognized NACK code " + value;
+            }
+
+        @Override public int getValue()
+            {
+            return value;
+            }
+
+        @Override public boolean isUnsupportedReason()
+            {
+            return true;
             }
         }
 
@@ -131,7 +156,29 @@ public class LynxNack extends LynxMessage
 
     public ReasonCode getNackReasonCode()
         {
-        return ReasonCode.fromInt(this.nackReasonCode);
+        // handle a couple specially, for speed
+        if (nackReasonCode == StandardReasonCode.I2C_OPERATION_IN_PROGRESS.getValue())  return StandardReasonCode.I2C_OPERATION_IN_PROGRESS;
+        if (nackReasonCode == StandardReasonCode.I2C_MASTER_BUSY.getValue())            return StandardReasonCode.I2C_MASTER_BUSY;
+        for (ReasonCode reasonCode : StandardReasonCode.values())
+            {
+            if (nackReasonCode == reasonCode.getValue())
+                return reasonCode;
+            }
+        return new UnrecognizedReasonCode(nackReasonCode);
+        }
+
+    /**
+     *  Use this method to easily check for certain reason codes in a switch statement (as StandardReasonCode is an enum).
+     *
+     *  Do not use it for logging, as the result may not contain the true reason code sent by the hub.
+     */
+    public StandardReasonCode getNackReasonCodeAsEnum()
+        {
+        ReasonCode reasonCode = getNackReasonCode();
+        if (reasonCode instanceof StandardReasonCode)
+            return (StandardReasonCode) reasonCode;
+        else
+            return StandardReasonCode.UNRECOGNIZED_REASON_CODE;
         }
 
     //----------------------------------------------------------------------------------------------

@@ -504,13 +504,14 @@ function checkBlock(block, missingHardware) {
           var visibleIdentifierName;
           if (block.data) {
             if (block.data.startsWith('{')) {
-              var visibleIdentifierNames = JSON.parse(block.data);
+              var visibleIdentifierNames = parseBlockDataJSON(block);
               visibleIdentifierName = visibleIdentifierNames[identifierFieldName];
             } else {
+              // Some older versions save as plain text instead of JSON.
               visibleIdentifierName = block.data;
             }
           } else {
-            // If the blocks file is older, we don't know what the visible name actually is.
+            // If the blocks file is even older, we don't know what the visible name actually is.
             // The best we can do is to remove the hardware identifier suffix if there is one.
             visibleIdentifierName = removeHardwareIdentifierSuffix(identifierFieldValue);
           }
@@ -612,10 +613,18 @@ function removeHardwareIdentifierSuffix(identifierFieldValue) {
   return identifierFieldValue;
 }
 
-function saveBlockWarningHidden(block) {
-  var data = (block.data && block.data.startsWith('{'))
-      ? JSON.parse(block.data) : null;
+function parseBlockDataJSON(block) {
+  if (block.data && block.data.startsWith('{')) {
+    try {
+      return JSON.parse(block.data);
+    } catch (err) {
+    }
+  }
+  return null;
+}
 
+function saveBlockWarningHidden(block) {
+  var data = parseBlockDataJSON(block);
   if (block.warning) {
     if (!block.warning.isVisible()) {
       if (!data) {
@@ -633,8 +642,8 @@ function saveBlockWarningHidden(block) {
 }
 
 function readBlockWarningHidden(block) {
-  if (block.data && block.data.startsWith('{')) {
-    var data = JSON.parse(block.data);
+  var data = parseBlockDataJSON(block);
+  if (data) {
     if (data.block_warning_hidden) {
       return true;
     }
@@ -644,8 +653,7 @@ function readBlockWarningHidden(block) {
 }
 
 function saveVisibleIdentifiers(block) {
-  var data = (block.data && block.data.startsWith('{'))
-      ? JSON.parse(block.data) : null;
+  var data = parseBlockDataJSON(block);
 
   for (var iFieldName = 0; iFieldName < identifierFieldNames.length; iFieldName++) {
     var identifierFieldName = identifierFieldNames[iFieldName];
@@ -658,7 +666,10 @@ function saveVisibleIdentifiers(block) {
         if (!data) {
           data = Object.create(null);
         }
-        data[identifierFieldName] = field.getText();
+        // field.getText() returns the text with spaces changed to non-breakable spaces \u00A0.
+        // Here we change them back to normal spaces. Without this, the character becomes &nbsp; in
+        // the blk file when saved with Safari.
+        data[identifierFieldName] = field.getText().replace(/\u00A0/g, ' ');
       }
     }
   }
