@@ -110,6 +110,12 @@ tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
 
 ## Release Notes:
 
+### 5.4B
+
+Released on 11 August 2020
+
+ - Improve compatibility with Control Hub
+
 ### 5.4A
 
 Released on 15 January 2020
