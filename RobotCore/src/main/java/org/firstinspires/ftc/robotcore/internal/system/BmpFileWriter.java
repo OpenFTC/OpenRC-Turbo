@@ -221,6 +221,6 @@ public class BmpFileWriter
 
     static
         {
-        System.loadLibrary("RobotCore");
+        //System.loadLibrary("RobotCore");
         }
     }

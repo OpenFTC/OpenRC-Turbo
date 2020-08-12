@@ -1554,7 +1554,14 @@ public class AppUtil
      */
     public void setWallClockTime(long millis)
         {
-        nativeSetCurrentTimeMillis(millis);
+        try
+            {
+            nativeSetCurrentTimeMillis(millis);
+            }
+        catch (UnsatisfiedLinkError e)
+            {
+            //ignored
+            }
         }
 
     /**

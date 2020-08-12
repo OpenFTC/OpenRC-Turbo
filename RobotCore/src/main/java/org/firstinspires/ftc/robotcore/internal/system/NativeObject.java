@@ -265,6 +265,6 @@ public class NativeObject<ParentType extends RefCounted> extends DestructOnFinal
 
     static
         {
-        System.loadLibrary("RobotCore");
+        //System.loadLibrary("RobotCore");
         }
     }

@@ -31,9 +31,14 @@ import android.os.Environment;
 
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,12 +51,37 @@ public class DynamicVuforiaNativeLibLoader
 {
     private static final String NATIVE_LIB_MD5 = "cbb557fe47a78e51e4aed926b09fb73d";
     private static boolean alreadyLoaded = false;
+    private static Runnable onPeerConnectedRunnable = null;
+    private static final String TAG = "OpenRC-Vuforia-Loader";
 
     private File libInProtectedStorage;
     private File protectedExtraFolder;
     private File libOnSdcard;
     private Activity rcActivity;
-    private CountDownLatch nativeLibLoadedLatch = new CountDownLatch(1);
+
+    static
+    {
+        if(LynxConstants.isRevControlHub())
+        {
+            NetworkConnectionHandler.getInstance().registerPeerStatusCallback(new PeerStatusCallback()
+            {
+                @Override
+                public void onPeerConnected()
+                {
+                    if(onPeerConnectedRunnable != null)
+                    {
+                        onPeerConnectedRunnable.run();
+                    }
+                }
+
+                @Override
+                public void onPeerDisconnected()
+                {
+
+                }
+            });
+        }
+    }
 
     /*
      * By annotating this method with @OpModeRegistrar, it will be called
@@ -61,20 +91,6 @@ public class DynamicVuforiaNativeLibLoader
     @OpModeRegistrar
     public static void loadNativeLibOnStartRobot(Context context, AnnotatedOpModeManager manager)
     {
-        /*
-         * Dynamic loading of Vuforia is not compatible with < API 23 because otherwise when
-         * we go to load the robotcore lib, it will crash with a failed to find symbol error.
-         * This is due to the fact the robotcore lib now depends on the vuforia lib as the
-         * result of UVC support being added in SDK v4.x
-         *
-         * See the "Correct soname/path handling" section of this page for more details:
-         *     https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md
-         */
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-        {
-            showNotCompatibleDialog();
-        }
-
         /*
          * Because this is called every time the robot is "restarted" we
          * check to see whether we've already previously done our job here.
@@ -88,25 +104,22 @@ public class DynamicVuforiaNativeLibLoader
         }
 
         DynamicVuforiaNativeLibLoader loader = new DynamicVuforiaNativeLibLoader();
-        loader.setupVuforiaNativeLib();
 
-        try
+        /*
+         * Dynamic loading of Vuforia is not compatible with < API 23 because otherwise when
+         * we go to load the robotcore lib, it will crash with a failed to find symbol error.
+         * This is due to the fact the robotcore lib now depends on the vuforia lib as the
+         * result of UVC support being added in SDK v4.x
+         *
+         * See the "Correct soname/path handling" section of this page for more details:
+         *     https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md
+         */
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
         {
-            /*
-             * If the native library was successfully loaded,
-             * then this latch will have already been released
-             * and this statement will return instantly. However,
-             * If the attempt to load the library failed, then
-             * this latch will (intentionally) never release and
-             * so we will hang the RC app.
-             */
-            loader.nativeLibLoadedLatch.await();
-            alreadyLoaded = true;
+            loader.showNotCompatibleDialog();
         }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+
+        loader.setupVuforiaNativeLib();
     }
 
     @SuppressLint("UnsafeDynamicallyLoadedCode")
@@ -133,17 +146,29 @@ public class DynamicVuforiaNativeLibLoader
              * Vuforia lib
              */
             System.loadLibrary("RobotCore");
-
-            nativeLibLoadedLatch.countDown();
+            alreadyLoaded = true;
         }
         catch (VuforiaNativeLibNotFoundException e)
         {
             e.printStackTrace();
+
+            // No period at the end, since a semicolon may be appended by the system.
+            String globalWarningMessage = "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage";
+            RobotLog.ee(TAG, e, globalWarningMessage);
+            RobotLog.setGlobalWarningMessage(globalWarningMessage);
+
             showLibNotOnSdcardDialog();
         }
         catch (VuforiaNativeLibCorruptedException e)
         {
             e.printStackTrace();
+
+            // No period at the end, since a semicolon may be appended by the system.
+            String globalWarningMessage = "libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
+                    "checksum does not match what is expected. Delete and re-download the file.";
+            RobotLog.ee(TAG, e, globalWarningMessage);
+            RobotLog.setGlobalWarningMessage(globalWarningMessage);
+
             showLibCorruptedDialog();
         }
         catch (Throwable t)
@@ -220,53 +245,61 @@ public class DynamicVuforiaNativeLibLoader
 
     private void showLibNotOnSdcardDialog()
     {
-        rcActivity.runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                String msg = "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage.";
-
-                AlertDialog dialog = new AlertDialog.Builder(rcActivity)
-                        .setTitle("libVuforia.so not found!")
-                        .setMessage(msg)
-                        .setCancelable(false)
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i)
-                            {
-                                System.exit(1);
-                            }
-                        }).create();
-                dialog.show();
-            }
-        });
+        showErrorDialog("libVuforia.so not found!", "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage.");
     }
 
     private void showLibCorruptedDialog()
     {
-        rcActivity.runOnUiThread(new Runnable()
+        showErrorDialog("libVuforia.so corrupted!", "libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
+                "checksum does not match what is expected. Delete and re-download the file.");
+    }
+
+    private void showErrorDialog(final String title, final String message)
+    {
+        if(LynxConstants.isRevControlHub())
         {
-            @Override
-            public void run()
+            //If robocol isn't linked yet, register the dialog for later
+            if(!NetworkConnectionHandler.getInstance().isPeerConnected())
             {
-                AlertDialog.Builder builder = new AlertDialog.Builder(rcActivity);
-                builder.setTitle("libVuforia.so corrupted!");
-                builder.setMessage("libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
-                        "checksum does not match what is expected. Delete and re-download the file.");
-                builder.setCancelable(false);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                onPeerConnectedRunnable = new Runnable()
                 {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
+                    public void run()
                     {
-                        System.exit(1);
+                        AppUtil.getInstance().showAlertDialog(UILocation.BOTH, title, message);
                     }
-                });
-                builder.show();
+                };
             }
-        });
+
+            //Robocol is linked, show dialog now
+            else
+            {
+                AppUtil.getInstance().showAlertDialog(UILocation.BOTH, title, message);
+            }
+        }
+        else
+        {
+            rcActivity.runOnUiThread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    AlertDialog dialog = new AlertDialog.Builder(rcActivity)
+                            .setTitle(title)
+                            .setMessage(message)
+                            .setCancelable(false)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i)
+                                {
+                                    System.exit(1);
+                                }
+                            }).create();
+                    dialog.show();
+                }
+            });
+        }
     }
 
     private void copyLibFromSdcardToProtectedStorage()
@@ -302,27 +335,8 @@ public class DynamicVuforiaNativeLibLoader
         }
     }
 
-    private static void showNotCompatibleDialog()
+    private void showNotCompatibleDialog()
     {
-        AppUtil.getInstance().runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                AlertDialog.Builder builder = new AlertDialog.Builder(AppUtil.getInstance().getActivity());
-                builder.setTitle("Incompatible");
-                builder.setMessage("OpenRC is incompatible with Android versions prior to 6.0 because of a bug in the dlopen() function of previous versions. The app will now be closed.");
-                builder.setCancelable(false);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i)
-                    {
-                        System.exit(1);
-                    }
-                });
-                builder.show();
-            }
-        });
+        showErrorDialog("Incompatible", "OpenRC is incompatible with Android versions prior to 6.0 because of a bug in the dlopen() function of previous versions. The app will now be closed.");
     }
 }

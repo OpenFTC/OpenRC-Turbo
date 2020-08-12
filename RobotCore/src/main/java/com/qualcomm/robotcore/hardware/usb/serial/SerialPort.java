@@ -157,6 +157,6 @@ public class SerialPort
 
     static
         {
-        System.loadLibrary("RobotCore");
+        //System.loadLibrary("RobotCore");
         }
     }
