@@ -31,7 +31,8 @@
 package com.qualcomm.robotcore.eventloop;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.EventLoopManagerClient;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
@@ -54,7 +55,6 @@ import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
-import org.firstinspires.ftc.robotcore.internal.network.SocketConnect;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
@@ -114,7 +114,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
   private final         Object                eventLoopLock             = new Object();
   private final         Gamepad               gamepads[]                = { new Gamepad(), new Gamepad() };
   private               Heartbeat             heartbeat                 = new Heartbeat();
-  private               boolean               attemptedSetTime          = false;
+  private               boolean               receivedTimeFromCurrentPeer = false;
   private               EventLoopMonitor      callback                  = null;
   private final         Set<SyncdDevice>      syncdDevices              = new CopyOnWriteArraySet<SyncdDevice>(); // Would be nice if this held weak references
   private final         Command[]             commandRecvCache          = new Command[MAX_COMMAND_CACHE];
@@ -312,15 +312,15 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
         }
       } catch (InterruptedException e) {
         // interrupted: exit this loop
-        RobotLog.v("EventLoopRunnable interrupted");
+        RobotLog.vv(TAG, e, "EventLoopRunnable interrupted");
         Thread.currentThread().interrupt(); // pass on interrupt to caller
         changeState(RobotState.STOPPED);
       } catch (CancellationException e) {
         // interrupted, then cancel thrown: exit this loop
-        RobotLog.v("EventLoopRunnable cancelled");
+        RobotLog.vv(TAG, e, "EventLoopRunnable cancelled");
         changeState(RobotState.STOPPED);
       } catch (RobotCoreException e) {
-        RobotLog.v("RobotCoreException in EventLoopManager: " + e.getMessage());
+        RobotLog.vv(TAG, e, "RobotCoreException in EventLoopManager");
         changeState(RobotState.EMERGENCY_STOP);
 
         EventLoopManager.this.refreshSystemTelemetry();
@@ -422,7 +422,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
         break;
       case CONNECTION_INFO_AVAILABLE:
         RobotLog.ii(RobocolDatagram.TAG, "Received network connection event");
-        result = networkConnectionHandler.handleConnectionInfoAvailable(SocketConnect.DEFER);
+        result = networkConnectionHandler.handleConnectionInfoAvailable();
         break;
     }
     return result;
@@ -530,7 +530,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
   public void sendTelemetryData(TelemetryMessage telemetry) {
     try {
       telemetry.setRobotState(this.state);  // conveying state here helps global errors always be portrayed as in EMERGENCY_STOP state rather than waiting until next heartbeat
-      networkConnectionHandler.sendDatagram(new RobocolDatagram(telemetry.toByteArrayForTransmission()));
+      networkConnectionHandler.sendDataToPeer(telemetry);
     } catch (RobotCoreException e) {
       RobotLog.ww(TAG, e, "Failed to send telemetry data");
     }
@@ -661,11 +661,11 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
      * We've just received an indication of our partner's time. On the Control Hub, our partner's time
      * is the source of truth. If their time is sane, attempt to set our system time to match theirs.
      */
-    if (!attemptedSetTime) {
+    if (!receivedTimeFromCurrentPeer) {
       long theirMillis = currentHeartbeat.t0;
       boolean theirSanity = appUtil.isSaneWalkClockTime(theirMillis);
       if (theirSanity) {
-        attemptedSetTime = true;
+        receivedTimeFromCurrentPeer = true;
         RobotLog.vv(TAG, "Setting authoritative wall clock based on connected DS.");
         appUtil.setWallClockTime(theirMillis);
         appUtil.setTimeZone(currentHeartbeat.getTimeZoneId());
@@ -676,12 +676,11 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
     // to understand the clock offsets between us and our partner.
     currentHeartbeat.t1 = tReceived;
 
-    // Keep next three lines as close together in time as possible to maximize accuracy of timing calculation
-    // Also, the refetch of the local wall clock time is intentional, for both the accuracy reasons and the
+    // Keep next two lines as close together in time as possible to maximize accuracy of timing calculation
+    // Also, the re-fetch of the local wall clock time is intentional, for both the accuracy reasons and the
     // fact that we might have just adjusted the time.
     currentHeartbeat.t2 = appUtil.getWallClockTime();
-    packet.setData(currentHeartbeat.toByteArrayForTransmission());
-    networkConnectionHandler.sendDatagram(packet);
+    networkConnectionHandler.sendDataToPeer(currentHeartbeat);
 
     lastHeartbeatReceived.reset();
     heartbeat = currentHeartbeat;
@@ -714,26 +713,37 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
     remoteAddr = null;
     lastHeartbeatReceived = new ElapsedTime(0);
+    receivedTimeFromCurrentPeer = false; // Use the time of the next Driver Station that connects to us
   }
 
   public CallbackResult peerDiscoveryEvent(RobocolDatagram packet) throws RobotCoreException {
-
-    try {
-      networkConnectionHandler.updateConnection(packet);
-    } catch (RobotProtocolException e) {
-      RobotLog.ee(TAG, e.getMessage());
+    PeerDiscovery.PeerType remotePeerType;
+    if (!networkConnectionHandler.isPeerConnected() || packet.getAddress().equals(networkConnectionHandler.getCurrentPeerAddr())) {
+      // We either want to be connected to this peer, or we already are.
+      remotePeerType = PeerDiscovery.PeerType.PEER;
+      try {
+        networkConnectionHandler.updateConnection(packet);
+      } catch (RobotProtocolException e) {
+        RobotLog.setGlobalErrorMsg(e.getMessage());
+        RobotLog.ee(TAG, e.getMessage());// We need to continue execution and send a PeerDiscovery packet in response,
+        // so that the remote device can parse it and see that it is incompatible with us.
+      }
+    } else {
+      // There is already a peer connected, and this packet is not from them.
+      remotePeerType = PeerDiscovery.PeerType.NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION;
     }
 
     // Send a second PeerDiscovery() packet in response. That will inform the fellow
-    // who sent the incoming PeerDiscovery() who *we* are.
+    // who sent the incoming PeerDiscovery() who *we* are, what our robocol version is,
+    // and whether or not we accept their connection.
     //
     // We should still send a peer discovery packet even if *we* already know the client,
     // because it could be that the connection dropped (e.g., while changing other settings)
     // and the other guy (ie: DS) needs to reconnect. If we don't send this, the connection will
     // never complete. These only get sent about once per second so it's not a huge load on the network.
 
-    PeerDiscovery outgoing = new PeerDiscovery(PeerDiscovery.PeerType.PEER);
-    RobocolDatagram outgoingDatagram = new RobocolDatagram(outgoing);
+    PeerDiscovery outgoing = new PeerDiscovery(remotePeerType);
+    RobocolDatagram outgoingDatagram = new RobocolDatagram(outgoing, packet.getAddress());
     networkConnectionHandler.sendDatagram(outgoingDatagram);
 
     return CallbackResult.HANDLED;

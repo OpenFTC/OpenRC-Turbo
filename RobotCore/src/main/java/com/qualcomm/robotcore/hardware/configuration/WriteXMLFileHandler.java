@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package com.qualcomm.robotcore.hardware.configuration;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Xml;
 
 import com.qualcomm.robotcore.exception.DuplicateNameException;
@@ -59,7 +59,7 @@ public class WriteXMLFileHandler {
   private String[] indentation = {"    ", "        ", "            "};
   private int indent = 0;
 
-  public WriteXMLFileHandler(Context context) {
+  public WriteXMLFileHandler() {
     serializer = Xml.newSerializer();
   }
 

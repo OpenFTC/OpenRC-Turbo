@@ -56,7 +56,7 @@ html, body {
 #editor {
   font-size: 16px;
   position: absolute;
-  top: 0;
+  top: 25px;
   height: 100%;
   right: 0;
   left: 0;
@@ -369,6 +369,22 @@ span.warning {
   label {
     position: relative;
     top: 12px;
+  }
+}
+
+#open-files {
+  margin-left: 5px;
+  height: 25px;
+
+  .file-tab {
+    padding: 2.5px 1em;
+    user-select: none;
+    display: inline-block;
+    cursor: pointer;
+
+    .fa-close {
+      margin-left: .5em;
+    }
   }
 }
 

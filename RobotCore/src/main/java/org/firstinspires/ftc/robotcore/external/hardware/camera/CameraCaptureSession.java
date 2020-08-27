@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.external.hardware.camera;
 
 import android.hardware.camera2.CaptureFailure;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 
@@ -77,9 +77,7 @@ public interface CameraCaptureSession
      *
      * @param cameraCaptureRequest the request to repeat indefinitely
      * @param captureCallback The callback object to notify every time the
-     * request finishes processing. If null, no metadata will be
-     * produced for this stream of requests, although image data will
-     * still be produced.
+     * request finishes processing.
      * @param statusContinuation the callback to notify regarding status events of the capture
      *
      * @return CameraCaptureSequenceId A unique capture sequence ID used by

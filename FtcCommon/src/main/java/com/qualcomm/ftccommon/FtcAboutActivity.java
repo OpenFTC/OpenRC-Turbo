@@ -1,15 +1,15 @@
 package com.qualcomm.ftccommon;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
-import android.support.annotation.StringRes;
 import android.text.TextUtils;
 import android.widget.FrameLayout;
+
+import androidx.annotation.StringRes;
 
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
@@ -27,13 +27,14 @@ import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
 
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 
 public class FtcAboutActivity extends ThemedActivity
@@ -116,25 +117,31 @@ public class FtcAboutActivity extends ThemedActivity
         return appVersion;
         }
 
-    /** https://code.google.com/p/android/issues/detail?id=220039 */
+    private static final SimpleDateFormat iso860ZuluFormatter822 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ROOT);
+    private static String buildTimeFromBuildConfig = null;
+
+    public static void setBuildTimeFromBuildConfig(String buildTime)
+        {
+        buildTimeFromBuildConfig = buildTime;
+        }
+
     protected static String getBuildTime()
         {
-        Context context = AppUtil.getDefContext();
-        String buildTime = context.getString(R.string.unavailable);
         try
             {
-            ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), 0);
-            ZipFile zf = new ZipFile(ai.sourceDir);
-            ZipEntry ze = zf.getEntry("classes.dex");
-            zf.close();
-            long time = ze.getTime();
-            buildTime = SimpleDateFormat.getInstance().format(new java.util.Date(time));
+            Date buildTime = iso860ZuluFormatter822.parse(buildTimeFromBuildConfig);
+            if (buildTime != null)
+                {
+                DateFormat formatter = SimpleDateFormat.getInstance();
+                formatter.setTimeZone(TimeZone.getDefault());
+                return formatter.format(buildTime);
+                }
             }
-        catch (PackageManager.NameNotFoundException|IOException e)
+        catch (ParseException e)
             {
             RobotLog.ee(TAG, e, "exception determining build time");
             }
-        return buildTime;
+        return AppUtil.getDefContext().getString(R.string.unavailable);
         }
 
     //----------------------------------------------------------------------------------------------

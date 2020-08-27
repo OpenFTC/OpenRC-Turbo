@@ -130,6 +130,33 @@ public abstract class AndroidBoard {
     public abstract boolean supports5GhzAp();
 
     /**
+     * Returns whether or not this Android board supports auto-selecting a 5GHz WiFi channel
+     */
+    public abstract boolean supports5GhzAutoSelection();
+
+    /**
+     * Returns whether or not the AP service supports setting the network properties in bulk
+     */
+    public abstract boolean supportsBulkNetworkSettings();
+
+    /**
+     * Returns whether or not the AP service supports {@link com.qualcomm.robotcore.util.Intents.ACTION_FTC_AP_GET_CURRENT_CHANNEL_INFO}
+     */
+    public abstract boolean supportsGetChannelInfoIntent();
+
+    /**
+     * Returns the current data rate of our WiFi access point beacons
+     */
+    public abstract WifiDataRate getWifiApBeaconRate();
+
+    /**
+     * Set the data rate of our WiFi access point beacons
+     *
+     * Should fail silently if this is not possible
+     */
+    public abstract void setWifiApBeaconRate(WifiDataRate beaconRate);
+
+    /**
      * Returns whether or not the board's OS has ControlHubUpdater baked into its OS
      */
     public abstract boolean hasControlHubUpdater();
@@ -156,5 +183,21 @@ public abstract class AndroidBoard {
      */
     private static boolean isRevControlHubv1() {
         return LynxConstants.getControlHubVersion() == 1;
+    }
+
+    public enum WifiDataRate {
+        UNKNOWN,
+        CCK_1Mb,
+        CCK_2Mb,
+        CCK_5Mb,
+        CCK_11Mb,
+        OFDM_6Mb,
+        OFDM_9Mb,
+        OFDM_12Mb,
+        OFDM_18Mb,
+        OFDM_24Mb,
+        OFDM_36Mb,
+        OFDM_48Mb,
+        OFDM_54Mb;
     }
 }

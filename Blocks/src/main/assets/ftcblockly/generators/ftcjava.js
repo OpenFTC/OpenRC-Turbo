@@ -1053,154 +1053,34 @@ Blockly.FtcJava.isFtcJavaTypePrimitive_ = function(type) {
       || type == 'long' || type == 'int' || type == 'short' || type == 'byte';
 }
 
+Blockly.FtcJava.generateImportForJavaClass_ = function(javaClassName) {
+  var importCode = 'import ' + javaClassName + ';';
+  Blockly.FtcJava.definitions_['import_' + importCode] = importCode;
+}
+
 Blockly.FtcJava.generateImport_ = function(type) {
   var importCode = null;
+
+  // For inner classes, only import the outer class.
   var dot = type.indexOf('.');
   if (dot > -1) {
     type = type.substring(0, dot);
   }
-  // NOTE(lizlooney): If you add a case to this switch, you should also add that type to
-  // HardwareUtil.buildReservedWordsForFtcJava.
-  switch (type) {
-    case 'Color':
-      importCode = 'import android.graphics.' + type + ';';
-      break;
-    case 'SoundPlayer':
-      importCode = 'import com.qualcomm.ftccommon.' + type + ';';
-      break;
-    case 'BNO055IMU':
-    case 'JustLoggingAccelerationIntegrator':
-      importCode = 'import com.qualcomm.hardware.bosch.' + type + ';';
-      break;
-    case 'ModernRoboticsI2cCompassSensor':
-    case 'ModernRoboticsI2cGyro':
-    case 'ModernRoboticsI2cRangeSensor':
-      importCode = 'import com.qualcomm.hardware.modernrobotics.' + type + ';';
-      break;
-    case 'RevBlinkinLedDriver':
-      importCode = 'import com.qualcomm.hardware.rev.' + type + ';';
-      break;
-    case 'Autonomous':
-    case 'Disabled':
-    case 'LinearOpMode':
-    case 'TeleOp':
-      importCode = 'import com.qualcomm.robotcore.eventloop.opmode.' + type + ';';
-      break;
-    case 'AccelerationSensor':
-    case 'AnalogInput':
-    case 'AnalogOutput':
-    case 'CRServo':
-    case 'ColorSensor':
-    case 'CompassSensor':
-    case 'DcMotor':
-    case 'DcMotorEx':
-    case 'DcMotorSimple':
-    case 'DigitalChannel':
-    case 'DistanceSensor':
-    case 'GyroSensor':
-    case 'Gyroscope':
-    case 'I2cAddr':
-    case 'I2cAddrConfig':
-    case 'I2cAddressableDevice':
-    case 'IrSeekerSensor':
-    case 'LED':
-    case 'Light':
-    case 'LightSensor':
-    case 'MotorControlAlgorithm':
-    case 'NormalizedColorSensor':
-    case 'NormalizedRGBA':
-    case 'OpticalDistanceSensor':
-    case 'OrientationSensor':
-    case 'PIDCoefficients':
-    case 'PIDFCoefficients':
-    case 'PWMOutput':
-    case 'Servo':
-    case 'ServoController':
-    case 'SwitchableLight':
-    case 'TouchSensor':
-    case 'UltrasonicSensor':
-    case 'VoltageSensor':
-      importCode = 'import com.qualcomm.robotcore.hardware.' + type + ';';
-      break;
-    case 'ElapsedTime':
-    case 'Range':
-    case 'ReadWriteFile':
-    case 'RobotLog':
-      importCode = 'import com.qualcomm.robotcore.util.' + type + ';';
-      break;
-    case 'ArrayList':
-    case 'Collections':
-    case 'List':
-      importCode = 'import java.util.' + type + ';';
-      break;
-    case 'ClassFactory':
-    case 'JavaUtil':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.' + type + ';';
-      break;
-    case 'AndroidAccelerometer':
-    case 'AndroidGyroscope':
-    case 'AndroidOrientation':
-    case 'AndroidSoundPool':
-    case 'AndroidTextToSpeech':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.android.' + type + ';';
-      break;
-    case 'CameraName':
-    case 'WebcamName':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.hardware.camera.' + type + ';';
-      break;
-    case 'MatrixF':
-    case 'OpenGLMatrix':
-    case 'VectorF':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.matrices.' + type + ';';
-      break;
-    case 'Acceleration':
-    case 'AngleUnit':
-    case 'AngularVelocity':
-    case 'AxesOrder':
-    case 'AxesReference':
-    case 'Axis':
-    case 'CurrentUnit':
-    case 'DistanceUnit':
-    case 'MagneticFlux':
-    case 'Orientation':
-    case 'Position':
-    case 'Quaternion':
-    case 'RelicRecoveryVuMark':
-    case 'Temperature':
-    case 'TempUnit':
-    case 'UnnormalizedAngleUnit':
-    case 'Velocity':
-    case 'VuforiaBase':
-    case 'VuforiaLocalizer':
-    case 'VuforiaRelicRecovery':
-    case 'VuforiaRoverRuckus':
-    case 'VuforiaSkyStone':
-    case 'VuforiaTrackable':
-    case 'VuforiaTrackableDefaultListener':
-    case 'VuforiaTrackables':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.navigation.' + type + ';';
-      break;
-    case 'AppUtil':
-      importCode = 'import org.firstinspires.ftc.robotcore.internal.system.' + type + ';';
-      break;
-    case 'Recognition':
-    case 'TfodBase':
-    case 'TfodRoverRuckus':
-    case 'TfodSkyStone':
-      importCode = 'import org.firstinspires.ftc.robotcore.external.tfod.' + type + ';';
-      break;
-    default:
-      var matches = type.match(/^List<(.*)>$/);
-      if (matches) {
-        Blockly.FtcJava.generateImport_('List');
-        Blockly.FtcJava.generateImport_(matches[1]);
-        return true;
-      }
-  }
-  if (importCode) {
-    Blockly.FtcJava.definitions_['import_' + type] = importCode;
+  var matches = type.match(/^List<(.*)>$/);
+  if (matches) {
+    Blockly.FtcJava.generateImport_('List');
+    Blockly.FtcJava.generateImport_(matches[1]);
     return true;
   }
+
+  // Use knownTypeToClassName (in vars.js) to get the full class name of a type that used in blocks.
+  var className = knownTypeToClassName(type);
+  if (className) {
+    importCode = 'import ' + className + ';';
+    Blockly.FtcJava.definitions_['import_' + importCode] = importCode;
+    return true;
+  }
+
   return false;
 };
 
@@ -1239,6 +1119,13 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
       // androidTextToSpeechIdentifierForFtcJava is defined dynamically in
       // HardwareUtil.fetchJavaScriptForHardware().
       identifierForFtcJava = identifier = androidTextToSpeechIdentifierForFtcJava;
+      rvalue = 'new ' + javaType + '()';
+      needsToBeClosed = true;
+      break;
+    case 'TfodCustomModel':
+      // tfodCustomModelIdentifierForFtcJava is defined dynamically in
+      // HardwareUtil.fetchJavaScriptForHardware().
+      identifierForFtcJava = identifier = tfodCustomModelIdentifierForFtcJava;
       rvalue = 'new ' + javaType + '()';
       needsToBeClosed = true;
       break;
@@ -1303,12 +1190,7 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
         hardwareName = identifier;
       }
 
-      var deviceMappingName = Blockly.FtcJava.getDeviceMappingName_(javaType);
-      if (deviceMappingName != null) {
-        rvalue = 'hardwareMap.' + deviceMappingName + '.get("' + hardwareName + '")';
-      } else {
-        rvalue = 'hardwareMap.get(' + javaType + '.class, "' + hardwareName + '")';
-      }
+      rvalue = 'hardwareMap.get(' + javaType + '.class, "' + hardwareName + '")';
       break;
   }
 
@@ -1324,50 +1206,6 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
   }
 
   return identifierForFtcJava;
-};
-
-Blockly.FtcJava.getDeviceMappingName_ = function(javaType) {
-  switch (javaType) {
-    case 'AccelerationSensor':
-      return 'accelerationSensor';
-    case 'AnalogInput':
-      return 'analogInput';
-    case 'AnalogOutput':
-      return 'analogOutput';
-    case 'ColorSensor':
-      return 'colorSensor';
-    case 'CompassSensor':
-      return 'compassSensor';
-    case 'CRServo':
-      return 'crservo';
-    case 'DcMotor':
-      return 'dcMotor';
-    case 'DigitalChannel':
-      return 'digitalChannel';
-    case 'GyroSensor':
-      return 'gyroSensor';
-    case 'IrSeekerSensor':
-      return 'irSeekerSensor';
-    case 'LED':
-      return 'led';
-    case 'LightSensor':
-      return 'lightSensor';
-    case 'OpticalDistanceSensor':
-      return 'opticalDistanceSensor';
-    case 'PWMOutput':
-      return 'pwmOutput';
-    case 'Servo':
-      return 'servo';
-    case 'ServoController':
-      return 'servoController';
-    case 'TouchSensor':
-      return 'touchSensor';
-    case 'UltrasonicSensor':
-      return 'ultrasonicSensor';
-    case 'VoltageSensor':
-      return 'voltageSensor';
-  }
-  return null;
 };
 
 Blockly.FtcJava.getOpModeNameForFtcJava_ = function() {

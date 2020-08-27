@@ -32,7 +32,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.network;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,7 +39,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.ClassUtil;
@@ -183,14 +182,17 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
      * Sets the name by which this device is publicly known. Attempts in doing so to keep secondary
      * system names (e.g. the WifiDirect name, if applicable) in sync with this name.
      * @param deviceName the new name for the device
+     * @param sendChangeToSystem whether or not we should tell Android to change the WiFi Direct name
      */
     @Override
-    public synchronized void setDeviceName(@NonNull String deviceName)
-        {
+    public synchronized void setDeviceName(@NonNull String deviceName, boolean sendChangeToSystem) throws InvalidNetworkSettingException {
         if (!validDeviceName(deviceName))
             {
-            RobotLog.ee(TAG, "setDeviceName(%s): failed; invalid WiFi-Direct name", deviceName);
-            return;
+            throw new InvalidNetworkSettingException(String.format("Name \"%s\" does not conform to FIRST Tech Challenge naming rules", deviceName));
+            }
+        if (!sendChangeToSystem)
+            {
+            setDeviceNameTracking(DeviceNameTracking.AWAITING_WIFIDIRECT); // prevents sending name to system
             }
         internalSetDeviceName(deviceName);
         }
@@ -223,9 +225,10 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
      * Reverts the system to some randomly fabricated name.
      */
     @Override
-    public void resetDeviceName()
+    public String resetDeviceName(boolean sendChangeToSystem)
         {
-        initializeDeviceNameFromMadeUp();
+        initializeDeviceNameFromMadeUp(!sendChangeToSystem);
+        return getDeviceName();
         }
 
     //----------------------------------------------------------------------------------------------
@@ -260,7 +263,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
         // subsequent real WifiDirect name notification override.
         if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
             {
-            initializeDeviceNameFromMadeUp();
+            initializeDeviceNameFromMadeUp(true);
             }
 
         Assert.assertTrue(getDeviceNameTracking()!=DeviceNameTracking.UNINITIALIZED);
@@ -313,10 +316,16 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
         RobotLog.vv(TAG, "...initializeDeviceNameFromAndroidInternal()");
         }
 
-    protected void initializeDeviceNameFromMadeUp()
+    protected void initializeDeviceNameFromMadeUp(boolean onlyUseAsPlaceholder)
         {
-        RobotLog.vv(TAG, "initializeDeviceNameFromMadeUp(): name=%s ...", defaultMadeUpDeviceName);
-        setDeviceNameTracking(DeviceNameTracking.AWAITING_WIFIDIRECT);
+        RobotLog.vv(TAG, "initializeDeviceNameFromMadeUp(): name=%s onlyUseAsPlaceholder=%b ...", defaultMadeUpDeviceName, onlyUseAsPlaceholder);
+        if (onlyUseAsPlaceholder) {
+            // Don't send the new name to the system
+            setDeviceNameTracking(DeviceNameTracking.AWAITING_WIFIDIRECT);
+        } else {
+            // Update the system WiFi direct name with the made up value
+            setDeviceNameTracking(DeviceNameTracking.WIFIDIRECT);
+        }
         internalSetDeviceName(defaultMadeUpDeviceName);
         RobotLog.vv(TAG, "..initializeDeviceNameFromMadeUp()");
         }

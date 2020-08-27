@@ -37,6 +37,7 @@ import android.os.Debug;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
@@ -137,6 +138,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
   protected boolean               callToStartNeeded    = false;
   protected boolean               gamepadResetNeeded   = false;
   protected boolean               telemetryClearNeeded = false;
+  protected boolean               skipCallToStop       = false;
   protected AtomicReference<OpModeStateTransition> nextOpModeState = new AtomicReference<OpModeStateTransition>(null);
 
   protected static final WeakHashMap<Activity,OpModeManagerImpl> mapActivityToOpModeManager = new WeakHashMap<Activity,OpModeManagerImpl>();
@@ -324,7 +326,10 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     }
 
     if (opModeSwapNeeded) {
-      callActiveOpModeStop();
+      if(!skipCallToStop || /*Paranoia*/(activeOpMode instanceof LinearOpMode)) { //Skipping call to stop() would be VERY bad for linear
+        callActiveOpModeStop();
+      }
+      skipCallToStop = false;
       performOpModeSwap();
       opModeSwapNeeded = false;
     }
@@ -349,17 +354,25 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
       NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_NOTIFY_INIT_OP_MODE, activeOpModeName)); // send *truth* to DS
     }
 
-    if (callToStartNeeded) {
+    /*
+     * NOTE: it's important that we use else if here, to avoid more than one user method
+     * being called during any one iteration. That, in turn, is important to make sure
+     * that if the force-stop logic manages to capture rogue user code, we can cleanly
+     * terminate the opmode immediately, without any other user methods being called.
+     */
+
+    else if (callToStartNeeded) {
       callActiveOpModeStart();
       opModeState = OpModeState.LOOPING;
       callToStartNeeded = false;
       NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_NOTIFY_RUN_OP_MODE, activeOpModeName)); // send *truth* to DS
     }
 
-    if (opModeState==OpModeState.INIT)
+    else if (opModeState==OpModeState.INIT) {
       callActiveOpModeInitLoop();
-    else if (opModeState==OpModeState.LOOPING)
+    } else if (opModeState==OpModeState.LOOPING) {
       callActiveOpModeLoop();
+    }
   }
 
   // resets the hardware to the state expected at the start of an opmode
@@ -393,10 +406,15 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
   }
 
   protected void callActiveOpModeStop() {
-    detectStuck(activeOpMode.msStuckDetectStop, "stop()", new Runnable() {
-      @Override public void run() {
-        activeOpMode.stop();
-    }});
+    try {
+      detectStuck(activeOpMode.msStuckDetectStop, "stop()", new Runnable() {
+        @Override public void run() {
+          activeOpMode.stop();
+        }});
+    } catch (ForceStopException e) {
+      //We're already stopping, nothing to do
+    }
+
     synchronized (this.listeners) {
       for (OpModeManagerNotifier.Notifications listener : this.listeners) {
         listener.onOpModePostStop(activeOpMode);
@@ -419,8 +437,21 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
       runnable.run();
     } finally {
       stuckMonitor.stopMonitoring();
+
+      // We need to wait for the monitoring sequence to fully conclude,
+      // in order to avoid possibly crashing any code that might run
+      // after a force stop, before the throw flag on the network lock
+      // has been retracted.
+      try {
+        stuckMonitor.acquired.await();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+        Thread.currentThread().interrupt();
+      }
     }
   }
+
+  public static class ForceStopException extends RuntimeException {}
 
   /** A utility class that detects infinite loops in user code */
   protected class OpModeStuckCodeMonitor {
@@ -462,16 +493,55 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     }
 
     protected class Runner implements Runnable {
+
+      final static String msgForceStoppedCommon = "User OpMode was stuck in %s, but was able to be force stopped without restarting the app. ";
+      final static String msgForceStoppedPopupIterative = msgForceStoppedCommon + "It appears this was an iterative OpMode; make sure you aren't using your own loops.";
+      final static String msgForceStoppedPopupLinear    = msgForceStoppedCommon + "It appears this was a linear OpMode; make sure you are calling opModeIsActive() in any loops.";
+
       @Override public void run() {
         boolean errorWasSet = false;
         try {
           // We won't bother timing if a debugger is attached because single stepping
           // etc in a debugger can take an arbitrarily long amount of time.
-          if (checkForDebugger()) return;
+          if (checkForDebugger()) {
+            return;
+          }
 
           if (!stopped.tryAcquire(msTimeout, TimeUnit.MILLISECONDS)) {
-            // Timeout hit waiting for opmode to stop. Inform user, then restart app.
-            if (checkForDebugger()) return;
+
+            // Prepare for final 100ms phase where we try to force stop at bus lock level
+            for (RobotCoreLynxUsbDevice dev : hardwareMap.getAll(RobotCoreLynxUsbDevice.class)) {
+              dev.setThrowOnNetworkLockAcquisition(true);
+            }
+
+            // Final 100ms chance for exit before lethal injection
+            if (stopped.tryAcquire(100, TimeUnit.MILLISECONDS)) {
+              // Woot, we got 'em! Notify the user they dun goofed in their code
+              String msgForUser;
+
+              if(activeOpMode instanceof LinearOpMode) {
+                msgForUser = msgForceStoppedPopupLinear;
+              }
+              else { // iterative
+                msgForUser = msgForceStoppedPopupIterative;
+              }
+
+              AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "OpMode Force-Stopped", String.format(msgForUser, method));
+
+              // Clear this flag so we don't crash the default opmode
+              for (RobotCoreLynxUsbDevice dev : hardwareMap.getAll(RobotCoreLynxUsbDevice.class)) {
+                dev.setThrowOnNetworkLockAcquisition(false);
+              }
+
+              // We're all done here!
+              return;
+            }
+
+            // Well shoot. That didn't work. On to the lethal injection, then. But, we need to clear
+            // this flag to allow for the last ditch effort failsafe below
+            for (RobotCoreLynxUsbDevice dev : hardwareMap.getAll(RobotCoreLynxUsbDevice.class)) {
+              dev.setThrowOnNetworkLockAcquisition(false);
+            }
 
             String message = String.format(context.getString(R.string.errorOpModeStuck), activeOpModeName, method);
             errorWasSet = RobotLog.setGlobalErrorMsg(message);
@@ -573,10 +643,19 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     }
 
     activeOpMode.internalPreInit();
-    detectStuck(activeOpMode.msStuckDetectInit, "init()", new Runnable() {
-      @Override public void run() {
-        activeOpMode.init();
-    }}, true);
+    try {
+        detectStuck(activeOpMode.msStuckDetectInit, "init()", new Runnable() {
+            @Override public void run() {
+                activeOpMode.init();
+            }}, true);
+    } catch (ForceStopException e) {
+        /*
+         * OpMode ran away in init() but we were able force stop him.
+         * Get out of dodge with a switch to the StopRobot OpMode.
+         */
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+    }
   }
 
   protected void callActiveOpModeStart() {
@@ -590,25 +669,57 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         ((OpModeManagerNotifier.Notifications)device).onOpModePreStart(activeOpMode);
       }
     }
-    detectStuck(activeOpMode.msStuckDetectStart, "start()", new Runnable() {
-      @Override public void run() {
-        activeOpMode.start();
-    }});
+
+    try {
+        detectStuck(activeOpMode.msStuckDetectStart, "start()", new Runnable() {
+            @Override public void run() {
+                activeOpMode.start();
+            }});
+    } catch (ForceStopException e) {
+        /*
+         * OpMode ran away in start() but we were able force stop him.
+         * Get out of dodge with a switch to the StopRobot OpMode.
+         */
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+    }
   }
 
   protected void callActiveOpModeInitLoop() {
-    detectStuck(activeOpMode.msStuckDetectInitLoop, "init_loop()", new Runnable() {
-      @Override public void run() {
-        activeOpMode.init_loop();
-    }});
+   try {
+       detectStuck(activeOpMode.msStuckDetectInitLoop, "init_loop()", new Runnable() {
+           @Override public void run() {
+               activeOpMode.init_loop();
+           }});
+   } catch (ForceStopException e) {
+       /*
+        * OpMode ran away in init_loop() but we were able force stop him.
+        * Now, to avoid the same thing just happening again on the next
+        * init_loop() call, we switch to the StopRobot OpMode.
+        */
+     initActiveOpMode(DEFAULT_OP_MODE_NAME);
+     skipCallToStop = true;
+   }
+
     activeOpMode.internalPostInitLoop();
   }
 
   protected void callActiveOpModeLoop() {
-    detectStuck(activeOpMode.msStuckDetectLoop, "loop()", new Runnable() {
-      @Override public void run() {
-        activeOpMode.loop();
-    }});
+    try {
+      detectStuck(activeOpMode.msStuckDetectLoop, "loop()", new Runnable() {
+        @Override public void run() {
+          activeOpMode.loop();
+        }});
+    } catch (ForceStopException e) {
+      /*
+       * OpMode ran away in loop() but we were able force stop him.
+       * Now, to avoid the same thing just happening again on the next
+       * loop() call, we switch to the StopRobot OpMode.
+       */
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+    }
+
     activeOpMode.internalPostLoop();
   }
 

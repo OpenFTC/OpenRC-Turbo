@@ -37,7 +37,6 @@ package com.qualcomm.ftccommon;
 @SuppressWarnings("WeakerAccess")
 public class LaunchActivityConstantsList {
 
-  public static final String ZTE_WIFI_CHANNEL_EDITOR_PACKAGE = "com.zte.wifichanneleditor";
   public static final String VIEW_LOGS_ACTIVITY_FILENAME     = "org.firstinspires.ftc.ftccommon.logFilename";
 
   /**

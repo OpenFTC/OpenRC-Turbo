@@ -36,6 +36,8 @@ import com.qualcomm.hardware.lynx.commands.standard.LynxNack;
 import com.qualcomm.robotcore.exception.TargetPositionNotSetException;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+
 /**
  * Created by bob on 2016-12-11.
  */
@@ -76,6 +78,10 @@ public class LynxCommExceptionHandler
         boolean commandIsSupported = true;
         if (e instanceof InterruptedException)
             handleSpecificException((InterruptedException)e);
+        if (e instanceof OpModeManagerImpl.ForceStopException) //Rethrow
+            {
+            throw (OpModeManagerImpl.ForceStopException)e;
+            }
         else if (e instanceof LynxNackException)
             {
             LynxNackException nackException = (LynxNackException)e;

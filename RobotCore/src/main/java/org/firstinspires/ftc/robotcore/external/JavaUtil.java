@@ -1,22 +1,25 @@
 /*
-Copyright 2018 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.firstinspires.ftc.robotcore.external;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
+import android.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -484,5 +487,44 @@ public class JavaUtil {
     array[1] = saturation;
     array[2] = value;
     return Color.HSVToColor(alpha, array);
+  }
+
+  private static float[] rgbToHSV(int red, int green, int blue) {
+    float[] array = new float[3];
+    Color.RGBToHSV(red, green, blue, array);
+    return array;
+  }
+
+  public static float rgbToHue(int red, int green, int blue) {
+    return rgbToHSV(red, green, blue)[0];
+  }
+
+  public static float rgbToSaturation(int red, int green, int blue) {
+    return rgbToHSV(red, green, blue)[1];
+  }
+
+  public static float rgbToValue(int red, int green, int blue) {
+    return rgbToHSV(red, green, blue)[2];
+  }
+
+  public static String colorToText(int color) {
+    String hex = String.format("%08X", color);
+    // If the alpha is FF (fully opaque), omit it.
+    if (hex.startsWith("FF")) {
+      hex = hex.substring(2);
+    }
+    return "#" + hex;
+  }
+
+  public static void showColor(Context appContext, final int color) {
+    if (appContext instanceof Activity) {
+      int relativeLayoutId = appContext.getResources().getIdentifier("RelativeLayout", "id", appContext.getPackageName());
+      final View relativeLayout = ((Activity) appContext).findViewById(relativeLayoutId);
+      relativeLayout.post(new Runnable() {
+        public void run() {
+          relativeLayout.setBackgroundColor(color);
+        }
+      });
+    }
   }
 }

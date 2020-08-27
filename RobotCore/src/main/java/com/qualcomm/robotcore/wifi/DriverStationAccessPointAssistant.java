@@ -43,9 +43,12 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
@@ -55,8 +58,7 @@ import java.util.List;
 
 public class DriverStationAccessPointAssistant extends AccessPointAssistant {
 
-    private static final String TAG = "AccessPointAssistant";
-    private static final String NO_AP = "No Access Point";
+    private static final String TAG = "DriverStationAccessPointAssistant";
     private static final boolean DEBUG = false;
 
     private static DriverStationAccessPointAssistant wirelessAPAssistant = null;
@@ -65,6 +67,12 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     private IntentFilter intentFilter;
     private BroadcastReceiver receiver;
     private ConnectStatus connectStatus;
+
+    private final Object enableDisableLock = new Object();
+
+    private static final Object listenersLock = new Object();
+    private ArrayList<ConnectedNetworkHealthListener> healthListeners = new ArrayList<>();
+    private NetworkHealthPollerThread networkHealthPollerThread;
 
     private DriverStationAccessPointAssistant(Context context) {
 
@@ -77,6 +85,7 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
         if (wifiManager.getConnectionInfo().getSupplicantState() == SupplicantState.COMPLETED) {
             connectStatus = ConnectStatus.CONNECTED;
             saveConnectionInfo(wifiManager.getConnectionInfo());
+            startHealthPoller();
         } else {
             connectStatus = ConnectStatus.NOT_CONNECTED;
         }
@@ -102,19 +111,22 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     @Override
     public void enable()
     {
-        if (receiver == null) receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
-                    handleScanResultsAvailable(intent);
-                } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                    handleNetworkStateChanged(intent);
-                }
+        synchronized (enableDisableLock) {
+            if (receiver == null) {
+                receiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        String action = intent.getAction();
+                        if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
+                            handleScanResultsAvailable(intent);
+                        } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
+                            handleNetworkStateChanged(intent);
+                        }
+                    }
+                };
+                context.registerReceiver(receiver, intentFilter);
             }
-        };
-
-        context.registerReceiver(receiver, intentFilter);
+        }
     }
 
     /**
@@ -125,8 +137,11 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     @Override
     public void disable()
     {
-        if (receiver != null) {
-            context.unregisterReceiver(receiver);
+        synchronized (enableDisableLock) {
+            if (receiver != null) {
+                context.unregisterReceiver(receiver);
+                receiver = null;
+            }
         }
     }
 
@@ -137,6 +152,12 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
      */
     @Override public String getConnectionOwnerName() {
         return WifiUtil.getConnectedSsid();
+    }
+
+    @Override
+    public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel)
+    {
+        RobotLog.ee(TAG, "setNetworkProperties not supported on Driver Station");
     }
 
     /**
@@ -188,6 +209,69 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
         }
     }
 
+    public void registerNetworkHealthListener(ConnectedNetworkHealthListener listener)
+    {
+        synchronized (listenersLock) {
+            healthListeners.add(listener);
+        }
+    }
+
+    public void unregisterNetworkHealthListener(ConnectedNetworkHealthListener listener)
+    {
+        synchronized (listenersLock) {
+            healthListeners.remove(listener);
+        }
+    }
+
+    public interface ConnectedNetworkHealthListener
+    {
+        void onNetworkHealthUpdate(int rssi, int linkSpeed);
+    }
+
+    public class NetworkHealthPollerThread extends Thread
+    {
+        @Override
+        public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+
+                int rssi = wifiInfo.getRssi();
+                int linkSpeed = wifiInfo.getLinkSpeed();
+
+                synchronized (listenersLock) {
+                    for(ConnectedNetworkHealthListener listener : healthListeners) {
+                        listener.onNetworkHealthUpdate(rssi, linkSpeed);
+                    }
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private void startHealthPoller()
+    {
+        if (networkHealthPollerThread != null && !networkHealthPollerThread.isInterrupted()) {
+            //error
+        }
+        else {
+            networkHealthPollerThread = new NetworkHealthPollerThread();
+            networkHealthPollerThread.start();
+        }
+    }
+
+    private void killHealthPoller()
+    {
+        if(networkHealthPollerThread != null) {
+            networkHealthPollerThread.interrupt();
+            networkHealthPollerThread = null;
+        }
+    }
+
     /**
      * handleNetworkStateChanged
      */
@@ -198,7 +282,9 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
         RobotLog.v("Wifi state change:, state: " + state + ", wifiInfo: " + wifiInfo);
         if ((connectStatus == ConnectStatus.CONNECTED) && (state.isConnected() == false)) {
             handleWifiDisconnect();
+            killHealthPoller();
         } else if ((connectStatus == ConnectStatus.NOT_CONNECTED) && (state.isConnected() == true)) {
+            startHealthPoller();
             connectStatus = ConnectStatus.CONNECTED;
             saveConnectionInfo(wifiInfo);
             sendEvent(NetworkEvent.CONNECTION_INFO_AVAILABLE);

@@ -29,15 +29,10 @@
  */
 package org.firstinspires.ftc.robotcore.internal.opmode;
 
-import org.firstinspires.ftc.robotcore.external.Supplier;
-import org.firstinspires.ftc.robotcore.internal.files.FileBasedLock;
-
-import java.io.File;
-
-import static org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper.buildLockDir;
+import org.firstinspires.ftc.robotcore.internal.system.LockingRunner;
 
 public class OnBotJavaBuildLocker {
-
+    private static final LockingRunner lock = new LockingRunner();
 
     /**
      * Obtain exclusive access to the state manipulated during the build. Note that in
@@ -46,17 +41,9 @@ public class OnBotJavaBuildLocker {
      */
     public static void lockBuildExclusiveWhile(final Runnable runnable)
     {
-        FileBasedLock lock = new FileBasedLock(buildLockDir);
         try
         {
-            lock.lockWhile(new Supplier<Void>()
-            {
-                @Override public Void get()
-                {
-                    runnable.run();
-                    return null;
-                }
-            });
+            lock.lockWhile(runnable);
         }
         catch (InterruptedException e)
         {

@@ -20,8 +20,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Region;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import com.google.ftcresearch.tfod.util.ImageUtils;
 import com.google.ftcresearch.tfod.util.Size;
@@ -60,6 +61,8 @@ class YuvRgbFrame {
   private final Object argb8888Lock = new Object();
   private int argb8888Size;
   private int[] argb8888Array;
+  private Double argb8888ZoomMagnification;
+  private Double argb8888ZoomAspectRatio;
 
   /**
    * Construct a YuvRgbFrame from RGB565 data.
@@ -110,7 +113,7 @@ class YuvRgbFrame {
       Timer timer = new Timer(tag);
       timer.start("YuvRgbFrame.getLuminosityArray");
 
-      // Scale rgb555Bitmap to the new size.
+      // Scale rgb565Bitmap to the new size.
       Bitmap rgb565ScaledBitmap =
           Bitmap.createScaledBitmap(rgb565Bitmap, newSize.width, newSize.height, false);
       // Convert to ARGB_8888.
@@ -138,20 +141,44 @@ class YuvRgbFrame {
     }
   }
 
-  int[] getArgb8888Array(int newSize) {
+  int[] getArgb8888Array(int newSize, double zoomMagnification, double zoomAspectRatio) {
     synchronized (argb8888Lock) {
-      if (newSize == argb8888Size) {
+      if (newSize == argb8888Size &&
+          argb8888ZoomMagnification != null &&
+          Zoom.areEqual(zoomMagnification, argb8888ZoomMagnification) &&
+          argb8888ZoomAspectRatio != null &&
+          Zoom.areEqual(zoomAspectRatio, argb8888ZoomAspectRatio)) {
         return argb8888Array;
       }
       if (argb8888Size != 0) {
-        Log.w(TAG, "getArgb8888Array called for multiple sizes " + argb8888Size + " and " + newSize);
+        Log.w(TAG, "getArgb8888Array called for multiple sizes " +
+            argb8888Size + " and " + newSize);
+      }
+      if (argb8888ZoomMagnification != null) {
+        Log.w(TAG, "getArgb8888Array called for multiple zoom magnifications " +
+            argb8888ZoomMagnification + " and " + zoomMagnification);
+      }
+      if (argb8888ZoomAspectRatio != null) {
+        Log.w(TAG, "getArgb8888Array called for multiple zoom aspect ratios " +
+            argb8888ZoomAspectRatio + " and " + zoomAspectRatio);
       }
 
       Timer timer = new Timer(tag);
       timer.start("YuvRgbFrame.getArgb8888Array");
-      // Scale rgb555Bitmap to the new size.
-      Bitmap rgb565ScaledBitmap =
-          Bitmap.createScaledBitmap(rgb565Bitmap, newSize, newSize, false);
+
+      Bitmap rgb565Bitmap;
+      if (Zoom.isZoomed(zoomMagnification)) {
+        Rect rect = Zoom.getZoomArea(zoomMagnification, zoomAspectRatio, size.width, size.height);
+        rgb565Bitmap = Bitmap.createBitmap(this.rgb565Bitmap,
+            rect.left, rect.top, rect.width(), rect.height());
+      } else {
+        rgb565Bitmap = this.rgb565Bitmap;
+      }
+
+      // Scale rgb565Bitmap to the new size.
+      Bitmap rgb565ScaledBitmap = Bitmap.createScaledBitmap(rgb565Bitmap, newSize, newSize, false);
+      rgb565Bitmap = null;
+
       // Convert to ARGB_8888.
       Bitmap argb8888ScaledBitmap = rgb565ScaledBitmap.copy(Bitmap.Config.ARGB_8888, false);
       rgb565ScaledBitmap = null;
@@ -162,8 +189,11 @@ class YuvRgbFrame {
       argb8888ScaledBitmap = null;
       timer.end();
 
+      // Save it in case we are asked for it again.
       argb8888Array = argb8888ScaledArray;
       argb8888Size = newSize;
+      argb8888ZoomMagnification = zoomMagnification;
+      argb8888ZoomAspectRatio = zoomAspectRatio;
       return argb8888Array;
     }
   }

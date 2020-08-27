@@ -42,7 +42,7 @@ width: 1px;\
 background: #e8e8e8;\
 }\
 .ace-chrome {\
-background-color: #FFFFFF !important;\
+background-color: #FFFFFF;\
 color: black !important;\
 }\
 .ace-chrome .ace_cursor {\

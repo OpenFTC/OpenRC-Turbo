@@ -92,6 +92,7 @@
     <color name="background_black">#000000</color>
     <color name="background_dark_gray">#444444</color>
     <color name="background_orange">#ff9000</color>
+    <color name="background_very_light_grey">#efefef</color>
     <color name="background_white">#ffffff</color>
     <color name="border_orange">#ff6700</color>
     <color name="bright_blue">#190aff</color>
@@ -145,7 +146,6 @@
     <color name="medium_teal">#106989</color>
     <color name="text_error">@color/bright_red</color>
     <color name="text_okay">#009900</color>
-    <color name="text_toast">@color/text_white</color>
     <color name="text_warning">#ff8000</color>
     <color name="text_white">#FFFFFFFF</color>
     <color name="very_dark_blue">#06023f</color>
@@ -237,6 +237,9 @@
     <string name="connection_owner_default">NONE</string>
     <string name="connection_owner_password_default">password</string>
     <string name="continuous_servo_description">a continuous rotation servo</string>
+    <string name="controlHubDisplayName">Control Hub</string>
+    <string name="control_hub_module_name">Control Hub</string>
+    <string name="control_hub_usb_device_name">Control Hub Portal</string>
     <string name="counted_camera_name">Webcam %d</string>
     <string name="counted_device_interface_module_name">Device Interface Module %d</string>
     <string name="counted_imu_name">imu %d</string>
@@ -257,7 +260,8 @@
     <string name="duplicateWebcam">ambiguous device for webcam %1$s</string>
     <string name="duplicateWebcamWithName">ambiguous device for webcam \"%1$s\" (%2$s)</string>
     <string name="errorOpModeStuck">OpMode \'%1$s\' stuck in %2$s. Restarting robot controller app.</string>
-    <string name="incompatibleAppsError">Incompatible apps: %1$s=v%2$d vs %3$s=v%4$d.</string>
+    <string name="expansionHubDisplayName">Expansion Hub</string>
+    <string name="incompatibleAppsError">The Robot Controller and Driver Station apps are incompatible with each other. Update the %s app.</string>
     <string name="led_description">an LED</string>
     <string name="locationServices">The Driver Station has detected that it can not find any WifiDirect peers and Location Services is
     turned off at a System Level.  Google\'s Android operating system, Oreo and above, requires Locations Services to be on in order to scan
@@ -266,7 +270,6 @@
     <string name="lynxDcMotorControllerDisplayName">Expansion Hub DC Motor Controller</string>
     <string name="lynxDigitalChannelControllerDisplayName">Expansion Hub Digital Channel Controller</string>
     <string name="lynxI2cDeviceSynchDisplayName">Expansion Hub I2C Device</string>
-    <string name="lynxModuleDisplayName">Expansion Hub</string>
     <string name="lynxPwmOutputControllerDisplayName">Expansion Hub Pwm Controller</string>
     <string name="lynxServoControllerDisplayName">Expansion Hub Servo Controller</string>
     <string name="lynxUnavailableFWVersionString">firmware version unavailable</string>
@@ -350,6 +353,8 @@
     <string name="pref_device_name_rc">pref_device_name_rc</string>
     <string name="pref_device_name_rc_display">pref_device_name_rc_display</string>
     <string name="pref_device_name_tracking">pref_device_name_tracking</string>
+    <string name="pref_ds_supports_5_ghz">pref_ds_supports_5_ghz</string>
+    <string name="pref_ds_version_code">pref_ds_version_code</string>
     <string name="pref_gamepad_user1_type_key">pref_gamepad_user1_type</string>
     <string name="pref_gamepad_user2_type_key">pref_gamepad_user2_type</string>
     <string name="pref_has_independent_phone_battery">pref_has_independent_phone_battery</string>
@@ -369,7 +374,6 @@
     <string name="pref_lib_version">pref_lib_version</string>
     <string name="pref_lib_version_rc">pref_lib_version_rc</string>
     <string name="pref_match_logging_on_off">pref_match_logging_on_off</string>
-    <string name="pref_match_logging_on_off_not_supported">Not supported on KitKat.</string>
     <string name="pref_match_logging_on_off_summary">Adds the ability to specify match numbers and store per-match log files in /sdcard/FIRST/matchlogs on the robot controller.</string>
     <string name="pref_match_logging_on_off_title">Match Logging</string>
     <string name="pref_network_connection_info">pref_network_connection_info</string>
@@ -386,6 +390,9 @@
     <string name="pref_rc_connected">pref_rc_connected</string>
     <string name="pref_sound_on_off">pref_sound_on_off</string>
     <string name="pref_sound_on_off_rc">pref_sound_on_off_rc</string>
+    <string name="pref_warn_about_2_4_ghz_band">pref_warn_about_2_4_ghz_band</string>
+    <string name="pref_warn_about_mismatched_app_versions">pref_warn_about_mismatched_app_versions</string>
+    <string name="pref_warn_about_outdated_firmware">pref_warn_about_outdated_firmware</string>
     <string name="pref_wifip2p_channel">pref_wifip2p_channel</string>
     <string name="pref_wifip2p_groupowner_connectedto">pref_wifip2p_groupowner_connectedto</string>
     <string name="pref_wifip2p_groupowner_lastconnectedto">pref_wifip2p_groupowner_lastconnectedto</string>
@@ -401,21 +408,21 @@
     <string name="prefcat_wifi_settings">Wifi Settings</string>
     <string name="prefedit_app_theme_ds">Driver Station Color Scheme</string>
     <string name="prefedit_app_theme_rc">Robot Controller Color Scheme</string>
-    <string name="prefedit_app_theme_summary_ds">Change the color scheme of the driver station. Note: the app will restart if the color scheme is changed</string>
+    <string name="prefedit_app_theme_summary_ds">Change the color scheme of the driver station. Will take effect on next app launch.</string>
     <string name="prefedit_app_theme_summary_rc">Change the color scheme of the robot controller. Note: the app will restart if the color scheme is changed</string>
-    <string name="prefedit_change_wifi_channel">Change Wifi Channel</string>
+    <string name="prefedit_change_wifi_channel">Change Wifi Direct Channel</string>
     <string name="prefedit_clear_remembered_groups_summary">Clears remembered Wifi Direct groups from the robot controller</string>
     <string name="prefedit_debug_driver_station_logs">Log Internal Events</string>
     <string name="prefedit_debug_driver_station_logs_summary">Record low-level internal events to the log. This may generate a large log volume.</string>
     <string name="prefedit_device_name">Device Name</string>
     <string name="prefedit_device_name_ds">Driver Station Name</string>
-    <string name="prefedit_device_name_invalid_text">Controller Name Invalid</string>
+    <string name="prefedit_device_name_invalid_text">Name invalid. Valid formats are 9999-RC/DS or 9999-X-DS/RC where X is a letter identifier used to distinguish multiple pairs of phones.</string>
     <string name="prefedit_device_name_invalid_title">Invalid Input</string>
     <string name="prefedit_device_name_rc">Robot Controller Name</string>
     <string name="prefedit_device_name_summary">Change the name of this device</string>
     <string name="prefedit_device_name_summary_ds">Change the name of the driver station</string>
     <string name="prefedit_device_name_summary_rc">Change the name of the robot controller</string>
-    <string name="prefedit_edit_wifi_channel_summary">Changes the Wifi channel on which the robot controller operates</string>
+    <string name="prefedit_edit_wifi_channel_summary">Changes the Wifi channel on which the phone-based robot controller operates</string>
     <string name="prefedit_gamepad_user1_type">Gamepad #1 Type</string>
     <string name="prefedit_gamepad_user2_type">Gamepad #2 Type</string>
     <string name="prefedit_launch_inspect_ds">Inspect Driver Station</string>
@@ -437,8 +444,8 @@
     <string name="rev_40_hd_hex_name">REV Robotics 40:1 HD Hex Motor</string>
     <string name="rev_blinkin_description">a REV Blinkin LED Driver</string>
     <string name="rev_blinkin_name">REV Blinkin LED Driver</string>
-    <string name="rev_color_sensor_v3_description">a Rev Color Sensor v3</string>
-    <string name="rev_color_sensor_v3_name">Rev Color Sensor v3</string>
+    <string name="rev_color_sensor_v3_description">a REV Color Sensor V3</string>
+    <string name="rev_color_sensor_v3_name">REV Color Sensor V3</string>
     <string name="rev_core_hex_name">REV Robotics Core Hex Motor</string>
     <string name="rev_distributor">REV Robotics</string>
     <string name="rev_laser_sensor_description">a REV 2M (Time of Flight) Distance Sensor</string>
@@ -490,6 +497,8 @@
     <string name="usb_vid_name_logitech">Logitech</string>
     <string name="usb_vid_name_microsoft">Microsoft</string>
     <string name="usb_vid_name_qualcomm">Qualcomm</string>
+    <string name="warning2_4GhzUnnecessaryUsage">You are using the 2.4 GHz WiFi band when both the Robot Controller and Driver Station support 5 GHz. You should consider changing to a 5 GHz WiFi channel</string>
+    <string name="warningMismatchedAppVersions">The Robot Controller and Driver Station app versions do not match. You should consider updating the %s app</string>
     <string name="warningProblemCommunicatingWithUSBDevice">problem communicating with %s</string>
     <string name="warningTtsFailedToInitialize">Text-to-speech failed to initialize</string>
     <string name="warningUSBDeviceDetached">%s detached</string>

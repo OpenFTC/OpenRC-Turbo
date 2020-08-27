@@ -32,14 +32,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.robotcore.hardware;
 
-import java.util.List;
+import com.qualcomm.robotcore.util.SerialNumber;
 
 /**
  * {@link RobotCoreLynxModule} is the view of a Lynx Module available at the RobotCore layer.
  */
-public interface RobotCoreLynxModule
+public interface RobotCoreLynxModule extends HardwareDevice
     {
     int getModuleAddress();
+    SerialNumber getSerialNumber();
     String getFirmwareVersionString();
+    String getNullableFirmwareVersionString();
     boolean isParent();
     }

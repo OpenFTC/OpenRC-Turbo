@@ -1,18 +1,18 @@
 /*
-Copyright 2016 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.runtime;
 
@@ -72,6 +72,8 @@ abstract class HardwareAccess<DEVICE_TYPE extends HardwareDevice> extends Access
         return new AnalogOutputAccess(blocksOpMode, hardwareItem, hardwareMap);
       case BNO055IMU:
         return new BNO055IMUAccess(blocksOpMode, hardwareItem, hardwareMap);
+      case COLOR_RANGE_SENSOR:
+        return new ColorRangeSensorAccess(blocksOpMode, hardwareItem, hardwareMap);
       case COLOR_SENSOR:
         return new ColorSensorAccess(blocksOpMode, hardwareItem, hardwareMap);
       case COMPASS_SENSOR:
@@ -92,8 +94,6 @@ abstract class HardwareAccess<DEVICE_TYPE extends HardwareDevice> extends Access
         return new LedAccess(blocksOpMode, hardwareItem, hardwareMap);
       case LIGHT_SENSOR:
         return new LightSensorAccess(blocksOpMode, hardwareItem, hardwareMap);
-      case LYNX_I2C_COLOR_RANGE_SENSOR:
-        return new LynxI2cColorRangeSensorAccess(blocksOpMode, hardwareItem, hardwareMap);
       case LYNX_MODULE:
         return null;
       case MR_I2C_COMPASS_SENSOR:

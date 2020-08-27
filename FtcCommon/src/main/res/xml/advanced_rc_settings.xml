@@ -44,6 +44,24 @@
                 />
         </PreferenceScreen>
 
+        <SwitchPreference
+            android:title="@string/titleWarnAboutOutdatedHubs"
+            android:summary="@string/summaryWarnAboutOutdatedHubs"
+            android:key="@string/pref_warn_about_outdated_firmware"
+            android:defaultValue="true" />
+
+        <SwitchPreference
+            android:title="@string/titleWarnAboutMismatchedAppVersions"
+            android:summary="@string/summaryWarnAboutMismatchedAppVersions"
+            android:key="@string/pref_warn_about_mismatched_app_versions"
+            android:defaultValue="true" />
+
+        <SwitchPreference
+            android:title="@string/titleWarnAbout2_4GhzBand"
+            android:summary="@string/summaryWarnAbout2_4GhzBand"
+            android:key="@string/pref_warn_about_2_4_ghz_band"
+            android:defaultValue="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

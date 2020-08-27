@@ -32,14 +32,19 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.network;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Base64;
 
+import com.qualcomm.robotcore.hardware.USBAccessibleLynxModule;
+import com.qualcomm.robotcore.util.SerialNumber;
+
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * {@link RobotCoreCommandList} contains network commands that are accessible in the RobotCore module
@@ -67,6 +72,7 @@ public class RobotCoreCommandList
         }
 
     public static final String CMD_SHOW_PROGRESS = "CMD_SHOW_PROGRESS";
+    // This class should be considered a part of the public API, as it is broadcast via WebSocket
     static public class ShowProgress extends ProgressParameters
         {
         public String message;
@@ -168,9 +174,10 @@ public class RobotCoreCommandList
     public static final String CMD_NOTIFY_WIFI_DIRECT_REMEMBERED_GROUPS_CHANGED = "CMD_NOTIFY_WIFI_DIRECT_REMEMBERED_GROUPS_CHANGED";
     public static final String CMD_DISCONNECT_FROM_WIFI_DIRECT = "CMD_DISCONNECT_FROM_WIFI_DIRECT";
     public static final String CMD_VISUALLY_CONFIRM_WIFI_RESET = "CMD_VISUALLY_CONFIRM_WIFI_RESET";
+    public static final String CMD_VISUALLY_CONFIRM_WIFI_BAND_SWITCH = "CMD_VISUALLY_CONFIRM_WIFI_BAND_SWITCH";
 
     //----------------------------------------------------------------------------------------------
-    // Update management
+    // Lynx firmware update support
     //----------------------------------------------------------------------------------------------
 
     /**
@@ -190,6 +197,90 @@ public class RobotCoreCommandList
         public String getName()
             {
             return file.getName();
+            }
+        }
+
+    public static final String CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES = "CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES";
+    public static final String CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES_RESP = "CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES_RESP";
+
+    public static class LynxFirmwareImagesResp
+        {
+        /** used to prompt user as to where to load images for updating */
+        public File firstFolder = AppUtil.FIRST_FOLDER;
+        /** currently available images. files or assets. */
+        public ArrayList<FWImage> firmwareImages = new ArrayList<FWImage>();
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static LynxFirmwareImagesResp deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareImagesResp.class);
+            }
+        }
+    public static final String CMD_GET_USB_ACCESSIBLE_LYNX_MODULES = "CMD_GET_USB_ACCESSIBLE_LYNX_MODULES";
+    public static class USBAccessibleLynxModulesRequest
+        {
+        public boolean forFirmwareUpdate = false;
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static USBAccessibleLynxModulesRequest deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, USBAccessibleLynxModulesRequest.class);
+            }
+        }
+    public static final String CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP = "CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP";
+
+    /** This class should be considered a part of the public JSON API exposed via the webserver */
+    public static class USBAccessibleLynxModulesResp
+        {
+        public ArrayList<USBAccessibleLynxModule> modules = new ArrayList<USBAccessibleLynxModule>();
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static USBAccessibleLynxModulesResp deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, USBAccessibleLynxModulesResp.class);
+            }
+        }
+
+    public static final String CMD_LYNX_FIRMWARE_UPDATE = "CMD_LYNX_FIRMWARE_UPDATE";
+    public static class LynxFirmwareUpdate
+        {
+        public SerialNumber serialNumber;
+        public FWImage firmwareImageFile;
+        public String originatorId;
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static LynxFirmwareUpdate deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareUpdate.class);
+            }
+        }
+    /** This class should be considered a part of the public JSON API exposed via the webserver */
+    public static final String CMD_LYNX_FIRMWARE_UPDATE_RESP = "CMD_LYNX_FIRMWARE_UPDATE_RESP";
+    public static class LynxFirmwareUpdateResp
+        {
+        public boolean success;
+        public String errorMessage;
+        public String originatorId; // Should match the originatorId of the originating LynxFirmwareUpdate payload, unless the RC is pre-6.0
+
+        public String serialize()
+            {
+            return SimpleGson.getInstance().toJson(this);
+            }
+        public static LynxFirmwareUpdateResp deserialize(String serialized)
+            {
+            return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareUpdateResp.class);
             }
         }
 
@@ -294,6 +385,11 @@ public class RobotCoreCommandList
             return cmd;
             }
         }
+
+    //----------------------------------------------------------------------------------------------
+    // Telemetry
+    //----------------------------------------------------------------------------------------------
+    public static final String CMD_SET_TELEMETRY_DISPLAY_FORMAT = "CMD_SET_TELEM_DISPL_FORMAT";
 
     //----------------------------------------------------------------------------------------------
     // Telemetry text-to-speech

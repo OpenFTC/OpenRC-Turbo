@@ -37,6 +37,7 @@ import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraFrame;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
 
 /**
@@ -55,6 +56,8 @@ public interface VuforiaWebcamInternal
     CameraName getCameraName();
 
     Camera getCamera();
+
+    CameraCalibration getCalibrationInUse();
 
     void getFrameOnce(Continuation<? extends Consumer<CameraFrame>> oneShot);
     }

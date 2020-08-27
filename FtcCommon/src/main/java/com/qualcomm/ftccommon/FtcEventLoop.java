@@ -64,11 +64,16 @@ package com.qualcomm.ftccommon;
 import android.app.Activity;
 import android.hardware.usb.UsbDevice;
 import android.os.Build;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.ftccommon.configuration.FtcConfigurationActivity;
+import com.qualcomm.ftccommon.configuration.RobotConfigFile;
+import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
+import com.qualcomm.ftccommon.configuration.RobotConfigMap;
 import com.qualcomm.ftccommon.configuration.USBScanManager;
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.lynx.LynxModuleWarningManager;
+import com.qualcomm.hardware.lynx.LynxUsbDevice;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
@@ -77,6 +82,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LynxModuleMetaList;
 import com.qualcomm.robotcore.hardware.ScannedDevices;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.hardware.usb.RobotArmingStateNotifier;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
@@ -89,12 +96,12 @@ import com.qualcomm.robotcore.util.ThreadPool;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerInternal;
 import org.firstinspires.ftc.robotcore.internal.ftdi.FtDevice;
-import org.firstinspires.ftc.robotcore.internal.ftdi.FtDeviceIOException;
 import org.firstinspires.ftc.robotcore.internal.ftdi.FtDeviceManager;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
-import org.firstinspires.inspection.InspectionState;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -182,13 +189,25 @@ public class FtcEventLoop extends FtcEventLoopBase {
     sendUIState();
 
     ftcEventLoopHandler.init(eventLoopManager);
-    HardwareMap hardwareMap = ftcEventLoopHandler.getHardwareMap();
 
-    opModeManager.setHardwareMap(hardwareMap);
-    hardwareMap.logDevices();
-    InspectionState.cacheFirmwareInspectionVersion(hardwareMap);
+    LynxUsbDevice temporaryEmbeddedLynxUsb = null;
+    try {
+      if (LynxConstants.isRevControlHub()) {
+        temporaryEmbeddedLynxUsb = ensureControlHubAddressIsSetCorrectly();
+      }
 
-    LynxModuleWarningManager.getInstance().init(opModeManager);
+      HardwareMap hardwareMap = ftcEventLoopHandler.getHardwareMap();
+
+      opModeManager.setHardwareMap(hardwareMap);
+      hardwareMap.logDevices();
+      CachedLynxFirmwareVersions.update(hardwareMap);
+      LynxModuleWarningManager.getInstance().init(opModeManager, hardwareMap);
+    } finally {
+      if (temporaryEmbeddedLynxUsb != null) {
+        // For performance, we wait until now to close this, so that another delegate will be created before we close this one.
+        temporaryEmbeddedLynxUsb.close();
+      }
+    }
 
     RobotLog.ii(TAG, "======= INIT FINISH =======");
   }
@@ -270,10 +289,6 @@ public class FtcEventLoop extends FtcEventLoopBase {
         handleCommandInitOpMode(extra);
       } else if (name.equals(CommandList.CMD_RUN_OP_MODE)) {
         handleCommandRunOpMode(extra);
-      } else if (name.equals(CommandList.CMD_SCAN)) {
-        handleCommandScan(extra);
-      } else if (name.equals(CommandList.CMD_DISCOVER_LYNX_MODULES)) {
-        handleCommandDiscoverLynxModules(extra);
       } else if (name.equals(CommandList.CMD_SET_MATCH_NUMBER)) {
         handleCommandSetMatchNumber(extra);
       } else {
@@ -284,66 +299,6 @@ public class FtcEventLoop extends FtcEventLoopBase {
       }
     }
     return result;
-  }
-
-  /**
-   * @see FtcConfigurationActivity#doUSBScanAndUpdateUI()
-   */
-  protected void handleCommandScan(String extra) throws RobotCoreException, InterruptedException {
-    RobotLog.vv(FtcConfigurationActivity.TAG, "handling command SCAN");
-
-    final USBScanManager usbScanManager = startUsbScanMangerIfNecessary();
-
-    // Start a scan and wait for it to complete, but if a scan is already in progress, then just wait for that one to finish
-    final ThreadPool.SingletonResult<ScannedDevices> future = usbScanManager.startDeviceScanIfNecessary();
-
-    // Actually carry out the scan in a worker thread so that we don't hold up the receive loop for
-    // half-second or so that carrying out the scan will take.
-    ThreadPool.getDefault().execute(new Runnable() {
-      @Override public void run() {
-        try {
-          ScannedDevices scannedDevices = future.await();
-          if (scannedDevices==null) scannedDevices = new ScannedDevices();
-
-          // Package up the raw scanned device info and send that back to the DS
-          String data = usbScanManager.packageCommandResponse(scannedDevices);
-          RobotLog.vv(FtcConfigurationActivity.TAG, "handleCommandScan data='%s'", data);
-          networkConnectionHandler.sendCommand(new Command(CommandList.CMD_SCAN_RESP, data));
-
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
-    });
-  }
-
-  protected void handleCommandDiscoverLynxModules(String extra) throws RobotCoreException, InterruptedException {
-    RobotLog.vv(FtcConfigurationActivity.TAG, "handling command DiscoverLynxModules");
-    final SerialNumber serialNumber = SerialNumber.fromString(extra);
-
-    final USBScanManager usbScanManager = startUsbScanMangerIfNecessary();
-
-    // Start a scan and wait for it to complete, but if a scan is already in progress, then just wait for that one to finish
-    final ThreadPool.SingletonResult<LynxModuleMetaList> future = this.usbScanManager.startLynxModuleEnumerationIfNecessary(serialNumber);
-
-    // Actually carry out the scan in a worker thread so that we don't hold up the receive loop for
-    // full second or more that carrying out the discovery will take.
-    ThreadPool.getDefault().execute(new Runnable() {
-      @Override public void run() {
-        try {
-          LynxModuleMetaList lynxModules = future.await();
-          if (lynxModules==null) lynxModules = new LynxModuleMetaList(serialNumber);
-
-          // Package up the raw module list and send that back to the DS
-          String data = usbScanManager.packageCommandResponse(lynxModules);
-          RobotLog.vv(FtcConfigurationActivity.TAG, "DiscoverLynxModules data='%s'", data);
-          networkConnectionHandler.sendCommand(new Command(CommandList.CMD_DISCOVER_LYNX_MODULES_RESP, data));
-
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      }
-    });
   }
 
   /**
@@ -440,20 +395,18 @@ public class FtcEventLoop extends FtcEventLoopBase {
   protected SerialNumber getSerialNumberOfUsbDevice(UsbDevice usbDevice) {
     SerialNumber serialNumber = null;
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      serialNumber = SerialNumber.fromStringOrNull(usbDevice.getSerialNumber());
-    }
+    serialNumber = SerialNumber.fromStringOrNull(usbDevice.getSerialNumber());
 
     if (serialNumber==null) {
       // Don't need this branch any more, but left in for now to preserve code paths. Remove after further testing.
       FtDevice ftDevice = null;
       try {
-        FtDeviceManager manager = FtDeviceManager.getInstance(this.activityContext); // note: we're not supposed to close this
-        ftDevice = manager.openByUsbDevice(this.activityContext, usbDevice);
+        FtDeviceManager manager = FtDeviceManager.getInstance(); // note: we're not supposed to close this
+        ftDevice = manager.openByUsbDevice(usbDevice);
         if (ftDevice != null) {
           serialNumber = SerialNumber.fromStringOrNull(ftDevice.getDeviceInfo().serialNumber);
         }
-      } catch (RuntimeException|FtDeviceIOException e) {  // RuntimeException is paranoia
+      } catch (RuntimeException e) {  // paranoia
         // ignored
       } finally {
         if (ftDevice != null)
@@ -461,7 +414,7 @@ public class FtcEventLoop extends FtcEventLoopBase {
       }
     }
 
-    if (serialNumber==null) { // non FTDI devices on KitKat, or devices that simply lack a serial number
+    if (serialNumber==null) { // devices that simply lack a serial number
       try {
         CameraManagerInternal cameraManagerInternal = (CameraManagerInternal) ClassFactory.getInstance().getCameraManager();
         serialNumber = cameraManagerInternal.getRealOrVendorProductSerialNumber(usbDevice);
@@ -535,6 +488,50 @@ public class FtcEventLoop extends FtcEventLoopBase {
     UsbModuleAttachmentHandler handler = this.usbModuleAttachmentHandler;
     if (handler != null)
       handler.handleUsbModuleAttach(module);
+  }
+
+  /**
+   * The caller of this method MUST close the returned LynxUsbDevice (if one is returned).
+   *
+   * We return it instead of closing it ourselves to avoid performing the expensive arming process
+   * more than necessary.
+   *
+   * If we actually changed the address, we'll close it ourselves and return null instead.
+   * This is because we _want_ the module to be reset as a part of the arming process in this case,
+   * as the module should be reset after an address change.
+   */
+  private @Nullable LynxUsbDevice ensureControlHubAddressIsSetCorrectly() throws RobotCoreException, InterruptedException {
+    RobotLog.vv(TAG, "Ensuring that the Control Hub address is set correctly");
+    LynxUsbDevice embeddedLynxUsb = (LynxUsbDevice) startUsbScanMangerIfNecessary().getDeviceManager().createLynxUsbDevice(SerialNumber.createEmbedded(), null);
+    boolean justChangedControlHubAddress = embeddedLynxUsb.setControlHubModuleAddressIfNecessary();
+    if (justChangedControlHubAddress) {
+      updateEditableConfigFilesWithNewControlHubAddress();
+      embeddedLynxUsb.close();
+      embeddedLynxUsb = null;
+    }
+    return embeddedLynxUsb;
+  }
+
+  private void updateEditableConfigFilesWithNewControlHubAddress() throws RobotCoreException {
+    // Save the new embedded address to all editable config files. This primarily helps with backwards-compatibility.
+    RobotLog.vv(TAG, "We just auto-changed the Control Hub's address. Now auto-updating configuration files.");
+    ReadXMLFileHandler xmlReader = new ReadXMLFileHandler(startUsbScanMangerIfNecessary().getDeviceManager());
+    RobotConfigFileManager configFileManager = new RobotConfigFileManager();
+    try {
+      for (RobotConfigFile configFile : configFileManager.getXMLFiles()) {
+        if (!configFile.isReadOnly()) {
+          // The embedded parent address will be read as 173, regardless of what the XML says (see LynxUsbDeviceConfiguration).
+          // That means we can turn right around and re-serialize it with no additional processing.
+          RobotLog.vv(TAG, "Updating \"%s\" config file", configFile.getName());
+          RobotConfigMap deserializedConfig = new RobotConfigMap(xmlReader.parse(configFile.getXml()));
+          String reserializedConfig = configFileManager.toXml(deserializedConfig);
+          configFileManager.writeToFile(configFile, false, reserializedConfig);
+        }
+      }
+    } catch (IOException e) {
+      RobotLog.ee(TAG, e, "Failed to auto-update config files after automatically changing embedded Control Hub module address. This is OK.");
+      // It's not the end of the world if this fails, as the Control Hub's address will be read as 173 regardless of what the XML says.
+    }
   }
 
   public class DefaultUsbModuleAttachmentHandler implements UsbModuleAttachmentHandler {

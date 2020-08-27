@@ -2,8 +2,10 @@
     <category name="Optimized for SKYSTONE">
       <placeholder_camera_vuforiaSkyStone_initialize_withCameraDirection/>
       <placeholder_webcam_vuforiaSkyStone_initialize_withWebcam/>
+      <placeholder_switchableCamera_navigation_switchableCamera/>
       <block type="vuforiaSkyStone_activate"></block>
       <block type="vuforiaSkyStone_deactivate"></block>
+      <placeholder_switchableCamera_vuforiaSkyStone_setActiveCamera/>
       <block type="vuforiaSkyStone_track">
         <value name="TRACKABLE_NAME"><shadow type="vuforiaSkyStone_typedEnum_trackableName"></shadow></value>
       </block>

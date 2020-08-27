@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview functions used in both FtcBlocksProjects.html and FtcOfflineBlocksProjects.html
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -71,7 +88,12 @@ function initializeProjects() {
 function initializeSamples() {
   var select = document.getElementById('newProjectSamplesSelect');
   select.options.length = 0; // Clear previous values just in case.
-  select.appendChild(document.createElement('option')); // Insert blank option.
+
+  // Insert the first option, which is for the default op mode.
+  var option = document.createElement('option')
+  option.innerHTML = 'BasicOpMode';
+  option.value = ''; // Indicates the default op mode.
+  select.appendChild(option);
 
   fetchSamples(function(jsonSamples, errorMessage) {
     if (jsonSamples) {
@@ -90,7 +112,6 @@ function initializeSamples() {
 }
 
 function sampleSelected() {
-  var warnings = '';
   var select = document.getElementById('newProjectSamplesSelect');
   var jsonSample = select.options[select.selectedIndex].value;
   if (jsonSample) {
@@ -99,15 +120,15 @@ function sampleSelected() {
       var delimiter = '';
       for (var i = 0; i < sample.requestedCapabilities.length; i++) {
         var requestedCapability = sample.requestedCapabilities[i];
-        var warning = getCapabilityWarning(requestedCapability);
+        var warning = getWarningForCapabilityRequestedBySample(requestedCapability);
         if (warning) {
-          warnings += delimiter + warning;
-          delimiter = '<br>';
+          document.getElementById('newProjectNameError').innerHTML = warning;
+          return;
         }
       }
     }
   }
-  document.getElementById('newProjectNameError').innerHTML = warnings;
+  document.getElementById('newProjectNameError').innerHTML = '';
 }
 
 function toggleSortByName() {
@@ -276,9 +297,10 @@ function okNewProjectNameDialog() {
 function newProjectOk(newProjectName) {
   var select = document.getElementById('newProjectSamplesSelect');
   var jsonSample = select.options[select.selectedIndex].value;
+  // For the first item, value is ''. This indicates the default op mode.
   var sampleName = jsonSample
       ? JSON.parse(jsonSample).name
-      : "";
+      : '';
 
   // Create new project.
   newProject(newProjectName, sampleName, function(blkFileContent, errorMessage) {
@@ -423,6 +445,11 @@ function copyProjectButtonClicked() {
 function copyProjectOk(oldProjectName, newProjectName) {
   copyProject(oldProjectName, newProjectName, function(success, errorMessage) {
     if (success) {
+      // If the operation was only partially successful, errorMessage contains a message that can
+      // be shown to the user.
+      if (errorMessage) {
+        alert(errorMessage);
+      }
       // Close the dialog.
       document.getElementById('newProjectNameDialog').style.display = 'none';
       initializeProjects();
@@ -498,7 +525,7 @@ function yesDeleteProjectsDialog() {
   });
 }
 
-function projectCheckAllChanged(i) {
+function projectCheckAllChanged() {
   var checkboxAll = document.getElementById('checkbox_all');
   if (checkedProjects.length == 0) {
     // Check all.

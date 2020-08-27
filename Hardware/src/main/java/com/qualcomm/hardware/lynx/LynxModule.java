@@ -33,8 +33,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.lynx;
 
 import android.graphics.Color;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
@@ -89,7 +90,6 @@ import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.TempUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
-import org.firstinspires.ftc.robotcore.internal.network.WifiDirectInviteDialogMonitor;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
@@ -269,10 +269,11 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     protected boolean                                         ftdiResetWatchdogActive; // our actual current status
     protected boolean                                         ftdiResetWatchdogActiveWhenEngaged; // status when we were last engaged
 
-    protected BulkCachingMode                                 bulkCachingMode;
-    protected Map<String, List<LynxDekaInterfaceCommand<?>>>  bulkCachingHistory;
-    protected BulkData                                        lastBulkData;
     protected final Object                                    bulkCachingLock;
+    protected BulkCachingMode                                 bulkCachingMode; // guarded by bulkCachingLock
+    protected Map<String, List<LynxDekaInterfaceCommand<?>>>  bulkCachingHistory; // guarded by bulkCachingLock
+    @Nullable
+    protected BulkData                                        lastBulkData; // guarded by bulkCachingLock
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -537,7 +538,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     @Override
     public String getDeviceName()
         {
-        return String.format("%s (%s)", AppUtil.getDefContext().getString(R.string.lynxModuleDisplayName), getFirmwareVersionString());
+        return String.format("%s (%s)", AppUtil.getDefContext().getString(R.string.expansionHubDisplayName), getFirmwareVersionString());
         }
 
     @Override
@@ -551,6 +552,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         return result;
         }
 
+    @Override
     public String getNullableFirmwareVersionString()
         {
         try {
@@ -926,10 +928,16 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         {
         @Override public List<Step> getIdlePattern(LynxModule lynxModule)
             {
+            List<Step> steps = new ArrayList<Step>();
+            if (lynxModule.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS)
+                {
+                // The embedded module has a special, hidden address, so we should just show a constant green
+                steps.add(new Step(Color.GREEN, 25, TimeUnit.SECONDS));
+                return steps;
+                }
             // We set the LED to be a solid green, interrupted occasionally by a brief off duration.
             int msLivenessLong = 5000;
             int msLivenessShort = 500;
-            List<Step> steps = new ArrayList<Step>();
             steps.add(new Step(Color.GREEN, msLivenessLong - msLivenessShort, TimeUnit.MILLISECONDS));
             steps.add(new Step(Color.BLACK, msLivenessShort, TimeUnit.MILLISECONDS));
 
@@ -971,13 +979,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             initializeDebugLogging();
             initializeLEDS();
 
-            // Figure out if we're the right guy for the embedded UI blinker
+            // Figure out if we're the module embedded in the Control Hub
             if (this.isParent())
                 {
                 if (LynxConstants.isEmbeddedSerialNumber(this.getSerialNumber()))
                     {
-                    RobotLog.vv(TAG, "setAsPrimaryLynxModuleForUI(mod=%d)", this.getModuleAddress());
-                    WifiDirectInviteDialogMonitor.setUILynxModule(this);
+                    RobotLog.vv(TAG, "setAsControlHubEmbeddedModule(mod=%d)", this.getModuleAddress());
+                    EmbeddedControlHubModule.set(this);
                     }
                 }
             }
@@ -1315,11 +1323,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public static class BulkData
         {
-        private LynxGetBulkInputDataResponse resp;
+        private final LynxGetBulkInputDataResponse resp;
+        private final boolean fake;
 
-        private BulkData(LynxGetBulkInputDataResponse resp)
+        private BulkData(LynxGetBulkInputDataResponse resp, boolean fake)
             {
             this.resp = resp;
+            this.fake = fake;
             }
 
         public boolean getDigitalChannelState(int digitalInputZ)
@@ -1358,34 +1368,42 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             {
             return unit.convert(resp.getAnalogInput(inputZ), VoltageUnit.MILLIVOLTS);
             }
+
+        public boolean isFake()
+            {
+            return fake;
+            }
         }
 
     /**
-     * Returns bulk data for this module. Note this is not affected by the bulk caching mode.
+     * Gets the bulk data for this module and clears the cache. A bulk read command is *always*
+     * issued regardless of the bulk caching mode.
      * @return bulk data
      *
      * @see #getBulkCachingMode()
      */
+    // contract: sets lastBulkData to non-null value or throws
     public BulkData getBulkData()
         {
-        clearBulkCache();
-
-        LynxGetBulkInputDataCommand command = new LynxGetBulkInputDataCommand(this);
-        try
+        synchronized (bulkCachingLock)
             {
-            LynxGetBulkInputDataResponse response = command.sendReceive();
-            synchronized (bulkCachingLock)
+            clearBulkCache();
+
+            LynxGetBulkInputDataCommand command = new LynxGetBulkInputDataCommand(this);
+            try
                 {
-                lastBulkData = new BulkData(response);
+                LynxGetBulkInputDataResponse response = command.sendReceive();
+                lastBulkData = new BulkData(response, false);
+                return lastBulkData;
+                }
+            catch (InterruptedException | RuntimeException | LynxNackException e)
+                {
+                handleException(e);
+                lastBulkData = LynxUsbUtil.makePlaceholderValue(
+                        new BulkData(new LynxGetBulkInputDataResponse(this), true));
                 return lastBulkData;
                 }
             }
-        catch (InterruptedException|RuntimeException|LynxNackException e)
-            {
-            handleException(e);
-            }
-
-        return LynxUsbUtil.makePlaceholderValue(new BulkData(new LynxGetBulkInputDataResponse(this)));
         }
 
     /**
@@ -1424,16 +1442,20 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         }
 
     /**
-     * Sets the bulk caching mode and clears the cache if necessary.
+     * Sets the bulk caching mode. Cache is cleared if new mode is OFF.
      * @param mode new bulk caching mode
      */
     public void setBulkCachingMode(BulkCachingMode mode)
         {
-        if (bulkCachingMode == BulkCachingMode.OFF && mode != BulkCachingMode.OFF)
+        synchronized (bulkCachingLock)
             {
-            clearBulkCache();
+            // user can switch between MANUAL and AUTO without losing the cache
+            if (mode == BulkCachingMode.OFF)
+                {
+                clearBulkCache();
+                }
+            bulkCachingMode = mode;
             }
-        bulkCachingMode = mode;
         }
 
     /**
@@ -1461,13 +1483,14 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         synchronized (bulkCachingLock)
             {
             List<LynxDekaInterfaceCommand<?>> commands = bulkCachingHistory.get(tag);
-            if (commands == null)
-                {
-                commands = new ArrayList<>();
-                bulkCachingHistory.put(tag, commands);
-                }
             if (bulkCachingMode == BulkCachingMode.AUTO)
                 {
+                // automatically clear the cache if necessary based on the command history
+                if (commands == null)
+                    {
+                    commands = new ArrayList<>();
+                    bulkCachingHistory.put(tag, commands);
+                    }
                 for (LynxDekaInterfaceCommand<?> otherCommand : commands)
                     {
                     if (otherCommand.getDestModuleAddress() == command.getDestModuleAddress() &&
@@ -1482,13 +1505,17 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
             if (lastBulkData == null)
                 {
-                getBulkData();
+                getBulkData(); // populates lastBulkData with non-null value or throws
                 }
 
-            commands.add(command);
-            }
+            // recording the command must come after getBulkData() clears the cache
+            if (bulkCachingMode == BulkCachingMode.AUTO)
+                {
+                commands.add(command);
+                }
 
-        return lastBulkData;
+            return lastBulkData;
+            }
         }
 
     //----------------------------------------------------------------------------------------------

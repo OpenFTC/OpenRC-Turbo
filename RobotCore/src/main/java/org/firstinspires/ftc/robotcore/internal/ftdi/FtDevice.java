@@ -43,8 +43,8 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -157,19 +157,9 @@ public class FtDevice extends FtConstants
                 mDeviceInfo.id             = usbDeviceDescriptor.idVendor << 16 | usbDeviceDescriptor.idProduct;
                 mDeviceInfo.iSerialNumber  = (byte) usbDeviceDescriptor.iSerialNumber;
 
-                // If the system already knows this info, then just ask it
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    {
-                    mDeviceInfo.serialNumber = mUsbDevice.getSerialNumber();
-                    mDeviceInfo.manufacturerName = mUsbDevice.getManufacturerName();
-                    mDeviceInfo.productName = mUsbDevice.getProductName();
-                    }
-                else
-                    {
-                    mDeviceInfo.serialNumber = getStringDescriptor(usbDeviceDescriptor.iSerialNumber);
-                    mDeviceInfo.manufacturerName = getStringDescriptor(usbDeviceDescriptor.iManufacturer);
-                    mDeviceInfo.productName = getStringDescriptor(usbDeviceDescriptor.iProduct);
-                    }
+                mDeviceInfo.serialNumber     = mUsbDevice.getSerialNumber();
+                mDeviceInfo.manufacturerName = mUsbDevice.getManufacturerName();
+                mDeviceInfo.productName      = mUsbDevice.getProductName();
 
                 this.mDeviceInfo.location = (this.mUsbDevice.getDeviceId() << 4) | this.mInterfaceID & 0x0F;
                 this.mDeviceInfo.breakOnParam = 8;

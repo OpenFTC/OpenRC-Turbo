@@ -33,8 +33,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.lynx;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.R;
@@ -486,24 +486,16 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
         int oldAddress = module.getModuleAddress();
         if (newAddress != oldAddress)
             {
-            if (knownModules.size()==1)
+            synchronized (knownModules)
                 {
-                synchronized (knownModules)
-                    {
-                    this.knownModulesChanging.put(newAddress, module);
-                    }
-                runnable.run();
-                synchronized (this.knownModules)
-                    {
-                    this.knownModules.put(newAddress, module);
-                    this.knownModules.remove(oldAddress);
-                    this.knownModulesChanging.remove(newAddress);
-                    }
+                this.knownModulesChanging.put(newAddress, module);
                 }
-            else
+            runnable.run();
+            synchronized (this.knownModules)
                 {
-                // Module address changing should only be attempted with a singly attached parent module
-                RobotLog.ee(TAG, "%s: too many modules (%d) to attempt update of %d", getSerialNumber(), knownModules.size(), oldAddress);
+                this.knownModules.put(newAddress, module);
+                this.knownModules.remove(oldAddress);
+                this.knownModulesChanging.remove(newAddress);
                 }
             }
         }
@@ -607,6 +599,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
         {
         RobotLog.vv(TAG, "lynx discovery beginning...transmitting LynxDiscoveryCommand()...");
 
+        // TODO(Noah): ALWAYS call this method through USBScanManager, as modules will be missed if this method is called while discovery is already ongoing
         // Initialize our set of known modules and send out discovery requests
         this.discoveredModules.clear();
 
@@ -645,6 +638,102 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
         LynxModuleMetaList result = new LynxModuleMetaList(serialNumber, discoveredModules.values());
         RobotLog.vv(TAG, "...lynx discovery completed");
         return result;
+        }
+
+    /**
+     * Checks if the Control Hub has a module with an address of {@link LynxConstants#CH_EMBEDDED_MODULE_ADDRESS},
+     * and sets the Control Hub's embedded parent module address to such if necessary.
+     *
+     * @return true if the Control Hub's embedded parent module address was changed
+     */
+    @Override public boolean setControlHubModuleAddressIfNecessary() throws InterruptedException, RobotCoreException
+        {
+        if (!getSerialNumber().isEmbedded())
+            {
+            RobotLog.ww(TAG, "assertControlHubParentModuleAddress() called on non-embedded USB device");
+            return false;
+            }
+
+        LynxModule embeddedModule = getConfiguredModule(LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
+        LynxModule syntheticEmbeddedModule = null;
+        if (embeddedModule == null)
+            {
+            syntheticEmbeddedModule = new LynxModule(this, LynxConstants.CH_EMBEDDED_MODULE_ADDRESS, true);
+            embeddedModule = syntheticEmbeddedModule;
+            syntheticEmbeddedModule.setUserModule(false);
+            syntheticEmbeddedModule.setSystemSynthetic(true);
+            synchronized (this.knownModules)
+                {
+                this.knownModules.put(syntheticEmbeddedModule.getModuleAddress(), syntheticEmbeddedModule);
+                }
+            }
+        try
+            {
+            embeddedModule.pingInitialContact();
+            // The ping completed successfully. Theoretically, it could be a downstream hub, but
+            // sadly there's no way to be sure without doing Discovery, which we would like to avoid
+            // because it is slow. If we see that a user has a downstream hub configured with
+            // address 173, we'll break their config until they fix that, at which time this method
+            // will be able to see that there is no hub with address 173, and react accordingly.
+            // For now, we just assume that it's the embedded hub, and exit.
+            RobotLog.vv(TAG, "Verified that the embedded Control Hub module has the correct address");
+            return false;
+            }
+        catch (RobotCoreException e)
+            {
+            // We were unable to reach a module at the expected embedded address
+            if (syntheticEmbeddedModule != null)
+                {
+                syntheticEmbeddedModule.close();
+                removeConfiguredModule(syntheticEmbeddedModule);
+                }
+            RobotLog.ww(TAG, "Unable to find embedded Control Hub module at address %d. Attempting to find module and change address.", LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
+            setControlHubModuleAddress();
+            return true;
+            }
+        finally
+            {
+            if (syntheticEmbeddedModule != null)
+                {
+                syntheticEmbeddedModule.close();
+                removeConfiguredModule(syntheticEmbeddedModule);
+                }
+            }
+        }
+
+    private void setControlHubModuleAddress() throws InterruptedException, RobotCoreException
+        {
+        LynxModuleMetaList discoveredModules = discoverModules();
+        LynxModuleMeta discoveredParentModule = discoveredModules.getParent();
+        if (discoveredParentModule == null)
+            {
+            throw new RobotCoreException("Unable to communicate with internal Expansion Hub");
+            }
+        int oldParentModuleAddress = discoveredParentModule.getModuleAddress();
+        RobotLog.vv(TAG, "Found embedded module at address %d", oldParentModuleAddress);
+        // It should be safe to assume that this method only gets called on initial startup, before
+        // any other LynxModule instances have been created. After all, after this method runs,
+        // setControlHubModuleAddressIfNecessary() will successfully ping the internal module and
+        // quickly exit, instead of calling us.
+
+        // Therefore, we assume that no one else is communicating with this module, and make a brand new instance
+        LynxModule parentModule = new LynxModule(this, oldParentModuleAddress, true);
+        parentModule.setUserModule(false);
+        synchronized (this.knownModules)
+            {
+            this.knownModules.put(parentModule.getModuleAddress(), parentModule);
+            }
+        try
+            {
+            parentModule.pingInitialContact();
+            RobotLog.vv(TAG, "Setting embedded module address to %d", LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
+            parentModule.setNewModuleAddress(LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
+            }
+        finally
+            {
+            parentModule.close();
+            removeConfiguredModule(parentModule);
+            }
         }
 
     protected void onLynxDiscoveryResponseReceived(LynxDatagram datagram)
@@ -699,6 +788,11 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     @Override public void lockNetworkLockAcquisitions()
         {
         this.networkTransmissionLock.lockAcquisitions();
+        }
+
+    @Override public void setThrowOnNetworkLockAcquisition(boolean shouldThrow)
+        {
+        this.networkTransmissionLock.throwOnLockAcquisitions(shouldThrow);
         }
 
     protected void resetNetworkTransmissionLock() throws InterruptedException
@@ -1066,13 +1160,6 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
 
                 AndroidBoard.getInstance().getLynxModuleResetPin().setState(false);
                 Thread.sleep(msDelay);
-
-                // ALWAYS remain 'present' unless we're explicitly configured not to
-                if (LynxConstants.isRevControlHub() && LynxConstants.shouldDisableAndroidBoard())
-                    {
-                    AndroidBoard.getInstance().getAndroidBoardIsPresentPin().setState(false);
-                    Thread.sleep(msDelay);
-                    }
                 }
             else
                 {

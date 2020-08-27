@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.hardware.android;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import java.io.File;
 
@@ -43,6 +44,8 @@ import java.io.File;
  * As of 2019-05-15, this implementation is unused by {@link AndroidBoard#getInstance()}.
  */
 public class Rock960 extends AndroidBoard {
+
+    private static final String TAG = "Rock960";
 
     // Don't allow instantiation outside of our package
     protected Rock960() {}
@@ -99,7 +102,27 @@ public class Rock960 extends AndroidBoard {
         return true;
     }
 
+    @Override public boolean supports5GhzAutoSelection() {
+        return false;
+    }
+
+    @Override public boolean supportsBulkNetworkSettings() {
+        return false;
+    }
+
+    @Override public boolean supportsGetChannelInfoIntent() {
+        return false;
+    }
+
     @Override public boolean hasControlHubUpdater() {
         return false;
+    }
+
+    @Override public WifiDataRate getWifiApBeaconRate() {
+        return WifiDataRate.UNKNOWN;
+    }
+
+    @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
+        RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on a Rock960");
     }
 }

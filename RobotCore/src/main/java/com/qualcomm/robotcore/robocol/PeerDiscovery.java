@@ -59,7 +59,8 @@ public class PeerDiscovery extends RobocolParsableBase {
      */
     NOT_SET(0),
     PEER(1),
-    GROUP_OWNER(2);
+    GROUP_OWNER(2),
+    NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION(3);
 
     private static final PeerType[] VALUES_CACHE = PeerType.values();
     private int type;
@@ -185,10 +186,22 @@ public class PeerDiscovery extends RobocolParsableBase {
     // we could do in the future is the usual major.minor version management, but that doesn't
     // seem worthwhile yet
     if (peerRobocolVersion != RobocolConfig.ROBOCOL_VERSION) {
-        RobotLog.ee(TAG, "Incompatible robocol versions, remote: %d, local: %d", peerRobocolVersion, RobocolConfig.ROBOCOL_VERSION);
-        throw new RobotProtocolException(AppUtil.getDefContext().getString(R.string.incompatibleAppsError),
-                AppUtil.getInstance().getAppName(), RobocolConfig.ROBOCOL_VERSION,
-                AppUtil.getInstance().getRemoteAppName(), peerRobocolVersion);
+      RobotLog.ee(TAG, "Incompatible robocol versions, remote: %d, local: %d", peerRobocolVersion, RobocolConfig.ROBOCOL_VERSION);
+      String oldApp;
+      if (AppUtil.getInstance().isRobotController()) {
+        if (peerRobocolVersion < RobocolConfig.ROBOCOL_VERSION) {
+          oldApp = "Driver Station";
+        } else {
+          oldApp = "Robot Controller";
+        }
+      } else {
+        if (peerRobocolVersion < RobocolConfig.ROBOCOL_VERSION) {
+          oldApp = "Robot Controller";
+        } else {
+          oldApp = "Driver Station";
+        }
+      }
+      throw new RobotProtocolException(AppUtil.getDefContext().getString(R.string.incompatibleAppsError), oldApp);
     }
 
     // ALL robocol versions have the peer type

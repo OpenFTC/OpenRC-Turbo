@@ -1,7 +1,7 @@
 package com.qualcomm.robotcore.robocol;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -75,12 +75,6 @@ public class RobocolDatagramSocket {
 
       RobotLog.dd(TAG, String.format("RobocolDatagramSocket listening addr=%s cbRec=%d cbSend=%d msRecTO=%d", bindAddress.toString(), receiveBufferSize, sendBufferSize, msReceiveTimeout));
     }
-  }
-
-  public void connect(InetAddress connectAddress) throws SocketException {
-    InetSocketAddress addr = new InetSocketAddress(connectAddress, RobocolConfig.PORT_NUMBER);
-    RobotLog.dd(TAG, "RobocolDatagramSocket connected to " + addr.toString());
-    socket.connect(addr);
   }
 
   public void close() {

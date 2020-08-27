@@ -34,8 +34,8 @@ package org.firstinspires.ftc.robotcore.internal.camera;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.eventloop.SyncdDevice;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -56,13 +56,6 @@ import java.util.concurrent.Executor;
 
 public interface CameraManagerInternal extends CameraManager
     {
-    /* In early developmental work, there were paths necessary on KitKat that subsequent work
-    * no longer requires (most had to do with serial numbers). Which should we use? */
-    boolean avoidKitKatLegacyPaths = true;
-
-    /*If KitKat *has to* use one path, but there's a non-native one post KitKat, should we use it?*/
-    boolean useNonKitKatPaths = true;
-
     /* If false, then on KitKat we use libusb for USB device enumeration */
     boolean forceJavaUsbEnumerationKitKat = true;
 

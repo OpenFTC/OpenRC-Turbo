@@ -34,13 +34,19 @@ package org.firstinspires.ftc.robotcore.internal.network;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.preference.PreferenceManager;
 
 import com.qualcomm.robotcore.R;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.GlobalWarningSource;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -65,6 +71,7 @@ public class PreferenceRemoterRC extends PreferenceRemoter
         }
 
     protected Set<String> rcPrefsOfInterestToDS;
+    protected WarningSource warningSource;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -80,6 +87,10 @@ public class PreferenceRemoterRC extends PreferenceRemoter
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_wifip2p_channel));
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_has_independent_phone_battery));
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_has_speaker));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_outdated_firmware));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_mismatched_app_versions));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_2_4_ghz_band));
+        warningSource = new WarningSource();
         }
 
     @Override
@@ -107,6 +118,16 @@ public class PreferenceRemoterRC extends PreferenceRemoter
                 {
                 RobotLog.ee(TAG, "incorrect preference value type: " + pair.getValue());
                 }
+            }
+        else if (pair.getPrefName().equals(context.getString(R.string.pref_ds_version_code)))
+            {
+            Integer dsVersionCode = (Integer) pair.getValue();
+            warningSource.checkForMismatchedAppVersions(dsVersionCode);
+            }
+        else if (pair.getPrefName().equals(context.getString(R.string.pref_ds_supports_5_ghz)))
+            {
+            Boolean dsSupports5Ghz = (Boolean) pair.getValue();
+            warningSource.checkForUnnecessary2_4GhzUsage(dsSupports5Ghz);
             }
         else
             {
@@ -151,5 +172,107 @@ public class PreferenceRemoterRC extends PreferenceRemoter
             {
             sendPreference(rcPrefName);
             }
+        }
+
+    //----------------------------------------------------------------------------------------------
+    // Warnings
+    //----------------------------------------------------------------------------------------------
+
+    protected class WarningSource implements GlobalWarningSource, PeerStatusCallback
+        {
+        private final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(AppUtil.getDefContext());
+        private final ElapsedTime timeSinceLastChannelCheck = new ElapsedTime(0);
+        private volatile boolean currentlyUsing2_4Ghz_cache;
+        private volatile String mismatchedAppVersionsWarning;
+        private volatile String unnecessary2_4GhzUsageWarning;
+
+        public WarningSource()
+            {
+            RobotLog.registerGlobalWarningSource(this);
+            NetworkConnectionHandler.getInstance().registerPeerStatusCallback(this);
+            }
+
+        @Override public String getGlobalWarning()
+            {
+            List<String> activeWarnings = new ArrayList<>();
+            if (sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_mismatched_app_versions), true))
+                {
+                activeWarnings.add(mismatchedAppVersionsWarning);
+                }
+            if (sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_2_4_ghz_band), true))
+                {
+                // Verify that the user is _still_ using 2.4 GHz
+                if (currentlyUsing2_4Ghz()) activeWarnings.add(unnecessary2_4GhzUsageWarning);
+                else unnecessary2_4GhzUsageWarning = null;
+                }
+            return RobotLog.combineGlobalWarnings(activeWarnings);
+            }
+
+        @Override public void clearGlobalWarning()
+            {
+            mismatchedAppVersionsWarning = null;
+            unnecessary2_4GhzUsageWarning = null;
+            }
+
+        @Override public void onPeerDisconnected()
+            {
+            clearGlobalWarning();
+            }
+
+        public void checkForMismatchedAppVersions(int dsVersionCode)
+            {
+            try
+                {
+                int rcVersionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
+                if (rcVersionCode == dsVersionCode)
+                    {
+                    mismatchedAppVersionsWarning = null;
+                    }
+                else
+                    {
+                    String oldAppName;
+                    if (rcVersionCode < dsVersionCode)
+                        {
+                        oldAppName = "Robot Controller";
+                        }
+                    else
+                        {
+                        oldAppName = "Driver Station";
+                        }
+                    mismatchedAppVersionsWarning = context.getString(R.string.warningMismatchedAppVersions, oldAppName);
+                    }
+                }
+            catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); } // shouldn't happen
+            }
+
+        public void checkForUnnecessary2_4GhzUsage(boolean dsSupports5Ghz)
+            {
+            boolean rcSupports5Ghz = WifiUtil.is5GHzAvailable();
+            if (dsSupports5Ghz && rcSupports5Ghz && currentlyUsing2_4Ghz())
+                {
+                unnecessary2_4GhzUsageWarning = context.getString(R.string.warning2_4GhzUnnecessaryUsage);
+                }
+            else
+                {
+                unnecessary2_4GhzUsageWarning = null;
+                }
+            }
+
+        private boolean currentlyUsing2_4Ghz()
+            {
+            // On the Control Hub, checking the current channel uses IPC, so we only refresh the value every 5 seconds
+            if (timeSinceLastChannelCheck.seconds() > 5)
+                {
+                ApChannel currentChannel = ApChannelManagerFactory.getInstance().getCurrentChannel();
+                currentlyUsing2_4Ghz_cache = (currentChannel != ApChannel.UNKNOWN) && (currentChannel.band == ApChannel.Band.BAND_2_4_GHZ);
+                timeSinceLastChannelCheck.reset();
+                }
+            return currentlyUsing2_4Ghz_cache;
+            }
+
+        // Degenerate overrides
+        @Override public void suppressGlobalWarning(boolean suppress) { }
+        @Override public void setGlobalWarning(String warning) { }
+        @Override public void onPeerConnected() { }
         }
     }

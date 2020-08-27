@@ -35,10 +35,10 @@ package org.firstinspires.ftc.robotcore.internal.vuforia.externalprovider;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.ImageFormat;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
-import android.support.annotation.XmlRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RawRes;
+import androidx.annotation.XmlRes;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -121,6 +121,7 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
     protected final String                          externalCameraLib = "libRobotCore.so";
     protected NativeVuforiaWebcam                   nativeVuforiaWebcam = null;
     protected Continuation<? extends Consumer<CameraFrame>> getFrameOnce = null;
+    protected final Object                          getFrameOnceLock = new Object(); // a leaf lock: take no other locks w/ this lock held
     protected final int                             secondsPermissionTimeout;
 
     protected final CameraName                      cameraName;
@@ -130,6 +131,7 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
 
     protected Camera                                camera = null;
     protected CameraCalibration                     cameraCalibrationCache = null;
+    protected CameraCalibration                     calibrationInUse = null;
     protected CameraCaptureSession                  cameraCaptureSession = null;
     protected long                                  nsFrameExposureCache = ExposureControl.unknownExposure;
     protected long                                  msFrameExposureCacheRefresh = 750;
@@ -311,7 +313,7 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
 
     @Override public void getFrameOnce(Continuation<? extends Consumer<CameraFrame>> getFrameOnce)
         {
-        synchronized (lock)
+        synchronized (getFrameOnceLock)
             {
             this.getFrameOnce = getFrameOnce;
             }
@@ -483,6 +485,11 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
         return cameraCalibrationCache;
         }
 
+    public CameraCalibration getCalibrationInUse()
+        {
+        return calibrationInUse;
+        }
+
     protected Boolean startCamera(final CameraMode cameraMode, final CameraCallback vuforiaCameraCallbackParam)
         {
         return tracer.trace("start(" + cameraMode + ")", new Supplier<Boolean>()
@@ -516,6 +523,8 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
                                             cameraMode.getSize(),
                                             cameraMode.getFramesPerSecond());
 
+                                    calibrationInUse = getCalibrationOfCurrentCamera(cameraMode);
+
                                     /** Start streaming! */
                                     CameraCaptureSequenceId cameraCaptureSequenceId = session.startCapture(cameraCaptureRequest,
                                             new CameraCaptureSession.CaptureCallback() // raw callback, so will avoid copying frame
@@ -525,12 +534,11 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
                                                     // tracer.trace("captured frame#=%d size=%s cb=%d fps=%d", capturedFrame.getFrameNumber(), capturedFrame.getSize(), capturedFrame.getImageSize(), fps);
                                                     if (nativeVuforiaWebcam != null)
                                                         {
-                                                        CameraCalibration calibration = getCalibrationOfCurrentCamera(cameraMode);
-                                                        nativeVuforiaWebcam.deliverFrameToVuforia(vuforiaCameraCallback, cameraFrame, calibration.toArray());
+                                                        nativeVuforiaWebcam.deliverFrameToVuforia(vuforiaCameraCallback, cameraFrame, calibrationInUse.toArray());
                                                         }
 
                                                     Continuation<? extends Consumer<CameraFrame>> capturedOneShot = null;
-                                                    synchronized (lock)
+                                                    synchronized (getFrameOnceLock)
                                                         {
                                                         capturedOneShot = getFrameOnce;
                                                         getFrameOnce = null;

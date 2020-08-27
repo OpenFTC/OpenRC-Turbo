@@ -146,13 +146,13 @@ public class RunOnBoot extends BroadcastReceiver
             {
             // Having cleared that state, if we *still* shouldn't launch the robot
             // controller, then we've got no business sticking around.
-            noteDragonboardPresenceAndExitIfNoRC();
+            noteAndroidBoardPresenceAndExitIfNoRC();
             }
         }
 
     protected void onRobotControllerPostBoot()
         {
-        noteDragonboardPresenceAndExitIfNoRC();
+        noteAndroidBoardPresenceAndExitIfNoRC();
         }
 
     protected void onDriverStationBoot()
@@ -167,18 +167,17 @@ public class RunOnBoot extends BroadcastReceiver
 
     //----------------------------------------------------------------------------------------------
 
-    /** If we're on the DB/Lynx comb, then ensure that the 'isPresent' pin is in the appropriate
+    /** If we're a Control Hub, then ensure that the 'isPresent' pin is in the appropriate
      * state. Then, unless the RC is running in *this* incarnation of this broadcast receiver, get
      * the heck out of Dodge. */
-    protected void noteDragonboardPresenceAndExitIfNoRC()
+    protected void noteAndroidBoardPresenceAndExitIfNoRC()
         {
         RobotLog.vv(TAG, "noteDragonboardPresenceAndExitIfNoRC()");
         //
         if (LynxConstants.isRevControlHub())
             {
-            AndroidBoard.getInstance().getAndroidBoardIsPresentPin().setState(!LynxConstants.shouldDisableAndroidBoard());
+            AndroidBoard.getInstance().getAndroidBoardIsPresentPin().setState(true);
             }
-        //
         if (!isRobotControllerRunningInThisProcess())
             {
             AppUtil.getInstance().exitApplication();

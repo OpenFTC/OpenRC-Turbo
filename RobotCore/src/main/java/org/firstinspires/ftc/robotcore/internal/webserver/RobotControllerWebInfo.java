@@ -1,18 +1,44 @@
-// Copyright 2016 Google Inc.
+/*
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.firstinspires.ftc.robotcore.internal.webserver;
 
-import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import android.content.pm.PackageManager;
 
-import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.util.IncludedFirmwareFileInfo;
+import com.qualcomm.robotcore.util.RobotLog;
+
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions.LynxModuleInfo;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A class that contains various information about the robot controller's web server
@@ -24,6 +50,22 @@ import java.util.Map;
 public class RobotControllerWebInfo {
 
   public static final String TAG = RobotControllerWebInfo.class.getSimpleName();
+
+  private static final Gson gson = new GsonBuilder()
+          .registerTypeAdapter(ApChannel.class, new ApChannel.GsonTypeAdapter())
+          .create();
+
+  private static final String cachedChOsVersion = LynxConstants.getControlHubOsVersion();
+  private static String cachedRcVersion;
+
+  static {
+    try {
+      cachedRcVersion = AppUtil.getDefContext().getPackageManager().getPackageInfo(AppUtil.getDefContext().getPackageName(), 0).versionName;
+    } catch (PackageManager.NameNotFoundException e) {
+      RobotLog.ee(TAG, e, "Unable to find the RC version name");
+      cachedRcVersion = "unknown"; // Shouldn't happen
+    }
+  }
 
   // NOTE: these names are known to javascript
   private final String deviceName;
@@ -37,6 +79,12 @@ public class RobotControllerWebInfo {
   private final boolean supports5GhzAp;
   private final boolean appUpdateRequiresReboot;
   private final boolean supportsOtaUpdate;
+  private final Set<ApChannel> availableChannels;
+  private final ApChannel currentChannel;
+  private final String rcVersion = cachedRcVersion;
+  private final String chOsVersion = cachedChOsVersion;
+  private final List<LynxModuleInfo> revHubNamesAndVersions;
+  private final String includedFirmwareFileVersion;
   private FtcUserAgentCategory ftcUserAgentCategory;
 
   public RobotControllerWebInfo(
@@ -53,6 +101,10 @@ public class RobotControllerWebInfo {
     this.supports5GhzAp = WifiUtil.is5GHzAvailable();
     this.appUpdateRequiresReboot = !AndroidBoard.getInstance().hasControlHubUpdater(); // The Control Hub Updater replaces the old update method, which required a reboot
     this.supportsOtaUpdate = AndroidBoard.getInstance().hasControlHubUpdater();        // The Control Hub Updater enables the RC app to start OTA updates
+    this.availableChannels = ApChannelManagerFactory.getInstance().getSupportedChannels();
+    this.currentChannel = ApChannelManagerFactory.getInstance().getCurrentChannel();
+    this.revHubNamesAndVersions = CachedLynxFirmwareVersions.getFormattedVersions();
+    this.includedFirmwareFileVersion = IncludedFirmwareFileInfo.HUMAN_READABLE_FW_VERSION;
 
     SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, h:mm aa", Locale.getDefault());
     this.timeServerStarted = formatter.format(new Date(timeServerStartedMillis));
@@ -113,10 +165,10 @@ public class RobotControllerWebInfo {
   }
 
   public String toJson() {
-    return SimpleGson.getInstance().toJson(this);
+    return gson.toJson(this);
   }
 
   public static RobotControllerWebInfo fromJson(String json) {
-    return SimpleGson.getInstance().fromJson(json, RobotControllerWebInfo.class);
+    return gson.fromJson(json, RobotControllerWebInfo.class);
   }
 }

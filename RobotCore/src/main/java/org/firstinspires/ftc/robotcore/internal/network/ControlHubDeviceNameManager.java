@@ -36,7 +36,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.AndroidSerialNumberNotFoundException;
@@ -85,13 +86,64 @@ public class ControlHubDeviceNameManager implements DeviceNameManager {
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferencesListener);
     }
 
+    // Synchronize all public methods that get or set the device name
+    @NonNull
+    @Override
+    public synchronized String getDeviceName()
+    {
+        initializeDeviceNameIfNecessary();
+        return internalGetDeviceName();
+    }
+
+    @Override
+    public synchronized void setDeviceName(@NonNull String deviceName, boolean sendChangeToSystem)
+    {
+        internalSetDeviceName(deviceName, sendChangeToSystem);
+    }
+
+    /**
+     * resetDeviceName
+     *
+     * Performs a factory reset of this device name.
+     */
+    @Override
+    public synchronized String resetDeviceName(boolean sendChangeToSystem)
+    {
+        initializeDeviceNameFromMadeUp(sendChangeToSystem);
+        return getDeviceName();
+    }
+
+    /**
+     * initializeDeviceNameIfNecessary
+     *
+     * The control hub is the center of the naming universe.  It dictates to the access point service what
+     * name the access point should broadcast.  If no name is stored on the control hub, then the control hub
+     * fabricates one to dictate to the access point what it should broadcast.  The access point service will
+     * cache the last known name, but it in no way controls that name.
+     */
+    public synchronized void initializeDeviceNameIfNecessary()
+    {
+        // Look in shared preferences for a name.
+        if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
+        {
+            initializeDeviceNameFromSharedPrefs();
+        }
+
+        // Nothing in shared preferences, go fabricate a name.
+        if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
+        {
+            initializeDeviceNameFromMadeUp(true);
+        }
+
+        Assert.assertTrue(getDeviceNameTracking()!=DeviceNameTracking.UNINITIALIZED);
+    }
 
     protected void initializeDeviceNameFromSharedPrefs()
     {
         deviceName = internalGetDeviceName();
         if (deviceName != null) {
             setDeviceNameTracking(DeviceNameTracking.WIFIAP);
-            internalSetDeviceName(deviceName);
+            internalSetDeviceName(deviceName, true);
         }
     }
 
@@ -138,87 +190,37 @@ public class ControlHubDeviceNameManager implements DeviceNameManager {
         return ("FTC-" + hash);
     }
 
-    protected void initializeDeviceNameFromMadeUp()
+    protected void initializeDeviceNameFromMadeUp(boolean sendToApService)
     {
         RobotLog.vv(TAG, "initializeDeviceNameFromMadeUp(): name=%s ...", defaultMadeUpDeviceName);
         defaultMadeUpDeviceName = handleFactoryReset();
         setDeviceNameTracking(DeviceNameTracking.WIFIAP);
-        internalSetDeviceName(defaultMadeUpDeviceName);
+        internalSetDeviceName(defaultMadeUpDeviceName, sendToApService);
         RobotLog.vv(TAG, "..initializeDeviceNameFromMadeUp()");
-    }
-
-    @NonNull
-    @Override
-    public String getDeviceName()
-    {
-        initializeDeviceNameIfNecessary();
-        return internalGetDeviceName();
-    }
-
-    @Override
-    public void setDeviceName(@NonNull String deviceName)
-    {
-        internalSetDeviceName(deviceName);
-    }
-
-    /**
-     * resetDeviceName
-     *
-     * Performs a factory reset of this device name.
-     */
-    @Override
-    public void resetDeviceName()
-    {
-        initializeDeviceNameFromMadeUp();
-    }
-
-    /**
-     * initializeDeviceNameIfNecessary
-     *
-     * The control hub is the center of the naming universe.  It dictates to the access point service what
-     * name the access point should broadcast.  If no name is stored on the control hub, then the control hub
-     * fabricates one to dictate to the access point what it should broadcast.  The access point service will
-     * cache the last known name, but it in no way controls that name.
-     */
-    public synchronized void initializeDeviceNameIfNecessary()
-    {
-        // Look in shared preferences for a name.
-        if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
-        {
-            initializeDeviceNameFromSharedPrefs();
-        }
-
-        // Nothing in shared preferences, go fabricate a name.
-        if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
-        {
-            initializeDeviceNameFromMadeUp();
-        }
-
-        Assert.assertTrue(getDeviceNameTracking()!=DeviceNameTracking.UNINITIALIZED);
-
-        // Make sure we are sync'd with the access point service.
-        internalSetDeviceName(internalGetDeviceName());
     }
 
     /**
      * internalSetDeviceName
      *
-     * Sync the device name over to the access point service and write to prefs.
+     * Write the device name to prefs, and optionally send it over to the access point service.
+     *
+     * If sendToApService is null, send it only if the name has changed
      */
-    protected void internalSetDeviceName(@NonNull final String deviceName)
+    protected synchronized void internalSetDeviceName(@NonNull final String deviceName, @Nullable Boolean sendToApService)
     {
         RobotLog.ii(TAG, "Robot controller name: " + deviceName);
+        boolean sendToApServiceNonNull = false;
 
-        // Even if the name isn't changing on our end, we should take this opportunity to make sure
-        // the AP service has the correct information, as is done by ControlHubPasswordManager.
-
-        Intent intent = new Intent(Intents.ACTION_FTC_AP_NAME_CHANGE);
-        intent.putExtra(Intents.EXTRA_AP_PREF, deviceName);
-        context.sendBroadcast(intent);
+        if (sendToApService != null) {
+            sendToApServiceNonNull = sendToApService;
+        }
 
         // pref_device_name_internal is only ever set here. So our name really did change if and only
         // if that property changed.
         if (preferencesHelper.writeStringPrefIfDifferent(context.getString(R.string.pref_device_name_internal), deviceName)) {
+            if (sendToApService == null) {
+                sendToApServiceNonNull = true;
+            }
             // Make sure that the non-internal notion of the name tracks that
             preferencesHelper.writeStringPrefIfDifferent(context.getString(R.string.pref_device_name), deviceName);
 
@@ -231,6 +233,12 @@ public class ControlHubDeviceNameManager implements DeviceNameManager {
                     callback.onDeviceNameChanged(deviceName);
                 }
             });
+        }
+
+        if (sendToApServiceNonNull) {
+            Intent intent = new Intent(Intents.ACTION_FTC_AP_NAME_CHANGE);
+            intent.putExtra(Intents.EXTRA_AP_PREF, deviceName);
+            context.sendBroadcast(intent);
         }
     }
 
@@ -327,11 +335,13 @@ public class ControlHubDeviceNameManager implements DeviceNameManager {
         @Override public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
         {
             if (key.equals(context.getString(R.string.pref_device_name))) {
-                // Either we have just ourselves changed the name (in which case internalSetDeviceName
-                // will catch that and stop the recursion) or someone *else* has asked us to change the
-                // name, and we need to honor that.
-                String newName = sharedPreferences.getString(key, defaultMadeUpDeviceName);
-                internalSetDeviceName(newName);
+                synchronized (ControlHubDeviceNameManager.this) { // This is another ingress point for name changing
+                    // Either we have just ourselves changed the name (in which case internalSetDeviceName
+                    // will catch that and stop the recursion) or someone *else* has asked us to change the
+                    // name, and we need to honor that.
+                    String newName = sharedPreferences.getString(key, defaultMadeUpDeviceName);
+                    internalSetDeviceName(newName, null);
+                }
             }
         }
     }

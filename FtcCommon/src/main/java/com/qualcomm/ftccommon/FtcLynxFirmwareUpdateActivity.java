@@ -33,18 +33,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.ftccommon;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ListView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.hardware.USBAccessibleLynxModule;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -66,7 +65,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -87,9 +89,11 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
     @Override protected FrameLayout getBackBar() { return findViewById(org.firstinspires.inspection.R.id.backbar); }
 
     protected NetworkConnectionHandler              networkConnectionHandler = NetworkConnectionHandler.getInstance();
-    protected RecvLoopRunnable.RecvLoopCallback     recvLoopCallback        = new ReceiveLoopCallback();
+    protected final String                          originatorId            = UUID.randomUUID().toString();
+    protected RecvLoopRunnable.RecvLoopCallback     recvLoopCallback        = new ReceiveLoopCallback(originatorId);
     protected boolean                               remoteConfigure         = AppUtil.getInstance().isDriverStation();
     protected int                                   msResponseWait          = 5000;     // a very generous time
+    protected Map<View, FWImage>                    firmwareImagesMap       = new HashMap<>();
     protected FWImage                               firmwareImageFile       = new FWImage(new File(""), false);
     protected List<USBAccessibleLynxModule>         modulesToUpdate         = new ArrayList<USBAccessibleLynxModule>();
     protected boolean                               enableUpdateButton      = true;
@@ -98,6 +102,13 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
     protected BlockingQueue<CommandList.LynxFirmwareImagesResp>       availableLynxImages    = new ArrayBlockingQueue<CommandList.LynxFirmwareImagesResp>(1);
     protected BlockingQueue<CommandList.USBAccessibleLynxModulesResp> availableLynxModules   = new ArrayBlockingQueue<CommandList.USBAccessibleLynxModulesResp>(1);
     protected BlockingQueue<CommandList.LynxFirmwareUpdateResp>       availableFWUpdateResps = new ArrayBlockingQueue<CommandList.LynxFirmwareUpdateResp>(1);
+
+    protected View.OnClickListener updateFileClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            firmwareImageFile = firmwareImagesMap.get(v);
+        }
+    };
 
     //----------------------------------------------------------------------------------------------
     // Initialization
@@ -120,6 +131,7 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
     // Life Cycle
     //----------------------------------------------------------------------------------------------
 
+    // TODO(Noah): Better handle the user turning the device off and on.
     @Override
     protected void onCreate(Bundle savedInstanceState)
         {
@@ -133,18 +145,22 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
         {
         super.onStart();
 
-        TextView instructionsPre  = (TextView)findViewById(R.id.lynxFirmwareInstructionsPre);
-        ListView modulesListView  = (ListView)findViewById(R.id.lynxFirmwareModuleList);
-        TextView instructionsPost = (TextView)findViewById(R.id.lynxFirmwareInstructionsPost);
-        Button   button           = (Button)findViewById(R.id.lynxFirmwareUpdateButton);
+        TextView fwFilesHeader     = findViewById(R.id.lynxFirmwareFilesHeader);
+        RadioGroup fwFilesGroup    = findViewById(R.id.lynxFirmwareAvailableFilesGroup);
+        TextView modulesHeader     = findViewById(R.id.lynxFirmwareHubsHeader);
+        LinearLayout modulesLayout = findViewById(R.id.lynxFirmwareModuleList);
+        TextView instructionsPost  = findViewById(R.id.lynxFirmwareInstructionsPost);
+        Button   button            = findViewById(R.id.lynxFirmwareUpdateButton);
 
         CommandList.LynxFirmwareImagesResp candidateImages = getCandidateLynxFirmwareImages();
 
         if (candidateImages.firmwareImages.isEmpty())
             {
             File relativePath = AppUtil.getInstance().getRelativePath(candidateImages.firstFolder.getParentFile(), AppUtil.LYNX_FIRMWARE_UPDATE_DIR);
-            instructionsPre.setText(getString(R.string.lynx_fw_instructions_no_binary, relativePath));
-            modulesListView.setVisibility(View.GONE);
+            modulesHeader.setText(getString(R.string.lynx_fw_instructions_no_binary, relativePath));
+            fwFilesHeader.setVisibility(View.GONE);
+            fwFilesGroup.setVisibility(View.GONE);
+            modulesLayout.setVisibility(View.GONE);
             instructionsPost.setVisibility(View.GONE);
             button.setEnabled(false);
             }
@@ -158,58 +174,70 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
                     return -lhs.getName().compareTo(rhs.getName());
                     }
                 });
-            firmwareImageFile = candidateImages.firmwareImages.get(0);
+            fwFilesGroup.removeAllViews();
+            firmwareImagesMap.clear();
+            boolean isFirstImage = true;
+            for (FWImage image: candidateImages.firmwareImages)
+                {
+                final RadioButton imageButton = new RadioButton(this);
+
+                String imageName = image.getName();
+                if (image.isAsset) imageName += " (bundled)";
+
+                imageButton.setText(imageName);
+                imageButton.setOnClickListener(updateFileClickListener);
+                fwFilesGroup.addView(imageButton);
+                firmwareImagesMap.put(imageButton, image);
+                if (isFirstImage)
+                    {
+                    isFirstImage = false;
+                    firmwareImageFile = image;
+                    imageButton.toggle();
+                    }
+                }
 
             modulesToUpdate = getLynxModulesForFirmwareUpdate();
             if (modulesToUpdate.isEmpty())
                 {
-                instructionsPre.setText(getString(R.string.lynx_fw_instructions_no_devices, firmwareImageFile.getName()));
-                modulesListView.setVisibility(View.GONE);
+                modulesHeader.setText(R.string.lynx_fw_instructions_no_devices);
+                modulesLayout.setVisibility(View.GONE);
                 instructionsPost.setVisibility(View.GONE);
                 button.setEnabled(false);
                 }
             else
                 {
-                instructionsPre.setText(getString(R.string.lynx_fw_instructions_update, firmwareImageFile.getName()));
-
-                class Item
-                    {
-                    String title;
-                    String banter;
-                    Item(String title, String banter) { this.title = title; this.banter = banter; }
-                    }
-                final List<Item> itemList = new ArrayList<>();
+                modulesHeader.setText(R.string.lynx_fw_instructions_update);
+                final int moduleLayout = android.R.layout.simple_list_item_2;
                 for (USBAccessibleLynxModule module : modulesToUpdate)
                     {
+                    String title;
+                    if (module.getSerialNumber().isEmbedded()) {
+                        title = AppUtil.getDefContext().getString(R.string.lynx_fw_instructions_controlhub_item_title);
+                    } else {
+                        title = AppUtil.getDefContext().getString(R.string.lynx_fw_instructions_exhub_item_title);
+                    }
                     String serialNumber = getString(R.string.lynx_fw_instructions_serial, module.getSerialNumber());
                     String moduleAddress = module.getModuleAddress()==0 ? getString(R.string.lynx_fw_instructions_module_address_unavailable) : getString(R.string.lynx_fw_instructions_module_address, module.getModuleAddress());
                     String firmware = getString(R.string.lynx_fw_instructions_firmware_version, module.getFinishedFirmwareVersionString());
-                    String description = serialNumber + "\n" +
-                            moduleAddress + "\n" +
-                            firmware;
-                    itemList.add(new Item(AppUtil.getDefContext().getString(R.string.lynx_fw_instructions_item_title), description));
-                    }
-                final int layoutRes = android.R.layout.simple_list_item_2;
-                modulesListView.setAdapter(new ArrayAdapter<Item>(this, layoutRes, /*eh?*/ android.R.id.text1, itemList)
-                    {
-                    @Override public @NonNull View getView(int position, @Nullable View view, @NonNull ViewGroup parent)
+                    String description;
+                    if (module.getSerialNumber().isEmbedded())
                         {
-                        if (view == null)
-                            {
-                            view = LayoutInflater.from(getContext()).inflate(layoutRes, parent, false);
-                            }
-                        View itemView = super.getView(position, view, parent);
-                        TextView topLine = (TextView) itemView.findViewById(android.R.id.text1);
-                        TextView bottomLine = (TextView) itemView.findViewById(android.R.id.text2);
-
-                        Item item = getItem(position);
-                        topLine.setVisibility(View.GONE);
-                        bottomLine.setText(item.banter);
-
-                        return view;
+                        // don't display the address of the embedded module
+                        description = serialNumber + "\n" + firmware;
                         }
-                    });
+                    else
+                        {
+                        description = serialNumber += "\n" + moduleAddress + "\n" + firmware;
+                        }
 
+                    View itemView = LayoutInflater.from(this).inflate(moduleLayout, null);
+                    TextView topLine = (TextView) itemView.findViewById(android.R.id.text1);
+                    TextView bottomLine = (TextView) itemView.findViewById(android.R.id.text2);
+                    topLine.setText(title);
+                    topLine.setTextSize(18f);
+                    bottomLine.setText(description);
+                    modulesLayout.addView(itemView);
+                    }
                 button.setEnabled(enableUpdateButton);
                 }
             }
@@ -261,21 +289,47 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
                     CommandList.LynxFirmwareUpdate params = new CommandList.LynxFirmwareUpdate();
                     params.serialNumber = module.getSerialNumber();
                     params.firmwareImageFile = firmwareImageFile;
+                    params.originatorId = originatorId;
                     sendOrInject(new Command(CommandList.CMD_LYNX_FIRMWARE_UPDATE, SimpleGson.getInstance().toJson(params)));
 
                     MutableReference<FwResponseStatus> status = new MutableReference<>(FwResponseStatus.Succeeded);
                     CommandList.LynxFirmwareUpdateResp respParams = awaitResponse(availableFWUpdateResps, null, FlashLoaderManager.secondsFirmwareUpdateTimeout, TimeUnit.SECONDS, status);
+                    String deviceString;
+                    if (module.getSerialNumber().isEmbedded())
+                        {
+                        deviceString = AppUtil.getDefContext().getString(R.string.controlHubDisplayName);
+                        }
+                    else
+                        {
+                        deviceString = AppUtil.getDefContext().getString(R.string.expansionHubDisplayName) + " " + module.getSerialNumber();
+                        }
                     if (respParams != null && respParams.success)
                         {
-                        String message = getString(R.string.toastLynxFirmwareUpdateSuccessful, module.getSerialNumber());
+                        String message = getString(R.string.toastLynxFirmwareUpdateSuccessful, deviceString);
                         RobotLog.vv(TAG, "%s", message);
                         AppUtil.getInstance().showToast(UILocation.BOTH, message);
                         }
                     else if (status.getValue() != FwResponseStatus.Cancelled)
                         {
-                        String message = respParams==null
-                                ? getString(R.string.alertLynxFirmwareUpdateTimedout, module.getSerialNumber())
-                                : getString(R.string.alertLynxFirmwareUpdateFailed, module.getSerialNumber());
+                        String message;
+                        if (respParams==null)
+                            {
+                            // We didn't get a response back
+                            message = getString(R.string.alertLynxFirmwareUpdateTimedout, deviceString);
+                            }
+                        else
+                            {
+                            // We got an response back indicating that the update failed
+                            String errorMessage = respParams.errorMessage;
+                            if (errorMessage != null && !errorMessage.isEmpty())
+                                {
+                                message = getString(R.string.alertLynxFirmwareUpdateFailedWithReason, deviceString, errorMessage);
+                                }
+                            else
+                                {
+                                message = getString(R.string.alertLynxFirmwareUpdateFailed, deviceString);
+                                }
+                            }
                         RobotLog.ee(TAG, "%s", message);
                         AppUtil.DialogContext alertDialogContext = AppUtil.getInstance().showAlertDialog(UILocation.BOTH, getString(R.string.alertLynxFirmwareUpdateFailedTitle), message);
                         try {
@@ -312,6 +366,13 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
 
     protected class ReceiveLoopCallback extends RecvLoopRunnable.DegenerateCallback
         {
+        final String originatorId;
+
+        public ReceiveLoopCallback(String originatorId)
+            {
+            this.originatorId = originatorId;
+            }
+
         @Override public CallbackResult commandEvent(Command command) throws RobotCoreException
             {
             switch (command.getName())
@@ -319,7 +380,7 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
                 case CommandList.CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP:
                     CommandList.USBAccessibleLynxModulesResp serialNumbers = CommandList.USBAccessibleLynxModulesResp.deserialize(command.getExtra());
                     availableLynxModules.offer(serialNumbers);
-                    return CallbackResult.HANDLED;
+                    return CallbackResult.HANDLED_CONTINUE; // Allow processing by RevHubsAvailableForUpdate WebHandler
 
                 case CommandList.CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES_RESP:
                     CommandList.LynxFirmwareImagesResp candidates = CommandList.LynxFirmwareImagesResp.deserialize(command.getExtra());
@@ -328,8 +389,12 @@ public class FtcLynxFirmwareUpdateActivity extends ThemedActivity
 
                 case CommandList.CMD_LYNX_FIRMWARE_UPDATE_RESP:
                     CommandList.LynxFirmwareUpdateResp params = CommandList.LynxFirmwareUpdateResp.deserialize(command.getExtra());
-                    availableFWUpdateResps.offer(params);
-                    return CallbackResult.HANDLED;
+                    // a null params.originatorId indicates a pre-6.0 RC, so we should assume that the response is intended for us.
+                    if (params.originatorId == null || params.originatorId.equals(originatorId))
+                        {
+                        availableFWUpdateResps.offer(params);
+                        return CallbackResult.HANDLED;
+                        }
                 }
             return super.commandEvent(command);
             }

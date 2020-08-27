@@ -30,14 +30,15 @@
 
 package org.firstinspires.ftc.robotcore.internal.network;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.exception.RobotCoreException;
@@ -46,6 +47,7 @@ import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.PeerDiscovery;
 import com.qualcomm.robotcore.robocol.RobocolDatagram;
 import com.qualcomm.robotcore.robocol.RobocolDatagramSocket;
+import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -59,7 +61,6 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.RobotCoreGamepadManager;
 
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -77,6 +78,7 @@ public class NetworkConnectionHandler {
 
     public static final String TAG = "NetworkConnectionHandler";
     private static final NetworkConnectionHandler theInstance = new NetworkConnectionHandler();
+    private static final int IP_ADDRESS_TIMEOUT_SECONDS = 3;
 
     public static NetworkConnectionHandler getInstance() {
         return theInstance;
@@ -90,12 +92,12 @@ public class NetworkConnectionHandler {
     protected boolean setupNeeded = true;
 
     protected Context context;
-    protected ElapsedTime lastRecvPacket = new ElapsedTime();
-    protected InetAddress remoteAddr;
+    protected final ElapsedTime lastRecvPacket = new ElapsedTime();
+    protected volatile @Nullable InetAddress remoteAddr;
     protected volatile RobocolDatagramSocket socket;
     protected ScheduledExecutorService sendLoopService = null;
     protected ScheduledFuture<?> sendLoopFuture;
-    protected volatile SetupRunnable setupRunnable;
+    protected volatile NetworkSetupRunnable setupRunnable;
     protected @Nullable String connectionOwner;
     protected @Nullable String connectionOwnerPassword;
 
@@ -123,15 +125,16 @@ public class NetworkConnectionHandler {
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    protected static WifiManager getWifiManager(Context context) {
+    @SuppressLint("WifiManagerLeak") // We _are_ using the application Context, but Android Lint doesn't know that.
+    protected static WifiManager getWifiManager() {
         if (wifiManager == null) {
-            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            wifiManager = (WifiManager) AppUtil.getDefContext().getSystemService(Context.WIFI_SERVICE);
         }
         return wifiManager;
     }
 
-    public static WifiManager.WifiLock newWifiLock(Context context) {
-        return getWifiManager(context).createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "");
+    public static WifiManager.WifiLock newWifiLock() {
+        return getWifiManager().createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "");
     }
 
     /**
@@ -304,6 +307,13 @@ public class NetworkConnectionHandler {
         return connectionOwner != null && connectionOwner.equals(name);
     }
 
+    public boolean readyForCommandProcessing() {
+        synchronized (callbackLock) {
+            if (recvLoopRunnable == null) return false;
+        }
+        return true;
+    }
+
     /**
      * @return whether or not there is currently a peer connected via the network
      */
@@ -355,7 +365,7 @@ public class NetworkConnectionHandler {
      * prior to this time reset lastRecvPacket so that the command sending thread won't think we are
      * immediately disconnected again.
      */
-    public synchronized CallbackResult handleConnectionInfoAvailable(SocketConnect socketConnect) {
+    public synchronized CallbackResult handleConnectionInfoAvailable() {
         CallbackResult result = CallbackResult.HANDLED;
         RobotLog.ii(TAG, "Handling new network connection infomation, connected: " + networkConnection.isConnected() + " setup needed: " + setupNeeded);
         lastRecvPacket.reset();
@@ -367,14 +377,21 @@ public class NetworkConnectionHandler {
              * the default ip address when not in wifi direct mode.
              */
             if (networkConnection.getNetworkType() != NetworkType.WIFIDIRECT) {
-                try {
-                    Thread.sleep(2000); // in milliseconds.
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                ElapsedTime timeWaitingForIp = new ElapsedTime();
+                int ipAddressInt = getWifiManager().getConnectionInfo().getIpAddress();
+                // 0 indicates no IP address
+                while (ipAddressInt == 0 && timeWaitingForIp.seconds() < IP_ADDRESS_TIMEOUT_SECONDS && !Thread.currentThread().isInterrupted()) {
+                    ipAddressInt = getWifiManager().getConnectionInfo().getIpAddress();
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        RobotLog.ee(TAG, e, "Thread interrupted while waiting for IP address");
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
             synchronized (callbackLock) {
-                setupRunnable = new SetupRunnable(theRecvLoopCallback, networkConnection, lastRecvPacket, socketConnect);
+                setupRunnable = new NetworkSetupRunnable(theRecvLoopCallback, networkConnection, lastRecvPacket);
             }
             (new Thread(setupRunnable)).start();
         }
@@ -439,18 +456,28 @@ public class NetworkConnectionHandler {
     public synchronized void updateConnection(@NonNull RobocolDatagram packet)
             throws RobotCoreException, RobotProtocolException {
 
+        // Actually parse the packet in order to verify Robocol version compatibility
+        // We don't want to set it as our current peer if we can't actually communicate with it.
+        try {
+            PeerDiscovery peerDiscovery = PeerDiscovery.forReceive();
+            peerDiscovery.fromByteArray(packet.getData());
+        } catch (RobotProtocolException e) {
+            RobotLog.ee(TAG, e.getMessage());
+            throw e;
+        }
+
         lastRecvPacket.reset();
 
         if (packet.getAddress().equals(remoteAddr)) {
             /*
-             * We already received a peer discovery packet. Notify connection callbacks if
-             * appropriate, but don't do the rest of the setup.
+             * We already received a peer discovery packet from this peer.
+             * Notify connection callbacks if appropriate, but don't do the rest of the setup.
              */
             updatePeerStatus(true, false);
             return;
         }
 
-        // update remoteAddr with latest address
+        // update remoteAddr with the address of our new peer
         remoteAddr = packet.getAddress();
         RobotLog.vv(PeerDiscovery.TAG,"new remote peer discovered: " + remoteAddr.getHostAddress());
 
@@ -462,29 +489,12 @@ public class NetworkConnectionHandler {
         }
 
         if (socket != null) {
-            try {
-                socket.connect(remoteAddr);
-            } catch (SocketException e) {
-                throw RobotCoreException.createChained(e, "unable to connect to %s", remoteAddr.toString());
-            }
-
-            sendOnceRunnable.updateSocket(socket);
-
-            // Actually parse the packet in order to verify Robocol version compatibility
-            try {
-                PeerDiscovery peerDiscovery = PeerDiscovery.forReceive();
-                peerDiscovery.fromByteArray(packet.getData());
-            } catch (RobotProtocolException e) {
-                RobotLog.ee(TAG, e.getMessage());
-                throw e;
-            }
-
             // start send loop, if needed
             if (sendLoopFuture == null || sendLoopFuture.isDone()) {
                 RobotLog.vv(TAG, "starting sending loop");
 
                 sendLoopService = Executors.newSingleThreadScheduledExecutor();
-                sendLoopFuture = sendLoopService.scheduleAtFixedRate(sendOnceRunnable, 0, 40, TimeUnit.MILLISECONDS);
+                sendLoopFuture = sendLoopService.scheduleAtFixedRate(sendOnceRunnable, 0, SendOnceRunnable.MS_BATCH_TRANSMISSION_INTERVAL, TimeUnit.MILLISECONDS);
             }
             // force update the callbacks, since this we either were previously disconnected, or this is a different peer.
             updatePeerStatus(true, true);
@@ -515,10 +525,11 @@ public class NetworkConnectionHandler {
 
     /** Inject the indicated command into the reception infrastructure as if it had been transmitted remotely */
     public void injectReceivedCommand(Command cmd) {
-        SetupRunnable setupRunnable = this.setupRunnable;
+        NetworkSetupRunnable setupRunnable = this.setupRunnable;
         if (setupRunnable != null) {
             cmd.setIsInjected(true);
             setupRunnable.injectReceivedCommand(cmd);
+            RobotLog.vv(RobocolDatagram.TAG, "locally injecting %s", cmd.getName());
         } else {
             RobotLog.vv(TAG, "injectReceivedCommand(): setupRunnable==null; command ignored");
         }
@@ -535,9 +546,16 @@ public class NetworkConnectionHandler {
         return CallbackResult.NOT_HANDLED;
     }
 
+    public void sendDataToPeer(RobocolParsable parsable) throws RobotCoreException {
+        InetAddress remoteAddrCopy = remoteAddr; // We need a copy that can't turn null on us
+        if (remoteAddrCopy != null) {
+            sendDatagram(new RobocolDatagram(parsable, remoteAddrCopy));
+        }
+    }
+
     public void sendDatagram(RobocolDatagram datagram) {
         RobocolDatagramSocket socket = this.socket;
-        if (socket!=null && socket.getInetAddress()!=null ) socket.send(datagram);
+        if (socket!=null) socket.send(datagram);
     }
 
     public synchronized void clientDisconnect() {
@@ -577,7 +595,7 @@ public class NetworkConnectionHandler {
     }
 
     public long getRxDataCount() {
-        SetupRunnable setupRunnable = this.setupRunnable;
+        NetworkSetupRunnable setupRunnable = this.setupRunnable;
         if (setupRunnable != null) {
             return setupRunnable.getRxDataCount();
         } else {
@@ -586,7 +604,7 @@ public class NetworkConnectionHandler {
     }
 
     public long getTxDataCount() {
-        SetupRunnable setupRunnable = this.setupRunnable;
+        NetworkSetupRunnable setupRunnable = this.setupRunnable;
         if (setupRunnable != null) {
             return setupRunnable.getTxDataCount();
         } else {
@@ -595,7 +613,7 @@ public class NetworkConnectionHandler {
     }
 
     public long getBytesPerSecond() {
-        SetupRunnable setupRunnable = this.setupRunnable;
+        NetworkSetupRunnable setupRunnable = this.setupRunnable;
         if (setupRunnable != null) {
             return setupRunnable.getBytesPerSecond();
         } else {
@@ -605,6 +623,10 @@ public class NetworkConnectionHandler {
 
     public int getWifiChannel() {
         return networkConnection.getWifiChannel();
+    }
+
+    public @Nullable InetAddress getCurrentPeerAddr() {
+        return remoteAddr;
     }
 
     //----------------------------------------------------------------------------------------------

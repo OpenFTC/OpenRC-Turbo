@@ -70,11 +70,6 @@ public abstract class ClassFactory
     public abstract VuforiaLocalizer createVuforia(VuforiaLocalizer.Parameters parameters);
 
     /**
-     * Return true if this device is compatible with TensorFlow Object Detection, false otherwise.
-     */
-    public abstract boolean canCreateTFObjectDetector();
-
-    /**
      * {@link #createTFObjectDetector(TFObjectDetector.Parameters) createTFObjectDetector} returns
      * an instance of the TensorFlow object detector engine configured with the indicated set of parameters.
      *

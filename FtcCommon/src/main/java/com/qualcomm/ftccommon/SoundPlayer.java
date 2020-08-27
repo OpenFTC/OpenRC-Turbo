@@ -42,9 +42,9 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.annotation.CheckResult;
-import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
+import androidx.annotation.CheckResult;
+import androidx.annotation.Nullable;
+import androidx.annotation.RawRes;
 
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -54,12 +54,12 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.internal.android.SoundPoolIntf;
 import org.firstinspires.ftc.robotcore.internal.collections.MutableReference;
-import org.firstinspires.ftc.robotcore.internal.files.FileBasedLock;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackLooper;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
+import org.firstinspires.ftc.robotcore.internal.system.LockingRunner;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import org.firstinspires.ftc.robotcore.internal.system.RefCounted;
 import org.firstinspires.ftc.robotcore.internal.system.Tracer;
@@ -107,7 +107,7 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
 
     protected static class InstanceHolder
         {
-        public static SoundPlayer theInstance = new SoundPlayer(3, 6); // param choices are wet-finger-in-wind
+        public static SoundPlayer theInstance = new SoundPlayer(3, 8); // param choices are wet-finger-in-wind
         }
     public static SoundPlayer getInstance()
         {
@@ -117,6 +117,7 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
     public static final int msSoundTransmissionFreshness = 400;
 
     protected final Object         lock = new Object();
+    protected final LockingRunner  cacheLock = new LockingRunner();
     protected final boolean        isRobotController = AppUtil.getInstance().isRobotController();
     protected SoundPool            soundPool;
     protected CountDownLatch       currentlyLoadingLatch = null;
@@ -160,28 +161,19 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
     public SoundPlayer(int simultaneousStreams, int cacheSize)
         {
         mediaSizer = new MediaPlayer();
-        if (Build.VERSION.SDK_INT >= 21)
-            {
-            AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder();
-            audioAttributesBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
-            AudioAttributes audioAttributes = audioAttributesBuilder.build();
+        AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder();
+        audioAttributesBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
+        AudioAttributes audioAttributes = audioAttributesBuilder.build();
 
-            SoundPool.Builder soundPoolBuilder = new SoundPool.Builder();
-            soundPoolBuilder.setAudioAttributes(audioAttributes);
-            soundPoolBuilder.setMaxStreams(simultaneousStreams);
-            soundPool = soundPoolBuilder.build();
+        SoundPool.Builder soundPoolBuilder = new SoundPool.Builder();
+        soundPoolBuilder.setAudioAttributes(audioAttributes);
+        soundPoolBuilder.setMaxStreams(simultaneousStreams);
+        soundPool = soundPoolBuilder.build();
 
-            mediaSizer.setAudioAttributes(audioAttributes);
-            AudioManager audioManager = (AudioManager)(AppUtil.getDefContext().getSystemService(Context.AUDIO_SERVICE));
-            int audioSessionId = audioManager.generateAudioSessionId();
-            mediaSizer.setAudioSessionId(audioSessionId);
-            }
-        else
-            {
-            /** {@link AudioManager#STREAM_NOTIFICATION} might have been a better choice, but we use STREAM_MUSIC because we've always done so; not worth changing */
-            soundPool = new SoundPool(simultaneousStreams, AudioManager.STREAM_MUSIC, /*quality*/0); // can't use SoundPool.Builder on KitKat
-            mediaSizer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            }
+        mediaSizer.setAudioAttributes(audioAttributes);
+        AudioManager audioManager = (AudioManager)(AppUtil.getDefContext().getSystemService(Context.AUDIO_SERVICE));
+        int audioSessionId = audioManager.generateAudioSessionId();
+        mediaSizer.setAudioSessionId(audioSessionId);
         loadedSounds = new LoadedSoundCache(cacheSize);
         currentlyPlayingSounds = new HashSet<>();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(AppUtil.getDefContext());
@@ -787,11 +779,8 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
         final MutableReference<SoundInfo> result = new MutableReference<>(null);
         AppUtil.getInstance().ensureDirectoryExists(AppUtil.SOUNDS_CACHE, false);
 
-        // Only one of these at a time, please
-        FileBasedLock fileBasedLock = new FileBasedLock(AppUtil.SOUNDS_CACHE);
-
         try {
-            fileBasedLock.lockWhile(new Runnable()
+            cacheLock.lockWhile(new Runnable()
                 {
                 @Override public void run()
                     {

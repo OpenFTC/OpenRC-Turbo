@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.usb;
 
 import android.hardware.usb.UsbEndpoint;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.qualcomm.robotcore.R;
@@ -296,11 +296,15 @@ public class UsbConstants
     public static final int VENDOR_ID_ECS = 0x03fc;
     public static final int VENDOR_ID_GENERIC = 0x1908; // 6408; also see on SeaWit and YoLuke branded cameras, among others
 
+    public static final int PRODUCT_ID_LOGITECH_F310 = 0xC21D;
     public static final int PRODUCT_ID_LOGITECH_C920 = 0x082D;
     public static final int PRODUCT_ID_LOGITECH_C310 = 0x081B;
     public static final int PRODUCT_ID_LOGITECH_C270 = 0x0825;  // aka 2085
 
     public static final int PRODUCT_ID_MICROSOFT_LIFECAM_HD_3000 = 2064;    // aka 0x810
+    public static final int PRODUCT_ID_MICROSOFT_XBOX360_WIRED = 0x028E;
+
+    public static final int PRODUCT_ID_SONY_GAMEPAD_PS4 = 0x09CC;
 
     /** Some cameras return really meaningless names */
     public static final List<String> manufacturerNamesToIgnore = Arrays.asList("generic");

@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2019 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview functions used in both FtcBlocks.html and FtcOfflineBlocks.html
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -321,6 +338,9 @@ function initializeBlockly() {
     // Check blocks.
     var blockIds = [];
     switch (event.type) {
+      case Blockly.Events.FINISHED_LOADING:
+        blocksFinishedLoading = true;
+        break;
       case Blockly.Events.BLOCK_CREATE:
         Array.prototype.push.apply(blockIds, event.ids);
         break;
@@ -356,7 +376,9 @@ function initializeBlockly() {
         }
       }
     }
-    showJava();
+    if (blocksFinishedLoading) {
+      showJava();
+    }
   });
 }
 
@@ -572,6 +594,15 @@ function checkBlock(block, missingHardware) {
           'for SKYSTONE (2019-2020).\n\n' +
           'Please replace this block with the corresponding one from the Optimized for SKYSTONE ' +
           'toolbox category.');
+    } else if (block.type == 'misc_callJava_return' ||
+        block.type == 'misc_callJava_noReturn') {
+      if (!methodLookupStrings.includes(block.methodLookupString_)) {
+        warningBits |= WarningBits.MISSING_METHOD;
+        warningText = addWarning(warningText,
+            'This block refers to a Java method that has been changed or removed. It will not ' +
+            'work correctly.\n\n' +
+            'Please replace or remove this block, or restore the Java method it refers to.');
+      }
     }
 
     // If warningText is null, the following will clear a previous warning.

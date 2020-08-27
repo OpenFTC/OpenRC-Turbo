@@ -34,6 +34,7 @@ package org.firstinspires.ftc.robotcore.internal.hardware.android;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import java.io.File;
 
@@ -44,6 +45,8 @@ import java.io.File;
  * Nothing much will work, but at least it won't crash.
  */
 public class FakeAndroidBoard extends AndroidBoard {
+    private static final String TAG = "FakeAndroidBoard";
+
     @Override public String getDeviceType() {
         return "Fake Android board";
     }
@@ -72,8 +75,28 @@ public class FakeAndroidBoard extends AndroidBoard {
         return true;
     }
 
+    @Override public boolean supports5GhzAutoSelection() {
+        return false;
+    }
+
+    @Override public boolean supportsBulkNetworkSettings() {
+        return false;
+    }
+
+    @Override public boolean supportsGetChannelInfoIntent() {
+        return false;
+    }
+
     @Override public boolean hasControlHubUpdater() {
         return false;
+    }
+
+    @Override public WifiDataRate getWifiApBeaconRate() {
+        return WifiDataRate.UNKNOWN;
+    }
+
+    @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
+        RobotLog.ww(TAG, "This is not a known type of Control Hub; unable to set the WiFi AP beacon rate");
     }
 
     private static class FakeDigitalChannel implements DigitalChannel {

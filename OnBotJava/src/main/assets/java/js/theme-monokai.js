@@ -41,7 +41,7 @@ width: 1px;\
 background: #555651\
 }\
 .ace-monokai {\
-background-color: #272822 !important;\
+background-color: #272822;\
 color: #F8F8F2\
 }\
 .ace-monokai .ace_cursor {\

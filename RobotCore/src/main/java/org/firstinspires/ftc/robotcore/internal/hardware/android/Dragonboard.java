@@ -33,10 +33,13 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.hardware.android;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import java.io.File;
 
 public class Dragonboard extends AndroidBoard {
+    private static final String TAG = "Dragonboard";
+
     // Don't allow instantiation outside of our package
     protected Dragonboard() {}
 
@@ -90,6 +93,26 @@ public class Dragonboard extends AndroidBoard {
 
     @Override public boolean supports5GhzAp() {
         return false;
+    }
+
+    @Override public boolean supports5GhzAutoSelection() {
+        return false;
+    }
+
+    @Override public boolean supportsBulkNetworkSettings() {
+        return false;
+    }
+
+    @Override public boolean supportsGetChannelInfoIntent() {
+        return false;
+    }
+
+    @Override public WifiDataRate getWifiApBeaconRate() {
+        return WifiDataRate.UNKNOWN;
+    }
+
+    @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
+        RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on a Dragonboard");
     }
 
     @Override public boolean hasControlHubUpdater() {

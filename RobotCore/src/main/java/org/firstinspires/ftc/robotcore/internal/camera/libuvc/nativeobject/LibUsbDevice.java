@@ -32,8 +32,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject;
 
+import android.hardware.usb.UsbDevice;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.qualcomm.robotcore.util.RobotLog;
@@ -62,19 +63,22 @@ public class LibUsbDevice extends NativeObject
 
     protected final boolean traceEnabled;
 
+    private UsbDevice javaUsbDevice;
+
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public LibUsbDevice(long pointer)
+    public LibUsbDevice(long pointer, UsbDevice javaUsbDevice)
         {
-        this(pointer, true);
+        this(pointer, javaUsbDevice, true);
         }
 
-    public LibUsbDevice(long pointer, boolean traceEnabled)
+    public LibUsbDevice(long pointer, UsbDevice javaUsbDevice, boolean traceEnabled)
         {
 		super(pointer, traceEnabled ? defaultTraceLevel : TraceLevel.None); // We assume ownership of the (native) ref count present in pointer
         this.traceEnabled = traceEnabled;
+        this.javaUsbDevice = javaUsbDevice;
         }
 
     @Override protected void destructor()
@@ -135,7 +139,10 @@ public class LibUsbDevice extends NativeObject
             }
         else
             {
-            return SerialNumber.fromVidPid(nativeGetVendorId(pointer), nativeGetProductId(pointer), getUsbConnectionPath());
+            // Note: we previously used #nativeGetVendorId and #nativeGetProductId
+            // but those calls often fail, for unknown reasons. So, we use the Android
+            // API calls instead :)
+            return SerialNumber.fromVidPid(javaUsbDevice.getVendorId(), javaUsbDevice.getProductId(), getUsbConnectionPath());
             }
         }
 

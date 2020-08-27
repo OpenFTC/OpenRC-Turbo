@@ -33,8 +33,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.onbotjava;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -119,16 +119,7 @@ public class OnBotJavaClassLoader extends ClassLoader implements Closeable
 
     protected static File getDexCacheDir()
         {
-        File dexCache = null;
-        // Using getCodeCacheDir() is logically ideal, but we can't use it everywhere since
-        // it doesn't exist on KitKat. Having variation increases our test matrix, for relatively
-        // little gain (if any? we're careful) so we don't even try.
-        /*if (Build.VERSION.SDK_INT >= 21)
-            {
-            dexCache = AppUtil.getDefContext().getCodeCacheDir();
-            }*/
-            dexCache = AppUtil.getDefContext().getDir("dexopt", Context.MODE_PRIVATE);
-            return dexCache;
+        return AppUtil.getDefContext().getCodeCacheDir();
         }
 
     protected File getDexCache(File jarFile)

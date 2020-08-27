@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview FTC robot blocks related to game pads.
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -21,6 +38,8 @@ Blockly.Blocks['gamepad_getProperty'] = {
         ['AtRest', 'AtRest'],
         ['B', 'B'],
         ['Back', 'Back'],
+        ['Circle', 'Circle'],
+        ['Cross', 'Cross'],
         ['DpadDown', 'DpadDown'],
         ['DpadLeft', 'DpadLeft'],
         ['DpadRight', 'DpadRight'],
@@ -31,12 +50,18 @@ Blockly.Blocks['gamepad_getProperty'] = {
         ['LeftStickX', 'LeftStickX'],
         ['LeftStickY', 'LeftStickY'],
         ['LeftTrigger', 'LeftTrigger'],
+        ['Options', 'Options'],
+        ['PS', 'PS'],
         ['RightBumper', 'RightBumper'],
         ['RightStickButton', 'RightStickButton'],
         ['RightStickX', 'RightStickX'],
         ['RightStickY', 'RightStickY'],
         ['RightTrigger', 'RightTrigger'],
+        ['Share', 'Share'],
+        ['Square', 'Square'],
         ['Start', 'Start'],
+        ['Touchpad', 'Touchpad'],
+        ['Triangle', 'Triangle'],
         ['X', 'X'],
         ['Y', 'Y'],
     ];
@@ -53,6 +78,8 @@ Blockly.Blocks['gamepad_getProperty'] = {
         ['AtRest', 'Returns true if all analog sticks and triggers are in their rest position.'],
         ['B', 'Returns true if the B button is pressed.'],
         ['Back', 'Returns true if the Back button is pressed.'],
+        ['Circle', 'Returns true if the Circle button is pressed.'],
+        ['Cross', 'Returns true if the Cross button is pressed.'],
         ['DpadDown', 'Returns true if the dpad down button is pressed.'],
         ['DpadLeft', 'Returns true if the dpad left button is pressed.'],
         ['DpadRight', 'Returns true if the dpad right button is pressed.'],
@@ -63,12 +90,18 @@ Blockly.Blocks['gamepad_getProperty'] = {
         ['LeftStickX', 'Returns a numeric value between -1.0 and +1.0 representing the left analog stick horizontal axis value.'],
         ['LeftStickY', 'Returns a numeric value between -1.0 and +1.0 representing the left analog stick vertical axis value.'],
         ['LeftTrigger', 'Returns a numeric value between 0.0 and +1.0 representing the left trigger value.'],
+        ['Options', 'Returns true if the Options button is pressed.'],
+        ['PS', 'Returns true if the PS button is pressed.'],
         ['RightBumper', 'Returns true if the right bumper is pressed.'],
         ['RightStickButton', 'Returns true if the right stick button is pressed.'],
         ['RightStickX', 'Returns a numeric value between -1.0 and +1.0 representing the right analog stick horizontal axis value.'],
         ['RightStickY', 'Returns a numeric value between -1.0 and +1.0 representing the right analog stick vertical axis value .'],
         ['RightTrigger', 'Returns a numeric value between 0.0 and +1.0 representing the right trigger value.'],
+        ['Share', 'Returns true if the Share button is pressed.'],
+        ['Square', 'Returns true if the Square button is pressed.'],
         ['Start', 'Returns true if the Start button is pressed.'],
+        ['Touchpad', 'Returns true if the Touchpad button is pressed.'],
+        ['Triangle', 'Returns true if the Triangle button is pressed.'],
         ['X', 'Returns true if the X button is pressed.'],
         ['Y', 'Returns true if the Y button is pressed.'],
     ];
@@ -108,6 +141,12 @@ Blockly.FtcJava['gamepad_getProperty'] = function(block) {
     case 'Back':
       code = 'back';
       break;
+    case 'Circle':
+      code = 'circle';
+      break;
+    case 'Cross':
+      code = 'cross';
+      break;
     case 'DpadDown':
       code = 'dpad_down';
       break;
@@ -138,6 +177,12 @@ Blockly.FtcJava['gamepad_getProperty'] = function(block) {
     case 'LeftTrigger':
       code = 'left_trigger';
       break;
+    case 'Options':
+      code = 'options';
+      break;
+    case 'PS':
+      code = 'ps';
+      break;
     case 'RightBumper':
       code = 'right_bumper';
       break;
@@ -153,8 +198,20 @@ Blockly.FtcJava['gamepad_getProperty'] = function(block) {
     case 'RightTrigger':
       code = 'right_trigger';
       break;
+    case 'Share':
+      code = 'share';
+      break;
+    case 'Square':
+      code = 'square';
+      break;
     case 'Start':
       code = 'start';
+      break;
+    case 'Touchpad':
+      code = 'touchpad';
+      break;
+    case 'Triangle':
+      code = 'triangle';
       break;
     case 'X':
       code = 'x';
@@ -179,6 +236,8 @@ Blockly.Blocks['gamepad_getProperty_Boolean'] = {
         ['AtRest', 'AtRest'],
         ['B', 'B'],
         ['Back', 'Back'],
+        ['Circle', 'Circle'],
+        ['Cross', 'Cross'],
         ['DpadDown', 'DpadDown'],
         ['DpadLeft', 'DpadLeft'],
         ['DpadRight', 'DpadRight'],
@@ -186,9 +245,15 @@ Blockly.Blocks['gamepad_getProperty_Boolean'] = {
         ['Guide', 'Guide'],
         ['LeftBumper', 'LeftBumper'],
         ['LeftStickButton', 'LeftStickButton'],
+        ['Options', 'Options'],
+        ['PS', 'PS'],
         ['RightBumper', 'RightBumper'],
         ['RightStickButton', 'RightStickButton'],
+        ['Share', 'Share'],
+        ['Square', 'Square'],
         ['Start', 'Start'],
+        ['Touchpad', 'Touchpad'],
+        ['Triangle', 'Triangle'],
         ['X', 'X'],
         ['Y', 'Y'],
     ];
@@ -205,6 +270,8 @@ Blockly.Blocks['gamepad_getProperty_Boolean'] = {
         ['AtRest', 'Returns true if all analog sticks and triggers are in their rest position.'],
         ['B', 'Returns true if the B button is pressed.'],
         ['Back', 'Returns true if the Back button is pressed.'],
+        ['Circle', 'Returns true if the Circle button is pressed.'],
+        ['Cross', 'Returns true if the Cross button is pressed.'],
         ['DpadDown', 'Returns true if the dpad down button is pressed.'],
         ['DpadLeft', 'Returns true if the dpad left button is pressed.'],
         ['DpadRight', 'Returns true if the dpad right button is pressed.'],
@@ -212,9 +279,15 @@ Blockly.Blocks['gamepad_getProperty_Boolean'] = {
         ['Guide', 'Returns true if the Guide button is pressed. The Guide button is often the large button in the middle of the controller.'],
         ['LeftBumper', 'Returns true if the left bumper is pressed.'],
         ['LeftStickButton', 'Returns true if the left stick button is pressed.'],
+        ['Options', 'Returns true if the Options button is pressed.'],
+        ['PS', 'Returns true if the PS button is pressed.'],
         ['RightBumper', 'Returns true if the right bumper is pressed.'],
         ['RightStickButton', 'Returns true if the right stick button is pressed.'],
+        ['Share', 'Returns true if the Share button is pressed.'],
+        ['Square', 'Returns true if the Square button is pressed.'],
         ['Start', 'Returns true if the Start button is pressed.'],
+        ['Touchpad', 'Returns true if the Touchpad button is pressed.'],
+        ['Triangle', 'Returns true if the Triangle button is pressed.'],
         ['X', 'Returns true if the X button is pressed.'],
         ['Y', 'Returns true if the Y button is pressed.'],
     ];

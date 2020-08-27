@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.ftccommon.configuration;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.ftccommon.CommandList;
 import com.qualcomm.hardware.HardwareDeviceManager;
@@ -116,8 +116,9 @@ public class USBScanManager
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
-
-    public USBScanManager(Context context, boolean isRemoteConfig) throws RobotCoreException
+    // TODO(Noah): Convert USBScanManager into singleton, so that ALL requests get multiplexed correctly
+    //             It should be moved to the Hardware module for increased accessiblity
+    public USBScanManager(Context context, boolean isRemoteConfig)
         {
         this.context = context;
         this.isRemoteConfig = isRemoteConfig;

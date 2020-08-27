@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.ftccommon;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import com.qualcomm.robotcore.util.RobotLog;
@@ -167,77 +167,6 @@ public class CommandList extends RobotCoreCommandList {
   public static final String CMD_START_DS_PROGRAM_AND_MANAGE_RESP = "CMD_START_DS_PROGRAM_AND_MANAGE_RESP";
 
   public static final String CMD_SET_MATCH_NUMBER = "CMD_SET_MATCH_NUMBER";
-
-  //------------------------------------------------------------------------------------------------
-  // Lynx firmware update support
-  //------------------------------------------------------------------------------------------------
-
-  public static final String CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES = "CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES";
-  public static final String CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES_RESP = "CMD_GET_CANDIDATE_LYNX_FIRMWARE_IMAGES_RESP";
-
-  public static class LynxFirmwareImagesResp {
-    /** used to prompt user as to where to load images for updating */
-    File firstFolder = AppUtil.FIRST_FOLDER;
-    /** currently available images. files or assets. */
-    ArrayList<FWImage> firmwareImages = new ArrayList<FWImage>();
-
-    public String serialize() {
-      return SimpleGson.getInstance().toJson(this);
-    }
-    public static LynxFirmwareImagesResp deserialize(String serialized) {
-      return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareImagesResp.class);
-    }
-  }
-  public static final String CMD_GET_USB_ACCESSIBLE_LYNX_MODULES = "CMD_GET_USB_ACCESSIBLE_LYNX_MODULES";
-  public static class USBAccessibleLynxModulesRequest {
-    public boolean forFirmwareUpdate = false;
-
-    public String serialize() {
-      return SimpleGson.getInstance().toJson(this);
-    }
-    public static USBAccessibleLynxModulesRequest deserialize(String serialized) {
-      return SimpleGson.getInstance().fromJson(serialized, USBAccessibleLynxModulesRequest.class);
-    }
-  }
-  public static final String CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP = "CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP";
-
-  public static class USBAccessibleLynxModulesResp
-    {
-    ArrayList<USBAccessibleLynxModule> modules = new ArrayList<USBAccessibleLynxModule>();
-
-    public String serialize() {
-      return SimpleGson.getInstance().toJson(this);
-    }
-    public static USBAccessibleLynxModulesResp deserialize(String serialized) {
-      return SimpleGson.getInstance().fromJson(serialized, USBAccessibleLynxModulesResp.class);
-    }
-  }
-
-  public static final String CMD_LYNX_FIRMWARE_UPDATE = "CMD_LYNX_FIRMWARE_UPDATE";
-  public static class LynxFirmwareUpdate {
-
-    SerialNumber serialNumber;
-    FWImage firmwareImageFile;
-
-    public String serialize() {
-      return SimpleGson.getInstance().toJson(this);
-    }
-    public static LynxFirmwareUpdate deserialize(String serialized) {
-      return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareUpdate.class);
-    }
-  }
-  public static final String CMD_LYNX_FIRMWARE_UPDATE_RESP = "CMD_LYNX_FIRMWARE_UPDATE_RESP";
-  public static class LynxFirmwareUpdateResp {
-
-    boolean success;
-
-    public String serialize() {
-      return SimpleGson.getInstance().toJson(this);
-    }
-    public static LynxFirmwareUpdateResp deserialize(String serialized) {
-      return SimpleGson.getInstance().fromJson(serialized, LynxFirmwareUpdateResp.class);
-    }
-  }
 
   public static final String CMD_LYNX_ADDRESS_CHANGE = "CMD_LYNX_ADDRESS_CHANGE";
   public static class LynxAddressChangeRequest {

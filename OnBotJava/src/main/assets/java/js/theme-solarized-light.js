@@ -41,7 +41,7 @@ width: 1px;\
 background: #e8e8e8\
 }\
 .ace-solarized-light {\
-background-color: #FDF6E3 !important;\
+background-color: #FDF6E3;\
 color: #586E75\
 }\
 .ace-solarized-light .ace_cursor {\

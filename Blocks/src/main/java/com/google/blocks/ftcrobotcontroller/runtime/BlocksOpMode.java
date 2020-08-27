@@ -1,18 +1,18 @@
 /*
-Copyright 2016 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.runtime;
 
@@ -27,17 +27,22 @@ import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItemMap;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareType;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil;
+import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
 import com.google.blocks.ftcrobotcontroller.util.ProjectsUtil;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
 import org.firstinspires.ftc.robotcore.internal.opmode.InstanceOpModeManager;
 import org.firstinspires.ftc.robotcore.internal.opmode.InstanceOpModeRegistrar;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
 import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -75,6 +80,9 @@ public final class BlocksOpMode extends LinearOpMode {
   private volatile String currentBlockFirstName;
   private volatile String currentBlockLastName;
   private volatile Thread javaBridgeThread;
+
+  private volatile boolean forceStopped = false;
+  private CameraName switchableCamera;
 
   /**
    * Instantiates a BlocksOpMode that loads JavaScript from a file and executes it when the op mode
@@ -134,8 +142,9 @@ public final class BlocksOpMode extends LinearOpMode {
   private void checkIfStopRequested() {
     if (interruptedTime.get() != 0L &&
         isStopRequested() &&
-        System.currentTimeMillis() - interruptedTime.get() >= msStuckDetectStop) {
+        System.currentTimeMillis() - interruptedTime.get() >= /* bite BEFORE main watchdog*/msStuckDetectStop-100) {
       RobotLog.i(getLogPrefix() + "checkIfStopRequested - about to stop opmode by throwing RuntimeException");
+      forceStopped = true;
       throw new RuntimeException("Stopping opmode " + project + " by force.");
     }
   }
@@ -194,6 +203,14 @@ public final class BlocksOpMode extends LinearOpMode {
   public void runOpMode() {
     RobotLog.i(getLogPrefix() + "runOpMode - start");
     cleanUpPreviousBlocksOpMode();
+
+    BlocksOpModeCompanion.opMode = this;
+    BlocksOpModeCompanion.linearOpMode = this;
+    BlocksOpModeCompanion.hardwareMap = hardwareMap;
+    BlocksOpModeCompanion.telemetry = telemetry;
+    BlocksOpModeCompanion.gamepad1 = gamepad1;
+    BlocksOpModeCompanion.gamepad2 = gamepad2;
+
     try {
       fatalExceptionHolder.set(null);
       fatalErrorMessageHolder.set(null);
@@ -248,10 +265,10 @@ public final class BlocksOpMode extends LinearOpMode {
         // If the stop button is pressed, the scriptFinished.wait() call below will be interrrupted
         // and this thread will catch InterruptedException. The script will continue to run and
         // this thread will continue to wait until scriptFinished is set. However, all calls from
-        // javascript into java call Access.stopRunawayTrain. Access.stopRunawayTrain will throw a
-        // RuntimeException if the elapsed time since catching the InterruptedException exceeds 20
-        // seconds. The RuntimeException will cause the script to stop immediately, set
-        // scriptFinished to true and call scriptFinished.notifyAll().
+        // javascript into java call startBlockExecution. startBlockExecution calls
+        // checkIfStopRequested, which will throw an exception if the elapsed time since catching
+        // the InterruptedException exceeds msStuckDetectStop. The exception will cause the script
+        // to stop immediately, set scriptFinished to true and call scriptFinished.notifyAll().
 
         RobotLog.i(getLogPrefix() + "runOpMode - before while !scriptFinished loop");
         while (!scriptFinished.get()) {
@@ -270,6 +287,8 @@ public final class BlocksOpMode extends LinearOpMode {
         }
         RobotLog.i(getLogPrefix() + "runOpMode - after while !scriptFinished loop");
       }
+
+      clearSwitchableCamera();
 
       // Clean up the WebView component by calling clearScript on the UI thread.
       appUtil.runOnUiThread(new Runnable() {
@@ -316,6 +335,8 @@ public final class BlocksOpMode extends LinearOpMode {
       } else {
         RobotLog.i(getLogPrefix() + "runOpMode - end - no InterruptedException");
       }
+      BlocksOpModeCompanion.opMode = null;
+      BlocksOpModeCompanion.linearOpMode = null;
     }
   }
 
@@ -387,7 +408,7 @@ public final class BlocksOpMode extends LinearOpMode {
     javascriptInterfaces.put(Identifier.BNO055IMU_PARAMETERS.identifierForJavaScript,
         new BNO055IMUParametersAccess(this, Identifier.BNO055IMU_PARAMETERS.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.COLOR.identifierForJavaScript,
-        new ColorAccess(this, Identifier.COLOR.identifierForJavaScript));
+        new ColorAccess(this, Identifier.COLOR.identifierForJavaScript, activity));
     javascriptInterfaces.put(Identifier.DBG_LOG.identifierForJavaScript,
         new DbgLogAccess(this, Identifier.DBG_LOG.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.ELAPSED_TIME.identifierForJavaScript,
@@ -424,6 +445,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new TelemetryAccess(this, Identifier.TELEMETRY.identifierForJavaScript, telemetry));
     javascriptInterfaces.put(Identifier.TEMPERATURE.identifierForJavaScript,
         new TemperatureAccess(this, Identifier.TEMPERATURE.identifierForJavaScript));
+    javascriptInterfaces.put(Identifier.TFOD_CUSTOM_MODEL.identifierForJavaScript,
+        new TfodCustomModelAccess(this, Identifier.TFOD_CUSTOM_MODEL.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_ROVER_RUCKUS.identifierForJavaScript,
         new TfodRoverRuckusAccess(this, Identifier.TFOD_ROVER_RUCKUS.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_SKY_STONE.identifierForJavaScript,
@@ -481,6 +504,17 @@ public final class BlocksOpMode extends LinearOpMode {
     }
   }
 
+  CameraName getSwitchableCamera() {
+    if (switchableCamera == null) {
+      switchableCamera = VuforiaBase.getSwitchableCamera(hardwareMap);
+    }
+    return switchableCamera;
+  }
+
+  private void clearSwitchableCamera() {
+    switchableCamera = null;
+  }
+
   private class BlocksOpModeAccess extends Access {
     private final Object scriptFinishedLock;
     private final AtomicBoolean scriptFinished;
@@ -522,6 +556,14 @@ public final class BlocksOpMode extends LinearOpMode {
           return;
         }
 
+        if (forceStopped)
+        {
+           AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "OpMode Force-Stopped", "User OpMode was stuck in stop(), but was able to be force stopped without restarting the app. Please make sure you are calling opModeIsActive() in any loops!");
+
+           //Get out of dodge so we don't force a restart by setting a global error
+           return;
+        }
+
         // An exception occured while a block was executed. The message varies (depending on the
         // version of Android?) so we don't bother checking it.
         fatalErrorMessageHolder.compareAndSet(null,
@@ -551,58 +593,14 @@ public final class BlocksOpMode extends LinearOpMode {
     String jsFileContent = ProjectsUtil.fetchJsFileContent(project);
     String jsContent = HardwareUtil.upgradeJs(jsFileContent, hardwareItemMap);
 
-    String html = "<html><body onload='callRunOpMode()'><script type='text/javascript'>\n"
-        + "function callRunOpMode() {\n"
-        + "  blocksOpMode.scriptStarting();\n"
-        + "  try {\n"
-        + "    runOpMode();\n" // This calls the runOpMode method in the generated javascript.
-        + "  } catch (e) {\n"
-        + "    blocksOpMode.caughtException(String(e));\n"
-        + "  }\n"
-        + "  blocksOpMode.scriptFinished();\n"
-        + "}\n"
-        + "\n"
-        + "function telemetryAddTextData(key, data) {\n"
-        + "  switch (typeof data) {\n"
-        + "    case 'string':\n"
-        + "      telemetry.addTextData(key, data);\n"
-        + "      break;\n"
-        + "    case 'object':\n"
-        + "      if (data instanceof Array) {\n"
-        + "        telemetry.addTextData(key, String(data));\n"
-        + "      } else {\n"
-        + "        telemetry.addObjectData(key, data);\n"
-        + "      }\n"
-        + "      break;\n"
-        + "    default:\n"
-        + "      telemetry.addTextData(key, String(data));\n"
-        + "      break;\n"
-        + "  }\n"
-        + "}\n"
-        + "\n"
-        + "function telemetrySpeak(data, languageCode, countryCode) {\n"
-        + "  switch (typeof data) {\n"
-        + "    case 'string':\n"
-        + "      telemetry.speakTextData(data, languageCode, countryCode);\n"
-        + "      break;\n"
-        + "    case 'object':\n"
-        + "      if (data instanceof Array) {\n"
-        + "        telemetry.speakTextData(String(data), languageCode, countryCode);\n"
-        + "      } else {\n"
-        + "        telemetry.speakObjectData(data, languageCode, countryCode);\n"
-        + "      }\n"
-        + "      break;\n"
-        + "    default:\n"
-        + "      telemetry.speakTextData(String(data), languageCode, countryCode);\n"
-        + "      break;\n"
-        + "  }\n"
-        + "}\n"
-        + "\n"
-        + jsContent
-        + "\n"
-        + "</script></body></html>\n";
+    StringBuilder html = new StringBuilder()
+        .append("<html><body onload='callRunOpMode()'><script type='text/javascript'>\n");
+    FileUtil.readAsset(html, activity.getAssets(), "blocks/runtime.js");
+    html.append("\n")
+        .append(jsContent)
+        .append("\n</script></body></html>\n");
     webView.loadDataWithBaseURL(
-        null /* baseUrl */, html, "text/html", "UTF-8", null /* historyUrl */);
+        null /* baseUrl */, html.toString(), "text/html", "UTF-8", null /* historyUrl */);
   }
 
   private void clearScript() {
@@ -633,8 +631,6 @@ public final class BlocksOpMode extends LinearOpMode {
     webView.setWebChromeClient(new WebChromeClient() {
       @Override
       public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-        RobotLog.i(LOG_PREFIX + "consoleMessage.message() " + consoleMessage.message());
-        RobotLog.i(LOG_PREFIX + "consoleMessage.lineNumber() " + consoleMessage.lineNumber());
         return false; // continue with console logging.
       }
     });

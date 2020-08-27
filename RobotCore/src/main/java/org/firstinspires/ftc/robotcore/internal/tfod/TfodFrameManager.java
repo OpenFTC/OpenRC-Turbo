@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2018 Google LLC
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,6 +20,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import com.google.ftcresearch.tfod.util.ImageUtils;
@@ -51,11 +52,15 @@ class TfodFrameManager implements Runnable {
 
   private static final String TAG = "TfodFrameManager";
   private static final Paint paint = new Paint(); // Used to draw recognitions without tracker
+  private static final Paint zoomPaint = new Paint(); // Used to draw the zoom area.
 
   static {
     paint.setColor(Color.RED);
     paint.setStyle(Paint.Style.STROKE);
     paint.setStrokeWidth(10);
+    zoomPaint.setColor(Color.WHITE);
+    zoomPaint.setAlpha(128);
+    zoomPaint.setStyle(Paint.Style.FILL);
   }
 
   // Parameters passed in to the constructor
@@ -64,6 +69,7 @@ class TfodFrameManager implements Runnable {
   private final List<Interpreter> interpreters;
   private final List<String> labels;
   private final TfodParameters params;
+  private final Zoom zoom;
   private final AnnotatedFrameCallback tfodCallback;
 
   private final Size trackerFrameSize;
@@ -93,12 +99,14 @@ class TfodFrameManager implements Runnable {
       List<Interpreter> interpreters,
       List<String> labels,
       TfodParameters params,
+      Zoom zoom,
       AnnotatedFrameCallback tfodCallback) {
     this.frameGenerator = frameGenerator;
     this.cameraInformation = frameGenerator.getCameraInformation();
     this.interpreters = interpreters;
     this.labels = labels;
     this.params = params;
+    this.zoom = zoom;
     this.tfodCallback = tfodCallback;
 
     trackerFrameSize = calculateTrackerFrameSize(params.inputSize, cameraInformation.size);
@@ -201,42 +209,49 @@ class TfodFrameManager implements Runnable {
     // See if there's an interpreter available to handle this frame.
     final Integer interpreterId = availableIds.poll();
 
-    if (interpreterId != null) { // There's actually an available interpreter, we will use it
-      RecognizeImageRunnable task =
-          new RecognizeImageRunnable(
-              annotatedFrame,
-              cameraInformation,
-              interpreters.get(interpreterId),
-              params,
-              labels,
-              outputLocations.get(interpreterId),
-              outputClasses.get(interpreterId),
-              outputScores.get(interpreterId),
-              numDetections.get(interpreterId),
-              new AnnotatedFrameCallback() {
-                @Override
-                public void onResult(AnnotatedYuvRgbFrame frame) {
-                  // Note that frame and annotatedFrame are the same instance, but now it may have
-                  // some recognitions.
-                  long endTimeNanos = System.nanoTime();
-                  long elapsedNanos = endTimeNanos - annotatedFrame.getFrameTimeNanos();
-                  long elapsedMs = TimeUnit.MILLISECONDS.convert(elapsedNanos, TimeUnit.NANOSECONDS);
-                  //Log.i(annotatedFrame.getTag(), "TfodFrameManager - interpreter [" + interpreterId + "] Ran for " + elapsedMs + " ms");
+    if (interpreterId != null) { // There's actually an available interpreter, we will use it.
+      double zoomMagnification;
+      double zoomAspectRatio;
+      synchronized (zoom) {
+        zoomMagnification = zoom.magnification;
+        zoomAspectRatio = zoom.aspectRatio;
+      }
+      RecognizeImageRunnable task = new RecognizeImageRunnable(
+          annotatedFrame,
+          cameraInformation,
+          interpreters.get(interpreterId),
+          params,
+          zoomMagnification,
+          zoomAspectRatio,
+          labels,
+          outputLocations.get(interpreterId),
+          outputClasses.get(interpreterId),
+          outputScores.get(interpreterId),
+          numDetections.get(interpreterId),
+          new AnnotatedFrameCallback() {
+            @Override
+            public void onResult(AnnotatedYuvRgbFrame frame) {
+              // Note that frame and annotatedFrame are the same instance, but now it may have
+              // some recognitions.
+              long endTimeNanos = System.nanoTime();
+              long elapsedNanos = endTimeNanos - annotatedFrame.getFrameTimeNanos();
+              long elapsedMs = TimeUnit.MILLISECONDS.convert(elapsedNanos, TimeUnit.NANOSECONDS);
+              //Log.i(annotatedFrame.getTag(), "TfodFrameManager - interpreter [" + interpreterId + "] Ran for " + elapsedMs + " ms");
 
-                  averageInferenceTime.add(elapsedNanos);
-                  //Log.i(
-                  //    annotatedFrame.getTag(),
-                  //    "TfodFrameManager - average inference time is now "
-                  //        + TimeUnit.MILLISECONDS.convert(
-                  //            (long) averageInferenceTime.get(), TimeUnit.NANOSECONDS)
-                  //        + "ms");
+              averageInferenceTime.add(elapsedNanos);
+              //Log.i(
+              //    annotatedFrame.getTag(),
+              //    "TfodFrameManager - average inference time is now "
+              //        + TimeUnit.MILLISECONDS.convert(
+              //            (long) averageInferenceTime.get(), TimeUnit.NANOSECONDS)
+              //        + "ms");
 
-                  receiveNewRecognitions(annotatedFrame);
+              receiveNewRecognitions(annotatedFrame);
 
-                  // Finally, mark the interpreter as available.
-                  availableIds.add(interpreterId);
-                }
-              });
+              // Finally, mark the interpreter as available.
+              availableIds.add(interpreterId);
+            }
+          });
 
       //Log.i(annotatedFrame.getTag(), "TfodFrameManager.submitRecognitionTask - submitting recognition task with interpreter [" + interpreterId + "]");
       lastSubmittedFrameTimeNanos = annotatedFrame.getFrameTimeNanos();
@@ -388,6 +403,14 @@ class TfodFrameManager implements Runnable {
   void draw(Canvas canvas) {
     if (!active) {
       return;
+    }
+
+    if (zoom.isZoomed()) {
+      Rect r = zoom.getZoomArea(canvas.getWidth(), canvas.getHeight());
+      canvas.drawRect(0, 0, r.right, r.top, zoomPaint); // top
+      canvas.drawRect(r.right, 0, canvas.getWidth(), r.bottom, zoomPaint); // right
+      canvas.drawRect(r.left, r.bottom, canvas.getWidth(), canvas.getHeight(), zoomPaint); // bottom
+      canvas.drawRect(0, r.top, r.left, canvas.getHeight(), zoomPaint); // left
     }
 
     if (!params.trackerDisable) {

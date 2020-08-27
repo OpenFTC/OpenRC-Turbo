@@ -16,6 +16,7 @@
 
 package org.firstinspires.ftc.robotcore.internal.tfod;
 
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import com.google.ftcresearch.tfod.util.Size;
@@ -52,6 +53,9 @@ class RecognizeImageRunnable implements Runnable {
   private final CameraInformation cameraInformation;
   private final Interpreter interpreter;
   private final TfodParameters params;
+  private final double zoomMagnification;
+  private final double zoomAspectRatio;
+
   private final List<String> labels;
 
   // Where to store the output from the network. These arrays get combined into a single object
@@ -111,6 +115,8 @@ class RecognizeImageRunnable implements Runnable {
       CameraInformation cameraInformation,
       Interpreter interpreter,
       TfodParameters params,
+      double zoomMagnification,
+      double zoomAspectRatio,
       List<String> labels,
       float[][][] outputLocations,
       float[][] outputClasses,
@@ -121,6 +127,8 @@ class RecognizeImageRunnable implements Runnable {
     this.cameraInformation = cameraInformation;
     this.interpreter = interpreter;
     this.params = params;
+    this.zoomMagnification = zoomMagnification;
+    this.zoomAspectRatio = zoomAspectRatio;
     this.labels = labels;
     this.outputLocations = outputLocations;
     this.outputClasses = outputClasses;
@@ -129,25 +137,23 @@ class RecognizeImageRunnable implements Runnable {
     this.callback = callback;
   }
 
-
-  private static ByteBuffer preprocessFrame(YuvRgbFrame frame, int imageSize, boolean
-      isModelQuantized) {
-
-    int[] rgbArray = frame.getArgb8888Array(imageSize);
+  private ByteBuffer preprocessFrame() {
+    int[] rgbArray = annotatedFrame.getFrame().getArgb8888Array(
+        params.inputSize, zoomMagnification, zoomAspectRatio);
 
     // Allocate the ByteBuffer to be passed as the input to the network
-    int numBytesPerChannel = isModelQuantized ? 1 /* Quantized */ : 4 /* Floating Point */;
+    int numBytesPerChannel = params.isModelQuantized ? 1 /* Quantized */ : 4 /* Floating Point */;
     // capacity = (Width) * (Height) * (Channels) * (Bytes Per Channel)
-    int capacity = imageSize * imageSize * 3 * numBytesPerChannel;
+    int capacity = params.inputSize * params.inputSize * 3 * numBytesPerChannel;
     ByteBuffer imgData = ByteBuffer.allocateDirect(capacity);
     imgData.order(ByteOrder.nativeOrder());
     imgData.rewind();
 
     // Copy the data into the ByteBuffer
-    for (int i = 0; i < imageSize; ++i) {
-      for (int j = 0; j < imageSize; ++j) {
-        int pixelValue = rgbArray[i * imageSize + j];
-        if (isModelQuantized) { // Quantized model
+    for (int i = 0; i < params.inputSize; ++i) {
+      for (int j = 0; j < params.inputSize; ++j) {
+        int pixelValue = rgbArray[i * params.inputSize + j];
+        if (params.isModelQuantized) { // Quantized model
           // Copy as-is
           imgData.put((byte) ((pixelValue >> 16) & 0xFF));
           imgData.put((byte) ((pixelValue >> 8) & 0xFF));
@@ -186,16 +192,7 @@ class RecognizeImageRunnable implements Runnable {
         continue;
       }
 
-      // Return the rectangles in the coordinates of the bitmap we were originally given.
-      // Note that this conversion switches the indices from what is returned by the model to
-      // what is expected by RectF. The model gives [top, left, bottom, right], while RectF
-      // expects [left, top, right, bottom].
-      final RectF detectionBox =
-          new RectF(
-              outputLocations[0][i][1] * annotatedFrame.getFrame().getWidth(),
-              outputLocations[0][i][0] * annotatedFrame.getFrame().getHeight(),
-              outputLocations[0][i][3] * annotatedFrame.getFrame().getWidth(),
-              outputLocations[0][i][2] * annotatedFrame.getFrame().getHeight());
+      RectF detectionBox = convertOutputLocationToDetectionBox(outputLocations[0][i]);
 
       annotatedFrame.getRecognitions().add(
           new RecognitionImpl(cameraInformation, labels.get(detectedClass), detectionScore, detectionBox));
@@ -211,12 +208,35 @@ class RecognizeImageRunnable implements Runnable {
         });
   }
 
+  private RectF convertOutputLocationToDetectionBox(float[] outputLocation) {
+    // Return the rectangles in the coordinates of the bitmap we were originally given.
+    // Note that this conversion switches the indices from what is returned by the model to
+    // what is expected by RectF. The model gives [top, left, bottom, right], while RectF
+    // expects [left, top, right, bottom].
+    int frameWidth = annotatedFrame.getFrame().getWidth();
+    int frameHeight = annotatedFrame.getFrame().getHeight();
+
+    if (Zoom.isZoomed(zoomMagnification)) {
+      Rect zoomArea = Zoom.getZoomArea(zoomMagnification, zoomAspectRatio, frameWidth, frameHeight);
+      return new RectF(
+          outputLocation[1] * zoomArea.width() + zoomArea.left,
+          outputLocation[0] * zoomArea.height() + zoomArea.top,
+          outputLocation[3] * zoomArea.width() + zoomArea.left,
+          outputLocation[2] * zoomArea.height() + zoomArea.top);
+    }
+
+    return new RectF(
+        outputLocation[1] * frameWidth,
+        outputLocation[0] * frameHeight,
+        outputLocation[3] * frameWidth,
+        outputLocation[2] * frameHeight);
+  }
+
   @Override
   public void run() {
     Timer timer = new Timer(annotatedFrame.getTag());
     timer.start("RecognizeImageRunnable.preprocessFrame");
-    ByteBuffer imgData = preprocessFrame(annotatedFrame.getFrame(), params.inputSize,
-        params.isModelQuantized);
+    ByteBuffer imgData = preprocessFrame();
     timer.end();
 
     // Generate the input array and output map to feed the TensorFlow Lite interpreter

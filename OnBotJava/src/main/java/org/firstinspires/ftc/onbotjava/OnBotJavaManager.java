@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.onbotjava;
 
 import android.content.res.AssetManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -147,8 +147,8 @@ public class OnBotJavaManager implements Closeable
     public static final String onBotJavaJarName     = "OnBotJava.jar";
 
     public static final File assetRoot              = new File("java");
-    public static final String platformClassPathName = "android.jar";
-    public static final String[] ftcLibNames         = new String[] { "onbotjava-classes.jar" };
+    public static final String[] platformClassPathLibs = new String[] { "android.jar", "androidx-rs.jar" };
+    public static final String[] ftcClassPathLibs      = new String[] { "onbotjava-classes.jar" };
 
     //----------------------------------------------------------------------------------------------
     // State
@@ -216,8 +216,11 @@ public class OnBotJavaManager implements Closeable
 
     protected static void extractAssets()
         {
-        extractJavaLibraryAsset(platformClassPathName);
-        for (String libName : OnBotJavaManager.ftcLibNames)
+        for (String libName : OnBotJavaManager.platformClassPathLibs)
+            {
+            extractJavaLibraryAsset(libName);
+            }
+        for (String libName : OnBotJavaManager.ftcClassPathLibs)
             {
             extractJavaLibraryAsset(libName);
             }

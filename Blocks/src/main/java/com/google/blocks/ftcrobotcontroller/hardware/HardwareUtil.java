@@ -1,18 +1,18 @@
 /*
-Copyright 2016 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.hardware;
 
@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-
 import com.google.blocks.ftcrobotcontroller.util.AvailableTtsLocalesProvider;
 import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
@@ -34,11 +33,16 @@ import com.google.blocks.ftcrobotcontroller.util.ToolboxUtil;
 import com.qualcomm.ftccommon.configuration.RobotConfigFile;
 import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,14 +53,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.ExportToBlocks;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool;
 import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
+import org.firstinspires.ftc.robotcore.internal.opmode.BlocksClassFilter;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
@@ -65,8 +74,6 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
  * @author lizlooney@google.com (Liz Looney)
  */
 public class HardwareUtil {
-  private static final String ELAPSED_TIME_DEFAULT_VAR_NAME = "timer";
-
   private static final String DC_MOTOR_EX_CATEGORY_NAME = "Extended";
   private static final String DC_MOTOR_DUAL_CATEGORY_NAME = "Dual";
   private static final String GAMEPAD_CATEGORY_NAME = "Gamepad"; // see toolbox/gamepad.xml
@@ -74,12 +81,30 @@ public class HardwareUtil {
   private static final String COLOR_CATEGORY_NAME = "Color"; // see toolbox/utilities.xml
   private static final String ELAPSED_TIME_CATEGORY_NAME = "ElapsedTime"; // see toolbox/utilities.xml
 
-  // TODO(lizlooney): use an enum for capabilities.
-  public static final String CAPABILITY_VUFORIA = "vuforia";
-  public static final String CAPABILITY_CAMERA = "camera";
-  public static final String CAPABILITY_WEBCAM = "webcam";
-  public static final String CAPABILITY_TFOD = "tfod";
-  private static final Map<String, String> capabilityWarnings = buildCapabilityWarnings();
+  public static final String SWITCHABLE_CAMERA_NAME = "Switchable Camera";
+
+  public enum Capability {
+    CAMERA("camera"),
+    WEBCAM("webcam"),
+    SWITCHABLE_CAMERA("switchableCamera"),
+    VUFORIA("vuforia"),
+    TFOD("tfod");
+
+    private final String placeholderType;
+
+    Capability(String placeholderType) {
+      this.placeholderType = placeholderType;
+    }
+
+    static Capability fromPlaceholderType(String type) {
+      for (Capability capability : Capability.values()) {
+        if (capability.placeholderType.equals(type)) {
+          return capability;
+        }
+      }
+      throw new IllegalArgumentException("Unexpected capability name " + type);
+    }
+  }
 
   private static final Set<String> reservedWordsForFtcJava = buildReservedWordsForFtcJava();
 
@@ -137,16 +162,24 @@ public class HardwareUtil {
     Context context = AppUtil.getDefContext();
     AssetManager assetManager = context.getAssets();
     StringBuilder jsHardware = new StringBuilder().append("\n");
+    Map<Capability, Boolean> capabilities = getCapabilities(hardwareItemMap);
 
-    Map<String, Boolean> capabilities = getCapabilities(hardwareItemMap);
-
-    String toolbox = generateToolbox(hardwareItemMap, capabilities, assetManager)
+    Set<String> additionalReservedWordsForFtcJava = new HashSet<>();
+    Set<String> methodLookupStrings = new HashSet<>();
+    String toolbox = generateToolbox(hardwareItemMap, capabilities, assetManager, additionalReservedWordsForFtcJava, methodLookupStrings)
         .replace("\n", " ")
         .replaceAll("\\> +\\<", "><");
+    // The toolbox is added at the end, because it makes it easier to troubleshoot problems with
+    // this code.
+
     jsHardware
-        .append("function getToolbox() {\n")
-        .append("  return '").append(escapeSingleQuotes(toolbox)).append("';\n")
-        .append("}\n\n");
+        .append("var methodLookupStrings = [\n");
+    for (String methodLookupString : methodLookupStrings) {
+      jsHardware.append("  '").append(methodLookupString).append("',\n");
+    }
+    jsHardware
+        .append("];\n\n");
+
 
     jsHardware
         .append("function isValidProjectName(projectName) {\n")
@@ -335,6 +368,11 @@ public class HardwareUtil {
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
 
+    jsHardware
+        .append("var switchableCameraName = '")
+        .append(SWITCHABLE_CAMERA_NAME)
+        .append("';\n");
+
     // Rover Ruckus tfod labels
     StringBuilder createRoverRuckusTfodLabelDropdown = new StringBuilder();
     StringBuilder roverRuckusTfodLabelTooltips = new StringBuilder();
@@ -469,7 +507,12 @@ public class HardwareUtil {
 
     jsHardware
         .append("function addReservedWordsForJavaScript() {\n")
-        .append("  Blockly.JavaScript.addReservedWords('callRunOpMode');\n");
+        .append("  Blockly.JavaScript.addReservedWords('callRunOpMode');\n")
+        .append("  Blockly.JavaScript.addReservedWords('telemetryAddTextData');\n")
+        .append("  Blockly.JavaScript.addReservedWords('telemetrySpeak');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callJava');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callJava_boolean');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callJava_String');\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware
           .append("  Blockly.JavaScript.addReservedWords('")
@@ -534,6 +577,10 @@ public class HardwareUtil {
       jsHardware
           .append("  Blockly.FtcJava.addReservedWords('").append(word).append("');\n");
     }
+    for (String word : additionalReservedWordsForFtcJava) {
+      jsHardware
+          .append("  Blockly.FtcJava.addReservedWords('").append(word).append("');\n");
+    }
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware
           .append("  Blockly.FtcJava.addReservedWords(getIdentifierForFtcJava('")
@@ -582,30 +629,45 @@ public class HardwareUtil {
         .append("  return '';\n")
         .append("}\n\n");
 
-
-    // If there's no built-in camera, but there is a webcam, our code will use the webcam. So,
-    // no warning is necessary.
-    Map<String, Boolean> capabilitiesForWarnings = new HashMap<>();
-    capabilitiesForWarnings.putAll(capabilities);
-    if (capabilitiesForWarnings.get(CAPABILITY_WEBCAM)) {
-      capabilitiesForWarnings.put(CAPABILITY_CAMERA, true);
-    }
+    // Generate the JS method getWarningForCapabilityRequestedBySample which takes a capability
+    // that is requested by a sample op mode.
+    // If the system does not have the capability and the user should be warned about this,
+    // the method returns the warning message.
+    // If the system has the capability or no warning is needed, the method returns ''.
     jsHardware
-        .append("function getCapabilityWarning(capability) {\n")
+        .append("function getWarningForCapabilityRequestedBySample(capability) {\n")
         .append("  switch (capability) {\n");
-    for (Map.Entry<String, Boolean> entry : capabilitiesForWarnings.entrySet()) {
-      String capability = entry.getKey();
-      boolean capable = entry.getValue();
+
+    for (Capability capability : Capability.values()) {
+      boolean capable = capabilities.get(capability);
+
+      // If there's no built-in camera, but there is a webcam, our code will use the webcam. So,
+      // no warning is necessary.
+      if (capability == Capability.CAMERA && !capable) {
+        if (capabilities.get(Capability.WEBCAM)) {
+          capable = true;
+        }
+      }
+
       if (!capable) {
-        String warning = capabilityWarnings.get(capability);
-        jsHardware
-            .append("    case '").append(capability).append("':\n")
-            .append("      return '").append(warning).append("';\n");
+        String warning = getCapabilityWarning(capability);
+        if (warning != null) {
+          jsHardware
+              .append("    case '").append(capability).append("':\n")
+              .append("      return '").append(warning).append("';\n");
+        }
       }
     }
     jsHardware
         .append("  }\n")
         .append("  return '';\n")
+        .append("}\n\n");
+
+    // Put the toolbox at the end, because it makes it easier to troubleshoot problems with this
+    // code.
+    jsHardware
+        .append("function getToolbox() {\n")
+        .append("  return '").append(escapeSingleQuotes(toolbox)).append("';\n")
         .append("}\n\n");
 
     return jsHardware.toString();
@@ -691,7 +753,9 @@ public class HardwareUtil {
    */
   @SuppressWarnings("deprecation")
   private static String generateToolbox(HardwareItemMap hardwareItemMap,
-      Map<String, Boolean> capabilities, AssetManager assetManager) throws IOException {
+      Map<Capability, Boolean> capabilities, AssetManager assetManager,
+      Set<String> additionalReservedWordsForFtcJava,
+      Set<String> methodLookupStrings) throws IOException {
     StringBuilder xmlToolbox = new StringBuilder();
     xmlToolbox.append("<xml id=\"toolbox\" style=\"display: none\">\n");
 
@@ -704,7 +768,10 @@ public class HardwareUtil {
     for (ToolboxFolder toolboxFolder : ToolboxFolder.values()) {
       xmlToolbox.append(" <category name=\"").append(toolboxFolder.label)
           .append("\">\n");
-      for (HardwareType hardwareType : hardwareItemMap.getHardwareTypes()) {
+      // Sort the hardware types by toolboxCategoryName.
+      SortedSet<HardwareType> hardwareTypes = new TreeSet<>(HardwareType.BY_TOOLBOX_CATEGORY_NAME);
+      hardwareTypes.addAll(hardwareItemMap.getHardwareTypes());
+      for (HardwareType hardwareType : hardwareTypes) {
         if (hardwareType.toolboxFolder == toolboxFolder) {
           // Some HardwareTypes might have a null toolboxCategoryName. This allows us to support
           // certain hardware types, even though we don't actually provide blocks.
@@ -726,34 +793,218 @@ public class HardwareUtil {
     addAndroidCategoriesToToolbox(xmlToolbox, assetManager);
 
     if (assetManager != null) {
-      addAssetWithPlaceholders(xmlToolbox, assetManager, "toolbox/utilities.xml", capabilities);
+      addAssetWithPlaceholders(xmlToolbox, assetManager, capabilities, "toolbox/utilities.xml");
       addAsset(xmlToolbox, assetManager, "toolbox/misc.xml");
+    }
+
+    Map<Class, Set<Method>> methodsByClass = BlocksClassFilter.getInstance().getMethodsByClass();
+    if (!methodsByClass.isEmpty()) {
+      xmlToolbox.append("<category name=\"Java Classes\">\n");
+      for (Map.Entry<Class, Set<Method>> entry : methodsByClass.entrySet()) {
+        Class clazz = entry.getKey();
+        String className = clazz.getName();
+        if (className.startsWith("org.firstinspires.ftc.teamcode.")) {
+          className = className.substring(31);
+          additionalReservedWordsForFtcJava.add(className);
+        }
+        String userVisibleClassName = className.replace('$', '.');
+        xmlToolbox.append("<category name=\"").append(userVisibleClassName).append("\">\n");
+        Set<Method> methods = entry.getValue();
+        for (Method method : methods) {
+          String returnType = method.getReturnType().getName();
+          String blockType = returnType.equals("void") ? "misc_callJava_noReturn" : "misc_callJava_return";
+          String methodName = method.getName();
+          Class[] parameterTypes = method.getParameterTypes();
+          ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
+          String comment = exportToBlocks.comment();
+          String tooltip = exportToBlocks.tooltip();
+          String[] parameterLabels = getParameterLabels(method);
+          String methodLookupString = BlocksClassFilter.getLookupString(method);
+          methodLookupStrings.add(methodLookupString);
+          xmlToolbox
+              .append("<block type=\"").append(blockType).append("\">\n")
+              .append("<field name=\"CLASS_NAME\">").append(userVisibleClassName).append("</field>")
+              .append("<field name=\"METHOD_NAME\">").append(methodName).append("</field>")
+              .append("<mutation")
+              .append(" methodLookupString=\"").append(methodLookupString).append("\"")
+              .append(" parameterCount=\"").append(parameterTypes.length).append("\"")
+              .append(" returnType=\"").append(returnType).append("\"")
+              .append(" comment=\"").append(comment).append("\"")
+              .append(" tooltip=\"").append(tooltip).append("\"")
+              .append(" accessMethod=\"").append(accessMethod(method.getReturnType())).append("\"")
+              .append(" convertReturnValue=\"").append(convertReturnValue(method.getReturnType())).append("\"");
+          StringBuilder argValues = new StringBuilder();
+          int i = 0;
+          List<String> gamepads = new ArrayList<>();
+          for (Class parameterType : parameterTypes) {
+            xmlToolbox.append(" argLabel").append(i).append("=\"").append(parameterLabels[i]).append("\"");
+            String argType = parameterType.getName();
+            xmlToolbox.append(" argType").append(i).append("=\"").append(argType).append("\"");
+            String argAuto = parameterProvidedAutomatically(parameterType, parameterLabels[i], gamepads);
+            xmlToolbox.append(" argAuto").append(i).append("=\"").append(argAuto != null ? argAuto : "").append("\"");
+            if (argAuto != null) {
+              // No socket if parameter is provided automatically.
+            } else if (argType.equals("boolean")
+                || argType.equals("java.lang.Boolean")) {
+              argValues
+                  .append("<value name=\"ARG" + i + "\">")
+                  .append(ToolboxUtil.makeBooleanShadow(false))
+                  .append("</value>\n");
+            } else if (argType.equals("char")
+                || argType.equals("java.lang.Character")
+                || argType.equals("java.lang.String")) {
+              argValues
+                  .append("<value name=\"ARG" + i + "\">")
+                  .append(ToolboxUtil.makeTextShadow("A"))
+                  .append("</value>\n");
+            } else if (argType.equals("byte")
+                || argType.equals("java.lang.Byte")
+                || argType.equals("short")
+                || argType.equals("java.lang.Short")
+                || argType.equals("int")
+                || argType.equals("java.lang.Integer")
+                || argType.equals("long")
+                || argType.equals("java.lang.Long")
+                || argType.equals("float")
+                || argType.equals("java.lang.Float")
+                || argType.equals("double")
+                || argType.equals("java.lang.Double")) {
+              argValues
+                  .append("<value name=\"ARG" + i + "\">")
+                  .append(ToolboxUtil.makeNumberShadow(0))
+                  .append("</value>\n");
+            } else {
+              // Leave other sockets empty?
+            }
+            i++;
+          }
+          xmlToolbox
+              .append("/>"); // end of mutation
+          xmlToolbox
+              .append(argValues)
+              .append("</block>\n");
+        }
+        xmlToolbox.append("</category>\n");
+      }
+      xmlToolbox.append("</category>\n");
     }
 
     xmlToolbox.append("</xml>");
     return xmlToolbox.toString();
   }
 
-  private static Map<String, String> buildCapabilityWarnings() {
-    Map<String, String> map = new HashMap<>();
-    // No warning for CAPABILITY_VUFORIA. The user will see the warning about camera/webcam.
-    map.put(CAPABILITY_CAMERA, "This device does not have a camera.");
-    map.put(CAPABILITY_WEBCAM, "The current configuration has no webcam.");
-    map.put(CAPABILITY_TFOD, "This device is not compatible with TFOD.");
-    return map;
+  public static String[] getParameterLabels(Method method) {
+    ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
+    String[] parameterLabels = exportToBlocks.parameterLabels();
+    int length = method.getParameterTypes().length;
+    if (parameterLabels.length != length) {
+      parameterLabels = new String[length];
+      for (int i = 0; i < parameterLabels.length; i++) {
+        parameterLabels[i] = "";
+      }
+    }
+    return parameterLabels;
   }
 
-  public static Map<String, Boolean> getCapabilities(HardwareItemMap hardwareItemMap) {
-    Map<String, Boolean> capabilities = new HashMap<>();
+  private static String accessMethod(Class returnType) {
+    if (returnType.equals(boolean.class) ||
+        returnType.equals(Boolean.class)) {
+      return "callJava_boolean";
+    } else if (
+        returnType.equals(char.class) ||
+        returnType.equals(Character.class) ||
+        returnType.equals(String.class) ||
+        returnType.equals(byte.class) ||
+        returnType.equals(Byte.class) ||
+        returnType.equals(short.class) ||
+        returnType.equals(Short.class) ||
+        returnType.equals(int.class) ||
+        returnType.equals(Integer.class) ||
+        returnType.equals(long.class) ||
+        returnType.equals(Long.class) ||
+        returnType.equals(float.class) ||
+        returnType.equals(Float.class) ||
+        returnType.equals(double.class) ||
+        returnType.equals(Double.class) ||
+        returnType.isEnum()) {
+      return "callJava_String";
+    }
+    return "callJava";
+  }
+
+  private static String convertReturnValue(Class returnType) {
+    if (returnType.equals(byte.class) ||
+        returnType.equals(Byte.class) ||
+        returnType.equals(short.class) ||
+        returnType.equals(Short.class) ||
+        returnType.equals(int.class) ||
+        returnType.equals(Integer.class) ||
+        returnType.equals(long.class) ||
+        returnType.equals(Long.class) ||
+        returnType.equals(float.class) ||
+        returnType.equals(Float.class) ||
+        returnType.equals(double.class) ||
+        returnType.equals(Double.class)) {
+      return "Number";
+    }
+    return "";
+  }
+
+  private static String parameterProvidedAutomatically(Class parameterType, String parameterLabel, List<String> gamepads) {
+    // Return the value that should be used for the parameter when blocks is exported to java.
+    // For Javascript, null is used since the real value is determined in MiscAccess.java
+    if (parameterType.equals(LinearOpMode.class) ||
+        parameterType.equals(OpMode.class)) {
+      return "this";
+    } else if (parameterType.equals(HardwareMap.class)) {
+      return "hardwareMap";
+    } else if (parameterType.equals(Telemetry.class)) {
+      return "telemetry";
+    } else if (parameterType.equals(Gamepad.class)) {
+      // If the parameter label is gamepad1 or gamepad2, return that.
+      if (parameterLabel.equals("gamepad1") || parameterLabel.equals("gamepad2")) {
+        return parameterLabel;
+      }
+      // Otherwise, return the first element in the gamepads list. This will be "gamepad1" for the
+      // first Gamepad parameter and "gamepad2" for the second Gamepad parameter.
+      if (gamepads.isEmpty()) {
+        gamepads.add("gamepad1");
+        gamepads.add("gamepad2");
+      }
+      return gamepads.remove(0);
+    }
+    return null;
+  }
+
+  private static String getCapabilityWarning(Capability capability) {
+    switch (capability) {
+      case CAMERA:
+        return "This device does not have a camera.";
+      case WEBCAM:
+        return "The current configuration has no webcam.";
+      case SWITCHABLE_CAMERA:
+        return "The current configuration does not have multiple webcams.";
+      default:
+        // No warning for Capability.VUFORIA or Capability.TFOD. The user will see the warning about camera/webcam.
+        return null;
+    }
+  }
+
+  @SuppressWarnings("deprecation")
+  public static Map<Capability, Boolean> getCapabilities(HardwareItemMap hardwareItemMap) {
+    Map<Capability, Boolean> capabilities = new HashMap<>();
     // PackageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA) incorrectly returns true on a
     // control hub, so here I use Camera.getNumberOfCameras() to determine whether there are any
     // built-in cameras.
     boolean camera = android.hardware.Camera.getNumberOfCameras() > 0;
-    boolean webcam = !hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME).isEmpty();
-    capabilities.put(CAPABILITY_VUFORIA, camera || webcam);
-    capabilities.put(CAPABILITY_CAMERA, camera);
-    capabilities.put(CAPABILITY_WEBCAM, webcam);
-    capabilities.put(CAPABILITY_TFOD, ClassFactory.getInstance().canCreateTFObjectDetector());
+    int numberOfWebcams = hardwareItemMap.getHardwareItems(HardwareType.WEBCAM_NAME).size();
+    boolean webcam = numberOfWebcams > 0;
+    boolean switchableCamera = numberOfWebcams > 1;
+    capabilities.put(Capability.CAMERA, camera);
+    capabilities.put(Capability.WEBCAM, webcam);
+    capabilities.put(Capability.SWITCHABLE_CAMERA, switchableCamera);
+    capabilities.put(Capability.VUFORIA, camera || webcam);
+    capabilities.put(Capability.TFOD, camera || webcam);
     return capabilities;
   }
 
@@ -766,7 +1017,7 @@ public class HardwareUtil {
   }
 
   private static void addAssetWithPlaceholders(StringBuilder xmlToolbox, AssetManager assetManager,
-      String assetName, Map<String, Boolean> capabilities) throws IOException {
+      Map<Capability, Boolean> capabilities, String assetName) throws IOException {
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(assetManager.open(assetName)))) {
       String line = null;
@@ -781,10 +1032,10 @@ public class HardwareUtil {
             String type = line.substring(startOfType, endOfType);
             String childAssetName = "toolbox/" +
                 line.substring(endOfType + 1, line.length() - suffix.length()).trim() + ".xml";
-            Boolean allowed = capabilities.get(type);
+            Boolean allowed = capabilities.get(Capability.fromPlaceholderType(type));
             if (allowed != null) {
               if (allowed) {
-                addAssetWithPlaceholders(xmlToolbox, assetManager, childAssetName, capabilities);
+                addAssetWithPlaceholders(xmlToolbox, assetManager, capabilities, childAssetName);
               } else {
                 RobotLog.w("Skipping " + childAssetName + " because type \"" + type + "\" " +
                     "is not supported by this device and/or hardware.");
@@ -882,6 +1133,9 @@ public class HardwareUtil {
         case BNO055IMU:
           addBNO055IMUCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
           break;
+        case COLOR_RANGE_SENSOR:
+          addColorRangeSensorCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
+          break;
         case COLOR_SENSOR:
           addColorSensorCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
           break;
@@ -911,9 +1165,6 @@ public class HardwareUtil {
           break;
         case LIGHT_SENSOR:
           addLightSensorCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
-          break;
-        case LYNX_I2C_COLOR_RANGE_SENSOR:
-          addLynxI2cColorRangeSensorCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
           break;
         case MR_I2C_COMPASS_SENSOR:
           addMrI2cCompassSensorCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);;
@@ -1450,9 +1701,9 @@ public class HardwareUtil {
   }
 
   /**
-   * Adds the category for LynxI2cColorRangeSensor to the toolbox.
+   * Adds the category for ColorRangeSensor to the toolbox.
    */
-  private static void addLynxI2cColorRangeSensorCategoryToToolbox(
+  private static void addColorRangeSensorCategoryToToolbox(
       StringBuilder xmlToolbox, HardwareType hardwareType, List<HardwareItem> hardwareItems) {
     String identifier = hardwareItems.get(0).identifier;
 

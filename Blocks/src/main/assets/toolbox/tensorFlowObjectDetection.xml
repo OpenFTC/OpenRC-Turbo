@@ -15,7 +15,70 @@
       <value name="RIGHT"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
       <value name="BOTTOM"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
     </block>
+    <block type="tfodSkyStone_setZoom">
+      <value name="MAGNIFICATION"><shadow type="math_number"><field name="NUM">2.0</field></shadow></value>
+      <value name="ASPECT_RATIO">
+        <block type="math_arithmetic">
+          <field name="OP">DIVIDE</field>
+          <value name="A"><shadow type="math_number"><field name="NUM">16</field></shadow></value>
+          <value name="B"><shadow type="math_number"><field name="NUM">9</field></shadow></value>
+        </block>
+      </value>
+    </block>
     <block type="tfodSkyStone_getRecognitions">
+    </block>
+    <block type="tfodSkyStone_typedEnum_label"><field name="LABEL">Stone</field></block>
+    <block type="tfodSkyStone_typedEnum_label"><field name="LABEL">Skystone</field></block>
+  </category>
+  <category name="Custom Model">
+    <block type="tfodCustomModel_setModelFromFile">
+      <value name="TFLITE_MODEL_FILENAME"><shadow type="text"><field name="TEXT"></field></shadow></value>
+      <value name="LABELS">
+        <block type="lists_create_with">
+          <mutation items="1"/>
+          <value name="ADD0">
+            <block type="text"><field name="TEXT">a</field></block>
+          </value>
+        </block>
+      </value>
+    </block>
+    <block type="tfodCustomModel_setModelFromAsset">
+      <value name="ASSET_NAME"><shadow type="text"><field name="TEXT"></field></shadow></value>
+      <value name="LABELS">
+        <block type="lists_create_with">
+          <mutation items="1"/>
+          <value name="ADD0">
+            <block type="text"><field name="TEXT">a</field></block>
+          </value>
+        </block>
+      </value>
+    </block>
+    <block type="tfodCustomModel_initialize">
+      <value name="MINIMUM_CONFIDENCE"><shadow type="math_number"><field name="NUM">0.4</field></shadow></value>
+      <value name="USE_OBJECT_TRACKER"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+      <value name="ENABLE_CAMERA_MONITORING"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+    </block>
+    <block type="tfodCustomModel_activate">
+    </block>
+    <block type="tfodCustomModel_deactivate">
+    </block>
+    <block type="tfodCustomModel_setClippingMargins">
+      <value name="LEFT"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+      <value name="TOP"><shadow type="math_number"><field name="NUM">200</field></shadow></value>
+      <value name="RIGHT"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+      <value name="BOTTOM"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+    </block>
+    <block type="tfodCustomModel_setZoom">
+      <value name="MAGNIFICATION"><shadow type="math_number"><field name="NUM">2.0</field></shadow></value>
+      <value name="ASPECT_RATIO">
+        <block type="math_arithmetic">
+          <field name="OP">DIVIDE</field>
+          <value name="A"><shadow type="math_number"><field name="NUM">16</field></shadow></value>
+          <value name="B"><shadow type="math_number"><field name="NUM">9</field></shadow></value>
+        </block>
+      </value>
+    </block>
+    <block type="tfodCustomModel_getRecognitions">
     </block>
   </category>
   <category name="Recognition">
@@ -23,8 +86,6 @@
       <field name="PROP">Label</field>
       <value name="TFOD_RECOGNITION"><block type="variables_get"><field name="VAR">{tfodRecognitionVariable}</field></block></value>
     </block>
-    <block type="tfodSkyStone_typedEnum_label"><field name="LABEL">first element</field></block>
-    <block type="tfodSkyStone_typedEnum_label"><field name="LABEL">second element</field></block>
     <block type="tfodRecognition_getProperty_Number">
       <field name="PROP">Confidence</field>
       <value name="TFOD_RECOGNITION"><block type="variables_get"><field name="VAR">{tfodRecognitionVariable}</field></block></value>

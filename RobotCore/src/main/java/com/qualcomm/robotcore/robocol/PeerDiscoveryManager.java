@@ -56,8 +56,7 @@ public class PeerDiscoveryManager {
       public void run() {
          try {
             if (DEBUG) RobotLog.vv(TAG, "sending peer discovery packet(%d)", message.getSequenceNumber());
-            RobocolDatagram packet = new RobocolDatagram(message);
-            if (socket.getInetAddress() == null) packet.setAddress(peerDiscoveryDevice);
+            RobocolDatagram packet = new RobocolDatagram(message, peerDiscoveryDevice);
             socket.send(packet);
          } catch (RobotCoreException e) {
             RobotLog.ee(TAG, "Unable to send peer discovery packet: " + e.toString());
@@ -99,7 +98,7 @@ public class PeerDiscoveryManager {
 
       if (peerDiscoveryDevice.equals(socket.getLocalAddress())) {
          // we already know about our self
-         RobotLog.vv(TAG, "No need for peer discovery, we are the peer discovery device");
+         RobotLog.vv(TAG, "No need for initiating peer discovery, we are the Robot Controller");
       } else {
          // start the peer discovery service
          discoveryLoopService = ThreadPool.newScheduledExecutor(1, "discovery service");

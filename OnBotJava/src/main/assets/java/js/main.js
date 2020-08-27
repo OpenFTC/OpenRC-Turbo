@@ -48,8 +48,8 @@
         });
     };
 
-    env.installedEditorThemes = ['chaos', 'chrome', 'github', 'monokai', 'solarized-dark', 'solarized-light'];
-    env.editorTheme = env.settings.get('theme');
+    env.installedEditorThemes = ['light', 'dark'];
+    env.editorTheme = 'obj'; //env.settings.get('theme');
 
     env.getParameterByName = function getParameterByName(name) {
         const url = window.location.href;
@@ -94,6 +94,12 @@
 
         return '';
     }
+
+    env.documentIdToTabName = function documentIdToTabName() {
+        var strings = env.documentId.split('/');
+        var page = strings[strings.length - 1];
+        //$('#open-files #tab-1 span.file-id').text(page);
+    };
 
     env.documentId = (function getDocumentId() {
         const currentUri = document.URL;
@@ -191,6 +197,8 @@
                     });
                 });
 
+                var validFiles = [];
+
                 function stage2Parser(prop, href, fileNamespace, parentNode) {
                     const resultsFiles = [];
                     const resultsFolder = [];
@@ -256,6 +264,7 @@
 
                             resultsFolder.push(items);
                         } else { // file
+                            validFiles.push('/' + location + attr);
                             items.href = href + '/' + location + attr;
                             resultsFiles.push(items);
                         }
@@ -268,10 +277,13 @@
                     resultsFolder.sort(nodeSortFn);
                     resultsFiles.sort(nodeSortFn);
                     return resultsFolder.concat(resultsFiles);
+
                 }
 
                 const fileGetUri = env.javaUrlRoot + '/editor.html?';
-                return stage2Parser(stage1Output, fileGetUri, fileNamespace, null);
+                var ret = stage2Parser(stage1Output, fileGetUri, fileNamespace, null);
+                console.log(validFiles);
+                return ret;
             }
         },
         get: function getTree(callback, callbackFinished) {
@@ -319,11 +331,13 @@
     };
 
     env.resizeBuildLogPane = function resizeBuildLogPane(y, buildLogHandle) {
-        const editor = $('#editor-component-container');
+        const editorContainer = $('#editor-component-container');
         const buildLogPane = $('#build-log-pane');
+        const editor = $('#editor');
         buildLogHandle.offset({top: y});
-        editor.css('height', y + 'px');
+        editorContainer.css('height', y + 'px');
         buildLogPane.css('height', (window.innerHeight - y) + 'px');
+        editor.css('height', (y - 25) + 'px');
         if (typeof env.editor !== 'undefined') env.editor.resize();
     };
 
@@ -339,6 +353,8 @@
     };
 
     env.colors = (function() {
+        let themeColors = ace.require('ace/theme/obj').color;
+        console.log(themeColors);
         var cssEngine = function cssEngine(rule) {
             const css = document.createElement('style'); // Creates <style></style>
             css.type = 'text/css'; // Specifies the type
@@ -347,28 +363,30 @@
             document.getElementsByTagName('head')[0].appendChild(css); // Specifies where to place the css
         };
 
-        const intervalId = window.setInterval(function () {
-            var backColor = $('.ace-' + env.editorTheme).css('background-color');
-            if (typeof backColor !== 'undefined') {
-                window.clearInterval(intervalId);
-                env.colors.backColor = backColor;
+        let backColor = themeColors.primary_1;
+        let hoverColor = themeColors.marker_layer_active_line_back;
+        let gutterColor = themeColors.gutter_back;
+        cssEngine('#menu-container .nav>li>a:hover { background-color: ' + hoverColor + '; }');
+        cssEngine(`
+            .ace-${env.editorTheme} .ace_gutter {
+                background: ${themeColors.primary_1};
             }
-        });
-
-        $('<div class="ace-' + env.editorTheme + '" style="display:none;"> \
-          <div class="ace_marker-layer"> \
-          <div class="ace_selection"></div></div></div>').appendTo('body');
-        const intervalIdHoverColor = window.setInterval(function () {
-            var hoverColor = $('.ace_selection').css('background-color');
-            if ((typeof hoverColor === 'undefined' || hoverColor === 'rgba(0, 0, 0, 0)')) return;
-            window.clearInterval(intervalIdHoverColor);
-
-            env.colors.hoverColor = hoverColor;
-            cssEngine('#menu-container .nav>li>a:hover { background-color: ' + hoverColor + '; }');
-        }, 10);
+            
+            #open-files .file-tab.active-tab {
+                background: ${themeColors.primary_1}
+            }
+            
+            #left-pane, #file-tree .node-file-tree, #left-pane-handle, #build-log-handle {
+                background-color: ${themeColors.primary_3};
+            }
+            `)
 
         // Setup colors to an empty object while we wait for the DOM modifications to take place, and the colors to be calculated
-        return {};
+        return {
+            hoverColor: hoverColor,
+            backColor: backColor,
+            gutterColor: gutterColor
+        };
     })();
 
     env.setup = {
@@ -438,22 +456,14 @@
                         });
                     };
                 };
+                const $file = $('#file-tree');
+                const nodeSelected = generateTreeViewNodeSelectionHandler([$file]);
+                const nodeUnselected = generateTreeViewNodeUnselectionHandler([$file]);
+                $file.treeview(env.trees.defaultParameters(srcTree, nodeSelected, nodeUnselected, env.colors.backColor, env.colors.hoverColor));
 
-                const intervalId = window.setInterval(function () {
-                    var backColor = env.colors.backColor;
-                    var hoverColor = env.colors.hoverColor;
-                    if (typeof backColor !== 'undefined' && typeof hoverColor !== 'undefined') {
-                        window.clearInterval(intervalId);
-                        const $file = $('#file-tree');
-                        const nodeSelected = generateTreeViewNodeSelectionHandler([$file]);
-                        const nodeUnselected = generateTreeViewNodeUnselectionHandler([$file]);
-                        $file.treeview(env.trees.defaultParameters(srcTree, nodeSelected, nodeUnselected, backColor, hoverColor));
-
-                        if (typeof callback === 'function') {
-                            callback();
-                        }
-                    }
-                }, 20);
+                if (typeof callback === 'function') {
+                    callback();
+                }
             };
             env.trees.get(treeSetupCallback, callback);
         },

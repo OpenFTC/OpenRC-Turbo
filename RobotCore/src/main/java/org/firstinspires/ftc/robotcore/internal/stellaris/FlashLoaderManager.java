@@ -72,10 +72,10 @@ public class FlashLoaderManager
     public static int secondsFirmwareUpdateTimeout = 120; // not well tuned
 
     // Retry counts are stuff we made up
-    protected int retryAutobaudCount = 10;
-    protected int retrySendWithRetriesCount = 10;
-    protected int retryVerifyStatusCount = 10;
-    protected int retrySendWithRetriesAndVerifyCount = 4;
+    protected int retryAutobaudCount = 5;
+    protected int retrySendWithRetriesCount = 3;
+    protected int retryVerifyStatusCount = 3;
+    protected int retrySendWithRetriesAndVerifyCount = 2;
     protected int msRetryPause = 40;          // just seems prudent
     protected int msReadTimeout = 1000;       // sflash example uses very long timeouts; ours aren't quite as long, but still hefty
 

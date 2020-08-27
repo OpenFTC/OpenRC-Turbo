@@ -1,18 +1,18 @@
 /*
-Copyright 2018 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.util;
 
@@ -95,6 +95,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/bno055imu_parameters.js");
     assetsToInclude.add("blocks/clipboard_util.js");
     assetsToInclude.add("blocks/color.js");
+    assetsToInclude.add("blocks/color_range_sensor.js");
     assetsToInclude.add("blocks/color_sensor.js");
     assetsToInclude.add("blocks/compass_sensor.js");
     assetsToInclude.add("blocks/cr_servo.js");
@@ -112,7 +113,6 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/light_sensor.js");
     assetsToInclude.add("blocks/linear_op_mode.js");
     assetsToInclude.add("blocks/locale.js");
-    assetsToInclude.add("blocks/lynx_i2c_color_range_sensor.js");
     assetsToInclude.add("blocks/magnetic_flux.js");
     assetsToInclude.add("blocks/matrix_f.js");
     assetsToInclude.add("blocks/misc.js");
@@ -135,6 +135,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/telemetry.js");
     assetsToInclude.add("blocks/temperature.js");
     assetsToInclude.add("blocks/tfod.js");
+    assetsToInclude.add("blocks/tfod_custom_model.js");
     assetsToInclude.add("blocks/tfod_recognition.js");
     assetsToInclude.add("blocks/tfod_rover_ruckus.js");
     assetsToInclude.add("blocks/tfod_sky_stone.js");

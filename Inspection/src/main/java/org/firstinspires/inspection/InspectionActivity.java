@@ -41,6 +41,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -84,12 +85,14 @@ public abstract class InspectionActivity extends ThemedActivity
 
     private final boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
 
-    TextView widiName, widiConnected, wifiEnabled, batteryLevel, osVersion, firmwareVersion, airplaneMode, bluetooth, wifiConnected, appsStatus;
+    TextView wifiName, widiConnected, wifiEnabled, batteryLevel, androidVersion, controlHubOsVersion, firmwareVersion, airplaneMode, bluetooth, wifiConnected, appsStatus;
     TextView trafficCount, bytesPerSecond;
     TextView trafficCountLabel, bytesPerSecondLabel;
     TextView txtManufacturer, txtModel, txtAppVersion;
-    TextView txtIsRCInstalled, txtIsDSInstalled, txtIsCCInstalled;
+    TextView txtIsRCInstalled, txtIsDSInstalled;
     TextView txtIsDefaultPassword;
+    LinearLayout controlHubOsVersionLayout;
+    LinearLayout airplaneModeLayout;
     Pattern teamNoRegex;
     Future refreshFuture = null;
     int textOk = AppUtil.getInstance().getColor(R.color.text_okay);
@@ -101,6 +104,7 @@ public abstract class InspectionActivity extends ThemedActivity
 
     protected static final int RC_MIN_VERSIONCODE = 21;
     protected static final int DS_MIN_VERSIONCODE = 21;
+    protected static final int CH_OS_MIN_VERSIONNUM = 4; // Corresponds to Control Hub OS 1.1.1
 
     //----------------------------------------------------------------------------------------------
     // Life cycle
@@ -115,9 +119,8 @@ public abstract class InspectionActivity extends ThemedActivity
         // Find our various bits on the screen
         txtIsRCInstalled = (TextView) findViewById(R.id.txtIsRCInstalled);
         txtIsDSInstalled = (TextView) findViewById(R.id.txtIsDSInstalled);
-        txtIsCCInstalled = (TextView) findViewById(R.id.txtIsCCInstalled);
 
-        widiName = (TextView) findViewById(R.id.widiName);
+        wifiName = (TextView) findViewById(R.id.wifiName);
         trafficCount = (TextView) findViewById(R.id.trafficCount);
         bytesPerSecond = (TextView) findViewById(R.id.bytesPerSecond);
         trafficCountLabel = (TextView) findViewById(R.id.trafficCountLabel);
@@ -125,7 +128,8 @@ public abstract class InspectionActivity extends ThemedActivity
         widiConnected = (TextView) findViewById(R.id.widiConnected);
         wifiEnabled = (TextView) findViewById(R.id.wifiEnabled);
         batteryLevel = (TextView) findViewById(R.id.batteryLevel);
-        osVersion = (TextView) findViewById(R.id.osVersion);
+        androidVersion = (TextView) findViewById(R.id.androidVersion);
+        controlHubOsVersion = findViewById(R.id.controlHubOsVersion);
         firmwareVersion = (TextView) findViewById(R.id.hubFirmware);
         airplaneMode = (TextView) findViewById(R.id.airplaneMode);
         bluetooth = (TextView) findViewById(R.id.bluetoothEnabled);
@@ -133,7 +137,8 @@ public abstract class InspectionActivity extends ThemedActivity
         appsStatus = (TextView) findViewById(R.id.appsStatus);
         txtAppVersion = (TextView) findViewById(R.id.textDeviceName);
         txtIsDefaultPassword = (TextView) findViewById(R.id.isDefaultPassword);
-
+        controlHubOsVersionLayout = findViewById(R.id.controlHubOsVersionLayout);
+        airplaneModeLayout = findViewById(R.id.airplaneModeLayout);
 
         txtAppVersion.setText(inspectingRobotController()
             ? getString(R.string.titleInspectionReportRC)
@@ -213,8 +218,8 @@ public abstract class InspectionActivity extends ThemedActivity
 
     protected void makeWirelessAPModeSane()
         {
-        TextView labelWidiName = (TextView) findViewById(R.id.labelWidiName);
-        labelWidiName.setText(getString(R.string.wifiAccessPointLabel));
+        TextView labelWifiName = (TextView) findViewById(R.id.labelWifiName);
+        labelWifiName.setText(getString(R.string.wifiAccessPointLabel));
 
         properWifiConnectedState = true;
         }
@@ -305,9 +310,9 @@ public abstract class InspectionActivity extends ThemedActivity
         }
     }
 
-    private void refresh(TextView view, boolean value)
+    private void refresh(TextView view, boolean valid)
         {
-        refresh(view, value, true);
+        refresh(view, valid, true);
         }
     private void refresh(TextView view, boolean value, boolean validValue)
         {
@@ -386,21 +391,42 @@ public abstract class InspectionActivity extends ThemedActivity
         refresh(widiConnected, state.wifiDirectConnected);
         refresh(wifiEnabled, state.wifiEnabled);
         refreshTrafficStats(state);
-        refresh(airplaneMode, state.airplaneModeOn);
         refresh(bluetooth, state.bluetoothOn, properBluetoothState);
         refresh(wifiConnected, state.wifiConnected, properWifiConnectedState);
         txtManufacturer.setText(state.manufacturer);
         txtModel.setText(state.model);
-        refresh(osVersion, state.osVersion, isValidOsVersion(state));
+        refresh(androidVersion, state.osVersion, isValidAndroidVersion(state));
         refresh(firmwareVersion, state.firmwareVersion, isValidFirmwareVersion(state));
-        refresh(widiName, state.deviceName, isValidDeviceName(state));
+        refresh(wifiName, state.deviceName, isValidDeviceName(state));
         batteryLevel.setText(Math.round(state.batteryFraction * 100f) + "%");
         batteryLevel.setTextColor(state.batteryFraction > 0.6 ? textOk : textWarning);
         refresh(txtIsDefaultPassword, !state.isDefaultPassword);
 
+        // Only display Control Hub OS version if there is one to display
+        if (InspectionState.NO_VERSION.equals(state.controlHubOsVersion))
+            {
+            controlHubOsVersionLayout.setVisibility(View.GONE);
+            }
+        else
+            {
+            controlHubOsVersionLayout.setVisibility(View.VISIBLE);
+            refresh(controlHubOsVersion, state.controlHubOsVersion, isValidControlHubOsVersion(state));
+            }
+
+        // Only display airplane mode line on non-REV devices.
+        // REV devices don't have cellular radios, and therefore don't need to be in airplane mode.
+        if (state.manufacturer.equals(Device.MANUFACTURER_REV))
+            {
+            airplaneModeLayout.setVisibility(View.GONE);
+            }
+        else
+            {
+            airplaneModeLayout.setVisibility(View.VISIBLE);
+            refresh(airplaneMode, state.airplaneModeOn);
+            }
+
         // check the installed apps.
         boolean appsOkay = true;
-        appsOkay = refreshOptional(txtIsCCInstalled, state.zteChannelChangeVersion, state.channelChangerRequired) && appsOkay;
         appsOkay = refreshPackage(txtIsRCInstalled, state.robotControllerVersion, state.robotControllerVersionCode, RC_MIN_VERSIONCODE) && appsOkay;
         appsOkay = refreshPackage(txtIsDSInstalled, state.driverStationVersion, state.driverStationVersionCode, DS_MIN_VERSIONCODE) && appsOkay;
 
@@ -418,23 +444,31 @@ public abstract class InspectionActivity extends ThemedActivity
         appsStatus.setText(appsOkay ? goodMark : badMark);
         }
 
-    public boolean isValidOsVersion(InspectionState state)
+    public boolean isValidAndroidVersion(InspectionState state)
         {
-        if (Device.MANUFACTURER_ZTE.equalsIgnoreCase(state.manufacturer) && Device.MODEL_ZTE_SPEED.equalsIgnoreCase(state.model))
-            {
-            // ZTE Speed should be Kit Kat. ZTE did not upgrade Speed beyond Kit Kat (that we know of, at least)
-            return (state.sdkInt >= Build.VERSION_CODES.KITKAT);
-            }
-        else
-            {
-            // for 2016-2017 season we recommend Marshmallow or higher.
-            return (state.sdkInt >= Build.VERSION_CODES.M);
-            }
+        // for 2020-2021 season we require Marshmallow or higher.
+        return (state.sdkInt >= Build.VERSION_CODES.M);
+        }
+
+    public boolean isValidControlHubOsVersion(InspectionState state)
+        {
+        return state.controlHubOsVersionNum >= CH_OS_MIN_VERSIONNUM;
         }
 
     public boolean isValidFirmwareVersion(InspectionState state)
         {
-            return true;
+        // For the 2020-2021 season, require firmware version 1.8.2
+
+        //noinspection RedundantIfStatement
+        if (state.firmwareVersion != null && (
+                state.firmwareVersion.contains("1.6.0") ||
+                state.firmwareVersion.contains("1.7.0") ||
+                state.firmwareVersion.contains("1.7.2") ||
+                state.firmwareVersion.contains("mismatched")))
+            {
+            return false;
+            }
+        return true;
         }
 
     public boolean isValidDeviceName(InspectionState state)

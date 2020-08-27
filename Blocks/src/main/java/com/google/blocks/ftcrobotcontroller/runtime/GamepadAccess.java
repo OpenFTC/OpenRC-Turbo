@@ -1,8 +1,23 @@
-// Copyright 2016 Google Inc.
+/*
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 /**
@@ -256,6 +271,94 @@ class GamepadAccess extends Access {
     startBlockExecution(BlockType.GETTER, ".AtRest");
     if (gamepad != null) {
       return gamepad.atRest();
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "circle")
+  public boolean getCircle() {
+    startBlockExecution(BlockType.GETTER, ".Circle");
+    if (gamepad != null) {
+      return gamepad.circle;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "cross")
+  public boolean getCross() {
+    startBlockExecution(BlockType.GETTER, ".Cross");
+    if (gamepad != null) {
+      return gamepad.cross;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "options")
+  public boolean getOptions() {
+    startBlockExecution(BlockType.GETTER, ".Options");
+    if (gamepad != null) {
+      return gamepad.options;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "ps")
+  public boolean getPS() {
+    startBlockExecution(BlockType.GETTER, ".PS");
+    if (gamepad != null) {
+      return gamepad.ps;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "share")
+  public boolean getShare() {
+    startBlockExecution(BlockType.GETTER, ".Share");
+    if (gamepad != null) {
+      return gamepad.share;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "square")
+  public boolean getSquare() {
+    startBlockExecution(BlockType.GETTER, ".Square");
+    if (gamepad != null) {
+      return gamepad.square;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpad")
+  public boolean getTouchpad() {
+    startBlockExecution(BlockType.GETTER, ".Touchpad");
+    if (gamepad != null) {
+      return gamepad.touchpad;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "triangle")
+  public boolean getTriangle() {
+    startBlockExecution(BlockType.GETTER, ".Triangle");
+    if (gamepad != null) {
+      return gamepad.triangle;
     }
     return false;
   }

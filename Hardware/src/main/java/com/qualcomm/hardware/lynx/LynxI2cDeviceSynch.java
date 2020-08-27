@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.lynx;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
@@ -455,7 +455,12 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
                     {
                     case I2C_MASTER_BUSY:               // TODO: REVIEW: is this ever actually returned in this situation?
                     case I2C_OPERATION_IN_PROGRESS:
-                        try { Thread.sleep(msBusyWait); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                        // We used to sleep for 3ms while waiting for the result to avoid a "busy loop", but that
+                        // caused a serious performance hit over what we could get otherwise, at least on the CH.
+                        // Besides, we're not *truly* busy looping, we still end up waiting for the module's response
+                        // and what not.
+
+                        //try { Thread.sleep(msBusyWait); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
                         continue;
                     case I2C_NO_RESULTS_PENDING:
                         // This is an internal error of some sort

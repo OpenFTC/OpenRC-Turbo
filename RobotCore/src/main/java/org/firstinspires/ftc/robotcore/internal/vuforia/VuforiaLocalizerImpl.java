@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2016 Robert Atkinson
+Copyright (c) 2020 Michael Hoogasian
 
 All rights reserved.
 
@@ -38,27 +39,24 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.view.Gravity;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.vuforia.COORDINATE_SYSTEM_TYPE;
-import com.vuforia.CameraCalibration;
 import com.vuforia.CameraDevice;
 import com.vuforia.Device;
 import com.vuforia.Frame;
@@ -88,6 +86,7 @@ import com.vuforia.VideoMode;
 import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.android.util.Size;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
@@ -100,6 +99,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
 import org.firstinspires.ftc.robotcore.internal.opengl.AutoConfigGLSurfaceView;
@@ -158,7 +158,7 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
     protected   boolean                 isCameraInited      = false;
     protected   boolean                 isCameraStarted     = false;
     protected   boolean                 isCameraRunning     = false;
-    protected   CameraCalibration       camCal              = null;
+    protected   CameraCalibration camCal                    = null;
 
     protected   final VuforiaWebcamInternal vuforiaWebcam;
     protected   VuforiaInitPhase        vuforiaInitPhase    = VuforiaInitPhase.Nascent;
@@ -167,7 +167,6 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
     protected   int                     glSurfaceParentPreviousVisibility = 0;
     protected   AutoConfigGLSurfaceView glSurface           = null;
     protected   boolean                 fillSurfaceParent   = false;     // vs show full camera image
-    protected   boolean                 isPortrait          = true;
     protected   Parameters.CameraMonitorFeedback cameraCameraMonitorFeedback = null;
 
     protected   RelativeLayout          loadingIndicatorOverlay = null;
@@ -215,6 +214,11 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
     // Some simple statistics, perhaps useful during debugging
     protected   int                     renderCount = 0;
     protected   int                     callbackCount = 0;
+
+    protected boolean invertAspectRatio = false;
+    protected int surfaceRotation;
+    protected static final float PROJ_MAT_NEAR_PLANE = 10.0f;
+    protected static final float PROJ_MAT_FAR_PLANE = 5000.0f;
 
     protected enum VuforiaInitPhase
         {
@@ -660,7 +664,9 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
             vuforiaInitPhase = VuforiaInitPhase.Nascent;
             showLoadingIndicator(View.VISIBLE);
             try {
-                updateActivityOrientation();
+                surfaceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+                invertAspectRatio = (activity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT);
+
                 this.vuforiaFlags = Vuforia.GL_20;
                 Vuforia.setInitParameters(activity, vuforiaFlags, parameters.vuforiaLicenseKey);
 
@@ -958,16 +964,15 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
             {
             isCameraInited = true;
 
-            if(CameraDevice.getInstance().selectVideoMode(CameraDevice.MODE.MODE_DEFAULT))
+            if (CameraDevice.getInstance().selectVideoMode(CameraDevice.MODE.MODE_DEFAULT))
                 {
-                configureVideoBackground();
+                configureVideoBackground(true);
 
                 if (CameraDevice.getInstance().start())
                     {
                     isCameraStarted = true;
 
-                    camCal = CameraDevice.getInstance().getCameraCalibration();
-                    projectionMatrix = Tool.getProjectionGL(camCal, 10.0f, 5000.0f);
+                    generateProjectionMatrix();
 
                     if (startTracker())
                         {
@@ -1014,118 +1019,86 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
     // Miscellaneous
     //----------------------------------------------------------------------------------------------
 
-    protected void configureVideoBackground()
+    protected void configureVideoBackground(boolean initialCall)
         {
         if (glSurface == null)
             return;
 
-        // The setLayoutParams() and the setVisibility() calls below MUST be done on the UI thread.
-        // Doing *all* the work there makes the sequencing of those and of getWidth()/getHeight()
-        // always work in the right relative order. The downside is that 'viewport' won't be set
-        // robustly on completion of configureVideoBackground().
-        appUtil.runOnUiThread(new Runnable()
-            {
-            @Override public void run()
+            // What screen real estate do we have to draw on?
+            int glSurface_width = glSurface.getWidth();
+            int glSurface_height = glSurface.getHeight();
+
+            // What's the incoming camera video stream dimensions?
+            CameraDevice cameraDevice = CameraDevice.getInstance();
+            VideoMode videoMode = cameraDevice.getVideoMode(CameraDevice.MODE.MODE_DEFAULT);
+
+            double cameraFrameAspectRatio = (double)videoMode.getWidth()/videoMode.getHeight();
+
+            // Do our math here with a local variable until it's finished and internally consistent
+            ViewPort viewport = new ViewPort();
+
+            if (invertAspectRatio)
                 {
-                if (glSurface == null)
-                  return;
-
-                // What screen real estate do we have to draw on?
-                PointF view = new PointF(glSurface.getWidth(), glSurface.getHeight());
-
-                // What's the incoming camera video stream dimensions?
-                CameraDevice cameraDevice = CameraDevice.getInstance();
-                VideoMode videoMode = cameraDevice.getVideoMode(CameraDevice.MODE.MODE_DEFAULT);
-                PointF video = new PointF(videoMode.getWidth(), videoMode.getHeight());
-
-                // Do our math here with a local variable until it's finished and internally consistent
-                ViewPort viewport = new ViewPort();
-                if (isPortrait)
-                    {
-                    viewport.extent.x = (int) (video.y * view.y / video.x);
-                    viewport.extent.y = (int) view.y;
-
-                    if (viewport.extent.x < view.x)
-                        {
-                        if (fillSurfaceParent)
-                            {
-                            viewport.extent.x = (int) view.x;
-                            viewport.extent.y = (int) (view.x * video.x / video.y);
-                            }
-                        else
-                            {
-                            // See the full camera view, but (a tradeoff) don't fill up the whole surface parent view
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(viewport.extent.x, glSurface.getLayoutParams().height);
-                            params.gravity = Gravity.CENTER_HORIZONTAL;
-                            glSurface.setLayoutParams(params);
-                            }
-                        }
-                    }
-                else
-                    {
-                    viewport.extent.x = (int) view.x;
-                    viewport.extent.y = (int) (video.y * view.x / video.x);
-
-                    if (viewport.extent.y < view.y)
-                        {
-                        if (fillSurfaceParent)
-                            {
-                            viewport.extent.x = (int) (view.y * video.x / video.y);
-                            viewport.extent.y = (int) view.y;
-                            }
-                        else
-                            {
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(glSurface.getLayoutParams().width, viewport.extent.y);
-                            params.gravity = Gravity.CENTER_VERTICAL;
-                            glSurface.setLayoutParams(params);
-                            }
-                        }
-                    }
-
-                // Update in case we changed things. And we know the size, so we can show the surface w/o flashing naked background
-                view = new PointF(glSurface.getWidth(), glSurface.getHeight());
-                glSurface.setVisibility(View.VISIBLE);
-
-                VideoBackgroundConfig videoBackgroundConfig = new VideoBackgroundConfig();
-                videoBackgroundConfig.setEnabled(true);
-
-                // The center of the background should be in the center of the viewport
-                videoBackgroundConfig.setPosition(new Vec2I(0, 0));
-                videoBackgroundConfig.setSize(new Vec2I(viewport.extent.x, viewport.extent.y));
-
-                // The Vuforia VideoBackgroundConfig takes the position relative to the
-                // centre of the screen, where as the OpenGL glViewport call takes the
-                // position relative to the lower left corner
-                viewport.lowerLeft.x = (int) ((view.x - viewport.extent.x) / 2) + videoBackgroundConfig.getPosition().getData()[0];
-                viewport.lowerLeft.y = (int) ((view.y - viewport.extent.y) / 2) + videoBackgroundConfig.getPosition().getData()[1];
-
-                // Adjust (only needed in non-fillSurfaceParent case) to keep viewport inside glSurface
-                viewport.lowerLeft.x = Math.min(0, viewport.lowerLeft.x);
-                viewport.lowerLeft.y = Math.min(0, viewport.lowerLeft.y);
-
-                Renderer.getInstance().setVideoBackgroundConfig(videoBackgroundConfig);
-
-                // Set the viewport that others will see
-                VuforiaLocalizerImpl.this.viewport = viewport;
+                cameraFrameAspectRatio = 1/cameraFrameAspectRatio;
                 }
-            });
-        }
 
-    // Stores the orientation depending on the current resources configuration
-    protected void updateActivityOrientation()
-        {
-        Configuration config = activity.getResources().getConfiguration();
-        switch (config.orientation)
-            {
-            case Configuration.ORIENTATION_LANDSCAPE:
-                this.isPortrait = false;
-                break;
-            case Configuration.ORIENTATION_UNDEFINED:
-            case Configuration.ORIENTATION_PORTRAIT:
-            default:
-                this.isPortrait = true;
-                break;
-            }
+            /*
+             * We need to draw minding the HEIGHT we have to work with; width is not an issue
+             * The image will fill the vertical space before it fills the horizontal space
+             */
+            if ((glSurface_height * cameraFrameAspectRatio) < glSurface_width)
+                {
+                viewport.extent.y = glSurface_height;
+                viewport.extent.x = (int) Math.round(glSurface_height * cameraFrameAspectRatio);
+                }
+
+            /*
+             * We need to draw minding the WIDTH we have to work with; height is not an issue
+             * The image will fill the horizontal space before it fills the vertical space
+             */
+            else
+                {
+                viewport.extent.x = glSurface_width;
+                viewport.extent.y = (int) Math.round(glSurface_width / cameraFrameAspectRatio);
+                }
+
+            VideoBackgroundConfig videoBackgroundConfig = new VideoBackgroundConfig();
+            videoBackgroundConfig.setEnabled(true);
+
+            /*
+             * Magic numbers for centering Vuforia's rendering inside the GL surface.
+             *
+             * I have no clue why this works. Originally I was trying to offset the corner
+             * by the wiggleMargin/2, but that didn't work. Found magic number of 3 by trial
+             * and error.
+             */
+            videoBackgroundConfig.setPosition(new Vec2I(3, 3));
+            videoBackgroundConfig.setSize(new Vec2I(viewport.extent.x, viewport.extent.y));
+
+            // The Vuforia VideoBackgroundConfig takes the position relative to the
+            // centre of the screen, where as the OpenGL glViewport call takes the
+            // position relative to the lower left corner
+            viewport.lowerLeft.x = ((glSurface_width - viewport.extent.x) / 2) + videoBackgroundConfig.getPosition().getData()[0];
+            viewport.lowerLeft.y = ((glSurface_height - viewport.extent.y) / 2) + videoBackgroundConfig.getPosition().getData()[1];
+
+            Renderer.getInstance().setVideoBackgroundConfig(videoBackgroundConfig);
+
+            // Set the viewport that others will see
+            VuforiaLocalizerImpl.this.viewport = viewport;
+
+            if (initialCall)
+                {
+                appUtil.runOnUiThread(new Runnable()
+                    {
+                    @Override public void run()
+                        {
+                        if (glSurface != null)
+                            {
+                            glSurface.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
+                }
         }
 
     protected void initRendering()
@@ -1167,7 +1140,7 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
 
     protected void updateRendering(int width, int height)
         {
-        configureVideoBackground();
+        configureVideoBackground(false);
         }
 
     /**
@@ -1186,6 +1159,11 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
         // from the initRendering() method and use the Renderer::setVideoBackgroundTexture( GLTextureData ) method.
         // Please refer to API Guide for more information.
         GLTextureUnit vbTexture = new GLTextureUnit(vbVideoTextureUnit);
+
+        //Set glsurface background color to the same as the activity bgcolor
+        GLES20.glClearColor(239/255f, 239/255f, 239/255f, 1.0f);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
         if (renderer.updateVideoBackgroundTexture(vbTexture))
             {
             Matrix34F matrix34F = renderingPrimitives.getVideoBackgroundProjectionMatrix(VIEW.VIEW_SINGULAR, COORDINATE_SYSTEM_TYPE.COORDINATE_SYSTEM_CAMERA);
@@ -1341,6 +1319,172 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
         this.textures.add(teapotTexture);
         }
 
+    protected void generateProjectionMatrix()
+        {
+        if (vuforiaWebcam != null)
+            {
+            generateProjectionMatrixForWebcam();
+            }
+        else
+            {
+            generateProjectionMatrixForInternalCam();
+            }
+        }
+
+    protected void generateProjectionMatrixForInternalCam()
+        {
+        com.vuforia.CameraCalibration vuforiaCamCal = CameraDevice.getInstance().getCameraCalibration();
+        projectionMatrix = Tool.getProjectionGL(vuforiaCamCal, PROJ_MAT_NEAR_PLANE, PROJ_MAT_FAR_PLANE);
+
+        float[] vuforiaSize = vuforiaCamCal.getSize().getData();
+        float[] vuforiaFocalLen = vuforiaCamCal.getFocalLength().getData();
+        float[] vuforiaPrincipalPoint = vuforiaCamCal.getPrincipalPoint().getData();
+        float[] vuforiaDistortionCoeffs = vuforiaCamCal.getDistortionParameters().getData();
+
+        // TODO FIXME:
+        // This is probably wrong, but given that TFOD is the only thing that uses
+        // the camCal variable, and it doesn't need the distortion coeffs... we
+        // make our CameraCalibration class happy so that it won't throw an exception
+        // because of a float[4] of coeffs instead of float[8]
+        float[] paddedDistortionCoeffs = new float[8];
+        System.arraycopy(vuforiaDistortionCoeffs, 0, paddedDistortionCoeffs, 0, vuforiaDistortionCoeffs.length);
+
+        camCal = new CameraCalibration(
+                null,
+                new int[] {Math.round(vuforiaSize[0]), Math.round(vuforiaSize[1])},
+                vuforiaFocalLen,
+                vuforiaPrincipalPoint,
+                paddedDistortionCoeffs,
+                false,
+                false);
+        }
+
+    protected void generateProjectionMatrixForWebcam()
+        {
+        Matrix44F mat = new Matrix44F();
+
+        org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration webcamCal = vuforiaWebcam.getCalibrationInUse();
+        camCal = webcamCal;
+
+        /*
+         * In the case that we don't have a calibration on file for this webcam, we
+         * (incorrectly) use the projection matrix of the internal camera so that we
+         * can at least show SOMETHING of an AR marker to indicate detection, rather
+         * than showing nothing at all due to all-zero calibration data.
+         *
+         * Besides, we lived with incorrectly using the internal camera projection matrix
+         * with webcams for 2 seasons so it can't be THAT bad. Though admittedly not great....
+         */
+        if (webcamCal.isFake())
+            {
+            generateProjectionMatrixForInternalCam();
+            return;
+            }
+
+        int width, height;
+        float principalPointY, principalPointX;
+        float focalLengthY, focalLengthX;
+
+        if (invertAspectRatio)
+            {
+            width = webcamCal.getSize().getHeight();
+            height = webcamCal.getSize().getWidth();
+
+            principalPointY = webcamCal.principalPointX;
+            principalPointX = webcamCal.principalPointY;
+
+            focalLengthY = webcamCal.focalLengthX;
+            focalLengthX = webcamCal.focalLengthY;
+            }
+        else
+            {
+            height = webcamCal.getSize().getHeight();
+            width = webcamCal.getSize().getWidth();
+
+            principalPointY = webcamCal.principalPointY;
+            principalPointX = webcamCal.principalPointX;
+
+            focalLengthY = webcamCal.focalLengthY;
+            focalLengthX = webcamCal.focalLengthX;
+            }
+
+        /*
+         * Code to build a projection matrix from camera parameters
+         * https://library.vuforia.com/articles/Solution/Working-with-the-Camera
+         */
+        float dx = principalPointX - width / 2;
+        float dy = principalPointY - height / 2;
+        float x =  2.0f * focalLengthX / width;
+        float y = -2.0f * focalLengthY / height;
+        float a =  2.0f * dx / width ;
+        float b = -2.0f * (dy + 1.0f) / height;
+        float c = (PROJ_MAT_FAR_PLANE + PROJ_MAT_NEAR_PLANE) / (PROJ_MAT_FAR_PLANE - PROJ_MAT_NEAR_PLANE);
+        float d = -PROJ_MAT_NEAR_PLANE * (1.0f + c);
+
+        float[] matrix = new float[] {
+                x, 0, 0, 0,
+                0, y, 0, 0,
+                a, b, c, 1,
+                0, 0, d, 0
+        };
+
+        int rotDeg = (surfaceRotation *90)-getNaturalOrientationOffset(surfaceRotation);
+
+        if (rotDeg != 0)
+            {
+            float[] rotatedMatrix = rotateProjectionMatrixAroundZAxis(matrix, rotDeg);
+            mat.setData(rotatedMatrix);
+            }
+        else
+            {
+            mat.setData(matrix);
+            }
+
+        projectionMatrix = mat;
+        }
+
+    protected int getNaturalOrientationOffset(int rotation)
+        {
+        if (isNaturalOrientationLandscape(rotation)) return 0;
+        return 90;
+        }
+
+    protected boolean isNaturalOrientationLandscape(int rotation)
+        {
+            int orientation = appUtil.getActivity().getResources().getConfiguration().orientation;
+
+            switch (rotation)
+                {
+                case Surface.ROTATION_180:
+                case Surface.ROTATION_0:
+                    {
+                    return orientation == Configuration.ORIENTATION_LANDSCAPE;
+                    }
+                default:
+                    {
+                    return orientation == Configuration.ORIENTATION_PORTRAIT;
+                    }
+                }
+        }
+
+    protected float[] rotateProjectionMatrixAroundZAxis(float[] mat, double deg)
+        {
+        double rad = Math.toRadians(deg);
+
+        float[] zRot = new float[] {
+                (float) Math.cos(rad), (float) -Math.sin(rad), 0, 0,
+                (float) Math.sin(rad), (float) Math.cos(rad), 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+        };
+
+        float[] ret = new float[16];
+
+        Matrix.multiplyMM(ret, 0, mat, 0, zRot, 0);
+
+        return ret;
+        }
+
     protected class GLSurfaceViewRenderer implements GLSurfaceView.Renderer
         {
         public void onSurfaceCreated(GL10 gl, EGLConfig config)
@@ -1354,9 +1498,17 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
 
         @Override public void onSurfaceChanged(GL10 gl, int width, int height)
             {
-            updateRendering(width, height);
-            Vuforia.onSurfaceChanged(width, height);
-            updateRenderingPrimitives();
+                synchronized (renderingPrimitivesMutex)
+                    {
+                    surfaceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+                    invertAspectRatio = (activity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT);
+
+                    generateProjectionMatrix();
+
+                    updateRendering(width, height);
+                    Vuforia.onSurfaceChanged(width, height);
+                    updateRenderingPrimitives();
+                    }
             }
 
         @Override public void onDrawFrame(GL10 gl)

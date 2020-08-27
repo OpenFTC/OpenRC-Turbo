@@ -36,8 +36,8 @@ import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.qualcomm.robotcore.R;
@@ -189,62 +189,22 @@ public class WebcamNameImpl extends CameraNameImplBase implements WebcamNameInte
         {
         String result = null;
         if (isDuplicate != null) isDuplicate.setValue(false);
-        if (CameraManagerInternal.avoidKitKatLegacyPaths || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        boolean found = false;
+        for (UsbDevice usbDevice : getUsbManager().getDeviceList().values())
             {
-            boolean found = false;
-            for (UsbDevice usbDevice : getUsbManager().getDeviceList().values())
+            SerialNumber candidate = cameraManagerInternal.getRealOrVendorProductSerialNumber(usbDevice);
+            if (candidate != null && candidate.matches(serialNumberPattern))
                 {
-                SerialNumber candidate = cameraManagerInternal.getRealOrVendorProductSerialNumber(usbDevice);
-                if (candidate != null && candidate.matches(serialNumberPattern))
+                if (!found)
                     {
-                    if (!found)
-                        {
-                        result = usbDevice.getDeviceName();
-                        found = true;
-                        }
-                    else
-                        {
-                        RobotLog.ee(TAG, "more than one webcam attached matching serial number %s: ignoring them all", serialNumberPattern);
-                        result = null;
-                        if (isDuplicate != null) isDuplicate.setValue(true);
-                        }
-                    }
-                }
-            }
-        else
-            {
-            List<LibUsbDevice> libUsbDevices = cameraManagerInternal.getMatchingLibUsbDevices(new Function<SerialNumber, Boolean>()
-                {
-                @Override public Boolean apply(SerialNumber candidate)
-                    {
-                    return candidate.matches(serialNumberPattern);
-                    }
-                });
-            try {
-                if (libUsbDevices.size()==0)
-                    {
-                    result = null; // device is not found
-                    }
-                else if (libUsbDevices.size()==1)
-                    {
-                    result = libUsbDevices.get(0).getUsbDeviceName();
+                    result = usbDevice.getDeviceName();
+                    found = true;
                     }
                 else
                     {
                     RobotLog.ee(TAG, "more than one webcam attached matching serial number %s: ignoring them all", serialNumberPattern);
-                    for (LibUsbDevice libUsbDevice : libUsbDevices)
-                        {
-                        RobotLog.ee(TAG, "libUsbDevice: name=%s connection=%s serial=%s", libUsbDevice.getUsbDeviceName(), libUsbDevice.getUsbConnectionPath(), libUsbDevice.getRealOrVendorProductSerialNumber());
-                        }
                     result = null;
                     if (isDuplicate != null) isDuplicate.setValue(true);
-                    }
-                }
-            finally
-                {
-                for (LibUsbDevice libUsbDevice : libUsbDevices)
-                    {
-                    libUsbDevice.releaseRef();
                     }
                 }
             }
@@ -399,11 +359,8 @@ public class WebcamNameImpl extends CameraNameImplBase implements WebcamNameInte
             {
             String manufacturer = null;
             String product = null;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) // getManufacturerName & getProductName are >= LOLLIPOP
-                {
-                manufacturer = usbDevice.getManufacturerName();
-                product = usbDevice.getProductName();
-                }
+            manufacturer = usbDevice.getManufacturerName();
+            product = usbDevice.getProductName();
             manufacturer = UsbConstants.getManufacturerName(manufacturer, usbDevice.getVendorId());
             product = UsbConstants.getProductName(product, usbDevice.getVendorId(), usbDevice.getProductId());
             if (TextUtils.isEmpty(product))

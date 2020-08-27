@@ -32,7 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.camera.calibration;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.android.util.Size;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -54,6 +54,7 @@ public class CameraCalibration extends CameraIntrinsics implements Cloneable
     protected CameraCalibrationIdentity identity;
     protected Size size;
     protected boolean remove;
+    protected final boolean isFake;
 
     @Override public String toString()
         {
@@ -72,22 +73,27 @@ public class CameraCalibration extends CameraIntrinsics implements Cloneable
         {
         return remove;
         }
+    public boolean isFake()
+        {
+        return isFake;
+        }
 
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public CameraCalibration(@NonNull CameraCalibrationIdentity identity, Size size, float focalLengthX, float focalLengthY, float principalPointX, float principalPointY, float[] distortionCoefficients, boolean remove) throws RuntimeException
+    public CameraCalibration(@NonNull CameraCalibrationIdentity identity, Size size, float focalLengthX, float focalLengthY, float principalPointX, float principalPointY, float[] distortionCoefficients, boolean remove, boolean isFake) throws RuntimeException
         {
         super(focalLengthX, focalLengthY, principalPointX, principalPointY, distortionCoefficients);
         this.identity = identity;
         this.size = size;
         this.remove = remove;
+        this.isFake = isFake;
         }
 
-    public CameraCalibration(@NonNull CameraCalibrationIdentity identity, int[] size, float[] focalLength, float[] principalPoint, float[] distortionCoefficients, boolean remove) throws RuntimeException
+    public CameraCalibration(@NonNull CameraCalibrationIdentity identity, int[] size, float[] focalLength, float[] principalPoint, float[] distortionCoefficients, boolean remove, boolean isFake) throws RuntimeException
         {
-        this(identity, new Size(size[0], size[1]), focalLength[0], focalLength[1], principalPoint[0], principalPoint[1], distortionCoefficients, remove);
+        this(identity, new Size(size[0], size[1]), focalLength[0], focalLength[1], principalPoint[0], principalPoint[1], distortionCoefficients, remove, isFake);
         if (size.length != 2) throw Misc.illegalArgumentException("frame size must be 2");
         if (principalPoint.length != 2) throw Misc.illegalArgumentException("principal point size must be 2");
         if (focalLength.length != 2) throw Misc.illegalArgumentException("focal length size must be 2");
@@ -100,7 +106,7 @@ public class CameraCalibration extends CameraIntrinsics implements Cloneable
             {
             calibrationIdentity = new VendorProductCalibrationIdentity(0, 0);
             }
-        return new CameraCalibration(calibrationIdentity, size, 0, 0, 0, 0, new float[8], false);
+        return new CameraCalibration(calibrationIdentity, size, 0, 0, 0, 0, new float[8], false, true);
         }
 
     @SuppressWarnings({"unchecked"})

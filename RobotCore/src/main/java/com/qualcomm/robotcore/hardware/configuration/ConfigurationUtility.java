@@ -33,9 +33,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware.configuration;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.exception.RobotCoreException;
@@ -47,7 +47,6 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.I2cDeviceCon
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.ServoConfigurationType;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.UserConfigurationType;
-import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
@@ -124,7 +123,12 @@ public class ConfigurationUtility
         return createUniqueName(configurationType, null, format, preferredParam);
         }
 
-    protected String createUniqueName(ConfigurationType configurationType, @Nullable String firstChoice, @NonNull String format, int preferredParam)
+    protected String createUniqueName(ConfigurationType configurationType, @StringRes int firstChoiceId, @StringRes int formatId, int preferredParam)
+        {
+        return createUniqueName(configurationType, AppUtil.getDefContext().getString(firstChoiceId), AppUtil.getDefContext().getString(formatId), preferredParam);
+        }
+
+    private String createUniqueName(ConfigurationType configurationType, @Nullable String firstChoice, @NonNull String format, int preferredParam)
         {
         Set<String> existing = getExistingNames(configurationType);
         if (firstChoice != null)
@@ -172,7 +176,7 @@ public class ConfigurationUtility
         }
 
     // TODO(Noah): Look into making it so that lists are never passed into DeviceConfiguration constructors
-    // This would let us get rid of most of the buildEmptyX calls
+    //  This would let us get rid of most of the buildEmptyX calls
     public MotorControllerConfiguration buildNewModernMotorController(SerialNumber serialNumber)
         {
         List<DeviceConfiguration> motors = buildEmptyMotors(ModernRoboticsConstants.INITIAL_MOTOR_PORT, ModernRoboticsConstants.NUMBER_OF_MOTORS);
@@ -227,6 +231,7 @@ public class ConfigurationUtility
     public LynxUsbDeviceConfiguration buildNewLynxUsbDevice(SerialNumber serialNumber, LynxModuleMetaList metas)
         {
         RobotLog.vv(TAG, "buildNewLynxUsbDevice(%s)...", serialNumber);
+        boolean isEmbeddedControlHubUsbDevice = serialNumber.isEmbedded();
         try {
             if (metas == null) metas = new LynxModuleMetaList(serialNumber);
             RobotLog.vv(TAG, "buildLynxUsbDevice(): discovered lynx modules: %s", metas);
@@ -234,12 +239,25 @@ public class ConfigurationUtility
             List<LynxModuleConfiguration> modules = new LinkedList<LynxModuleConfiguration>();
             for (LynxModuleMeta meta : metas)
                 {
-                modules.add(buildNewLynxModule(meta.getModuleAddress(), meta.isParent(), true));
+                boolean isEmbeddedControlHubModule =
+                        isEmbeddedControlHubUsbDevice &&
+                        meta.isParent() &&
+                        meta.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS;
+                modules.add(buildNewLynxModule(
+                        meta.getModuleAddress(),
+                        meta.isParent(),
+                        true,
+                        isEmbeddedControlHubModule));
                 }
             DeviceConfiguration.sortByName(modules);
             RobotLog.vv(TAG, "buildNewLynxUsbDevice(%s): %d modules", serialNumber, modules.size());
 
-            String name = createUniqueName(BuiltInConfigurationType.LYNX_USB_DEVICE, R.string.counted_lynx_usb_device_name);
+            String name;
+            if (isEmbeddedControlHubUsbDevice) {
+                name = createUniqueName(BuiltInConfigurationType.LYNX_USB_DEVICE, R.string.control_hub_usb_device_name, R.string.counted_lynx_usb_device_name, 0);
+            } else {
+                name = createUniqueName(BuiltInConfigurationType.LYNX_USB_DEVICE, R.string.counted_lynx_usb_device_name);
+            }
             LynxUsbDeviceConfiguration result = new LynxUsbDeviceConfiguration(name, modules, serialNumber);
             return result;
             }
@@ -249,10 +267,17 @@ public class ConfigurationUtility
             }
         }
 
-    public LynxModuleConfiguration buildNewLynxModule(int moduleAddress, boolean isParent, boolean isEnabled)
+    public LynxModuleConfiguration buildNewLynxModule(int moduleAddress, boolean isParent, boolean isEnabled, boolean isEmbeddedControlHubModule)
         {
-        // Lynx Modules have a built-in uniquifier: their module address, so we use that as the uniquifier of choice
-        String name = createUniqueName(BuiltInConfigurationType.LYNX_MODULE, R.string.counted_lynx_module_name, moduleAddress);
+        String name;
+        if (isEmbeddedControlHubModule) {
+            // If this is the Control Hub module, ideally the name will just be "Control Hub"
+            name = createUniqueName(BuiltInConfigurationType.LYNX_MODULE, R.string.control_hub_module_name, R.string.counted_lynx_module_name, 0);
+        } else {
+            // Otherwise, the ideal name is "Expansion Hub X", where X is the module address
+            name = createUniqueName(BuiltInConfigurationType.LYNX_MODULE, R.string.counted_lynx_module_name, moduleAddress);
+        }
+
         LynxModuleConfiguration lynxModuleConfiguration = buildEmptyLynxModule(name, moduleAddress, isParent, isEnabled);
 
         // Add add the embedded IMU device to the newly created configuration
@@ -260,7 +285,7 @@ public class ConfigurationUtility
         UserConfigurationType embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedIMUType();
         Assert.assertTrue(embeddedIMUConfigurationType!=null && embeddedIMUConfigurationType.isDeviceFlavor(ConfigurationType.DeviceFlavor.I2C));
 
-        String imuName = createUniqueName(embeddedIMUConfigurationType, context.getString(R.string.preferred_imu_name), context.getString(R.string.counted_imu_name), 1);
+        String imuName = createUniqueName(embeddedIMUConfigurationType, R.string.preferred_imu_name, R.string.counted_imu_name, 1);
         LynxI2cDeviceConfiguration imuConfiguration = new LynxI2cDeviceConfiguration();
         imuConfiguration.setConfigurationType(embeddedIMUConfigurationType);
         imuConfiguration.setName(imuName);

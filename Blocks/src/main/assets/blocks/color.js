@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview FTC robot blocks related to color.
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -665,4 +682,251 @@ Blockly.FtcJava['normalizedColors_getProperty_Number'] = function(block) {
     return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
   }
   return [code, Blockly.FtcJava.ORDER_MEMBER];
+};
+
+
+Blockly.Blocks['color_rgbToHue'] = {
+  init: function() {
+    this.setOutput(true, 'Number');
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Color'))
+        .appendField('.')
+        .appendField(createNonEditableField('rgbToHue'));
+    this.appendValueInput('RED').setCheck('Number')
+        .appendField('red')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('GREEN').setCheck('Number')
+        .appendField('green')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('BLUE').setCheck('Number')
+        .appendField('blue')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setColour(functionColor);
+    this.setTooltip('Returns the hue of the color made from the given red, green, and blue components.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'RED':
+        case 'GREEN':
+        case 'BLUE':
+          return 'int';
+      }
+      return '';
+    };
+    this.getFtcJavaOutputType = function() {
+      return 'float';
+    };
+  }
+};
+
+Blockly.JavaScript['color_rgbToHue'] = function(block) {
+  var red = Blockly.JavaScript.valueToCode(
+      block, 'RED', Blockly.JavaScript.ORDER_COMMA);
+  var green = Blockly.JavaScript.valueToCode(
+      block, 'GREEN', Blockly.JavaScript.ORDER_COMMA);
+  var blue = Blockly.JavaScript.valueToCode(
+      block, 'BLUE', Blockly.JavaScript.ORDER_COMMA);
+  var code = colorIdentifierForJavaScript + '.rgbToHue(' + red + ', ' + green + ', ' + blue + ')';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.FtcJava['color_rgbToHue'] = function(block) {
+  var red = Blockly.FtcJava.valueToCode(
+      block, 'RED', Blockly.FtcJava.ORDER_COMMA);
+  var green = Blockly.FtcJava.valueToCode(
+      block, 'GREEN', Blockly.FtcJava.ORDER_COMMA);
+  var blue = Blockly.FtcJava.valueToCode(
+      block, 'BLUE', Blockly.FtcJava.ORDER_COMMA);
+  var code = 'JavaUtil.rgbToHue(' + red + ', ' + green + ', ' + blue + ')';
+  Blockly.FtcJava.generateImport_('JavaUtil');
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['color_rgbToSaturation'] = {
+  init: function() {
+    this.setOutput(true, 'Number');
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Color'))
+        .appendField('.')
+        .appendField(createNonEditableField('rgbToSaturation'));
+    this.appendValueInput('RED').setCheck('Number')
+        .appendField('red')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('GREEN').setCheck('Number')
+        .appendField('green')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('BLUE').setCheck('Number')
+        .appendField('blue')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setColour(functionColor);
+    this.setTooltip('Returns the saturation of the color made from the given red, green, and blue components.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'RED':
+        case 'GREEN':
+        case 'BLUE':
+          return 'int';
+      }
+      return '';
+    };
+    this.getFtcJavaOutputType = function() {
+      return 'float';
+    };
+  }
+};
+
+Blockly.JavaScript['color_rgbToSaturation'] = function(block) {
+  var red = Blockly.JavaScript.valueToCode(
+      block, 'RED', Blockly.JavaScript.ORDER_COMMA);
+  var green = Blockly.JavaScript.valueToCode(
+      block, 'GREEN', Blockly.JavaScript.ORDER_COMMA);
+  var blue = Blockly.JavaScript.valueToCode(
+      block, 'BLUE', Blockly.JavaScript.ORDER_COMMA);
+  var code = colorIdentifierForJavaScript + '.rgbToSaturation(' + red + ', ' + green + ', ' + blue + ')';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.FtcJava['color_rgbToSaturation'] = function(block) {
+  var red = Blockly.FtcJava.valueToCode(
+      block, 'RED', Blockly.FtcJava.ORDER_COMMA);
+  var green = Blockly.FtcJava.valueToCode(
+      block, 'GREEN', Blockly.FtcJava.ORDER_COMMA);
+  var blue = Blockly.FtcJava.valueToCode(
+      block, 'BLUE', Blockly.FtcJava.ORDER_COMMA);
+  var code = 'JavaUtil.rgbToSaturation(' + red + ', ' + green + ', ' + blue + ')';
+  Blockly.FtcJava.generateImport_('JavaUtil');
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['color_rgbToValue'] = {
+  init: function() {
+    this.setOutput(true, 'Number');
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Color'))
+        .appendField('.')
+        .appendField(createNonEditableField('rgbToValue'));
+    this.appendValueInput('RED').setCheck('Number')
+        .appendField('red')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('GREEN').setCheck('Number')
+        .appendField('green')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('BLUE').setCheck('Number')
+        .appendField('blue')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setColour(functionColor);
+    this.setTooltip('Returns the value of the color made from the given red, green, and blue components.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'RED':
+        case 'GREEN':
+        case 'BLUE':
+          return 'int';
+      }
+      return '';
+    };
+    this.getFtcJavaOutputType = function() {
+      return 'float';
+    };
+  }
+};
+
+Blockly.JavaScript['color_rgbToValue'] = function(block) {
+  var red = Blockly.JavaScript.valueToCode(
+      block, 'RED', Blockly.JavaScript.ORDER_COMMA);
+  var green = Blockly.JavaScript.valueToCode(
+      block, 'GREEN', Blockly.JavaScript.ORDER_COMMA);
+  var blue = Blockly.JavaScript.valueToCode(
+      block, 'BLUE', Blockly.JavaScript.ORDER_COMMA);
+  var code = colorIdentifierForJavaScript + '.rgbToValue(' + red + ', ' + green + ', ' + blue + ')';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.FtcJava['color_rgbToValue'] = function(block) {
+  var red = Blockly.FtcJava.valueToCode(
+      block, 'RED', Blockly.FtcJava.ORDER_COMMA);
+  var green = Blockly.FtcJava.valueToCode(
+      block, 'GREEN', Blockly.FtcJava.ORDER_COMMA);
+  var blue = Blockly.FtcJava.valueToCode(
+      block, 'BLUE', Blockly.FtcJava.ORDER_COMMA);
+  var code = 'JavaUtil.rgbToValue(' + red + ', ' + green + ', ' + blue + ')';
+  Blockly.FtcJava.generateImport_('JavaUtil');
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['color_toText'] = {
+  init: function() {
+    this.setOutput(true, 'String');
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Color'))
+        .appendField('.')
+        .appendField(createNonEditableField('toText'));
+    this.appendValueInput('COLOR').setCheck('Number')
+        .appendField('color')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setColour(functionColor);
+    this.setTooltip('Returns the text value of the given color in the format #AARRGGBB or #RRGGBB.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'COLOR':
+          return 'int';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['color_toText'] = function(block) {
+  var color = Blockly.JavaScript.valueToCode(
+      block, 'COLOR', Blockly.JavaScript.ORDER_NONE);
+  var code = colorIdentifierForJavaScript + '.toText(' + color + ')';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.FtcJava['color_toText'] = function(block) {
+  var color = Blockly.FtcJava.valueToCode(
+      block, 'COLOR', Blockly.FtcJava.ORDER_NONE);
+  var code = 'JavaUtil.colorToText(' + color + ')';
+  Blockly.FtcJava.generateImport_('JavaUtil');
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['color_showColor'] =  {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Color'))
+        .appendField('.')
+        .appendField(createNonEditableField('showColor'));
+    this.appendValueInput('COLOR').setCheck('Number')
+        .appendField('color')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Shows the given color on the Robot Controller screen.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'COLOR':
+          return 'int';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['color_showColor'] = function(block) {
+  var color = Blockly.JavaScript.valueToCode(
+      block, 'COLOR', Blockly.JavaScript.ORDER_NONE);
+  return colorIdentifierForJavaScript + '.showColor(' + color + ');\n';
+};
+
+Blockly.FtcJava['color_showColor'] = function(block) {
+  var color = Blockly.FtcJava.valueToCode(
+      block, 'COLOR', Blockly.FtcJava.ORDER_COMMA);
+  Blockly.FtcJava.generateImport_('JavaUtil');
+  return 'JavaUtil.showColor(hardwareMap.appContext, ' + color + ');\n';
 };

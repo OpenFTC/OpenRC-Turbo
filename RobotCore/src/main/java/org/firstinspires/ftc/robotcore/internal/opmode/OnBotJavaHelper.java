@@ -44,7 +44,6 @@ public interface OnBotJavaHelper {
     File buildSuccessfulFile    = new File(statusDir, "buildSuccessful.txt");
 
     File controlDir             = new File(javaRoot, "/control/");
-    File buildLockDir           = new File(controlDir, "/buildLock/");
 
     /*
      * This probably needs some rework...

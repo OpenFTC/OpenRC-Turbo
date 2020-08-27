@@ -31,8 +31,8 @@
 package com.qualcomm.hardware;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -176,18 +176,20 @@ public class HardwareDeviceManager implements DeviceManager {
    * @throws RobotCoreException if unable to open FTDI D2XX manager
    */
    @SuppressWarnings("ConstantConditions")
-   public HardwareDeviceManager(Context context, SyncdDevice.Manager manager) throws RobotCoreException {
+   // TODO(Noah): Remove context parameter
+   // TODO(Noah): Evaluate conditions under which manager can safely be null
+   public HardwareDeviceManager(Context context, SyncdDevice.Manager manager) {
     this.context = context;
     this.manager = manager;
-    this.usbManager = createUsbManager(context);
+    this.usbManager = createUsbManager();
   }
 
-  public static RobotUsbManager createUsbManager(Context context) throws RobotCoreException {
-    RobotUsbManager usbManager = new RobotUsbManagerFtdi(context);
+  public static RobotUsbManager createUsbManager() {
+    RobotUsbManager usbManager = new RobotUsbManagerFtdi();
     if (LynxConstants.isRevControlHub()) {
         RobotUsbManagerCombining combiner = new RobotUsbManagerCombining();
         combiner.addManager(usbManager);
-        combiner.addManager(new RobotUsbManagerTty(context));
+        combiner.addManager(new RobotUsbManagerTty());
         usbManager = combiner;
     }
     return usbManager;

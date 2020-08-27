@@ -1,8 +1,27 @@
 /**
+ * @license
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview FTC robot blocks related to navigation.
  * @author lizlooney@google.com (Liz Looney)
  */
 
+// The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
+// switchableCameraName
 // The following are defined in vars.js:
 // navigationIdentifierForJavaScript
 // getPropertyColor
@@ -403,9 +422,32 @@ Blockly.JavaScript['navigation_webcamName'] = function(block) {
 };
 
 Blockly.FtcJava['navigation_webcamName'] = function(block) {
-  // For java, we generate code to retrieved the WebcamName from the hardwareMap.
+  // For java, we generate code to retrieve the WebcamName from the hardwareMap.
   var code = 'hardwareMap.get(WebcamName.class, "' + block.getFieldValue('WEBCAM_NAME') + '")';
   Blockly.FtcJava.generateImport_('WebcamName');
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['navigation_switchableCamera'] = {
+  init: function() {
+    this.setOutput(true, 'SwitchableCamera');
+    this.appendDummyInput()
+        .appendField(createNonEditableField('SwitchableCamera'))
+    this.setColour(getPropertyColor);
+    this.setTooltip('A virtual camera comprised of all configured webcams.');
+  }
+};
+
+Blockly.JavaScript['navigation_switchableCamera'] = function(block) {
+  // For javascript, we generate the special name of the switchable camera as a string.
+  var code = '"' + switchableCameraName + '"';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.FtcJava['navigation_switchableCamera'] = function(block) {
+  // For java, we generate code to get a switchable camera.
+  var code = 'VuforiaBase.getSwitchableCamera(hardwareMap)';
+  Blockly.FtcJava.generateImport_('VuforiaBase');
   return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
 };
 

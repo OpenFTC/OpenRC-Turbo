@@ -34,6 +34,7 @@ package com.qualcomm.hardware.lynx;
 
 import com.qualcomm.hardware.ams.AMSColorSensor;
 import com.qualcomm.hardware.ams.AMSColorSensorImpl;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
@@ -52,7 +53,7 @@ import java.util.Locale;
  * historical name that could perhaps have been chosen better) for raw, uncalibrated readings.
  */
 @SuppressWarnings("WeakerAccess")
-public class LynxI2cColorRangeSensor extends AMSColorSensorImpl implements DistanceSensor, OpticalDistanceSensor
+public class LynxI2cColorRangeSensor extends AMSColorSensorImpl implements DistanceSensor, OpticalDistanceSensor, ColorRangeSensor
     {
     //----------------------------------------------------------------------------------------------
     // State
@@ -93,7 +94,7 @@ public class LynxI2cColorRangeSensor extends AMSColorSensorImpl implements Dista
      *      rawOptical = a + b * (cm + c)^(-2)
      *
      * This fitted linearity is fairly accurate over a wide range of target surfaces, but is ultimately
-     * affected by the infrared reflectivity of the surface. However, even on surfaces where there is 
+     * affected by the infrared reflectivity of the surface. However, even on surfaces where there is
      * significantly different reflectivity, the linearity calculated here tends to be preserved,
      * so distance accuracy can often be refined with a simple further multiplicative scaling.
      *

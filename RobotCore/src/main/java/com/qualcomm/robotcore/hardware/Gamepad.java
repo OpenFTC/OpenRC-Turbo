@@ -84,6 +84,19 @@ public class Gamepad extends RobocolParsableBase {
    */
   public static final int ID_SYNTHETIC = -2;
 
+  public enum Type {
+    // Do NOT change the order/names of existing entries,
+    // you will break backwards compatibility!!
+    UNKNOWN,
+    LOGITECH_F310,
+    XBOX_360,
+    SONY_PS4;
+
+    static Type[] values = Type.values();
+  }
+
+  Type type = Type.UNKNOWN; // IntelliJ thinks this is redundant, but it is NOT. Must be a bug in the analyzer?
+
   /**
    * Optional callback interface for monitoring changes due to MotionEvents and KeyEvents.
    *
@@ -208,9 +221,49 @@ public class Gamepad extends RobocolParsableBase {
   public float right_trigger = 0f;
 
   /**
+   * PS4 Support - Circle
+   */
+  public boolean circle = false;
+
+  /**
+   * PS4 Support - cross
+   */
+  public boolean cross = false;
+
+  /**
+   * PS4 Support - triangle
+   */
+  public boolean triangle = false;
+
+  /**
+   * PS4 Support - square
+   */
+  public boolean square = false;
+
+  /**
+   * PS4 Support - share
+   */
+  public boolean share = false;
+
+  /**
+   * PS4 Support - options
+   */
+  public boolean options = false;
+
+  /**
+   * PS4 Support - touchpad
+   */
+  public boolean touchpad = false;
+
+  /**
+   * PS4 Support - PS Button
+   */
+  public boolean ps = false;
+
+  /**
    * Which user is this gamepad used by
    */
-  private byte user = ID_UNASSOCIATED;
+  protected byte user = ID_UNASSOCIATED;
   //
   public GamepadUser getUser() {
     return GamepadUser.from(user);
@@ -265,14 +318,17 @@ public class Gamepad extends RobocolParsableBase {
   protected float joystickDeadzone = 0.2f; // very high, since we don't know the device type
 
   // private static values used for packaging the gamepad state into a byte array
-  private static final short PAYLOAD_SIZE = 42;
+  private static final short PAYLOAD_SIZE = 43;
   private static final short BUFFER_SIZE = PAYLOAD_SIZE + RobocolParsable.HEADER_LENGTH;
 
-  private static final byte ROBOCOL_VERSION = 2;
+  private static final byte ROBOCOL_GAMEPAD_VERSION = 3;
 
   private static final float MAX_MOTION_RANGE = 1.0f;
 
   private final GamepadCallback callback;
+
+  public int vid = -1;
+  public int pid = -1;
 
   private static Set<Integer> gameControllerDeviceIdCache = new HashSet<Integer>();
 
@@ -309,6 +365,7 @@ public class Gamepad extends RobocolParsableBase {
 
   public Gamepad(GamepadCallback callback) {
     this.callback = callback;
+    this.type = type();
   }
 
   /**
@@ -345,6 +402,12 @@ public class Gamepad extends RobocolParsableBase {
     }
 
     joystickDeadzone = deadzone;
+  }
+
+  public void setVidPid(int vid, int pid)
+  {
+    this.vid = vid;
+    this.pid = pid;
   }
 
   /**
@@ -399,6 +462,7 @@ public class Gamepad extends RobocolParsableBase {
     else if (key == KeyEvent.KEYCODE_BUTTON_THUMBL) left_stick_button = pressed(event);
     else if (key == KeyEvent.KEYCODE_BUTTON_THUMBR) right_stick_button = pressed(event);
 
+    updateButtonAliases();
     callCallback();
   }
 
@@ -415,7 +479,7 @@ public class Gamepad extends RobocolParsableBase {
     try {
       int buttons = 0;
 
-      buffer.put(ROBOCOL_VERSION);
+      buffer.put(ROBOCOL_GAMEPAD_VERSION);
       buffer.putInt(id);
       buffer.putLong(timestamp).array();
       buffer.putFloat(left_stick_x).array();
@@ -425,6 +489,7 @@ public class Gamepad extends RobocolParsableBase {
       buffer.putFloat(left_trigger).array();
       buffer.putFloat(right_trigger).array();
 
+      buttons = (buttons << 1) + (touchpad ? 1 : 0);
       buttons = (buttons << 1) + (left_stick_button ? 1 : 0);
       buttons = (buttons << 1) + (right_stick_button ? 1 : 0);
       buttons = (buttons << 1) + (dpad_up ? 1 : 0);
@@ -442,7 +507,11 @@ public class Gamepad extends RobocolParsableBase {
       buttons = (buttons << 1) + (right_bumper ? 1 : 0);
       buffer.putInt(buttons);
 
+      // Version 2
       buffer.put(user);
+
+      // Version 3
+      buffer.put((byte) type.ordinal());
     } catch (BufferOverflowException e) {
       RobotLog.logStacktrace(e);
     }
@@ -474,6 +543,7 @@ public class Gamepad extends RobocolParsableBase {
       right_trigger = byteBuffer.getFloat();
 
       buttons = byteBuffer.getInt();
+      touchpad            = (buttons & 0x08000) != 0;
       left_stick_button   = (buttons & 0x04000) != 0;
       right_stick_button  = (buttons & 0x02000) != 0;
       dpad_up             = (buttons & 0x01000) != 0;
@@ -496,6 +566,12 @@ public class Gamepad extends RobocolParsableBase {
       user = byteBuffer.get();
     }
 
+    // extract version 3 values
+    if (version >= 3) {
+      type = Type.values[byteBuffer.get()];
+    }
+
+    updateButtonAliases();
     callCallback();
   }
 
@@ -511,11 +587,11 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   /**
-   * Get the type of gamepad as a String. This method defaults to "Standard".
+   * Get the type of gamepad as a {@link Type}. This method defaults to "UNKNOWN".
    * @return gamepad type
    */
-  public String type() {
-    return "Standard";
+  public Type type() {
+    return type;
   }
 
   /**
@@ -524,6 +600,45 @@ public class Gamepad extends RobocolParsableBase {
    */
   @Override
   public String toString() {
+
+    switch (type) {
+      case SONY_PS4:
+        return ps4ToString();
+
+      case UNKNOWN:
+      case LOGITECH_F310:
+      case XBOX_360:
+      default:
+        return genericToString();
+    }
+  }
+
+
+  protected String ps4ToString() {
+    String buttons = new String();
+    if (dpad_up) buttons += "dpad_up ";
+    if (dpad_down) buttons += "dpad_down ";
+    if (dpad_left) buttons += "dpad_left ";
+    if (dpad_right) buttons += "dpad_right ";
+    if (cross) buttons += "cross ";
+    if (circle) buttons += "circle ";
+    if (square) buttons += "square ";
+    if (triangle) buttons += "triangle ";
+    if (ps) buttons += "ps ";
+    if (share) buttons += "share ";
+    if (options) buttons += "options ";
+    if (touchpad) buttons += "touchpad ";
+    if (left_bumper) buttons += "left_bumper ";
+    if (right_bumper) buttons += "right_bumper ";
+    if (left_stick_button) buttons += "left stick button ";
+    if (right_stick_button) buttons += "right stick button ";
+
+    return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s",
+              id, user, left_stick_x, left_stick_y,
+              right_stick_x, right_stick_y, left_trigger, right_trigger, buttons);
+  }
+
+  protected String genericToString() {
     String buttons = new String();
     if (dpad_up) buttons += "dpad_up ";
     if (dpad_down) buttons += "dpad_down ";
@@ -542,8 +657,8 @@ public class Gamepad extends RobocolParsableBase {
     if (right_stick_button) buttons += "right stick button ";
 
     return String.format("ID: %2d user: %2d lx: % 1.2f ly: % 1.2f rx: % 1.2f ry: % 1.2f lt: %1.2f rt: %1.2f %s",
-        id, user, left_stick_x, left_stick_y,
-        right_stick_x, right_stick_y, left_trigger, right_trigger, buttons);
+            id, user, left_stick_x, left_stick_y,
+            right_stick_x, right_stick_y, left_trigger, right_trigger, buttons);
   }
 
   // clean values
@@ -641,5 +756,21 @@ public class Gamepad extends RobocolParsableBase {
 
     // this is not an event from a game pad
     return false;
+  }
+
+  /**
+   * Alias buttons so that XBOX & PS4 native button labels can be used in use code.
+   * Should allow a team to program with whatever controllers they prefer, but
+   * be able swap controllers easily without changing code.
+   */
+  protected void updateButtonAliases(){
+    // There is no assignment for touchpad because there is no equivalent on XBOX controllers.
+    circle = b;
+    cross = a;
+    triangle = y;
+    square = x;
+    share = back;
+    options = start;
+    ps = guide;
   }
 }

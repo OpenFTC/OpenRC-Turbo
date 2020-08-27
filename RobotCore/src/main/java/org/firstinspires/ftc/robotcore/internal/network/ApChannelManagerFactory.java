@@ -14,6 +14,7 @@ public class ApChannelManagerFactory
             } else {
                 apChannelManager = new WifiDirectChannelManager();
             }
+            // TODO(Noah): On the Driver Station, build a RemoteChannelChanger
         }
         return apChannelManager;
     }

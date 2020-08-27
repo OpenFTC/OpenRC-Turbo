@@ -30,9 +30,6 @@
 
 package com.qualcomm.robotcore.util;
 
-import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 
 /**
@@ -45,37 +42,23 @@ public class ImmersiveMode {
   // that should be using immersive mode.
   View decorView;
 
-  public ImmersiveMode(View decorView){
+  public ImmersiveMode(View decorView) {
     this.decorView = decorView;
   }
 
-  // A handler that hides the system UI stuff.
-  // This helps us be able to cancel a "hide" in the case of a
-  // dialog popup or similar.
-  Handler hideSystemUiHandler = new Handler() {
-    @Override
-    public void handleMessage(Message msg){
-      hideSystemUI();
-    }
-  };
-
-  public void cancelSystemUIHide(){
-    hideSystemUiHandler.removeMessages(0);
-  }
-
   public void hideSystemUI() {
-    // Set the IMMERSIVE flag.
-    // Set the content to appear under the system bars so that the content
-    // doesn't resize when the nav bar hides and shows.
-
+    // Enables regular immersive mode.
+    // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+    // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
     decorView.setSystemUiVisibility(
-        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-  }
-
-  // Immersive sticky flag only works on API >= 19
-  public static boolean apiOver19(){
-    int currentApiVersion = Build.VERSION.SDK_INT;
-    return currentApiVersion >= Build.VERSION_CODES.KITKAT;
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    // Set the content to appear under the system bars so that the
+                    // content doesn't resize when the system bars hide and show.
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    // Hide the nav bar and status bar
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN);
   }
 }

@@ -121,7 +121,8 @@ public class ClassManager {
                 "javax.tools",
                 "kawa",
                 "org.firstinspires.ftc.robotcore.internal.android",
-                "android.support.v4"
+                "android.support.v4",
+                "androidx"
         ));
     }
 

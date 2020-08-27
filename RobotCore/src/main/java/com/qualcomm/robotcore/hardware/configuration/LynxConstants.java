@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware.configuration;
 
 import android.os.Build;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.util.SerialNumber;
 
@@ -51,6 +51,7 @@ public class LynxConstants
     public static final int DRAGONBOARD_CH_VERSION = 0;
     private static final String DRAGONBOARD_MODEL = "FIRST Control Hub";
     private static final String EMPTY_STRING = "";
+    private static final int ORIGINAL_CH_OS_VERSIONNUM = 1;
 
     /** Are we running on an Android / Lynx combo device */
     public static boolean isRevControlHub()
@@ -80,8 +81,7 @@ public class LynxConstants
     /** Get the Control Hub OS version. Returns null if OS version property is not set.
      *
      * Value is human-readable, do not attempt to parse.
-     * Use ro.controlhub.os.versionnum (added in OS version 1.0.1) to differentiate between OS
-     * versions programmatically. */
+     * Use {@link #getControlHubOsVersionNum()} ()} to differentiate between OS versions programmatically. */
     @Nullable public static String getControlHubOsVersion()
         {
         String chOsVersion = SystemProperties.get("ro.controlhub.os.version", EMPTY_STRING);
@@ -89,11 +89,16 @@ public class LynxConstants
         return chOsVersion;
         }
 
-    /** When running on a Dragonboard / Lynx combo device, should the Dragonboard pretend
-     * that it's not there and thus allow the Lynx to be used as an stand-alone extension? */
-    public static boolean shouldDisableAndroidBoard()
+    /** Gets the machine-parsable version number of the Control Hub OS */
+    public static int getControlHubOsVersionNum()
         {
-        return SystemProperties.getBoolean("persist.ftcandroid.db.disable", false);
+        // ro.controlhub.os.versionnum was added in the second OS version (1.0.1), so if we don't
+        // find it, it's safe to assume that we are looking at the original version of the Control
+        // Hub OS.
+
+        // It could also be a Dragonboard, but differences between Control Hub hardware revisions
+        // should be handled within the different implementations of AndroidBoard.
+        return SystemProperties.getInt("ro.controlhub.os.versionnum", ORIGINAL_CH_OS_VERSIONNUM);
         }
 
     public static boolean isEmbeddedSerialNumber(SerialNumber serialNumber)
@@ -136,7 +141,8 @@ public class LynxConstants
 
     public final static int MAX_NUMBER_OF_MODULES = 254;
     public final static int MAX_MODULES_DISCOVER = MAX_NUMBER_OF_MODULES;   // see LynxDiscoveryCommand: parent uses this count, so we must mirror
-    public final static int MAX_MODULE_ADDRESS_CHOICE = 10;
+    public static final int CH_EMBEDDED_MODULE_ADDRESS = 173;
+    public final static int MAX_UNRESERVED_MODULE_ADDRESS = 10;
     public final static int DEFAULT_PARENT_MODULE_ADDRESS = 1;              // try to avoid using: query the device instead
 
     public static final String EMBEDDED_IMU_XML_TAG = "LynxEmbeddedIMU";

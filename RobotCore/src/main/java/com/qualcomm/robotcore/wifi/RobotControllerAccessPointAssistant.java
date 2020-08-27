@@ -38,16 +38,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.Intents;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.ApChannelManager;
 import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
+import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.PasswordManager;
 import org.firstinspires.ftc.robotcore.internal.network.PasswordManagerFactory;
@@ -81,8 +85,9 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
         super(context);
 
         intentFilter = new IntentFilter();
-        intentFilter.addAction(Intents.ANDROID_ACTION_WIFI_STATE_CHANGED);
+        intentFilter.addAction(Intents.ANDROID_ACTION_WIFI_AP_STATE_CHANGED);
         intentFilter.addAction(Intents.ACTION_FTC_WIFI_FACTORY_RESET);
+        intentFilter.addAction(Intents.ACTION_FTC_AP_NOTIFY_BAND_CHANGE);
     }
 
     /**
@@ -132,9 +137,40 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        nameManager.resetDeviceName();
-        passwordManager.resetPassword();
-        apChannelManager.resetChannel();
+
+        String newName = nameManager.resetDeviceName(false);
+        String newPass = passwordManager.resetPassword(false);
+        ApChannel newChannel = apChannelManager.resetChannel(false);
+
+        try {
+            setNetworkSettings(newName, newPass, newChannel);
+        } catch (InvalidNetworkSettingException e) {
+            RobotLog.ee(TAG, e, "Default name, password, or channel rejected during reset attempt");
+        }
+    }
+
+    /**
+     * handleBandChangeViaButton
+     *
+     * Notify the user via the Control Hub LED when the band has been changed using the button
+     */
+    private void handleBandChangeViaButton(Intent intent) {
+        int newBand = intent.getIntExtra(Intents.EXTRA_AP_BAND, -1);
+        if (newBand == ApChannel.AP_BAND_2GHZ) {
+            RobotLog.ii(TAG, "Received notification that the band has been switched to 2.4 GHz");
+        } else if (newBand == ApChannel.AP_BAND_5GHZ) {
+            RobotLog.ii(TAG, "Received notification that the band has been switched to 5 GHz");
+        } else {
+            RobotLog.ww(TAG, "Received band switch notification with invalid band " + newBand);
+        }
+        Command visuallyConfirmCommand = new Command(RobotCoreCommandList.CMD_VISUALLY_CONFIRM_WIFI_BAND_SWITCH, Integer.toString(newBand));
+        NetworkConnectionHandler.getInstance().injectReceivedCommand(visuallyConfirmCommand);
+    }
+
+    @Override
+    public NetworkType getNetworkType()
+    {
+        return NetworkType.RCWIRELESSAP;
     }
 
     /**
@@ -153,10 +189,12 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
                 receiver = new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        if (intent.getAction().equals(Intents.ANDROID_ACTION_WIFI_STATE_CHANGED)) {
+                        if (intent.getAction().equals(Intents.ANDROID_ACTION_WIFI_AP_STATE_CHANGED)) {
                             handleWifiStateChange(intent);
                         } else if (intent.getAction().equals(Intents.ACTION_FTC_WIFI_FACTORY_RESET)) {
                             handleFactoryReset();
+                        } else if (intent.getAction().equals(Intents.ACTION_FTC_AP_NOTIFY_BAND_CHANGE)) {
+                            handleBandChangeViaButton(intent);
                         }
                     }
                 };
@@ -242,8 +280,11 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     public void createConnection()
     {
         RobotLog.ii(TAG, "Sending SSID and password to AP service");
-        nameManager.setDeviceName(nameManager.getDeviceName());
-        passwordManager.setPassword(passwordManager.getPassword());
+        try {
+            setNetworkSettings(nameManager.getDeviceName(), passwordManager.getPassword(), null);
+        } catch (InvalidNetworkSettingException e) {
+            RobotLog.ee(TAG, e, "Currently stored name or password is now being rejected");
+        }
     }
 
     /**
@@ -267,13 +308,13 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
      * Returns the ssid of the access point we are currently broadcasting.
      */
     @Override public String getConnectionOwnerName() {
-        return DeviceNameManagerFactory.getInstance().getDeviceName();
+        return nameManager.getDeviceName();
     }
 
     @Override
     public String getPassphrase()
     {
-       return PasswordManagerFactory.getInstance().getPassword();
+       return passwordManager.getPassword();
     }
 
     @Override
@@ -281,5 +322,33 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     {
         // While the AP is not yet started, we need to keep telling the AP service what the correct credentials are
         createConnection();
+    }
+
+    @Override
+    public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) throws InvalidNetworkSettingException {
+        boolean sendSettingsIndividually = !AndroidBoard.getInstance().supportsBulkNetworkSettings();
+        RobotLog.dd(TAG, "setNetworkProperties(deviceName=%s, password=%s, ApChannel=%s) sendSettingsIndividually=%b", deviceName, password, channel, sendSettingsIndividually);
+
+        if (deviceName != null) {
+            nameManager.setDeviceName(deviceName, sendSettingsIndividually);
+        }
+        if (password != null) {
+            passwordManager.setPassword(password, sendSettingsIndividually);
+        }
+        if (channel != null) {
+            apChannelManager.setChannel(channel, sendSettingsIndividually);
+        }
+
+        if (!sendSettingsIndividually) {
+            Intent bulkSettingsIntent = new Intent(Intents.ACTION_FTC_AP_SETTINGS_CHANGE);
+            bulkSettingsIntent.putExtra(Intents.EXTRA_AP_NAME, deviceName);
+            bulkSettingsIntent.putExtra(Intents.EXTRA_AP_PASSWORD, password);
+            if (channel != null && channel != ApChannel.UNKNOWN) {
+                bulkSettingsIntent.putExtra(Intents.EXTRA_AP_BAND, channel.band.androidInternalValue);
+                bulkSettingsIntent.putExtra(Intents.EXTRA_AP_CHANNEL, channel.channelNum);
+            }
+            RobotLog.dd(TAG, "Sending bulk settings broadcast intent");
+            AppUtil.getDefContext().sendBroadcast(bulkSettingsIntent);
+        }
     }
 }

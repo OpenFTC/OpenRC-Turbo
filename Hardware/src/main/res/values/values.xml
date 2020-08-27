@@ -7,6 +7,7 @@
     <string name="lynxModuleBatteryIsCurrentlyLow">reported that the battery is currently too low to run motors and servos.</string>
     <string name="lynxModuleBatteryWasLow">temporarily reported that the battery was too low to run motors and servos while an Op Mode was running.</string>
     <string name="lynxModuleCurrentlyNotResponding">not currently responding to commands</string>
+    <string name="lynxModuleFirmwareOutdated">reported outdated firmware</string>
     <string name="lynxModulePowerLost">reported a temporary complete power loss while an Op Mode was running. Unexpected behavior may result.</string>
     <string name="lynxModulePreviouslyNotResponding">temporarily stopped responding to commands while an Op Mode was running</string>
     <string name="powerIssueTip">Check your wiring, battery, and power switch</string>

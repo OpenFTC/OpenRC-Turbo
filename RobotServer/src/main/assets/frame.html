@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <script type="text/javascript" src="/js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
 
     <link rel="stylesheet/less" type="text/css" href="/css/frame.less">
@@ -264,9 +264,9 @@
     //----------------------------------------------------------------------------------------------
 
     function sendPingRequest() {
-        sendPing(getRelativeURI(theIFrame.src), function (pingDetailsList) {
+        sendPing(getRelativeURI(theIFrame.src), function (pingResponse) {
             var hiddenClass = "hidden";
-            if (pingDetailsList) {
+            if (pingResponse) {
                 ensureClass(pingFailure, hiddenClass);
                 removeClass(theNavBarItems, hiddenClass);
                 removeClass(theNavBarItemsRight, hiddenClass);
@@ -277,10 +277,10 @@
                 ensureClass(theNavBarItems, hiddenClass);
                 ensureClass(theNavBarItemsRight, hiddenClass);
             }
-        
+
             var child = theIFrame.contentDocument;
             if (child && child.onPingResult) {
-                child.onPingResult(pingDetailsList);
+                child.onPingResult(pingResponse);
             }
 
         });
@@ -293,8 +293,8 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
-                    var pingDetailsList = JSON.parse(xhr.responseText);
-                    callback(pingDetailsList);
+                    var pingResponse = JSON.parse(xhr.responseText);
+                    callback(pingResponse);
                 } else {
                     callback(null);
                 }

@@ -38,15 +38,15 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.renderscript.RenderScript;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.renderscript.RenderScript;
+
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
-import org.firstinspires.ftc.robotcore.external.function.Consumer;
-import org.firstinspires.ftc.robotcore.external.function.Function;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerInternal;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -78,7 +78,7 @@ public class UvcContext extends NativeObject
 
     public static final String TAG = UvcContext.class.getSimpleName();
     public String getTag() { return TAG; }
-    public static boolean DEBUG_RS = false;
+    public static boolean DEBUG_RS = false; // test what we'll ship, even in DEBUG app builds
     protected static final AtomicInteger instanceCounter = new AtomicInteger(0);
 
     protected final int instanceNumber = instanceCounter.getAndIncrement();
@@ -171,18 +171,11 @@ public class UvcContext extends NativeObject
     /** Note that we make up a serial number if the device doesn't actually have one */
     public @Nullable SerialNumber getRealOrVendorProductSerialNumber(UsbDevice usbDevice)
         {
-        SerialNumber serialNumber = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) // useNonKitKatPaths isn't worth it here: serial number is so readily accessible
-            {
-            serialNumber = SerialNumber.fromUsbOrNull(usbDevice.getSerialNumber());
-            }
-        else
-            {
-            serialNumber = SerialNumber.fromUsbOrNull(nativeGetSerialNumberFromUsbPath(pointer, usbDevice.getDeviceName()));
-            }
+        SerialNumber serialNumber = SerialNumber.fromUsbOrNull(usbDevice.getSerialNumber());
+
         if (serialNumber==null) // Device lacks real serial number: go the long route so we make up a VendorProductSerialNumber
             {
-            LibUsbDevice libUsbDevice = getLibUsbDeviceFromUsbDeviceName(usbDevice.getDeviceName(), false);
+            LibUsbDevice libUsbDevice = getLibUsbDeviceFromUsbDevice(usbDevice, false);
             if (libUsbDevice != null)
                 {
                 serialNumber = libUsbDevice.getRealOrVendorProductSerialNumber();
@@ -192,14 +185,14 @@ public class UvcContext extends NativeObject
         return serialNumber;
         }
 
-    public @Nullable LibUsbDevice getLibUsbDeviceFromUsbDeviceName(String usbDeviceName, boolean traceEnabled)
+    public @Nullable LibUsbDevice getLibUsbDeviceFromUsbDevice(UsbDevice usbDevice, boolean traceEnabled)
         {
         synchronized (lock)
             {
-            long libUsbDevicePointer = nativeGetLibUsbDeviceFromUsbDeviceName(pointer, usbDeviceName);
+            long libUsbDevicePointer = nativeGetLibUsbDeviceFromUsbDeviceName(pointer, usbDevice.getDeviceName());
             if (libUsbDevicePointer != 0)
                 {
-                return new LibUsbDevice(libUsbDevicePointer, traceEnabled);
+                return new LibUsbDevice(libUsbDevicePointer, usbDevice, traceEnabled);
                 }
             return null;
             }
@@ -218,10 +211,6 @@ public class UvcContext extends NativeObject
                 File file = getRenderscriptCacheDir();
                 AppUtil.getInstance().ensureDirectoryExists(file, false);
                 //
-                String dir    = file.getAbsolutePath();
-                int targetApi = AppUtil.getDefContext().getApplicationInfo().targetSdkVersion;
-                nativeInitRenderScriptParameters(pointer, dir, renderScriptCreateFlags, targetApi);
-
                 /* see C:\Android\410c\build\frameworks\rs\rsContext.cpp:
                  *     if (getProp("debug.rs.debug") != 0) {
                  *         ALOGD("Forcing debug context due to debug.rs.debug.");
@@ -229,7 +218,7 @@ public class UvcContext extends NativeObject
                  *     }
                  */
                 try {
-                    SystemProperties.set("debug.rs.debug", renderScriptContextType== RenderScript.ContextType.DEBUG ? "1" : "0");
+                    SystemProperties.set("debug.rs.debug", renderScriptContextType==RenderScript.ContextType.DEBUG ? "1" : "0");
                     }
                 catch (Throwable throwable)
                     {
@@ -256,14 +245,7 @@ public class UvcContext extends NativeObject
             initRenderScriptParametersIfNeeded();
             if (null == renderScript)
                 {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                    {
-                    renderScript = RenderScript.create(AppUtil.getDefContext(), renderScriptContextType, renderScriptCreateFlags);
-                    }
-                else
-                    {
-                    renderScript = RenderScript.create(AppUtil.getDefContext(), renderScriptContextType);
-                    }
+                renderScript = RenderScript.create(AppUtil.getDefContext(), BuildConfig.RS_TARGET_API, renderScriptContextType, renderScriptCreateFlags);
                 }
             renderScript.setErrorHandler(new RenderScript.RSErrorHandler()
                 {
@@ -310,62 +292,6 @@ public class UvcContext extends NativeObject
         void accept(long value);
         }
 
-    public @NonNull List<LibUsbDevice> getMatchingLibUsbDevicesKitKat(final Function<SerialNumber, Boolean> matcher)
-        {
-        synchronized (lock)
-            {
-            final List<LibUsbDevice> result = new ArrayList<>();
-
-            nativeEnumerateAttachedLibUsbDevicesKitKat(pointer, new LongConsumer()
-                {
-                @Override public void accept(long libusbPointer)
-                    {
-                    LibUsbDevice libUsbDevice = new LibUsbDevice(libusbPointer, false); // takes ownership of the pointer
-                    try {
-                        SerialNumber candidate = libUsbDevice.getRealOrVendorProductSerialNumber();
-                        if (candidate != null && matcher.apply(candidate))
-                            {
-                            libUsbDevice.addRef();
-                            result.add(libUsbDevice);
-                            }
-                        }
-                    finally
-                        {
-                        libUsbDevice.releaseRef();
-                        }
-                    }
-                });
-
-            return result;
-            }
-        }
-
-    /**
-     * We're forced to do more work on KitKat. The world is much more efficient
-     * on Lollipop and beyond: see the callers of this method.
-     */
-    public void enumerateAttachedSerialNumbersKitKat(final Consumer<SerialNumber> consumer)
-        {
-        synchronized (lock)
-            {
-            nativeEnumerateAttachedLibUsbDevicesKitKat(pointer, new LongConsumer()
-                {
-                @Override public void accept(long libusbPointer)
-                    {
-                    LibUsbDevice libUsbDevice = new LibUsbDevice(libusbPointer, false); // takes ownership of the pointer
-                    try {
-                        SerialNumber candidate = libUsbDevice.getRealOrVendorProductSerialNumber();
-                        consumer.accept(candidate);
-                        }
-                    finally
-                        {
-                        libUsbDevice.releaseRef();
-                        }
-                    }
-                });
-            }
-        }
-
     //----------------------------------------------------------------------------------------------
     // UVC device enumeration
     //----------------------------------------------------------------------------------------------
@@ -375,39 +301,17 @@ public class UvcContext extends NativeObject
      */
     protected boolean isUvcCompatible(UsbDevice usbDevice) // throws what?
         {
-        // We *could* always use the native APIs, even when we don't have to. But we've got a lot
-        // more testing done right now using the Java path on post KitKat, so we leave it (for now?).
-        if (CameraManagerInternal.useNonKitKatPaths && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        UsbConfiguration usbConfiguration = usbDevice.getConfiguration(0);
+        int interfaceCount = usbConfiguration.getInterfaceCount();
+        for (int i = 0; i < interfaceCount; i++)
             {
-            // We can use java-level APIs
-            UsbConfiguration usbConfiguration = usbDevice.getConfiguration(0);
-            int interfaceCount = usbConfiguration.getInterfaceCount();
-            for (int i = 0; i < interfaceCount; i++)
+            // In the Java model, the USB interface collection is flattened. UsbInterface's
+            // are to be distinguished from each other using getId() and getAlternateSetting(),
+            // which taken as a pair together uniquely identify the interface.
+            UsbInterface usbInterface = usbConfiguration.getInterface(i);
+            if (usbInterface.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO && usbInterface.getInterfaceSubclass() == UsbConstants.USB_VIDEO_INTERFACE_SUBCLASS_STREAMING)
                 {
-                // In the Java model, the USB interface collection is flattened. UsbInterface's
-                // are to be distinguished from each other using getId() and getAlternateSetting(),
-                // which taken as a pair together uniquely identify the interface.
-                UsbInterface usbInterface = usbConfiguration.getInterface(i);
-                if (usbInterface.getInterfaceClass() == UsbConstants.USB_CLASS_VIDEO && usbInterface.getInterfaceSubclass() == UsbConstants.USB_VIDEO_INTERFACE_SUBCLASS_STREAMING)
-                    {
-                    return true;
-                    }
-                }
-            return false;
-            }
-        else
-            {
-            // We need to use native code. Note: we might *always* want to do that, perhaps, just for consistency
-            UvcDevice uvcDevice = uvcDeviceFrom(usbDevice);
-            if (uvcDevice != null)
-                {
-                try {
-                    return uvcDevice.isUvcCompatible();
-                    }
-                finally
-                    {
-                    uvcDevice.releaseRef();
-                    }
+                return true;
                 }
             }
         return false;
@@ -451,19 +355,12 @@ public class UvcContext extends NativeObject
                     // Check for UVC compatibility using java
                     if (isUvcCompatible(usbDevice))
                         {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                            {
-                            RobotLog.dd(TAG, "found webcam: usbPath=%s vid=%d pid=%d serial=%s product=%s",
-                                    usbDevice.getDeviceName(),
-                                    usbDevice.getVendorId(),
-                                    usbDevice.getProductId(),
-                                    usbDevice.getSerialNumber(),
-                                    usbDevice.getProductName());
-                            }
-                        else
-                            {
-                            RobotLog.dd(TAG, "found webcam: usbPath=%s vid=%d pid=%d", usbDevice.getDeviceName(), usbDevice.getVendorId(), usbDevice.getProductId());
-                            }
+                        RobotLog.dd(TAG, "found webcam: usbPath=%s vid=%d pid=%d serial=%s product=%s",
+                                usbDevice.getDeviceName(),
+                                usbDevice.getVendorId(),
+                                usbDevice.getProductId(),
+                                usbDevice.getSerialNumber(),
+                                usbDevice.getProductName());
                         UvcDevice uvcDevice = uvcDeviceFrom(usbDevice);
                         if (uvcDevice != null)
                             {
@@ -482,43 +379,9 @@ public class UvcContext extends NativeObject
             }
         }
 
-    /**
-     * This returns the list of current UVC cameras using the classic approach of enumerating
-     * usb devices in native code inside of the libuvc library itself. That, however, has issues
-     * and troubles on Android post KitKat.
-     */
-    protected List<UvcDevice> getUvcDeviceListKitKat()  // throws NOTHING
-        {
-        synchronized (lock)
-            {
-            ArrayList<UvcDevice> result = new ArrayList<>();
-            long[] nativeList = nativeGetUvcDeviceListKitKat(pointer);
-            RobotLog.vv(TAG, "nativeGetDeviceList(): %d devices", nativeList.length);
-
-            for (int i = 0; i < nativeList.length; i++)
-                {
-                try {
-                    result.add(new UvcDevice(nativeList[i], this, null));
-                    }
-                catch (IOException|RuntimeException e)
-                    {
-                    RobotLog.ee(TAG, e, "internal error: failed opening UvcDevice: i=%d; ignoring", i);
-                    }
-                }
-            return result;
-            }
-        }
-
     public List<UvcDevice> getDeviceList() // throws NOTHING
         {
-        if (CameraManagerInternal.avoidKitKatLegacyPaths || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            {
-            return getUvcDeviceListUsingJava();
-            }
-        else
-            {
-            return getUvcDeviceListKitKat();
-            }
+        return getUvcDeviceListUsingJava();
         }
 
     //----------------------------------------------------------------------------------------------
@@ -532,12 +395,5 @@ public class UvcContext extends NativeObject
     protected native static long nativeCreateUvcDevice(long pointer, String usbPath);
 
     /** Utility for finding serial number from usb path; necessary on KitKat */
-    protected native static String nativeGetSerialNumberFromUsbPath(long pointer, String usbPath);
-    protected native static void nativeEnumerateAttachedLibUsbDevicesKitKat(long pointer, LongConsumer consumer);
     protected native static long nativeGetLibUsbDeviceFromUsbDeviceName(long pointer, String usbDeviceName);
-
-    /** Returns a java object full of longs which are actually uvc_device* pointers that own a ref count.*/
-    protected static native long[] nativeGetUvcDeviceListKitKat(long pointer);
-
-    protected static native void nativeInitRenderScriptParameters(long pointer, String cacheDir, int flags, int targetApi);
     }

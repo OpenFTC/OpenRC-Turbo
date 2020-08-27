@@ -34,6 +34,7 @@ package org.firstinspires.ftc.robotcore.internal.network;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -156,7 +157,7 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             RobotLog.vv(TAG, "pref_wifip2p_channel: prefChannel = %d", prefChannel);
 
             // write this value so we can refer to it later on.
-            preferencesHelper.writeIntPrefIfDifferent("pref_wifip2p_channel", prefChannel);
+            preferencesHelper.writeIntPrefIfDifferent(context.getString(R.string.pref_wifip2p_channel), prefChannel);
             }
 
         else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_has_speaker)))
@@ -221,7 +222,18 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             // Remember that setting of the robot controller
             preferencesHelper.writePrefIfDifferent(context.getString(R.string.pref_has_independent_phone_battery_rc), rcPrefAndValue.getValue());
             }
-
+        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_outdated_firmware)))
+            {
+            preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
+            }
+        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_mismatched_app_versions)))
+            {
+            preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
+            }
+        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_2_4_ghz_band)))
+            {
+            preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
+            }
         return CallbackResult.HANDLED;
         }
 
@@ -252,6 +264,18 @@ public class PreferenceRemoterDS extends PreferenceRemoter
                 {
                 rcPrefName = context.getString(R.string.pref_wifip2p_channel);
                 }
+            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_outdated_firmware)))
+                {
+                rcPrefName = dsPrefName;
+                }
+            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_mismatched_app_versions)))
+                {
+                rcPrefName = dsPrefName;
+                }
+            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_2_4_ghz_band)))
+                {
+                rcPrefName = dsPrefName;
+                }
             if (rcPrefName != null)
                 {
                 Object value = preferencesHelper.readPref(dsPrefName);
@@ -277,4 +301,20 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             }
         }
 
+    /**
+     * Send some "preferences" that tell the RC information about ourselves
+     */
+    public void sendInformationalPrefsToRc()
+        {
+        int dsVersionCode = 0;
+        try
+            {
+            //noinspection deprecation
+            dsVersionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
+            }
+        catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); } // shouldn't happen
+
+        sendPreference(new RobotControllerPreference(context.getString(R.string.pref_ds_version_code), dsVersionCode));
+        sendPreference(new RobotControllerPreference(context.getString(R.string.pref_ds_supports_5_ghz), WifiUtil.is5GHzAvailable()));
+        }
     }

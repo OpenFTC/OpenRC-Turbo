@@ -2,7 +2,7 @@
 
 package org.firstinspires.ftc.robotserver.internal.webserver;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,9 +16,10 @@ public class MimeTypesUtil {
   public static final String MIME_JSON = "application/json";
   public static final String MIME_JAVASCRIPT = "application/javascript";
   public static final String MIME_CSS = "text/css";
+  public static final String MIME_TEXT = "text/plain";
   private static final Map<String, String> MIME_TYPES_BY_EXT = new HashMap<String, String>();
   static {
-    MIME_TYPES_BY_EXT.put("asc", "text/plain");
+    MIME_TYPES_BY_EXT.put("asc", MIME_TEXT);
     MIME_TYPES_BY_EXT.put("bin", "application/octet-stream");
     MIME_TYPES_BY_EXT.put("class", "application/octet-stream");
     MIME_TYPES_BY_EXT.put("css", MIME_CSS);
@@ -38,10 +39,10 @@ public class MimeTypesUtil {
     MIME_TYPES_BY_EXT.put("js", MIME_JAVASCRIPT);
     MIME_TYPES_BY_EXT.put("json", MIME_JSON);
     MIME_TYPES_BY_EXT.put("less", MIME_CSS);
-    MIME_TYPES_BY_EXT.put("logcat", "text/plain");
+    MIME_TYPES_BY_EXT.put("logcat", MIME_TEXT);
     MIME_TYPES_BY_EXT.put("m3u8", "application/vnd.apple.mpegurl");
     MIME_TYPES_BY_EXT.put("m3u", "audio/mpeg-url");
-    MIME_TYPES_BY_EXT.put("md", "text/plain");
+    MIME_TYPES_BY_EXT.put("md", MIME_TEXT);
     MIME_TYPES_BY_EXT.put("mov", "video/quicktime");
     MIME_TYPES_BY_EXT.put("mp3", "audio/mpeg");
     MIME_TYPES_BY_EXT.put("mp4", "video/mp4");
@@ -52,14 +53,14 @@ public class MimeTypesUtil {
     MIME_TYPES_BY_EXT.put("svg", "image/svg+xml");
     MIME_TYPES_BY_EXT.put("swf", "application/x-shockwave-flash");
     MIME_TYPES_BY_EXT.put("ts", "video/mp2t");
-    MIME_TYPES_BY_EXT.put("txt", "text/plain");
+    MIME_TYPES_BY_EXT.put("txt", MIME_TEXT);
     MIME_TYPES_BY_EXT.put("wav", "audio/wav");
     MIME_TYPES_BY_EXT.put("xml", "text/xml");
     MIME_TYPES_BY_EXT.put("zip", "application/octet-stream");
     // Java Editor MIME types
     MIME_TYPES_BY_EXT.put("map", "application/json map");
     MIME_TYPES_BY_EXT.put("jar", "application/octet-stream");
-    MIME_TYPES_BY_EXT.put("log", "text/plain");
+    MIME_TYPES_BY_EXT.put("log", MIME_TEXT);
     MIME_TYPES_BY_EXT.put("ttf", "application/x-font-truetype");
     MIME_TYPES_BY_EXT.put("otf", "application/x-font-opentype");
     MIME_TYPES_BY_EXT.put("woff", "application/font-woff");

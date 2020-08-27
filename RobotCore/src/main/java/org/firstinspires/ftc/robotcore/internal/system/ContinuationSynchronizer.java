@@ -68,6 +68,14 @@ public class ContinuationSynchronizer<T>
         {
         this(new Deadline(duration, unit), enableTrace, initialValue);
         }
+    public ContinuationSynchronizer()
+        {
+        this(new Deadline(Integer.MAX_VALUE, TimeUnit.SECONDS));
+        }
+    public ContinuationSynchronizer(Deadline deadline)
+        {
+        this(deadline, true, null);
+        }
     public ContinuationSynchronizer(Deadline deadline, boolean enableTrace)
         {
         this(deadline, enableTrace, null);

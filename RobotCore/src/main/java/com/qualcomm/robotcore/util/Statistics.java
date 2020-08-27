@@ -130,11 +130,18 @@ public class Statistics
     public void remove(double x)
         {
         int nPrev = n-1;
-        double delta = x - mean;
-        double deltaPrev = n * delta / nPrev;
-        m2 = m2 - deltaPrev * delta;
-        mean = (mean * n - x) / nPrev;
-        n = nPrev;
+        if (nPrev==0)
+            {
+            clear();
+            }
+        else
+            {
+            double delta = x - mean;
+            double deltaPrev = n * delta / nPrev;
+            m2 = m2 - deltaPrev * delta;
+            mean = (mean * n - x) / nPrev;
+            n = nPrev;
+            }
         }
     }
 

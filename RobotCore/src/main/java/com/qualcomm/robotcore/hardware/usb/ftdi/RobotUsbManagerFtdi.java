@@ -52,23 +52,14 @@ public class RobotUsbManagerFtdi implements RobotUsbManager {
 
   public static final String TAG = "RobotUsbManagerFtdi";
 
-  private Context     context;
   private FtDeviceManager ftDeviceManager;
   private int         numberOfDevices;
 
   /**
    * Constructor
-   * @param context application context
    */
-  public RobotUsbManagerFtdi(Context context) throws RobotCoreException {
-    this.context = context;
-
-    try {
-      ftDeviceManager = FtDeviceManager.getInstance(context);
-    } catch (FtDeviceIOException e) {
-      RobotLog.ee(TAG, e, "Unable to create FtDeviceManager; cannot open USB devices");
-      throw RobotCoreException.createChained(e, "unable to create FtDeviceManager");
-    }
+  public RobotUsbManagerFtdi() {
+    this.ftDeviceManager = FtDeviceManager.getInstance();
   }
 
   /**
@@ -78,7 +69,7 @@ public class RobotUsbManagerFtdi implements RobotUsbManager {
    */
   @Override
   public synchronized List<SerialNumber> scanForDevices() throws RobotCoreException {
-    numberOfDevices = ftDeviceManager.createDeviceInfoList(context);
+    numberOfDevices = ftDeviceManager.createDeviceInfoList();
     List<SerialNumber> result = new ArrayList<>(numberOfDevices);
     for (int i = 0; i < numberOfDevices; i++) {
         result.add(getDeviceSerialNumberByIndex(i));
@@ -111,7 +102,7 @@ public class RobotUsbManagerFtdi implements RobotUsbManager {
   public RobotUsbDevice openBySerialNumber(SerialNumber serialNumber) throws RobotCoreException {
     // openBySerialNumber() will return null if the device can't be opened. In particular, it
     // will return null if the device is *already* opened.
-    FtDevice device = ftDeviceManager.openBySerialNumber(context, serialNumber.getString());
+    FtDevice device = ftDeviceManager.openBySerialNumber(serialNumber.getString());
     if (device == null) {
       throw new RobotCoreException("FTDI driver failed to open USB device with serial number " + serialNumber + " (returned null device)");
     }
