@@ -71,12 +71,18 @@ public class OnBotJavaStandardFileManager extends OnBotJavaDelegatingStandardFil
             List<File> classPath = new ArrayList<File>();
             classPath.addAll(AppUtil.getInstance().filesIn(OnBotJavaManager.libDir, ".jar"));
 
+            List<File> platformClassPath = new ArrayList<>();
+            for (String libName : OnBotJavaManager.platformClassPathLibs)
+                {
+                platformClassPath.add(new File(OnBotJavaManager.libDir, libName));
+                }
+
             delegate.setLocation(StandardLocation.CLASS_OUTPUT,        Collections.singletonList(OnBotJavaManager.classesOutputDir));
             delegate.setLocation(StandardLocation.SOURCE_OUTPUT,       Collections.singletonList(OnBotJavaManager.sourceOutputDir));
             delegate.setLocation(StandardLocation.CLASS_PATH,          classPath);
             delegate.setLocation(StandardLocation.SOURCE_PATH,         Collections.singletonList(OnBotJavaManager.srcDir)); // will likely get overridden
             delegate.setLocation(StandardLocation.ANNOTATION_PROCESSOR_PATH, Collections.<File>emptyList());                   // we have no external annotation processors
-            delegate.setLocation(StandardLocation.PLATFORM_CLASS_PATH, Collections.singletonList(new File(OnBotJavaManager.libDir, OnBotJavaManager.platformClassPathName)));
+            delegate.setLocation(StandardLocation.PLATFORM_CLASS_PATH, platformClassPath);
             }
         catch (IOException e)
             {

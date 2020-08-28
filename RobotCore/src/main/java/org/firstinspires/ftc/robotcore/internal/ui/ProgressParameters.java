@@ -38,6 +38,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
  * {@link ProgressParameters} is a utility class for passing information regarding progress
  * towards completing a task.
  * @see AppUtil#showProgress(UILocation, String, double)
+ *
+ * This should be considered a part of the public API, as it is broadcast via WebSocket
  */
 @SuppressWarnings("WeakerAccess")
 public class ProgressParameters

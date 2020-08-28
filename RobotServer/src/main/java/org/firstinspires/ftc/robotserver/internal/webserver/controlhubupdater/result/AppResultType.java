@@ -51,28 +51,30 @@ import static org.firstinspires.ftc.robotserver.internal.webserver.controlhubupd
  * ResultType values unique to app update transactions
  */
 public enum AppResultType implements ResultType {
-    ATTEMPTING_INSTALLATION       (1,  STATUS,  SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_attempting_installation)),
-    INSTALLATION_SUCCEEDED        (2,  SUCCESS, LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_succeeded)),
-    INVALID_APK_FILE              (3,  ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_invalid_apk_file)),
-    IO_EXCEPTION_DURING_LOADING   (4,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_io_exception)),
-    TIMEOUT_EXPIRED               (5,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_timeout_expired)),
-    GENERIC_INSTALL_FAILURE       (6,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_generic_install_failure)),
-    INSTALLATION_BLOCKED          (7,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_blocked)),
-    INSTALLATION_ABORTED          (8,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_aborted)),
-    STORAGE_FAILURE               (9,  ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_storage_failure)),
-    INCOMPATIBLE_WITH_DEVICE      (10, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_incompatible_with_device)),
-    UNKNOWN_INSTALL_STATUS        (11, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_unknown_install_status)),
-    ILLEGAL_PACKAGE               (12, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_illegal_package)),
-    UNINSTALL_REQUIRED            (13, PROMPT,  SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_uninstall_required)),
-    UNINSTALL_FAILED              (14, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_uninstall_failed)),
-    FAILED_AND_REVERTED           (15, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_failed_and_reverted)), // UNUSED by the shipping version of ControlHubUpdater
-    FAILED_TO_RESTORE             (16, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_failed_to_restore)),
-    REBOOTING_WITH_NEW_AP_SERVICE (17, SUCCESS, LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_rebooting_with_new_ap_service)),
-    AUTO_UPDATED_APP              (18, SUCCESS, SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_auto_updated_app)), // Indicates that the AP service was updated by an OS update
-    REPLACED_WRONG_APP_VARIANT    (19, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_replaced_wrong_app_variant)), // UNUSED by the shipping version of ControlHubUpdater
-    UNINSTALLED_WRONG_APP_VARIANT (20, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_uninstalled_wrong_app_variant)), // UNUSED by the shipping version of ControlHubUpdater
-    INSTALLED_MISSING_APP         (21, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_installed_missing_app)),
-    UNINSTALLING_EXISTING_APP     (22, STATUS,  LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_uninstalling_existing_app));
+    ATTEMPTING_INSTALLATION           (1,  STATUS,  SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_attempting_installation)),
+    INSTALLATION_SUCCEEDED            (2,  SUCCESS, LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_succeeded)),
+    INVALID_APK_FILE                  (3,  ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_invalid_apk_file)),
+    IO_EXCEPTION_DURING_LOADING       (4,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_io_exception)),
+    TIMEOUT_EXPIRED                   (5,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_timeout_expired)),
+    GENERIC_INSTALL_FAILURE           (6,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_generic_install_failure)),
+    INSTALLATION_BLOCKED              (7,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_blocked)),
+    INSTALLATION_ABORTED              (8,  ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_installation_aborted)),
+    STORAGE_FAILURE                   (9,  ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_storage_failure)),
+    INCOMPATIBLE_WITH_DEVICE          (10, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_incompatible_with_device)),
+    UNKNOWN_INSTALL_STATUS            (11, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_unknown_install_status)),
+    ILLEGAL_PACKAGE                   (12, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_illegal_package)),
+    UNINSTALL_REQUIRED                (13, PROMPT,  SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_uninstall_required)),
+    UNINSTALL_FAILED                  (14, ERROR,   DISPLAYED,   AppUtil.getDefContext().getString(R.string.app_result_type_uninstall_failed)),
+    FAILED_AND_REVERTED               (15, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_failed_and_reverted)), // UNUSED by the shipping version of ControlHubUpdater
+    FAILED_TO_RESTORE                 (16, ERROR,   LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_failed_to_restore)),
+    REBOOTING_WITH_NEW_AP_SERVICE     (17, SUCCESS, LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_rebooting_with_new_ap_service)),
+    AUTO_UPDATED_APP                  (18, SUCCESS, SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_auto_updated_app)), // Indicates that the AP service was updated by an OS update
+    REPLACED_WRONG_APP_VARIANT        (19, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_replaced_wrong_app_variant)), // UNUSED by the shipping version of ControlHubUpdater
+    UNINSTALLED_WRONG_APP_VARIANT     (20, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_uninstalled_wrong_app_variant)), // UNUSED by the shipping version of ControlHubUpdater
+    INSTALLED_MISSING_APP             (21, ERROR,   SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_installed_missing_app)),
+    UNINSTALLING_EXISTING_APP         (22, STATUS,  LOGGED,      AppUtil.getDefContext().getString(R.string.app_result_type_uninstalling_existing_app)),
+    BACKUP_UNINSTALLING_EXISTING_APP  (23, STATUS, LOGGED, AppUtil.getDefContext().getString(R.string.app_result_type_backup_uninstalling_existing_app)),
+    UNINSTALL_REQUIRED_BACKUP_POSSIBLE(24, PROMPT, SUBSTITUTED, AppUtil.getDefContext().getString(R.string.app_result_type_uninstall_required_backup_possible));
 
     private final int code;
     private final Result.PresentationType presentationType;

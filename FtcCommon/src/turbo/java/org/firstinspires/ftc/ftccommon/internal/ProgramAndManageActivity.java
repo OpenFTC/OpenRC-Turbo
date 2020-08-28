@@ -44,7 +44,7 @@ import android.net.UrlQuerySanitizer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.KeyEvent;
 import android.webkit.ConsoleMessage;
 import android.webkit.DownloadListener;
@@ -190,11 +190,7 @@ public class ProgramAndManageActivity extends ThemedActivity
          * @param capture The value of the 'capture' attribute of the input tag
          *         associated with this file picker.
          * @hide
-         *
-         * This method was present and and hidden in KitKat. it seems to have been *removed* for
-         * Lollipop rather than deprecated (probably because it was hidden).
          */
-        /*@Override*/
         public void openFileChooser(final ValueCallback<Uri> uploadFile, String acceptType, String capture)
         {
             RobotLog.vv(TAG, "openFileChooser(): acceptType=%s capture=%s", acceptType, capture);
@@ -211,21 +207,13 @@ public class ProgramAndManageActivity extends ThemedActivity
 
         @Override
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams)
-        {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) // FileChooserParams is >= 21
             {
-                String[] types = fileChooserParams.getAcceptTypes();
-                String type = (types.length > 0) ? types[0] : null;
+            String[] types = fileChooserParams.getAcceptTypes();
+            String type = (types.length > 0) ? types[0] : null;
 
-                showFileChooser(filePathCallback, type);
-                return true;
+            showFileChooser(filePathCallback, type);
+            return true;
             }
-            else
-            {
-                RobotLog.vv(TAG, "onShowFileChooser(): unexpected on this API level");
-                return false;
-            }
-        }
 
         protected void showFileChooser(ValueCallback<Uri[]> filePathCallback, @Nullable String type)
         {
@@ -519,16 +507,13 @@ public class ProgramAndManageActivity extends ThemedActivity
         webView.setDownloadListener(downloadListener);
 
         /* probably not worthwhile
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            {
-            // On KitKat and below, this was the default, so we don't need to explicitly
-            // accept. We are permissive here because (a) we're locked down, unable to get
-            // at any sites but our own on the RC, and (b) it helps avoid any security-blocks
-            // that might surprise us. In particular, let us remember that we won't be using
-            // DNS to connect, but rather IP addresses. So the 'domain matching' involved in
-            // evaluating third-party-cookie status is likely problematic.
-            CookieManager.getInstance().acceptThirdPartyCookies(webView);
-            }*/
+        // We are permissive here because (a) we're locked down, unable to get
+        // at any sites but our own on the RC, and (b) it helps avoid any security-blocks
+        // that might surprise us. In particular, let us remember that we won't be using
+        // DNS to connect, but rather IP addresses. So the 'domain matching' involved in
+        // evaluating third-party-cookie status is likely problematic.
+        CookieManager.getInstance().acceptThirdPartyCookies(webView);
+        */
 
         // We pass in our theme so that it's consistent with OUR look and feel rather than
         // the other guy. Really only important on the DS; on the RC, it should be a no-op.

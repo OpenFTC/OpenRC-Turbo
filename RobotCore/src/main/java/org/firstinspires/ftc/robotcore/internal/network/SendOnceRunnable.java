@@ -1,8 +1,7 @@
 package org.firstinspires.ftc.robotcore.internal.network;
 
-import android.content.Context;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -10,7 +9,6 @@ import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.Heartbeat;
 import com.qualcomm.robotcore.robocol.KeepAlive;
 import com.qualcomm.robotcore.robocol.RobocolDatagram;
-import com.qualcomm.robotcore.robocol.RobocolDatagramSocket;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -23,9 +21,7 @@ import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Handles data transmission to the remote device.
- *
- * Creating a new instance implies that a network connection has already been established.
+ * Handles batch-sending certain data to the remote device at a regular interval
  */
 @SuppressWarnings("WeakerAccess")
 public class SendOnceRunnable implements Runnable {
@@ -53,7 +49,7 @@ public class SendOnceRunnable implements Runnable {
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
-
+    public static final int             MS_BATCH_TRANSMISSION_INTERVAL = 40;
     public static final String          TAG = RobocolDatagram.TAG;
     public static       boolean         DEBUG = false;
 
@@ -64,13 +60,13 @@ public class SendOnceRunnable implements Runnable {
     public static final int             MS_KEEPALIVE_TRANSMISSION_INTERVAL = 20;
 
 
-    @NonNull protected ElapsedTime                      lastRecvPacket;
+    @NonNull protected final ElapsedTime                lastRecvPacket;
     @NonNull protected volatile List<Command>           pendingCommands = new CopyOnWriteArrayList<Command>();
     @NonNull protected Heartbeat                        heartbeatSend = new Heartbeat();
     @NonNull protected KeepAlive                        keepAliveSend = new KeepAlive();
-    @NonNull protected volatile RobocolDatagramSocket   socket;
     @NonNull protected DisconnectionCallback            disconnectionCallback;
     @NonNull protected final Parameters                 parameters;
+    @NonNull protected final AppUtil                    appUtil = AppUtil.getInstance();
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -89,17 +85,16 @@ public class SendOnceRunnable implements Runnable {
     // Operations
     //----------------------------------------------------------------------------------------------
 
-    public void updateSocket(RobocolDatagramSocket socket) {
-        this.socket = socket;
-    }
-
     @Override
     public void run() {
-        AppUtil appUtil = AppUtil.getInstance();
+        // We can't initialize this in the constructor, because SendOnceRunnable is instantiated during NetworkConnectionHandler construction.
+        final NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
+
         boolean sentPacket;
         try {
-            // skip if we haven't received a packet in a while. The RC is the center
-            // of the world and never disconnects from anyone.
+            // Determine if we're still connected to our peer.
+            // It might make more sense for this to live elsewhere, but for now it's a convenient
+            // place to continue to leave it.
             double seconds = lastRecvPacket.seconds();
             if (parameters.disconnectOnTimeout && seconds > ASSUME_DISCONNECT_TIMER) {
                 disconnectionCallback.disconnected();
@@ -122,10 +117,9 @@ public class SendOnceRunnable implements Runnable {
                 heartbeatSend = Heartbeat.createWithTimeStamp();
                 // Add the timezone in there too!
                 heartbeatSend.setTimeZoneId(TimeZone.getDefault().getID());
-                // keep the next three lines as close together in time as possible in order to improve the quality of time synchronization
+                // keep the next two lines as close together in time as possible in order to improve the quality of time synchronization
                 heartbeatSend.t0 = appUtil.getWallClockTime();
-                RobocolDatagram packetHeartbeat = new RobocolDatagram(heartbeatSend);
-                send(packetHeartbeat);
+                networkConnectionHandler.sendDataToPeer(heartbeatSend);
                 sentPacket = true;
                 // Do any logging after the transmission so as to minimize disruption of timing calculation
             }
@@ -140,18 +134,15 @@ public class SendOnceRunnable implements Runnable {
                         continue;
 
                     gamepad.setSequenceNumber();
-                    RobocolDatagram packetGamepad = new RobocolDatagram(gamepad);
-                    send(packetGamepad);
+                    networkConnectionHandler.sendDataToPeer(gamepad);
                     sentPacket = true;
                 }
             }
 
             if ((!sentPacket) && (parameters.originateKeepAlives) && (keepAliveSend.getElapsedSeconds() > 0.001 * MS_KEEPALIVE_TRANSMISSION_INTERVAL)) {
                 keepAliveSend = KeepAlive.createWithTimeStamp();
-                RobocolDatagram packetKeepAlive = new RobocolDatagram(keepAliveSend);
-                send(packetKeepAlive);
+                networkConnectionHandler.sendDataToPeer(keepAliveSend);
             }
-
 
             long nanotimeNow = System.nanoTime();
 
@@ -177,8 +168,7 @@ public class SendOnceRunnable implements Runnable {
                     }
 
                     // send the command
-                    RobocolDatagram packetCommand = new RobocolDatagram(command);
-                    send(packetCommand);
+                    networkConnectionHandler.sendDataToPeer(command);
 
                     // if this is a command we handled, remove it
                     if (command.isAcknowledged()) commandsToRemove.add(command);
@@ -189,17 +179,11 @@ public class SendOnceRunnable implements Runnable {
         // For robustness and attempted ongoing liveness of the app, we catch
         // *all* types of exception. This will help minimize disruption to the sendLoopService.
         // With (a huge amount of) luck, the next time we're run, things might work better. Though
-        // that's unlikely, it seems better than outright killing the app here and now.
+        // that's unlikely, it seems better than stopping the task, which would prevent this
+        // runnable from continuing to execute, breaking most Robocol communication.
+        // See the ScheduledExecutorService#scheduleAtFixedRate() javadoc.
         catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void send(RobocolDatagram datagram) {
-        if (socket.getInetAddress() != null) {
-            socket.send(datagram);
-        } else {
-            RobotLog.ww(TAG, "Sending a datagram to a null address");
         }
     }
 

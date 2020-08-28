@@ -1,21 +1,33 @@
-// Copyright 2016 Google Inc.
+/*
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.util;
 
-import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_VUFORIA;
-import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_CAMERA;
-import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_WEBCAM;
-import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.CAPABILITY_TFOD;
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.Capability;
 
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCKS_BLK_EXT;
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCKS_JS_EXT;
 import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.BLOCK_OPMODES_DIR;
 
 import android.content.res.AssetManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
 
+import com.google.blocks.ftcrobotcontroller.IOExceptionWithUserVisibleMessage;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItemMap;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareType;
@@ -24,7 +36,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.ThrowingCallable;
-import org.firstinspires.ftc.robotcore.internal.files.FileBasedLock;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -42,7 +53,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.List;
@@ -61,7 +72,6 @@ public class ProjectsUtil {
 
   public static final String TAG = "ProjectsUtil";
 
-  private static final File PROJECTS_LOCK = new File(BLOCK_OPMODES_DIR, "/projectslock/");
   public static final String VALID_PROJECT_REGEX =
       "^[a-zA-Z0-9 \\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\@\\[\\]\\^_\\{\\}\\~]+$";
   private static final String XML_END_TAG = "</xml>";
@@ -80,30 +90,11 @@ public class ProjectsUtil {
   private ProjectsUtil() {
   }
 
-  /** prevents the set of project files from changing while lock is held */
-  protected static <T> T lockProjectsWhile(Supplier<T> supplier) {
-    try {
-      return (new FileBasedLock(PROJECTS_LOCK)).lockWhile(supplier);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return null;
-    }
-  }
-
-  protected static <T,E extends Throwable> T lockProjectsWhile(final ThrowingCallable<T,E> callable) throws E {
-    try {
-      return (new FileBasedLock(PROJECTS_LOCK)).lockWhile(callable);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return null;
-    }
-  }
-
   /**
    * Returns the names and last modified time of existing blocks projects that have a blocks file.
    */
   public static String fetchProjectsWithBlocks() {
-    return lockProjectsWhile(new Supplier<String>() {
+    return ProjectsLockManager.lockProjectsWhile(new Supplier<String>() {
       @Override public String get() {
         File[] files = BLOCK_OPMODES_DIR.listFiles(new FilenameFilter() {
           @Override
@@ -158,7 +149,7 @@ public class ProjectsUtil {
    */
   public static void fetchProjectsForOfflineBlocksEditor(
       final List<OfflineBlocksProject> offlineBlocksProjects) throws IOException {
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         File[] files = BLOCK_OPMODES_DIR.listFiles(new FilenameFilter() {
           @Override
@@ -210,7 +201,7 @@ public class ProjectsUtil {
           String sampleName = filename.substring(0, filename.length() - BLOCKS_BLK_EXT.length());
           if (!sampleName.equals(DEFAULT_BLOCKS_SAMPLE_NAME)) {
             String blkFileContent = readSample(sampleName, hardwareItemMap);
-            Set<String> requestedCapabilities = getRequestedCapabilities(blkFileContent);
+            Set<Capability> requestedCapabilities = getRequestedCapabilities(blkFileContent);
             // TODO(lizlooney): Consider adding required hardware.
             jsonSamples
                 .append(delimiter)
@@ -219,7 +210,7 @@ public class ProjectsUtil {
                 .append("\"escapedName\":\"").append(escapeDoubleQuotes(Html.escapeHtml(sampleName))).append("\", ")
                 .append("\"requestedCapabilities\":[");
             String delimiter2 = "";
-            for (String requestedCapability : requestedCapabilities) {
+            for (Capability requestedCapability : requestedCapabilities) {
               jsonSamples
                   .append(delimiter2)
                   .append("\"").append(requestedCapability).append("\"");
@@ -257,19 +248,24 @@ public class ProjectsUtil {
   /**
    * Returns the set of capabilities used by the given blocks content.
    */
-  private static Set<String> getRequestedCapabilities(String blkFileContent) {
-    Set<String> requestedCapabilities = new HashSet<>();
-    if (blkFileContent.contains("<block type=\"vuforia")) {
-      requestedCapabilities.add(CAPABILITY_VUFORIA);
-    }
-    if (blkFileContent.contains("<block type=\"vuforiaSkyStone_initialize_withCameraDirection")) {
-      requestedCapabilities.add(CAPABILITY_CAMERA);
-    }
-    if (blkFileContent.contains("<block type=\"vuforiaSkyStone_initialize_withWebcam")) {
-      requestedCapabilities.add(CAPABILITY_WEBCAM);
-    }
+  private static Set<Capability> getRequestedCapabilities(String blkFileContent) {
+    Set<Capability> requestedCapabilities = new LinkedHashSet<>();
+    // The order here is important. If any of these capabilities is not supported by the robot
+    // configuration, we will show the warning associated with the first missing capability.
     if (blkFileContent.contains("<block type=\"tfod")) {
-      requestedCapabilities.add(CAPABILITY_TFOD);
+      requestedCapabilities.add(Capability.TFOD);
+    }
+    if (blkFileContent.contains("<block type=\"vuforia")) {
+      requestedCapabilities.add(Capability.VUFORIA);
+    }
+    if (blkFileContent.contains("<block type=\"navigation_switchableCamera")) {
+      requestedCapabilities.add(Capability.SWITCHABLE_CAMERA);
+    }
+    if (blkFileContent.contains("_initialize_withWebcam")) {
+      requestedCapabilities.add(Capability.WEBCAM);
+    }
+    if (blkFileContent.contains("_initialize_withCameraDirection")) {
+      requestedCapabilities.add(Capability.CAMERA);
     }
     return requestedCapabilities;
   }
@@ -279,7 +275,7 @@ public class ProjectsUtil {
    * are enabled.
    */
   public static List<OpModeMeta> fetchEnabledProjectsWithJavaScript() {
-    return lockProjectsWhile(new Supplier<List<OpModeMeta>>() {
+    return ProjectsLockManager.lockProjectsWhile(new Supplier<List<OpModeMeta>>() {
       @Override public List<OpModeMeta> get() {
         String[] filenames = BLOCK_OPMODES_DIR.list(new FilenameFilter() {
           @Override
@@ -408,7 +404,7 @@ public class ProjectsUtil {
         "asLynxModule", "AsREVModule");
     // In previous versions, identifier suffix AsREVColorRangeSensor was asLynxI2cColorRangeSensor.
     blkContent = replaceIdentifierSuffixInBlocks(blkContent,
-        hardwareItemMap.getHardwareItems(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR),
+        hardwareItemMap.getHardwareItems(HardwareType.COLOR_RANGE_SENSOR),
         "asLynxI2cColorRangeSensor", "AsREVColorRangeSensor");
 
     // In previous versions, some hardware types didn't have suffices.
@@ -569,12 +565,12 @@ public class ProjectsUtil {
             firstServo, blkContent, false, items, "IDENTIFIER");
       }
     }
-    if (hardwareItemMap.contains(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR)) {
-      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.LYNX_I2C_COLOR_RANGE_SENSOR);
+    if (hardwareItemMap.contains(HardwareType.COLOR_RANGE_SENSOR)) {
+      List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.COLOR_RANGE_SENSOR);
       if (!items.isEmpty()) {
-        String firstLynxI2cColorRangeSensor = items.get(0).identifier;
+        String firstColorRangeSensor = items.get(0).identifier;
         blkContent = replaceIdentifierInBlocks("sensorColorRangeAsREVColorRangeSensor",
-            firstLynxI2cColorRangeSensor, blkContent, false, items, "IDENTIFIER");
+            firstColorRangeSensor, blkContent, false, items, "IDENTIFIER");
       }
     }
     if (hardwareItemMap.contains(HardwareType.REV_BLINKIN_LED_DRIVER)) {
@@ -630,7 +626,7 @@ public class ProjectsUtil {
       throw new IllegalArgumentException();
     }
 
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 
@@ -677,7 +673,7 @@ public class ProjectsUtil {
     if (!isValidProjectName(oldProjectName) || !isValidProjectName(newProjectName)) {
       throw new IllegalArgumentException();
     }
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 
@@ -705,16 +701,22 @@ public class ProjectsUtil {
     if (!isValidProjectName(oldProjectName) || !isValidProjectName(newProjectName)) {
       throw new IllegalArgumentException();
     }
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 
         File oldBlk = new File(BLOCK_OPMODES_DIR, oldProjectName + BLOCKS_BLK_EXT);
         File newBlk = new File(BLOCK_OPMODES_DIR, newProjectName + BLOCKS_BLK_EXT);
         FileUtil.copyFile(oldBlk, newBlk);
-        File oldJs = new File(BLOCK_OPMODES_DIR, oldProjectName + BLOCKS_JS_EXT);
-        File newJs = new File(BLOCK_OPMODES_DIR, newProjectName + BLOCKS_JS_EXT);
-        FileUtil.copyFile(oldJs, newJs);
+        try {
+          File oldJs = new File(BLOCK_OPMODES_DIR, oldProjectName + BLOCKS_JS_EXT);
+          File newJs = new File(BLOCK_OPMODES_DIR, newProjectName + BLOCKS_JS_EXT);
+          FileUtil.copyFile(oldJs, newJs);
+        } catch (IOException e) {
+          throw new IOExceptionWithUserVisibleMessage(
+              "The blocks project was successfully copied, but the new op mode cannot be run until it " +
+              "is saved in the blocks editor.");
+        }
         return null;
       }
     });
@@ -734,7 +736,7 @@ public class ProjectsUtil {
       throw new IllegalArgumentException();
     }
 
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
         String blkFileContent = FileUtil.readFile(blkFile);
@@ -781,7 +783,7 @@ public class ProjectsUtil {
    */
   public static Boolean deleteProjects(final String[] projectNames) {
 
-    return lockProjectsWhile(new Supplier<Boolean>() {
+    return ProjectsLockManager.lockProjectsWhile(new Supplier<Boolean>() {
       @Override public Boolean get() {
         for (String projectName : projectNames) {
           if (!isValidProjectName(projectName)) {
@@ -852,7 +854,7 @@ public class ProjectsUtil {
   public static void saveBlocksJava(final String relativeFileName, final String javaContent)
       throws IOException {
 
-    lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
+    ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 

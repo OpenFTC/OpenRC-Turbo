@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview FTC robot blocks related to telemetry.
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -185,7 +202,7 @@ Blockly.Blocks['telemetry_speak'] = {
 
 Blockly.JavaScript['telemetry_speak'] = function(block) {
   var text = Blockly.JavaScript.valueToCode(
-      block, 'TEXT', Blockly.JavaScript.ORDER_NONE);
+      block, 'TEXT', Blockly.JavaScript.ORDER_COMMA);
   var languageCode = "''";
   var countryCode = "''";
   return 'telemetrySpeak(' + text + ', ' + languageCode + ', ' + countryCode + ');\n';
@@ -193,7 +210,7 @@ Blockly.JavaScript['telemetry_speak'] = function(block) {
 
 Blockly.FtcJava['telemetry_speak'] = function(block) {
   var text = Blockly.FtcJava.valueToCode(
-      block, 'TEXT', Blockly.FtcJava.ORDER_NONE);
+      block, 'TEXT', Blockly.FtcJava.ORDER_COMMA);
   return 'telemetry.speak(' + text + ', null, null);\n';
 };
 
@@ -239,4 +256,78 @@ Blockly.FtcJava['telemetry_speak_withLanguage'] = function(block) {
   var countryCode = Blockly.FtcJava.valueToCode(
       block, 'COUNTRY_CODE', Blockly.FtcJava.ORDER_COMMA);
   return 'telemetry.speak(' + text + ', ' + languageCode + ', ' + countryCode + ');\n';
+};
+
+Blockly.Blocks['telemetry_setDisplayFormat'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('Telemetry'))
+        .appendField('.')
+        .appendField(createNonEditableField('setDisplayFormat'));
+    this.appendValueInput('DISPLAY_FORMAT').setCheck('Telemetry.DisplayFormat')
+        .appendField('displayFormat')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Sets the telemetry display format on the Driver Station.');
+  }
+};
+
+Blockly.JavaScript['telemetry_setDisplayFormat'] = function(block) {
+  var displayFormat = Blockly.JavaScript.valueToCode(
+      block, 'DISPLAY_FORMAT', Blockly.JavaScript.ORDER_NONE);
+  return telemetryIdentifierForJavaScript + '.setDisplayFormat(' + displayFormat + ');\n';
+};
+
+Blockly.FtcJava['telemetry_setDisplayFormat'] = function(block) {
+  var displayFormat = Blockly.FtcJava.valueToCode(
+      block, 'DISPLAY_FORMAT', Blockly.FtcJava.ORDER_NONE);
+  return 'telemetry.setDisplayFormat(' + displayFormat + ');\n';
+};
+
+// Enums
+
+Blockly.Blocks['telemetry_typedEnum_displayFormat'] = {
+  init: function() {
+    var DISPLAY_FORMAT_CHOICES = [
+        ['CLASSIC', 'CLASSIC'],
+        ['MONOSPACE', 'MONOSPACE'],
+        ['HTML', 'HTML'],
+    ];
+    this.setOutput(true, 'Telemetry.DisplayFormat');
+    this.appendDummyInput()
+        .appendField(createNonEditableField('DisplayFormat'))
+        .appendField('.')
+        .appendField(new Blockly.FieldDropdown(DISPLAY_FORMAT_CHOICES), 'DISPLAY_FORMAT');
+    this.setColour(getPropertyColor);
+    // Assign 'this' to a variable for use in the tooltip closure below.
+    var thisBlock = this;
+    var TOOLTIPS = [
+        ['CLASSIC', 'The DisplayFormat value CLASSIC.'],
+        ['MONOSPACE', 'The DisplayFormat value MONOSPACE.'],
+        ['HTML', 'The DisplayFormat value HTML.'],
+    ];
+    this.setTooltip(function() {
+      var key = thisBlock.getFieldValue('DISPLAY_FORMAT');
+      for (var i = 0; i < TOOLTIPS.length; i++) {
+        if (TOOLTIPS[i][0] == key) {
+          return TOOLTIPS[i][1];
+        }
+      }
+      return '';
+    });
+  }
+};
+
+Blockly.JavaScript['telemetry_typedEnum_displayFormat'] = function(block) {
+  var code = '"' + block.getFieldValue('DISPLAY_FORMAT') + '"';
+  return [code, Blockly.JavaScript.ORDER_ATOMIC];
+};
+
+Blockly.FtcJava['telemetry_typedEnum_displayFormat'] = function(block) {
+  var code = 'Telemetry.DisplayFormat.' + block.getFieldValue('DISPLAY_FORMAT');
+  Blockly.FtcJava.generateImport_('Telemetry');
+  return [code, Blockly.FtcJava.ORDER_MEMBER];
 };

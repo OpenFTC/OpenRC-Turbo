@@ -1,18 +1,19 @@
 /*
-Copyright 2018 Google LLC.
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package org.firstinspires.ftc.robotcore.internal.tfod;
 
 import android.app.Activity;
@@ -22,6 +23,7 @@ import com.vuforia.PIXEL_FORMAT;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 
 /**
  * An Implementation of FrameGenerator where the frames are retrieved from the Vuforia frame queue.
@@ -48,9 +50,8 @@ public class VuforiaFrameGenerator implements FrameGenerator {
     frameQueue = vuforia.getFrameQueue();
 
     // Vuforia returns the focal length in pixels, which is exactly what we need!
-    float[] focalLength = vuforia.getCameraCalibration().getFocalLength().getData();
 
-    float[] size = vuforia.getCameraCalibration().getSize().getData();
+    CameraCalibration camCal = vuforia.getCameraCalibration();
 
     // NOTE(lizlooney): If the focal length is not available, we can calculate it from the size and
     // field of view, like this:
@@ -61,7 +62,7 @@ public class VuforiaFrameGenerator implements FrameGenerator {
     focalLength[1] = 0.5 * size[1] / Math.tan(0.5 * fieldOfView[1]);
     */
 
-    cameraInformation = new CameraInformation(rotation, focalLength[0], focalLength[1], (int) size[0], (int) size[1]);
+    cameraInformation = new CameraInformation(rotation, camCal.focalLengthX, camCal.focalLengthY, camCal.getSize().getWidth(), camCal.getSize().getHeight());
 
     this.clippingMargins = clippingMargins;
   }

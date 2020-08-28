@@ -33,10 +33,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject;
 
 import android.graphics.Bitmap;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.Type;
+
+import androidx.renderscript.Allocation;
+import androidx.renderscript.Element;
+import androidx.renderscript.RenderScript;
+import androidx.renderscript.Type;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -59,8 +60,6 @@ public class UvcFrame extends NativeObject<UvcContext>
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
-
-    protected boolean useNativeFormatConversion = true;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -108,25 +107,11 @@ public class UvcFrame extends NativeObject<UvcContext>
             }
         }
 
-    protected Element elementOf(RenderScript rs, Bitmap bitmap)
-        {
-        switch (bitmap.getConfig())
-            {
-            case ALPHA_8: return Element.A_8(rs);
-            case RGB_565: return Element.RGB_565(rs);
-            case ARGB_4444: return Element.RGBA_4444(rs);
-            case ARGB_8888: return Element.RGBA_8888(rs);
-            }
-        throw AppUtil.getInstance().unreachable();
-        }
-
     /*
      * https://msdn.microsoft.com/en-us/library/windows/desktop/dd206750(v=vs.85).aspx
      * formulas: https://msdn.microsoft.com/en-us/library/ms893078.aspx
      * https://github.com/yigalomer/Yuv2RgbRenderScript/blob/master/src/com/example/yuv2rgbrenderscript/RenderScriptHelper.java
      * C:\Android\410c\build\frameworks\rs\cpu_ref\rsCpuIntrinsicYuvToRGB.cpp
-     *
-     * See also the native version of this in jni_frame.cpp
      */
     protected void yuy2ToBitmap(final Bitmap bitmap)
         {
@@ -134,57 +119,45 @@ public class UvcFrame extends NativeObject<UvcContext>
             {
             @Override public void run()
                 {
-                if (useNativeFormatConversion)
+                RenderScript rs = getContext().getRenderScript();
+
+                int width = getWidth(); Assert.assertTrue(Misc.isEven(width));
+                int height = getHeight();
+
+                Type.Builder inTypeBuilder = new Type.Builder(rs, Element.U8_4(rs))
+                    .setX(width/2)  // we clump two pixels together horizontally
+                    .setY(height);
+                Type inType = inTypeBuilder.create();
+                Allocation aIn = Allocation.createTyped(rs, inType, Allocation.USAGE_SCRIPT);
+                byte[] array = UvcFrame.this.getImageData();
+                aIn.copyFromUnchecked(array);
+
+                /** USAGE_SHARED has the Allocation's backing store be that of the bitmap, which avoids copies */
+                Allocation aOut = Allocation.createFromBitmap(rs, bitmap, Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT | Allocation.USAGE_SHARED);
+
+                ScriptC_format_convert script = new ScriptC_format_convert(rs);
+                script.set_inputAllocation(aIn);
+                script.set_outputWidth(width);
+                script.set_outputHeight(height);
+                switch (bitmap.getConfig())
                     {
-                    nativeYuy2ToBitmap(pointer, bitmap);
+                    case ARGB_8888:
+                        script.forEach_yuv2_to_argb8888(aOut);
+                        break;
+                    default:
+                        RobotLog.ee(getTag(), "conversion to %s not yet implemented; ignored", bitmap.getConfig());
+                        break;
                     }
-                else
-                    {
-                    RenderScript rs = getContext().getRenderScript();
 
-                    int width = getWidth(); Assert.assertTrue(Misc.isEven(width));
-                    int height = getHeight();
-
-                    Type.Builder inTypeBuilder = new Type.Builder(rs, Element.U8_4(rs))
-                        .setX(width/2)  // we clump two pixels together horizontally
-                        .setY(height);
-                    Type inType = inTypeBuilder.create();
-                    Allocation aIn = Allocation.createTyped(rs, inType, Allocation.USAGE_SCRIPT);
-                    byte[] array = UvcFrame.this.getImageData();
-                    aIn.copyFromUnchecked(array);
-
-                    Type.Builder outTypeBuilder = new Type.Builder(rs, elementOf(rs,bitmap))
-                        .setX(width)
-                        .setY(height);
-                    Type outType = outTypeBuilder.create();
-                    Allocation aOut = Allocation.createTyped(rs, outType, Allocation.USAGE_SCRIPT);
-
-                    ScriptC_format_convert script = new ScriptC_format_convert(rs);
-                    script.set_inputAllocation(aIn);
-                    script.set_outputWidth(width);
-                    script.set_outputHeight(height);
-                    switch (bitmap.getConfig())
-                        {
-                        case ARGB_8888:
-                            script.forEach_yuv2_to_argb8888(aOut);
-                            break;
-                        default:
-                            RobotLog.ww(getTag(), "conversion to %s not yet implemented; ignored", bitmap.getConfig());
-                            break;
-                        }
-
-                    // https://developer.android.com/guide/topics/renderscript/compute.html#asynchronous-model
-                    aOut.copyTo(bitmap); // synchronous
-                    }
+                // https://developer.android.com/guide/topics/renderscript/compute.html#asynchronous-model
+                aOut.copyTo(bitmap); // synchronous
+                aOut.destroy();
                 }
             }))
             {
             RobotLog.ee(getTag(), "failed to access RenderScript: frameNumber=%d", getFrameNumber());
             }
-
         }
-
-    protected native static void nativeYuy2ToBitmap(long pointer, Bitmap bitmap);
 
     //----------------------------------------------------------------------------------------------
     // Accessing

@@ -130,21 +130,16 @@ public class RcInspectionActivity extends InspectionActivity
 
     @Override protected boolean validateAppsInstalled(InspectionState state)
         {
-        if (state.channelChangerRequired && !state.isChannelChangerInstalled())
-            {
-            return false;
-            }
-
         // Driver Station cannot be installed
         if (state.isDriverStationInstalled())
             {
             return false;
             }
 
-        // RobotController or AppInventor Required
+        // RobotController required
         else
             {
-            return state.isRobotControllerInstalled() || state.isAppInventorInstalled();
+            return state.isRobotControllerInstalled();
             }
         }
     }

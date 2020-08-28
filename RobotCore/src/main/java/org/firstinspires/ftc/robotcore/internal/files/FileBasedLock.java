@@ -39,6 +39,7 @@ import com.qualcomm.robotcore.util.ThreadPool;
 import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.ThrowingCallable;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.system.LockingRunner;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,8 +55,18 @@ import java.util.concurrent.TimeoutException;
  * {@link FileBasedLock} provides non-recursive exclusive-lock semantics across threads and
  * across processes by means of file-system artifacts: a directory, files, and timestamps.
  * Recovery for crashed processes is provided.
+ *
+ * This class is currently broken, and therefore deprecated. On real devices, the lock is always
+ * granted, because renaming a file will overwrite an existing file by default. This class may be
+ * fixed by re-implementing it in native code, once all of our officially supported devices support
+ * RENAME_NOREPLACE for their filesystems.
+ *
+ * See https://github.com/FIRST-Tech-Challenge/ftc_sdk/issues/1794 (private link).
+ *
+ * {@link LockingRunner} provides a similar API (but does not provide locking across processes)
  */
 @SuppressWarnings("WeakerAccess")
+@Deprecated
 public class FileBasedLock
     {
     //----------------------------------------------------------------------------------------------
@@ -77,6 +88,9 @@ public class FileBasedLock
 
     public FileBasedLock(File rootDir)
         {
+        RobotLog.ee(TAG, "FileBasedLock is currently broken. Use LockingRunner instead");
+        AppUtil.getInstance().exitApplication();
+
         this.rootDir = rootDir.getAbsoluteFile();
         this.lockFile = new File(this.rootDir, "lock.dat");
 
@@ -232,7 +246,7 @@ public class FileBasedLock
             if (msRecordedDeadline != 0)    // zero means error. race on deletion? either way, try again
                 {
                 msRecordedDeadline += msClockSlop;  // clock slop allows for network time sync issues (not well tested)
-                if (msRecordedDeadline > msNow())
+                if (msRecordedDeadline < msNow())
                     {
                     // We're past the intended deadline. Break the lock
                     RobotLog.vv(TAG, "breaking lock %s", lockFile.getPath());

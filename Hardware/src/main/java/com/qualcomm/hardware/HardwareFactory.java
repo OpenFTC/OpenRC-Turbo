@@ -31,7 +31,7 @@
 package com.qualcomm.hardware;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.hitechnic.HiTechnicNxtDcMotorController;
 import com.qualcomm.hardware.lynx.LynxAnalogInputController;
@@ -39,7 +39,6 @@ import com.qualcomm.hardware.lynx.LynxDcMotorController;
 import com.qualcomm.hardware.lynx.LynxDigitalChannelController;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxNackException;
-import com.qualcomm.hardware.lynx.LynxPwmOutputController;
 import com.qualcomm.hardware.lynx.LynxServoController;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
 import com.qualcomm.hardware.lynx.LynxVoltageSensor;
@@ -106,7 +105,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.internal.network.WifiDirectInviteDialogMonitor;
+import com.qualcomm.hardware.lynx.EmbeddedControlHubModule;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
@@ -153,9 +152,9 @@ public class HardwareFactory {
 
       RobotLog.vv(TAG, "createHardwareMap()");
 
-      // Clear notion of embedded lynx module that we currently have. We'll discovery a new one,
+      // Clear notion of embedded lynx module that we currently have. We'll discover a new one,
       // if he's there, when we go through the below.
-      WifiDirectInviteDialogMonitor.clearUILynxModule();
+      EmbeddedControlHubModule.clear();
 
       HardwareMap map = new HardwareMap(context);
 

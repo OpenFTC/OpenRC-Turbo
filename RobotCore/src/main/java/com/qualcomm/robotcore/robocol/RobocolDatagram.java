@@ -1,5 +1,7 @@
 package com.qualcomm.robotcore.robocol;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
 import java.net.DatagramPacket;
@@ -37,16 +39,9 @@ public class RobocolDatagram {
     * Construct a RobocolDatagram from a RobocolParsable
     * @param message
     */
-   public RobocolDatagram(RobocolParsable message) throws RobotCoreException {
-      setData(message.toByteArrayForTransmission());
-   }
-
-   /**
-    * Construct a RobocolDatagram from a byte array
-    * @param message
-    */
-   public RobocolDatagram(byte[] message) {
-      setData(message);
+   public RobocolDatagram(RobocolParsable message, @NonNull InetAddress destination) throws RobotCoreException {
+      byte[] data = message.toByteArrayForTransmission();
+      packet = new DatagramPacket(data, data.length, destination, RobocolConfig.PORT_NUMBER);
    }
 
    /**
@@ -70,7 +65,7 @@ public class RobocolDatagram {
       return result;
    }
 
-   protected RobocolDatagram() {
+   private RobocolDatagram() {
       this.packet = null;
    }
 
@@ -121,10 +116,6 @@ public class RobocolDatagram {
     */
    public byte[] getData() {
       return packet.getData();
-   }
-
-   public void setData(byte[] data) {
-      packet = new DatagramPacket(data, data.length);
    }
 
    public InetAddress getAddress() {

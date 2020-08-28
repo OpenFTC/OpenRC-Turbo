@@ -32,6 +32,8 @@ package com.qualcomm.hardware.microsoft;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.internal.usb.UsbConstants;
+
 public class MicrosoftGamepadXbox360 extends Gamepad {
 
    public MicrosoftGamepadXbox360() {
@@ -46,7 +48,11 @@ public class MicrosoftGamepadXbox360 extends Gamepad {
    }
 
   @Override
-  public String type() {
-    return "Xbox 360";
+  public Type type() {
+    return Type.XBOX_360;
+  }
+
+  public static boolean matchesVidPid(int vid, int pid) {
+      return vid == UsbConstants.VENDOR_ID_MICROSOFT && pid == UsbConstants.PRODUCT_ID_MICROSOFT_XBOX360_WIRED;
   }
 }

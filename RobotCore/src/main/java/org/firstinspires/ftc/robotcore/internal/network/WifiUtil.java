@@ -168,10 +168,6 @@ public class WifiUtil {
     {
         if (Device.isRevControlHub()) {
             return AndroidBoard.getInstance().supports5GhzAp();
-        } else if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // it's a kit kat device or lower.
-            // assume 5GHz is not available;
-            return false;
         } else {
             WifiManager wifiManager = getWifiManager();
             return wifiManager.is5GHzBandSupported();

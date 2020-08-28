@@ -1,18 +1,18 @@
 /*
-Copyright 2016 Google LLC.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2016 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.hardware;
 
@@ -22,7 +22,6 @@ import com.google.blocks.ftcrobotcontroller.util.ToolboxUtil;
 import com.qualcomm.hardware.adafruit.AdafruitBNO055IMU;
 import com.qualcomm.hardware.bosch.BNO055IMUImpl;
 import com.qualcomm.hardware.lynx.LynxEmbeddedIMU;
-import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsAnalogOpticalDistanceSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
@@ -36,6 +35,7 @@ import com.qualcomm.robotcore.hardware.AccelerationSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.AnalogOutput;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.CompassSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -61,6 +61,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.ServoConfigu
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -91,12 +92,20 @@ public enum HardwareType {
       BNO055IMUImpl.class,
       ConfigurationTypeManager.getXmlTag(AdafruitBNO055IMU.class),
       ConfigurationTypeManager.getXmlTag(LynxEmbeddedIMU.class)),
+  COLOR_RANGE_SENSOR( // see color_range_sensor.js
+      // The blockTypePRefix is lynxI2cColorRangeSensor for backwards compatibility.
+      "createColorRangeSensorDropdown", "lynxI2cColorRangeSensor", "AsREVColorRangeSensor", "_REV_ColorRangeSensor",
+      ToolboxFolder.SENSORS, "REV Color/Range Sensor", ToolboxIcon.COLOR_SENSOR,
+      ColorRangeSensor.class,
+      BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag(),
+      ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   COLOR_SENSOR( // see color_sensor.js
       "createColorSensorDropdown", "colorSensor", "AsColorSensor", "_ColorSensor",
       ToolboxFolder.SENSORS, "ColorSensor", ToolboxIcon.COLOR_SENSOR,
       ColorSensor.class,
       BuiltInConfigurationType.COLOR_SENSOR.getXmlTag(),
       BuiltInConfigurationType.ADAFRUIT_COLOR_SENSOR.getXmlTag(),
+      BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag(),
       ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   COMPASS_SENSOR( // see compass_sensor.js
       "createCompassSensorDropdown", "compassSensor", "AsCompassSensor", "_CompassSensor",
@@ -122,6 +131,7 @@ public enum HardwareType {
       "createDistanceSensorDropdown", "distanceSensor", "AsDistanceSensor", "_DistanceSensor",
       ToolboxFolder.SENSORS, "DistanceSensor", ToolboxIcon.ULTRASONIC_SENSOR, // Need to make artwork but the ultrasonic sensor is close to what we want.
       DistanceSensor.class,
+      BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag(),
       ConfigurationTypeManager.getXmlTag(Rev2mDistanceSensor.class),
       ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   GYRO_SENSOR( // see gyro_sensor.js
@@ -150,11 +160,6 @@ public enum HardwareType {
       null, null, null,
       LynxModule.class,
       BuiltInConfigurationType.LYNX_MODULE.getXmlTag()),
-  LYNX_I2C_COLOR_RANGE_SENSOR( // see lynx_i2c_color_range_sensor.js
-      "createLynxI2cColorRangeSensorDropdown", "lynxI2cColorRangeSensor", "AsREVColorRangeSensor", "_REV_ColorRangeSensor",
-      ToolboxFolder.SENSORS, "REV Color/Range Sensor", ToolboxIcon.COLOR_SENSOR,
-      LynxI2cColorRangeSensor.class,
-      BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag()),
   MR_I2C_COMPASS_SENSOR( // see mr_i2c_compass_sensor.js
       "createMrI2cCompassSensorDropdown", "mrI2cCompassSensor", "AsMrI2cCompassSensor", "_MR_I2cCompassSensor",
       ToolboxFolder.SENSORS, "MrI2cCompassSensor", ToolboxIcon.COMPASS_SENSOR,
@@ -170,6 +175,7 @@ public enum HardwareType {
       ToolboxFolder.SENSORS, "OpticalDistanceSensor", ToolboxIcon.OPTICAL_DISTANCE_SENSOR,
       OpticalDistanceSensor.class,
       ConfigurationTypeManager.getXmlTag(ModernRoboticsAnalogOpticalDistanceSensor.class),
+      BuiltInConfigurationType.LYNX_COLOR_SENSOR.getXmlTag(),
       ConfigurationTypeManager.getXmlTag(RevColorSensorV3.class)),
   REV_BLINKIN_LED_DRIVER( // see rev_blinkin_led_driver.js
       "createRevBlinkinLedDriverDropdown", "revBlinkinLedDriver", "AsRevBlinkinLedDriver", "_RevBlinkinLedDriver",
@@ -206,7 +212,7 @@ public enum HardwareType {
       BuiltInConfigurationType.MOTOR_CONTROLLER.getXmlTag(),
       BuiltInConfigurationType.LYNX_MODULE.getXmlTag()),
   WEBCAM_NAME( // No blocks provided.
-      "createWebcamNameDropdown", null, "AsWebcamName", "_WebcamName",
+      null, null, "AsWebcamName", "_WebcamName",
       null, null, null,
       WebcamName.class,
       BuiltInConfigurationType.WEBCAM.getXmlTag());
@@ -249,6 +255,14 @@ public enum HardwareType {
     String[] result = new String[tags.size()];
     return tags.toArray(result);
   }
+
+  static final Comparator<HardwareType> BY_TOOLBOX_CATEGORY_NAME = new Comparator<HardwareType>() {
+    @Override public int compare(HardwareType h1, HardwareType h2) {
+      String s1 = (h1.toolboxCategoryName == null) ? "" : h1.toolboxCategoryName;
+      String s2 = (h2.toolboxCategoryName == null) ? "" : h2.toolboxCategoryName;
+      return s1.compareToIgnoreCase(s2);
+    }
+  };
 
   /**
    * The name of the javascript function which creates a block dropdown showing the names of all

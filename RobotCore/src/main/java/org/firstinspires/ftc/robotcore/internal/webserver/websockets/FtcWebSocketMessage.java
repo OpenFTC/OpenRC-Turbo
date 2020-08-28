@@ -32,7 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.webserver.websockets;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import com.google.gson.JsonSyntaxException;
@@ -54,7 +54,7 @@ public final class FtcWebSocketMessage {
 
     @NonNull private String namespace;
     @NonNull private String type;
-    @NonNull private String encodedPayload; // Base64 encoded over the wire so that it can safely contain JSON
+    @NonNull private String payload = "";
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -80,7 +80,7 @@ public final class FtcWebSocketMessage {
     public FtcWebSocketMessage(@NonNull String namespace, @NonNull String type, @NonNull String payload) {
         this.namespace = namespace;
         this.type = type;
-        this.encodedPayload = encodePayload(payload);
+        this.payload = payload;
     }
 
     //----------------------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ public final class FtcWebSocketMessage {
      * Get the payload (may be JSON)
      */
     @NonNull public String getPayload() {
-        return decodePayload(encodedPayload);
+        return payload;
     }
 
     /**
@@ -128,7 +128,7 @@ public final class FtcWebSocketMessage {
      * Check if the message has a payload
      */
     public boolean hasPayload() {
-        return !encodedPayload.isEmpty();
+        return !payload.isEmpty();
     }
 
     @Override public String toString() {
@@ -137,13 +137,5 @@ public final class FtcWebSocketMessage {
                 ", type='" + getType() + '\'' +
                 ", payload='" + getPayload() + '\'' +
                 '}';
-    }
-
-    private String decodePayload(String encodedPayload) {
-        return new String(Base64.decode(encodedPayload, Base64.DEFAULT), StandardCharsets.UTF_8);
-    }
-
-    private String encodePayload(String payload) {
-        return Base64.encodeToString(payload.getBytes(), Base64.DEFAULT);
     }
 }

@@ -32,13 +32,21 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.robotcore.internal.hardware.android;
 
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+import androidx.annotation.Nullable;
 
-import org.firstinspires.ftc.robotcore.internal.system.SystemProperties;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.RunShellCommand;
 
 import java.io.File;
 
 public class Rev3328 extends AndroidBoard {
+    private static final String TAG = "Rev3328";
+    private static final int OS_1_1_0_VERSION_NUM = 3;
+    private static final int OS_1_1_1_VERSION_NUM = 4;
+    private static final int OS_1_1_2_VERSION_NUM = 5;
+
     // Don't allow instantiation outside of our package
     protected Rev3328() {}
 
@@ -102,11 +110,87 @@ public class Rev3328 extends AndroidBoard {
         return UART_FILE;
     }
 
+    @Override public WifiDataRate getWifiApBeaconRate() {
+        if (LynxConstants.getControlHubOsVersionNum() < OS_1_1_0_VERSION_NUM) {
+            return WifiDataRate.CCK_1Mb; // OS versions prior to 1.1.0 used a 1Mb beacon rate
+        }
+        String rawBeaconRateString = new RunShellCommand().run("cat /sys/module/wlan/parameters/rev_beacon_rate").getOutput().trim();
+        RealtekWifiDataRate rtkDataRate = null;
+        try {
+            rtkDataRate = RealtekWifiDataRate.fromRawValue(Integer.parseInt(rawBeaconRateString));
+        } catch (RuntimeException e) {
+            RobotLog.ee(TAG, e, "Error obtaining WiFi AP beacon rate");
+        }
+        if (rtkDataRate == null) {
+            return WifiDataRate.UNKNOWN;
+        }
+        return rtkDataRate.wifiDataRate;
+    }
+
+    @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
+        if (LynxConstants.getControlHubOsVersionNum() < OS_1_1_1_VERSION_NUM) {
+            RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on Control Hub OS version" + LynxConstants.getControlHubOsVersion());
+            RobotLog.ww(TAG, "Control Hub OS version 1.1.1 or higher is required for this feature.");
+            return;
+        }
+        int rawBeaconRate = RealtekWifiDataRate.fromWifiDataRate(beaconRate).rawValue;
+        new RunShellCommand().run("echo " + rawBeaconRate + " > /sys/module/wlan/parameters/rev_beacon_rate");
+    }
+
     @Override public boolean supports5GhzAp() {
         return true;
     }
 
+    @Override public boolean supports5GhzAutoSelection() {
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+    }
+
+    @Override public boolean supportsBulkNetworkSettings() {
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+    }
+
+    @Override public boolean supportsGetChannelInfoIntent() {
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+    }
+
     @Override public boolean hasControlHubUpdater() {
         return true;
+    }
+
+    private enum RealtekWifiDataRate {
+        // Values taken from https://github.com/REVrobotics/kernel-controlhub-android/blob/806e038dadebd9fd95b9604446d2ea440c9f86a0/drivers/net/wireless/rockchip_wlan/rtl8821cu/include/ieee80211.h#L702-L714
+        RTK_CCK_1Mb(0x02, WifiDataRate.CCK_1Mb),
+        RTK_CCK_2Mb(0x04, WifiDataRate.CCK_2Mb),
+        RTK_CCK_5Mb(0x0B, WifiDataRate.CCK_5Mb),
+        RTK_CCK_11Mb(0x16, WifiDataRate.CCK_11Mb),
+        RTK_OFDM_6Mb(0x0C, WifiDataRate.OFDM_6Mb),
+        RTK_OFDM_9Mb(0x12, WifiDataRate.OFDM_9Mb),
+        RTK_OFDM_12Mb(0x18, WifiDataRate.OFDM_12Mb),
+        RTK_OFDM_18Mb(0x24, WifiDataRate.OFDM_18Mb),
+        RTK_OFDM_24Mb(0x30, WifiDataRate.OFDM_24Mb),
+        RTK_OFDM_36Mb(0x48, WifiDataRate.OFDM_36Mb),
+        RTK_OFDM_48Mb(0x60, WifiDataRate.OFDM_48Mb),
+        RTK_OFDM_54Mb(0x6C, WifiDataRate.OFDM_54Mb);
+
+        private final int rawValue;
+        private final AndroidBoard.WifiDataRate wifiDataRate;
+        RealtekWifiDataRate(int rawValue, AndroidBoard.WifiDataRate wifiDataRate) {
+            this.rawValue = rawValue;
+            this.wifiDataRate = wifiDataRate;
+        }
+
+        public static RealtekWifiDataRate fromWifiDataRate(AndroidBoard.WifiDataRate wifiDataRate) {
+            for (RealtekWifiDataRate rtkWifiDataRate: values()) {
+                if (rtkWifiDataRate.wifiDataRate == wifiDataRate) return rtkWifiDataRate;
+            }
+            throw new IllegalArgumentException("Unsupported data rate for Realtek WiFi: " + wifiDataRate);
+        }
+
+        public static @Nullable RealtekWifiDataRate fromRawValue(int rawValue) {
+            for (RealtekWifiDataRate rtkWifiDataRate: values()) {
+                if (rtkWifiDataRate.rawValue == rawValue) return rtkWifiDataRate;
+            }
+            return null;
+        }
     }
 }

@@ -1,4 +1,21 @@
 /**
+ * @license
+ * Copyright 2017 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * @fileoverview FTC robot blocks related to Vuforia
  * @author lizlooney@google.com (Liz Looney)
  */
@@ -181,6 +198,19 @@ function vuforia_deactivate_JavaScript(block, identifier) {
 function vuforia_deactivate_FtcJava(block, className) {
   var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
   return identifier + '.deactivate();\n';
+}
+
+function vuforia_setActiveCamera_JavaScript(block, identifier) {
+  var cameraName = Blockly.JavaScript.valueToCode(
+      block, 'CAMERA_NAME', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.setActiveCamera(' + cameraName + ');\n';
+}
+
+function vuforia_setActiveCamera_FtcJava(block, className) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var cameraName = Blockly.FtcJava.valueToCode(
+      block, 'CAMERA_NAME', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.setActiveCamera(' + cameraName + ');\n';
 }
 
 function vuforia_track_JavaScript(block, identifier) {

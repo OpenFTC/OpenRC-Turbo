@@ -26,11 +26,14 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.hardware.lynx;
 
-import android.support.annotation.Nullable;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.R;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.GlobalWarningSource;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -39,11 +42,11 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -60,24 +63,38 @@ public class LynxModuleWarningManager {
     }
 
     // Constant fields
+    private final static String TAG = "LynxModuleWarningManager";
+    private final static int MIN_FW_VERSION_MAJOR = 1;
+    private final static int MIN_FW_VERSION_MINOR = 8;
+    private final static int MIN_FW_VERSION_ENG = 2;
     private final static int LOW_BATTERY_STATUS_TIMEOUT_SECONDS = 2;
     private final static int LOW_BATTERY_LOG_FREQUENCY_SECONDS = 2;
     private final static int UNRESPONSIVE_LOG_FREQUENCY_SECONDS = 2;
     private final OpModeManagerNotifier.Notifications opModeNotificationListener = new WarningManagerOpModeListener();
+    private final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(AppUtil.getDefContext());
     private final GlobalWarningSource warningSource = new LynxModuleWarningSource();
     private final Object warningMessageLock = new Object();
 
     // State
     private volatile boolean userOpModeRunning = false;
+    private volatile HardwareMap hardwareMap = null;
     private final ConcurrentMap<Integer, UnresponsiveStatus> modulesReportedUnresponsive = new ConcurrentHashMap<>();
-    private final Set<Integer> modulesReportedReset = Collections.newSetFromMap(new ConcurrentHashMap<Integer, Boolean>());
     private final ConcurrentMap<Integer, LowBatteryStatus> modulesReportedLowBattery = new ConcurrentHashMap<>();
+    private final Set<String> modulesReportedReset = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private final Set<String> outdatedModules = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     private String cachedWarningMessage = null; // Protected by warningMessageLock
 
-    public void init(OpModeManagerImpl opModeManager) {
+    /**
+     * Called on Robot startup
+     */
+    public void init(OpModeManagerImpl opModeManager, HardwareMap hardwareMap) {
+        this.hardwareMap = hardwareMap;
         opModeManager.registerListener(opModeNotificationListener);
         warningSource.clearGlobalWarning();
         RobotLog.registerGlobalWarningSource(warningSource);
+        if (sharedPrefs.getBoolean(AppUtil.getDefContext().getString(R.string.pref_warn_about_outdated_firmware), true)) {
+            lookForOutdatedModules();
+        }
     }
 
     /**
@@ -90,7 +107,8 @@ public class LynxModuleWarningManager {
         int moduleNumber = module.getModuleAddress();
         UnresponsiveStatus unresponsiveStatus = modulesReportedUnresponsive.get(moduleNumber);
         if (unresponsiveStatus == null) {
-            unresponsiveStatus = new UnresponsiveStatus(module);
+            String moduleName = getModuleName(module);
+            unresponsiveStatus = new UnresponsiveStatus(module, moduleName);
             modulesReportedUnresponsive.put(moduleNumber, unresponsiveStatus);
         }
         unresponsiveStatus.reportConditionAndLogWithThrottle(userOpModeRunning);
@@ -98,12 +116,12 @@ public class LynxModuleWarningManager {
 
     public void reportModuleReset(LynxModule module) {
         if (!module.isUserModule()) return;
-        int moduleNumber = module.getModuleAddress();
-        String logMessage = "REV Hub #%d regained power after a complete power loss.";
+        String moduleName = getModuleName(module);
+        String logMessage = "%s regained power after a complete power loss.";
 
         if (userOpModeRunning) { // Module resets while the user is not running an Op Mode are normal
             logMessage += " A user Op Mode was running, so unexpected behavior may occur.";
-            boolean newlyReported = modulesReportedReset.add(moduleNumber);
+            boolean newlyReported = modulesReportedReset.add(moduleName);
             if (newlyReported) {
                 synchronized (warningMessageLock) {
                     cachedWarningMessage = null;
@@ -112,7 +130,7 @@ public class LynxModuleWarningManager {
         } else {
             logMessage += " No user Op Mode was running.";
         }
-        RobotLog.ww("HubPowerCycle", logMessage, moduleNumber);
+        RobotLog.ww("HubPowerCycle", logMessage, moduleName);
     }
 
     public void reportModuleLowBattery(LynxModule module) {
@@ -120,23 +138,68 @@ public class LynxModuleWarningManager {
         int moduleNumber = module.getModuleAddress();
         LowBatteryStatus lowBatteryStatus = modulesReportedLowBattery.get(moduleNumber);
         if (lowBatteryStatus == null) {
-            lowBatteryStatus = new LowBatteryStatus(module);
+            String moduleName = getModuleName(module);
+            lowBatteryStatus = new LowBatteryStatus(module, moduleName);
             modulesReportedLowBattery.put(moduleNumber, lowBatteryStatus);
         }
         lowBatteryStatus.reportConditionAndLogWithThrottle(userOpModeRunning);
     }
 
+    private String getModuleName(LynxModule module) {
+        String moduleName;
+        try {
+            moduleName = hardwareMap.getNamesOf(module).iterator().next();
+        } catch (RuntimeException e) { // Protects against null hardwareMap and empty iterator
+            moduleName = "Expansion Hub " + module.getModuleAddress();
+        }
+        return moduleName;
+    }
+
+    private void lookForOutdatedModules() {
+        outdatedModules.clear();
+        List<LynxModule> lynxModules = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule lynxModule : lynxModules) {
+            try {
+                String fwVersion = lynxModule.getNullableFirmwareVersionString();
+                if (fwVersion == null) continue;
+                String[] versionNums = fwVersion.split("(, )?\\w*: ");
+                versionNums = Arrays.copyOfRange(versionNums, 2,5);
+                int majorVersion = Integer.parseInt(versionNums[0]);
+                int minorVersion = Integer.parseInt(versionNums[1]);
+                int engVersion = Integer.parseInt(versionNums[2]);
+                if (isFwVersionOutdated(majorVersion, minorVersion, engVersion)) {
+                    outdatedModules.add(getModuleName(lynxModule));
+                }
+            } catch (RuntimeException e) {
+                RobotLog.ee(TAG, e, "Exception caught while checking if module is outdated");
+            }
+        }
+    }
+
+    private boolean isFwVersionOutdated(int majorVersion, int minorVersion, int engVersion) {
+        if (majorVersion > MIN_FW_VERSION_MAJOR) return false;
+        if (majorVersion < MIN_FW_VERSION_MAJOR) return true;
+        if (minorVersion > MIN_FW_VERSION_MINOR) return false;
+        if (minorVersion < MIN_FW_VERSION_MINOR) return true;
+        return engVersion < MIN_FW_VERSION_ENG;
+    }
+
+    /**
+     * Used for conditions that persist past a singular event
+     */
     private static abstract class ConditionStatus {
         final ElapsedTime timeSinceConditionLastReported = new ElapsedTime();
         final ElapsedTime timeSinceConditionLogged = new ElapsedTime(0);
         final LynxModuleIntf lynxModule;
+        final String moduleName;
         final int logFrequencySeconds;
         boolean conditionPreviouslyTrue = false;
         boolean conditionTrueDuringOpModeRun = false;
 
-        ConditionStatus(LynxModuleIntf lynxModule, int logFrequencySeconds) {
+        ConditionStatus(LynxModuleIntf lynxModule, String moduleName, int logFrequencySeconds) {
             this.lynxModule = lynxModule;
             this.logFrequencySeconds = logFrequencySeconds;
+            this.moduleName = moduleName;
         }
 
         abstract boolean conditionCurrentlyTrue();
@@ -160,20 +223,20 @@ public class LynxModuleWarningManager {
     }
 
     private static class UnresponsiveStatus extends ConditionStatus {
-        private UnresponsiveStatus(LynxModuleIntf lynxModule) {
-            super(lynxModule, UNRESPONSIVE_LOG_FREQUENCY_SECONDS);
+        private UnresponsiveStatus(LynxModuleIntf lynxModule, String moduleName) {
+            super(lynxModule, moduleName, UNRESPONSIVE_LOG_FREQUENCY_SECONDS);
         }
         @Override boolean conditionCurrentlyTrue() {
             return lynxModule.isNotResponding();
         }
         @Override void logCondition() {
-            RobotLog.w("REV Hub #%d is currently unresponsive.", lynxModule.getModuleAddress());
+            RobotLog.w("%s is currently unresponsive.", moduleName);
         }
     }
 
     private static class LowBatteryStatus extends ConditionStatus {
-        private LowBatteryStatus(LynxModule lynxModule) {
-            super(lynxModule, LOW_BATTERY_LOG_FREQUENCY_SECONDS);
+        private LowBatteryStatus(LynxModule lynxModule, String moduleName) {
+            super(lynxModule, moduleName, LOW_BATTERY_LOG_FREQUENCY_SECONDS);
         }
 
         @Override boolean conditionCurrentlyTrue() {
@@ -181,7 +244,7 @@ public class LynxModuleWarningManager {
         }
 
         @Override void logCondition() {
-            RobotLog.w("REV Hub #%d currently has a battery too low to run motors and servos.");
+            RobotLog.w("%s currently has a battery too low to run motors and servos.", moduleName);
         }
     }
 
@@ -223,14 +286,19 @@ public class LynxModuleWarningManager {
         private String composeWarning() {
             @Nullable String notRespondingWarning = composeNotRespondingWarning();
             @Nullable String powerIssuesWarning = composePowerIssuesWarning();
+            @Nullable String outdatedHubsWarning = composeOutdatedHubsWarning();
 
             StringBuilder builder = new StringBuilder();
             if (notRespondingWarning != null) {
                 builder.append(notRespondingWarning);
-                if (powerIssuesWarning != null) builder.append("; ");
+                if (powerIssuesWarning != null || outdatedHubsWarning != null) builder.append("; ");
             }
             if (powerIssuesWarning != null) {
                 builder.append(powerIssuesWarning);
+                if (outdatedHubsWarning != null) builder.append("; ");
+            }
+            if (outdatedHubsWarning != null) {
+                builder.append(outdatedHubsWarning);
             }
             return builder.toString();
         }
@@ -238,15 +306,15 @@ public class LynxModuleWarningManager {
         private @Nullable String composeNotRespondingWarning() {
             if (modulesReportedUnresponsive.size() < 1) return null;
 
-            List<Integer> modulesCurrentlyUnresponsive = new ArrayList<>();
-            List<Integer> modulesUnresponsiveDuringOpMode = new ArrayList<>();
+            List<String> modulesCurrentlyUnresponsive = new ArrayList<>();
+            List<String> modulesUnresponsiveDuringOpMode = new ArrayList<>();
 
-            for (Map.Entry<Integer, UnresponsiveStatus> statusEntry : modulesReportedUnresponsive.entrySet()) {
-                if (statusEntry.getValue().lynxModule.isNotResponding()) {
-                    modulesCurrentlyUnresponsive.add(statusEntry.getKey());
-                } else if (statusEntry.getValue().conditionTrueDuringOpModeRun && !modulesReportedReset.contains(statusEntry.getKey())) {
+            for (UnresponsiveStatus status : modulesReportedUnresponsive.values()) {
+                if (status.lynxModule.isNotResponding()) {
+                    modulesCurrentlyUnresponsive.add(status.moduleName);
+                } else if (status.conditionTrueDuringOpModeRun && !modulesReportedReset.contains(status.moduleName)) {
                     // If we know the module reset (lost power) entirely, we don't also need to report that it wasn't responding.
-                    modulesUnresponsiveDuringOpMode.add(statusEntry.getKey());
+                    modulesUnresponsiveDuringOpMode.add(status.moduleName);
                 }
             }
 
@@ -282,6 +350,15 @@ public class LynxModuleWarningManager {
             }
         }
 
+        private @Nullable String composeOutdatedHubsWarning() {
+            if (outdatedModules.size() < 1) return null;
+            StringBuilder builder = new StringBuilder();
+            composeModuleList(outdatedModules, builder);
+            builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleFirmwareOutdated)).append(" ");
+            return builder.toString();
+        }
+
+
         // Returns true if power loss warning was added
         private boolean composePowerLossWarning(final StringBuilder builder) {
             if (modulesReportedReset.size() < 1) return false;
@@ -296,14 +373,14 @@ public class LynxModuleWarningManager {
             if (modulesReportedLowBattery.size() < 1) return false;
 
             boolean warningAdded = false;
-            List<Integer> modulesCurrentlyReporting = new ArrayList<>();
-            List<Integer> modulesReportedDuringOpMode = new ArrayList<>();
+            List<String> modulesCurrentlyReporting = new ArrayList<>();
+            List<String> modulesReportedDuringOpMode = new ArrayList<>();
 
-            for (Map.Entry<Integer, LowBatteryStatus> statusEntry : modulesReportedLowBattery.entrySet()) {
-                if (statusEntry.getValue().conditionCurrentlyTrue()) {
-                    modulesCurrentlyReporting.add(statusEntry.getKey());
-                } else if (statusEntry.getValue().conditionTrueDuringOpModeRun) {
-                    modulesReportedDuringOpMode.add(statusEntry.getKey());
+            for (LowBatteryStatus status : modulesReportedLowBattery.values()) {
+                if (status.conditionCurrentlyTrue()) {
+                    modulesCurrentlyReporting.add(status.moduleName);
+                } else if (status.conditionTrueDuringOpModeRun) {
+                    modulesReportedDuringOpMode.add(status.moduleName);
                 }
             }
 
@@ -329,17 +406,10 @@ public class LynxModuleWarningManager {
             }
         }
 
-        void composeModuleList(Collection<Integer> moduleNumbers, final StringBuilder builder) {
-            builder.append("REV Hub");
-            if (moduleNumbers.size() > 1) {
-                builder.append("s ");
-            } else {
-                builder.append(" ");
-            }
-
-            Iterator<Integer> iterator = moduleNumbers.iterator();
+        void composeModuleList(Collection<String> moduleNames, final StringBuilder builder) {
+            Iterator<String> iterator = moduleNames.iterator();
             while (iterator.hasNext()) {
-                builder.append("#").append(iterator.next());
+                builder.append(iterator.next());
                 if (iterator.hasNext()) builder.append(", ");
             }
             builder.append(" ");
@@ -360,6 +430,7 @@ public class LynxModuleWarningManager {
                 modulesReportedUnresponsive.clear();
                 modulesReportedReset.clear();
                 modulesReportedLowBattery.clear();
+                outdatedModules.clear();
                 warningMessageSuppressionCount = 0;
             }
         }

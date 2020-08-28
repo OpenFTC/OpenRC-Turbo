@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.util.ThreadPool;
 
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +30,8 @@ public abstract class LinearOpMode extends OpMode {
   private ExecutorService    executorService = null;
   private volatile boolean   isStarted       = false;
   private volatile boolean   stopRequested   = false;
+  private boolean            userMonitoredForStart = false;
+  private final Object       runningNotifier = new Object();
 
   //------------------------------------------------------------------------------------------------
   // Construction
@@ -53,82 +57,16 @@ public abstract class LinearOpMode extends OpMode {
    * Pauses the Linear Op Mode until start has been pressed or until the current thread
    * is interrupted.
    */
-  public synchronized void waitForStart() {
+  public void waitForStart() {
     while (!isStarted()) {
-      synchronized (this) {
+      synchronized (runningNotifier) {
         try {
-          this.wait();
+          runningNotifier.wait();
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           return;
         }
       }
-    }
-  }
-
-  /**
-   * Wait for one full cycle of the hardware
-   * <p>
-   * Each cycle of the hardware your commands are sent out to the hardware; and
-   * the latest data is read back in.
-   * <p>
-   * This method has a strong guarantee to wait for <strong>at least</strong> one
-   * full hardware hardware cycle.
-   * @throws InterruptedException
-   *
-   * @deprecated The need for user code to synchronize with the loop() thread has been
-   *             obviated by improvements in the modern motor and servo controller implementations.
-   *             Remaining uses of this API are likely unncessarily wasting cycles. If a simple non-zero
-   *             delay is required, the {@link Thread#sleep(long) sleep()} method is a better choice.
-   *             If one simply wants to allow other threads to run, {@link #idle()} is a good choice.
-   *
-   * @see Thread#sleep(long)
-   * @see #idle()
-   * @see #waitForNextHardwareCycle()
-   */
-  @Deprecated
-  public void waitOneFullHardwareCycle() throws InterruptedException {
-    // wait for current partial cycle to finish
-    waitForNextHardwareCycle();
-
-    // wait for the next hardware cycle to start
-    Thread.sleep(1);
-
-    // now wait one full cycle
-    waitForNextHardwareCycle();
-  }
-
-  /**
-   * Wait for the start of the next hardware cycle
-   * <p>
-   * Each cycle of the hardware your commands are sent out to the hardware; and
-   * the latest data is read back in.
-   * <p>
-   * This method will wait for the current hardware cycle to finish, which is
-   * also the start of the next hardware cycle.
-   * @throws InterruptedException
-   *
-   * @deprecated The need for user code to synchronize with the loop() thread has been
-   *             obviated by improvements in the modern motor and servo controller implementations.
-   *             Remaining uses of this API are likely unncessarily wasting cycles. If a simple non-zero
-   *             delay is required, the {@link Thread#sleep(long) sleep()} method is a better choice.
-   *             If one simply wants to allow other threads to run, {@link #idle()} is a good choice.
-   *
-   * @see Thread#sleep(long)
-   * @see #idle()
-   * @see #waitOneFullHardwareCycle()
-   */
-  @Deprecated
-  public void waitForNextHardwareCycle() throws InterruptedException {
-    /*
-     * If an InterruptedException is thrown we won't handle it, instead
-     * we will pass it up to the calling method to handle.
-     *
-     * In the case of the linear op mode; this will likely cause the
-     * thread to terminate.
-     */
-    synchronized (this) {
-      this.wait();
     }
   }
 
@@ -140,11 +78,7 @@ public abstract class LinearOpMode extends OpMode {
    * managed by other threads to change. Calling idle() is entirely optional: it just helps make
    * the system a little more responsive and a little more efficient.</p>
    *
-   * <p>{@link #idle()} is conceptually related to waitOneFullHardwareCycle(), but makes no
-   * guarantees as to completing any particular number of hardware cycles, if any.</p>
-   *
    * @see #opModeIsActive()
-   * @see #waitOneFullHardwareCycle()
    */
   public final void idle() {
     // Otherwise, yield back our thread scheduling quantum and give other threads at
@@ -195,6 +129,13 @@ public abstract class LinearOpMode extends OpMode {
    * @see #isStopRequested()
    */
   public final boolean isStarted() {
+
+    /*
+     * What we're looking for here is that the user polled until the
+     * the start condition was occurred.
+     */
+    if(isStarted) userMonitoredForStart = true;
+
     return this.isStarted || Thread.currentThread().isInterrupted();
     }
 
@@ -237,8 +178,8 @@ public abstract class LinearOpMode extends OpMode {
   final public void start() {
     stopRequested = false;
     isStarted = true;
-    synchronized (this) {
-      this.notifyAll();
+    synchronized (runningNotifier) {
+      runningNotifier.notifyAll();
     }
   }
 
@@ -256,11 +197,35 @@ public abstract class LinearOpMode extends OpMode {
   @Override
   final public void stop() {
 
+    /*
+     * Get out of dodge. Been here, done this.
+     * (If a linear opmode returns of its own accord, this is
+     *  invoked twice).
+     */
+    if(stopRequested) return;
+
+    /*
+     * Handle edge case of stop() before init()
+     */
+    if(helper == null) return;
+
+    /*
+     * Is it ending because it simply... ended (e.g. end of auto), or
+     * because the user failed to monitor for the start condition?
+     *
+     * We must check userMethodReturned, because if it didn't return,
+     * but also !userMonitoredForStart, that means the opmode was aborted
+     * during init. We don't want to show a warning in that case.
+     */
+    if(!userMonitoredForStart && helper.userMethodReturned) {
+      RobotLog.addGlobalWarningMessage("The OpMode which was just initialized ended prematurely as a result of not monitoring for the start condition. Did you forget to call waitForStart()?");
+    }
+
     // make isStopRequested() return true (and opModeIsActive() return false)
     stopRequested = true;
 
     if (executorService != null) {  // paranoia
-    
+
       // interrupt the linear opMode and shutdown it's service thread
       executorService.shutdownNow();
 
@@ -282,8 +247,8 @@ public abstract class LinearOpMode extends OpMode {
       throw helper.getRuntimeException();
     }
 
-    synchronized (this) {
-      this.notifyAll();
+    synchronized (runningNotifier) {
+      runningNotifier.notifyAll();
     }
   }
 
@@ -291,6 +256,7 @@ public abstract class LinearOpMode extends OpMode {
 
     protected RuntimeException exception  = null;
     protected boolean          isShutdown = false;
+    protected volatile boolean userMethodReturned = false;
 
     public LinearOpModeHelper() {
     }
@@ -303,6 +269,7 @@ public abstract class LinearOpMode extends OpMode {
 
         try {
           LinearOpMode.this.runOpMode();
+          userMethodReturned = true;
           requestOpModeStop();
         } catch (InterruptedException ie) {
           // InterruptedException, shutting down the op mode
@@ -341,7 +308,7 @@ public abstract class LinearOpMode extends OpMode {
     public RuntimeException getRuntimeException() {
       return exception;
     }
-    
+
     public boolean isShutdown() {
       return isShutdown;
     }

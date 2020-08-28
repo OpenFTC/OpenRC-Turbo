@@ -34,6 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.stmicroelectronics;
 
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.HardwareDeviceHealth.HealthStatus;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDevice;
@@ -125,6 +126,9 @@ public class VL53L0X extends I2cDeviceSynchDevice<I2cDeviceSynch> implements Dis
     //***********************************************************************************************
     // default I2C address as defined in STMicroelectronics documentatation.
     public final static I2cAddr ADDRESS_I2C_DEFAULT = I2cAddr.create8bit(0x52);
+
+    // Distance value in millimeters used when the sensor is not responding
+    protected final static int FAKE_DISTANCE_MM = 65535;
 
     // String tag for logging.
     protected String MYTAG = "STMicroVL53L0X: ";
@@ -239,6 +243,7 @@ public class VL53L0X extends I2cDeviceSynchDevice<I2cDeviceSynch> implements Dis
     protected int io_timeout = 0;
     protected ElapsedTime ioElapsedTime;
     boolean did_timeout = false;
+    boolean assume_uninitialized = true;
 
     //***********************************************************************************************
     // Construction and initialization.
@@ -528,6 +533,7 @@ public class VL53L0X extends I2cDeviceSynchDevice<I2cDeviceSynch> implements Dis
 
         // VL53L0X_PerformRefCalibration() end
 
+        assume_uninitialized = false;
 
         // set timeout period (milliseconds)
         setTimeout(200);
@@ -965,12 +971,28 @@ public class VL53L0X extends I2cDeviceSynchDevice<I2cDeviceSynch> implements Dis
         if(io_timeout > 0) {
             ioElapsedTime.reset();
         }
+        if (assume_uninitialized) {
+            return FAKE_DISTANCE_MM; // We have strong evidence that the sensor is not initialized, so we fail fast.
+        }
         while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
+            if ((did_timeout && deviceClient.getHealthStatus() == HealthStatus.UNHEALTHY) || Thread.currentThread().isInterrupted()) {
+                /* The last time we tried to read the sensor, it timed out, and the read attempt
+                   we just made also failed (indicated by the status being unhealthy).
+                   Exit now so that we don't bottleneck the whole system. */
+                return FAKE_DISTANCE_MM;
+            }
             if (ioElapsedTime.milliseconds() > io_timeout) {
                 did_timeout = true;
-                return 65535;
+                if (deviceClient.getHealthStatus() == HealthStatus.HEALTHY) {
+                    /* If we are able to communicate with the device (it is healthy) and yet we got
+                        a timeout,it's safe to assume that the device is not currently initialized. */
+                    assume_uninitialized = true;
+                    // TODO(Noah): Display warning that the sensor needs to be re-initialized
+                }
+                return FAKE_DISTANCE_MM;
             }
         }
+        did_timeout = false; // The read succeeded. Clear the timeout flag.
 
         // assumptions: Linearity Corrective Gain is 1000 (default);
         // fractional ranging is not enabled

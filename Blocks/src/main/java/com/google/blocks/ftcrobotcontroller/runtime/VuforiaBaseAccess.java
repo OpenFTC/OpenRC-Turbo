@@ -1,6 +1,22 @@
-// Copyright 2018 Google Inc.
+/*
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.blocks.ftcrobotcontroller.runtime;
+
+import static com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil.SWITCHABLE_CAMERA_NAME;
 
 import android.util.Pair;
 import android.webkit.JavascriptInterface;
@@ -84,7 +100,12 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
       boolean useCompetitionFieldTargetLocations) {
     startBlockExecution(BlockType.FUNCTION, ".initialize");
-    CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
+    CameraName cameraName;
+    if (cameraNameString.equals(SWITCHABLE_CAMERA_NAME)) {
+      cameraName = blocksOpMode.getSwitchableCamera();
+    } else {
+      cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
+    }
     Pair<Boolean, CameraMonitorFeedback> cameraMonitorFeedback =
         checkCameraMonitorFeedback(cameraMonitorFeedbackString);
     if (cameraName != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
@@ -118,6 +139,20 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       vuforiaBase.deactivate();
     } catch (IllegalStateException e) {
       reportWarning(e.getMessage());
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void setActiveCamera(String cameraNameString) {
+    startBlockExecution(BlockType.FUNCTION, ".deactivate");
+    CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
+    if (cameraName != null) {
+      try {
+        vuforiaBase.setActiveCamera(cameraName);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
     }
   }
 

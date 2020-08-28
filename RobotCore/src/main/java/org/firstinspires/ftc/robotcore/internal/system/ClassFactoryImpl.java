@@ -75,19 +75,9 @@ public class ClassFactoryImpl extends ClassFactory
         return new VuforiaLocalizerImpl(parameters);
         }
 
-    @Override public boolean canCreateTFObjectDetector()
-        {
-        return TFObjectDetectorImpl.isDeviceCompatible();
-        }
-
     @Override public TFObjectDetector createTFObjectDetector(TFObjectDetector.Parameters parameters, VuforiaLocalizer vuforiaLocalizer)
         {
-        if (canCreateTFObjectDetector())
-            {
-            return new TFObjectDetectorImpl(parameters, vuforiaLocalizer);
-            }
-
-        throw new RuntimeException("This Android device is not compatible with TensorFlow Object Detection.");
+        return new TFObjectDetectorImpl(parameters, vuforiaLocalizer);
         }
 
     /**

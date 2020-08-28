@@ -32,13 +32,15 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.hardware.lynx;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
+import com.qualcomm.hardware.lynx.commands.standard.LynxKeepAliveCommand;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -58,6 +60,7 @@ public class MessageKeyedLock
     private final    Lock          lock;
     private final    Lock          acquisitionsLock;
     private volatile boolean       tryingToHangAcquisitions;
+    private volatile boolean       throwOnAcquisitionAttempt;
     private final    Condition     condition;
     private volatile LynxMessage   lockOwner;
     private          int           lockCount;
@@ -132,6 +135,21 @@ public class MessageKeyedLock
         if (message == null) throw new IllegalArgumentException("MessageKeyedLock.acquire: null message");
 
         /*
+         * If the event loop is trying to force stop a runaway OpMode, the final
+         * phase before lethal injection is a 100ms window where we're told to
+         * throw an exception if the OpMode tries to acquire the lock. So we check
+         * that before we do anything potentially blocking.
+         */
+        if (throwOnAcquisitionAttempt)
+            {
+            // Don't throw if it's a KA, that's not who we're after
+            if (!(message instanceof LynxKeepAliveCommand))
+                {
+                throw new OpModeManagerImpl.ForceStopException();
+                }
+            }
+
+        /*
          * We check whether we're supposed to lock 'acquisitionsLock' interruptibly or
          * not. Basically, we want user code to be able to gracefully exit when interrupted
          * whenever possible. However, in the case of a rogue OpMode (that we're attempting
@@ -141,24 +159,23 @@ public class MessageKeyedLock
          * the JVM kills it when we restart the app.
          *
          */
-        if(tryingToHangAcquisitions)
-        {
+        if (tryingToHangAcquisitions)
+            {
             this.acquisitionsLock.lock();
-        }
+            }
         else
-        {
+            {
             this.acquisitionsLock.lockInterruptibly();
-        }
+            }
 
-        try
-        {
+        try {
             this.lock.lockInterruptibly();
-        }
+            }
         catch (Exception e)
-        {
+            {
             this.acquisitionsLock.unlock();
             throw e;
-        }
+            }
 
         try {
             if (this.lockOwner != message)
@@ -258,7 +275,7 @@ public class MessageKeyedLock
 
     public void lockAcquisitions()
         {
-        if(LynxUsbDeviceImpl.DEBUG_LOG_DATAGRAMS_LOCK)
+        if (LynxUsbDeviceImpl.DEBUG_LOG_DATAGRAMS_LOCK)
             {
             logv("***ALL FUTURE ACQUISITION ATTEMPTS FROM THREADS OTHER THAN %s WILL NOW HANG!***", Thread.currentThread().getName());
             }
@@ -266,4 +283,8 @@ public class MessageKeyedLock
         this.tryingToHangAcquisitions = true;
         }
 
+    public void throwOnLockAcquisitions(boolean shouldthrow)
+        {
+        throwOnAcquisitionAttempt = shouldthrow;
+        }
     }

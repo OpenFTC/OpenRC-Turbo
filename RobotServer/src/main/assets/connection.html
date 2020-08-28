@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/css/SourceCodePro.css">
-    <script type="text/javascript" src="/js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
 
     <link rel="stylesheet/less" type="text/css" href="/css/connection.less">
@@ -65,9 +65,10 @@
 
     var isConnected = false;
 
-    document.onPingResult = function (pingDetailsList) {
+    document.onPingResult = function (pingResponse) {
         var activeConnections = document.getElementById("id_active_connections");
-        if (pingDetailsList && pingDetailsList.length > 0) {
+        if (pingResponse && pingResponse.connectedDevices.length > 0) {
+            let connectedDevices = pingResponse.connectedDevices;
 
             if (!isConnected) refreshServerStatus();
             isConnected = true;
@@ -81,18 +82,18 @@
             var tbody = document.createElement("TBODY");
             table.appendChild(tbody);
             var i;
-            for (i = 0; i < pingDetailsList.length; i++) {
-                var pingDetails = pingDetailsList[i];
+            for (i = 0; i < connectedDevices.length; i++) {
+                var connectedDevice = connectedDevices[i];
                 var row = document.createElement("TR");
                 addClass(row, "active_connections_row");
                 //
                 var machine = document.createElement("TD");
                 addClass(machine, "active_connections_machine");
-                machine.innerHTML = pingDetails.machineName;
+                machine.innerHTML = connectedDevice.machineName;
                 //
                 var name = document.createElement("TD");
-                addClass(name, "active_connections_name");
-                name.innerHTML = pingDetails.name;
+                addClass(name, "active_connections_page");
+                name.innerHTML = connectedDevice.currentPage;
                 //
                 row.appendChild(machine);
                 row.appendChild(name);

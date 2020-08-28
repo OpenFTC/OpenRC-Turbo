@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2018 Google LLC
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ import android.graphics.Canvas;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
@@ -80,6 +80,7 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
   private final List<String> labels = new ArrayList<>();
 
   private final ClippingMargins clippingMargins = new ClippingMargins();
+  private final Zoom zoom = new Zoom(1.0, 16.0/9.0);
 
   // Parameters passed in through the constructor.
   private TfodParameters params;
@@ -106,14 +107,6 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
 
   private final Object bitmapFrameLock = new Object();
   private Continuation<? extends Consumer<Bitmap>> bitmapContinuation;
-
-  /**
-   * Return true if this device is compatible with TensorFlow Object Detection, false otherwise.
-   */
-  public static boolean isDeviceCompatible() {
-    // Requires Android 6.0+
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-  }
 
   public TFObjectDetectorImpl(Parameters parameters, VuforiaLocalizer vuforiaLocalizer) {
 
@@ -159,9 +152,20 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
   }
 
   private static TfodParameters makeTfodParameters(Parameters parameters) {
-    return new TfodParameters.Builder()
-        .minResultConfidence((float) parameters.minimumConfidence)
+    return new TfodParameters.Builder(parameters.isModelQuantized, parameters.inputSize)
         .trackerDisable(!parameters.useObjectTracker)
+        // Additional configuration requested in
+        // https://github.com/FIRST-Tech-Challenge/SkyStone/issues/210.
+        .numInterpreterThreads(parameters.numInterpreterThreads)
+        .numExecutorThreads(parameters.numExecutorThreads)
+        .maxNumDetections(parameters.maxNumDetections)
+        .timingBufferSize(parameters.timingBufferSize)
+        .maxFrameRate(parameters.maxFrameRate)
+        .minResultConfidence(parameters.minResultConfidence)
+        .trackerMaxOverlap(parameters.trackerMaxOverlap)
+        .trackerMinSize(parameters.trackerMinSize)
+        .trackerMarginalCorrelation(parameters.trackerMarginalCorrelation)
+        .trackerMinCorrelation(parameters.trackerMinCorrelation)
         .build();
   }
 
@@ -275,6 +279,7 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
         interpreters,
         this.labels,
         params,
+        zoom,
         new AnnotatedFrameCallback() {
           @Override
           public void onResult(AnnotatedYuvRgbFrame receivedAnnotatedFrame) {
@@ -396,6 +401,15 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
           clippingMargins.bottom = left;
           break;
       }
+    }
+  }
+
+  @Override
+  public void setZoom(double magnification, double aspectRatio) {
+    Zoom.validateArguments(magnification, aspectRatio);
+    synchronized (zoom) {
+      zoom.magnification = magnification;
+      zoom.aspectRatio = aspectRatio;
     }
   }
 

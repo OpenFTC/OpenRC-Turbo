@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ReadXMLFileHandler extends ConfigurationUtility {
   public static final String TAG = "ReadXMLFileHandler";
@@ -212,6 +213,15 @@ public class ReadXMLFileHandler extends ConfigurationUtility {
   public void onDeviceParsed(DeviceConfiguration device) {
     noteExistingName(device.getConfigurationType(), device.getName());
     handleDeprecation(device);
+    if (device instanceof LynxModuleConfiguration) {
+      LynxModuleConfiguration lynxModule = (LynxModuleConfiguration) device;
+      if (lynxModule.getModuleAddress() > LynxConstants.MAX_UNRESERVED_MODULE_ADDRESS) {
+        if (lynxModule.getModuleAddress() != LynxConstants.CH_EMBEDDED_MODULE_ADDRESS) { // We check elsewhere if the wrong module has the embedded address
+          // TODO(i18n): Convert to XML string
+          warningManager.addWarning(String.format(Locale.ENGLISH, "A module is configured with address %d. Addresses higher than %d are reserved for system use", lynxModule.getModuleAddress(), LynxConstants.MAX_UNRESERVED_MODULE_ADDRESS));
+        }
+      }
+    }
   }
 
   private void handleDeprecation(DeviceConfiguration device) {

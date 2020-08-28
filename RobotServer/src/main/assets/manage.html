@@ -7,7 +7,7 @@
     <script type="text/javascript" src="/js/es5-shim.js"></script>
     <script type="text/javascript" src="/js/es6-shim.js"></script>
     <script type="text/javascript" src="/js/websocket-iframe.js"></script>
-    <script type="text/javascript" src="/js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="/js/bootstrap.min.js"></script>
 
     <link rel="stylesheet/less" type="text/css" href="/css/manage.less">
@@ -15,64 +15,84 @@
 </head>
 <body>
     <div id="blocker" style="display: none; z-index: 10; width: 100%; height: 200%; background-color: rgba(201,201,201,.7); position: fixed; top: 0; left: 0;">
-        <h2 id="blockerText" style="margin:auto; margin-top: 10%; width: 60%; text-align: center; background-color: #ffffff; border: 2px solid black "></h2>
+        <h2 id="blockerText" style="margin:auto; margin-top: 10%; width: 60%; padding:5px; text-align: center; background-color: #ffffff; border: 2px solid black "></h2>
     </div>
-<div class="bordered-text-block">
-    <div>
-        <h1>Robot Controller Name</h1>
-        <p>Change the name of the robot controller.  If using the Control Hub this will also be the name of
-            the broadcasting ssid and changing the ssid disconnects all clients from the Control Hub. You will need to reconnect to the new access point</p>
-        <p>
-            <input id="id_rc_name" class="centered-feedback" type="text" value="(name)"><button id="id_change_name_button" class="aligned-select-button" onclick="onRenameRC()">Change Name</button>
-        </p>
+    <div id="progressBanner" class="alert alert-info" role="alert" style="position:fixed; width:100%; top:0px; display: none; z-index:10;">
+        <div id="progressMessage"></div>
+        <div class="progress" style="margin-top:20px; margin-bottom: 10px;">
+            <!-- Having a separate indeterminate progress bar prevents animating backwards -->
+            <div id="progressBar" class="progress-bar" role="progressbar"></div>
+            <div id="indeterminateProgressBar" class="progress-bar progress-bar-striped active" style="width:100%;" role="progressbar"></div>
+        </div>
     </div>
-    <div id="id_control_hub_password_block">
-        <h1>Access Point Password</h1>
-
-        <p>Change the password for the wireless access point.  Changing the password disconnects all clients from the Control Hub. You will need to reconnect using the new password.</p>
-        <p>New Password<br><input id="id_ap_new_password" class="centered-feedback" type="password" value=""> </p>
-        <p>Confirm Password<br><input id="id_ap_confirmed_password" class="centered-feedback" type="password" value="">
-            <br><input type="checkbox" onclick="onShowPasswordCheckbox()">Show Password
-        </p>
-        <p><button id="id_change_ap_password" class="aligned-select-button" onclick="onChangeApPassword()">Change Password</button><br></p>
+    <div class="bordered-text-block">
+        <h1 class="header-shared-line">Robot Controller version: </h1><span id="id_rc_version" class="next-to-header"></span>
+        <div id="id_control_hub_os_version_item">
+            <h1 class="header-shared-line">Control Hub OS version: </h1><span id="id_control_hub_os_version" class="next-to-header"></span>
+        </div>
+        <div id="id_rev_firmware_versions_item">
+            <h1>REV Hub firmware versions:</h1>
+            <div id="id_rev_firmware_versions" class="indented"></div>
+        </div>
     </div>
-    <div id="id_control_hub_channel_block">
-        <h1>Access Point Channel</h1>
-        <p>Change the operating channel for the wireless access point.</p>
-        <p>
-            <!-- TODO(CHv1): Update this channel changer to work for both Wifi Direct and the Control Hub -->
-            <!-- TODO(CHv1): Only show 5GHz channels if device supports 5 GHz WiFi AP.
-                             Use rcInfo.supports5GhzAp from within the refreshRCInfo function. -->
-            <!-- Value chosen to intentionally choose auto select -->
-            <select id="id_ap_channel" class="centered-feedback">
-                <option value="-1" selected></option>
-                <option value="0">Auto</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
-                <option value="36">36 (5 GHz)</option>
-                <option value="40">40 (5 GHz)</option>
-                <option value="44">44 (5 GHz)</option>
-                <option value="48">48 (5 GHz)</option>
-                <option value="149">149 (5 GHz)</option>
-                <option value="153">153 (5 GHz)</option>
-                <option value="157">157 (5 GHz)</option>
-                <option value="161">161 (5 GHz)</option>
-                <option value="165">165 (5 GHz)</option>
-            </select>
-            <button id="id_change_ap_channel" class="aligned-select-button" onclick="onChangeApChannel()">Change Channel</button>
-        </p>
+    <div class="bordered-text-block" id="id_network_settings_block">
+        <h1>WiFi Settings</h1>
+        <form class="indented">
+            <div class="form-group">
+                <label for="id_rc_name">Name</label>
+                <input id="id_rc_name" class="form-control limited-width" type="text" value="(name)">
+            </div>
+            <div class="form-group" id="id_password_group">
+                <label for="id_ap_new_password">New Password</label>
+                <input id="id_ap_new_password" class="form-control limited-width" type="password" value="">
+            </div>
+            <div class="form-group" id="id_confirmed_password_group">
+                <label for="id_ap_confirmed_password">Confirm Password</label>
+                <input id="id_ap_confirmed_password" class="form-control limited-width" type="password" value="">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" onclick="onShowPasswordCheckbox()">
+                        Show Password
+                    </label>
+                </div>
+            </div>
+            <div class="form-group" id="id_wifi_band_group">
+                <label>WiFi Band</label>
+                <br>
+                <label class="radio-inline">
+                    <input type="radio" name="wifiBand" id="id_wifi_band_24" value="band_24" onclick="updateChannelList();">2.4 GHz
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="wifiBand" id="id_wifi_band_5" value="band_5" onclick = "updateChannelList();">5 GHz
+                </label>
+                <span class="help-block">
+                    The 5 GHz WiFi band is highly recommended, unless you need to connect older devices that only support 2.4 GHz WiFi.
+                </span>
+            </div>
+            <div class="form-group">
+                <label for="id_ap_channel">WiFi Channel</label>
+                <select id="id_ap_channel" class="form-control" style="max-width: 150px"></select>
+                <div class="checkbox" id="id_show_overlapping_channels">
+                    <label>
+                        <input type="checkbox" id="id_show_overlapping_channels_checkbox" onclick="updateChannelList()">
+                        Show overlapping channels (not recommended)
+                    </label>
+                </div>
+            </div>
+        </form>
+        <button id="id_submit_network_settings_button" class="aligned-select-button" onclick="onSubmitNetworkSettings()">Apply WiFi Settings</button>
+        <div id="id_control_hub_wifi_warnings">
+            <span class="help-block">
+            You will need to reconnect to the new WiFi network after changing the Control Hub's name and/or password.
+            </span>
+            <span class="help-block" style="margin-bottom:0; max-width:700px">
+                If you are unable to connect to the Control Hub's network after switching to the 5 GHz band,
+                you can perform a WiFi factory reset by holding down the Control Hub's button while you
+                turn it on, until you see a rapid sequence of color changes on the Control Hub's light.
+                The WiFi network name and password will be reset to their default values, and the WiFi band will be set to 2.4 GHz.
+            </span>
+        </div>
     </div>
-</div>
-<br>
 <div class="bordered-text-block">
     <div id="id_download_logs">
         <h1>Download Robot Controller Logs</h1>
@@ -80,16 +100,14 @@
         <p><button onclick="javascript:onDownloadLogsClicked()">Download Logs<span id="id_log_count"></span></button></p>
     </div>
     <div id="id_upload_firmware">
-        <h1>Upload Expansion Hub Firmware</h1>
-        <p>Upload firmware for the REV Expansion Hub to the robot controller. Once uploaded, the firmware can be
-        installed on Expansion Hubs using the Advanced Settings menu on the robot controller or driver station.</p>
+        <h1>Update REV Hub Firmware</h1>
+        <p>Update firmware on the REV Expansion Hub and REV Control Hub.<br>You can upload a firmware file yourself, or use the included version.</p>
         <div>
             <p>
                 <input id="id_input_file_firmware" type="file" class="hidden hidden-input-file">
                 <input id="id_firmware_feedback" readonly class="upload-feedback" type="text" value="(firmware)"><button id="id_firmware_button" class="aligned-select-button" >Select Firmware...</button>
-                <button id="id_action_firmware" class="aligned-action-button" onclick="uploadFirmware();">Upload</button>
             </p>
-            <p id="id_firmware_upload_complete" class="text-ok"></p>
+            <button id="id_action_firmware" class="aligned-action-button" onclick="firmwareUpdateButtonClicked();">Upload</button>
         </div>
     </div>
     <div id="id_update_robot_controller_application">
@@ -117,6 +135,19 @@
             <p id="id_webcam_calibration_upload_complete" class="text-ok"></p>
         </div>
     </div>
+    <div id="id_upload_tflite_model">
+        <h1>Upload TensorFlow Lite Model File</h1>
+        <p>Upload a TensorFlow Lite model file.</p>
+        <div>
+            <p>
+                <input id="id_input_file_tflite_model" type="file" class="hidden hidden-input-file">
+                <input id="id_tflite_model_feedback" readonly class="upload-feedback" type="text" value="(tflite_model)">
+                    <button id="id_tflite_model_button" class="aligned-select-button" >Select TensorflowLite Model File...</button>
+                <button id="id_action_tflite_model" class="aligned-action-button" onclick="uploadTfliteModel();">Upload</button>
+            </p>
+            <p id="id_tflite_model_upload_complete" class="text-ok"></p>
+        </div>
+    </div>
     <div id="id_update_control_hub_operating_system">
         <h1>Update Control Hub Operating System</h1>
         <p>Upload an Operating System update file for the REV Control Hub</p>
@@ -131,18 +162,100 @@
     </div>
 </div>
 
+<div class="modal fade" id="id_fw_update_modal" tabindex="-1" role="dialog" aria-labelledby="id_fw_update_title">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h3 class="modal-title" id="id_fw_update_title">REV Hub Firmware Update</h3>
+            </div>
+            <div class="modal-body">
+                <div id="id_fw_update_loading_devices">
+                    <h4>Getting devices available for update</h4>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width:100%;"></div>
+                    </div>
+                </div>
+                <div id="id_fw_update_content">
+                    <h4>REV Hubs that will be updated:</h4>
+                    <div class="list-group" id="id_fw_update_device_list"></div>
+                    <div class="panel panel-info">
+                        <div class="panel-heading"><h4 class="panel-title">Note</h4></div>
+                        <div class="panel-body">
+                            Expansion Hubs are only available for firmware update if they are
+                            plugged into the Robot Controller directly via USB (not RS485).
+                        </div>
+                    </div>
+                    <div class="panel panel-danger">
+                        <div class="panel-heading"><h4 class="panel-title">Warning</h4></div>
+                        <div class="panel-body">
+                            While the firmware update is in progress, do not unplug any hubs or restart
+                            the robot, or a hub may need to be updated again before it can be used.
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" id="id_fw_update_apply_button" class="btn btn-primary" data-dismiss="modal">
+                            Update Hub Firmware
+                        </button>
+                    </div>
+                </div>
+                <div id="id_fw_update_no_devices_found">
+                    <h4>No Expansion Hubs were found via USB.</h4>
+                    <div class="text-center">
+                        <button type="button" onclick="openFirmwareUpdateModal()" class="btn btn-primary">
+                            Re-scan for Expansion Hubs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript" src="/js/rc_config.js"></script>
 <script type="text/javascript" src="/js/util.js"></script>
 <script type="text/javascript">
 
     var appUpdateRequiresReboot = false;
     var mostRecentUploadIdentifier;
+    var allAvailableChannels;
+    var isControlHub;
+    var originalName;
+    var originalPassword;
 
     var CH_UPDATER_NAMESPACE = "ControlHubUpdater";
+    var PROGRESS_NAMESPACE = "progress";
+
+    var remainingModulesForFwUpdate = []; // contains hub serial numbers
+    var fwUpdateFilename; // falsy value indicates that the built-in firmware file should be used
 
     var updateAbandonmentEventHandler = function(event) { event.preventDefault(); event.returnValue = "Update in progress"; }
 
-    var handleUpdaterNotification = function (webSocketMessage) {
+    var handleShowProgress = function(webSocketMessage) {
+        var payload = JSON.parse(webSocketMessage.payload);
+
+        document.getElementById('progressMessage').innerText = payload.message;
+        var progressBar = document.getElementById('progressBar');
+        var indeterminateProgressBar = document.getElementById('indeterminateProgressBar');
+
+        if (payload.cur === 0) {
+            indeterminateProgressBar.style.display = 'block';
+            progressBar.style.display = 'none';
+        } else {
+            var percent = ((payload.cur / payload.max) * 100).toFixed(2) + "%";
+            progressBar.style.width = percent;
+            progressBar.style.display = 'block';
+            indeterminateProgressBar.style.display = 'none';
+        }
+
+        document.getElementById('progressBanner').style.display = 'block';
+    };
+
+    var dismissProgress = function(webSocketMessage) {
+        document.getElementById('progressBanner').style.display = 'none';
+    };
+
+    var handleUpdaterNotification = function(webSocketMessage) {
         var payload = JSON.parse(webSocketMessage.payload);
         console.log(payload);
         var message = payload.message;
@@ -174,8 +287,7 @@
                 }
             }, 10);
         }
-
-    }
+    };
 
     var bindToControlHubUpdaterTransaction = function (xhr) {
         var responseObject = JSON.parse(xhr.response);
@@ -189,9 +301,16 @@
     }
 
     WEBSOCKET_LIB.webSocketManager.subscribeToNamespace(CH_UPDATER_NAMESPACE);
+    WEBSOCKET_LIB.webSocketManager.subscribeToNamespace(PROGRESS_NAMESPACE);
     WEBSOCKET_LIB.webSocketManager.registerTypeHandler(CH_UPDATER_NAMESPACE, "notification", handleUpdaterNotification);
+    WEBSOCKET_LIB.webSocketManager.registerTypeHandler(PROGRESS_NAMESPACE, "showProgress", handleShowProgress);
+    WEBSOCKET_LIB.webSocketManager.registerTypeHandler(PROGRESS_NAMESPACE, "dismissProgress", dismissProgress)
+    WEBSOCKET_LIB.webSocketManager.registerConnectionStateListeners(function(){}, dismissProgress);
 
-    var initUpload = function (idInput, idFeedback, idButton, ext, idAction) {
+    var initUpload = function (idInput, idFeedback, idButton, ext, idAction, options) {
+        if (typeof options === 'undefined') options = {};
+        if (typeof options.hideActionButton === 'undefined') options.hideActionButton = true;
+
         var input = document.getElementById(idInput);
         var feedback = document.getElementById(idFeedback);
         var button = document.getElementById(idButton);
@@ -201,11 +320,13 @@
         feedback.onclick = function () { input.click(); };
         button.onclick = function () { input.click(); };
         input.accept = ext;
-        input.onchange = function () { fileInputChange(input, feedback, ext, action); };
-        hideElement(action, true);
+        input.onchange = function () { fileInputChange(input, feedback, ext, action, options.fileSelectedCallback); };
+        if (options.hideActionButton) {
+            hideElement(action, true);
+        }
     }
 
-    var fileInputChange = function(input, feedback, ext, action) {
+    var fileInputChange = function(input, feedback, ext, action, fileSelectedCallback) {
         if (input.files && input.files.length > 0) {
             var file = input.files[0];
             console.log("fileInputChange() ext=" + ext + " file=" + file);
@@ -213,6 +334,9 @@
                 feedback.value = file.name;
                 feedback.dataFile = file;
                 hideElement(action, false);
+                if (fileSelectedCallback) {
+                    fileSelectedCallback();
+                }
             } else {
                 alert("Please choose a file with extension: " + ext);
             }
@@ -221,13 +345,20 @@
         }
     }
 
-    $('#id_firmware_upload_complete').hide();
-    initUpload('id_input_file_firmware', 'id_firmware_feedback', 'id_firmware_button', '.bin', 'id_action_firmware');
+    initUpload('id_input_file_firmware', 'id_firmware_feedback', 'id_firmware_button', '.bin', 'id_action_firmware', {
+        hideActionButton: false,
+        fileSelectedCallback: function() {
+            document.getElementById('id_action_firmware').innerText = "Update using selected firmware file";
+        }
+    });
     initUpload('id_input_file_apk',      'id_apk_feedback',      'id_apk_button',      '.apk', 'id_action_apk');
     initUpload('id_input_file_ota',      'id_ota_feedback',      'id_ota_button',      '.zip', 'id_action_ota');
 
     $('#id_id_webcam_calibration_upload_complete').hide();
     initUpload('id_input_file_webcam_calibration', 'id_webcam_calibration_feedback', 'id_webcam_calibration_button', '.xml', 'id_action_webcam_calibration');
+
+    $('#id_id_tflite_model_upload_complete').hide();
+    initUpload('id_input_file_tflite_model', 'id_tflite_model_feedback', 'id_tflite_model_button', '.tflite', 'id_action_tflite_model');
 
     var showUploadBlocker = function(text) {
         if (!text) {
@@ -249,18 +380,137 @@
         hideUploadBlocker();
     }
 
-    var uploadFirmware = function () {
+    var performNextFirmwareUpdate = function() {
+        var module = remainingModulesForFwUpdate.shift();
+        if (!module) return;
+        console.log("performNextFirmwareUpdate() called, module=" + JSON.stringify(module));
+        var fwUpdateRequest = new XMLHttpRequest();
+        fwUpdateRequest.onreadystatechange = function() {
+            if (fwUpdateRequest.readyState === 4) {
+                if (fwUpdateRequest.status === 200) {
+                    var result = JSON.parse(fwUpdateRequest.responseText);
+                    console.log("Firmware update result: " + fwUpdateRequest.responseText);
+                    if (result.success === true) {
+                        if (remainingModulesForFwUpdate.length > 0) {
+                            performNextFirmwareUpdate();
+                        } else {
+                            alert("Firmware update completed successfully")
+                        }
+                        refreshRcInfo();
+                    } else {
+                        var deviceString;
+                        if (module.serialNumber === "(embedded)") {
+                            deviceString = "Control Hub";
+                        } else {
+                            deviceString = "Expansion Hub " + module.serialNumber;
+                        }
+                        var failureMessage = "Firmware update of " + deviceString + " failed";
+                        if (result.errorMessage) {
+                            failureMessage += " because " + result.errorMessage;
+                        }
+                        failureMessage += ". Please try again.";
+                        console.log(failureMessage);
+                        alert(failureMessage);
+                    }
+                } else {
+                    console.log("Received code " + fwUpdateRequest.status + " when updating firmware");
+                }
+            }
+        };
+        fwUpdateRequest.open("POST", URI_PERFORM_REV_FIRMWARE_UPDATE);
+        fwUpdateRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        var params = "serialNumber=" + module.serialNumber;
+        if (fwUpdateFilename) {
+            params += "&filename=" + fwUpdateFilename;
+        }
+        fwUpdateRequest.send(params);
+    }
+
+    var firmwareUpdateButtonClicked = function() {
         var feedback = document.getElementById('id_firmware_feedback');
-        var file = feedback.dataFile;
-        console.log("uploadFirmware() name=" + file.name);
-        var url = URI_UPLOAD_EXPANSION_HUB_FIRMWARE;
-        showUploadBlocker();
-        uploadFile(file, url,
-            function(xhr, e) {
-                uploadSuccess(file, xhr, e);
-                showToast('id_firmware_upload_complete', 'Firmware upload complete');
-            },
-            function(xhr, e) { uploadFailure(file, xhr, e); });
+        var uploadedFile = feedback.dataFile;
+        var useUploadedFile = !!uploadedFile;
+        console.log("firmwareUpdateButtonClicked() useUploadedFile=" + useUploadedFile);
+        if (useUploadedFile) {
+            var url = URI_UPLOAD_EXPANSION_HUB_FIRMWARE;
+            showUploadBlocker();
+            uploadFile(uploadedFile, url,
+                function(xhr, e) {
+                    uploadSuccess(uploadedFile, xhr, e);
+                    fwUpdateFilename = xhr.responseText; // response contains uploaded filename
+                    openFirmwareUpdateModal();
+                },
+                function(xhr, e) { uploadFailure(uploadedFile, xhr, e); });
+        } else {
+            openFirmwareUpdateModal();
+        }
+    }
+
+    // This method may be called with the modal already open
+    // This means that the modal should start over, beginning with a fresh scan
+    var openFirmwareUpdateModal = function() {
+        var loadingDiv = document.getElementById('id_fw_update_loading_devices');
+        var id_fw_update_contentDiv = document.getElementById('id_fw_update_content');
+        var noDevicesFoundDiv = document.getElementById('id_fw_update_no_devices_found');
+
+        loadingDiv.style.display = 'block';
+        id_fw_update_contentDiv.style.display = 'none';
+        noDevicesFoundDiv.style.display = 'none';
+        $('#id_fw_update_modal').modal('show');
+        var availableDevicesRequest = new XMLHttpRequest();
+        availableDevicesRequest.onreadystatechange = function() {
+            if (availableDevicesRequest.readyState === 4) {
+                if (availableDevicesRequest.status === 200) {
+                    loadingDiv.style.display = 'none';
+                    var modules = JSON.parse(availableDevicesRequest.responseText).modules;
+
+                    if (modules.length === 0) {
+                        noDevicesFoundDiv.style.display = 'block';
+                    } else {
+                        var deviceList = document.getElementById('id_fw_update_device_list');
+                        deviceList.textContent = '';
+                        modules.forEach(function(module) {
+                            var headerText;
+                            var displayModuleAddress;
+                            var descriptionText;
+                            if (module.serialNumber === '(embedded)') {
+                                headerText = "Control Hub";
+                                displayModuleAddress = false;
+                            } else {
+                                headerText = "Expansion Hub";
+                                displayModuleAddress = true;
+                            }
+                            descriptionText = "Serial number: " + module.serialNumber + "<br>";
+                            if (displayModuleAddress) {
+                                descriptionText += "Module address: " + module.moduleAddress + "<br>";
+                            }
+                            descriptionText += "Current firmware version: " + module.formattedFirmwareVersionString + "<br>";
+
+                            var listEntry = document.createElement('div');
+                            var header = document.createElement('h4');
+                            var description = document.createElement('p');
+                            listEntry.classList.add("list-group-item");
+                            header.appendChild(document.createTextNode(headerText));
+                            description.innerHTML = descriptionText;
+                            listEntry.appendChild(header);
+                            listEntry.appendChild(description);
+                            deviceList.appendChild(listEntry);
+                        });
+                        document.getElementById('id_fw_update_apply_button').onclick = function() {
+                            remainingModulesForFwUpdate = modules;
+                            performNextFirmwareUpdate();
+                        };
+                        document.getElementById('id_fw_update_content').style.display = 'block';
+                    }
+                } else if (availableDevicesRequest.status === 503) {
+                    window.setTimeout(openFirmwareUpdateModal, 1000); // Try again after a second, the robot is probably still starting up
+                } else {
+                    console.log("Received code " + availableDevicesRequest.status + " when getting available devices");
+                }
+            }
+        };
+        availableDevicesRequest.open("GET", URI_REV_HUBS_AVAILABLE_FOR_UPDATE);
+        availableDevicesRequest.send();
     }
 
     var updateApk = function() {
@@ -313,6 +563,20 @@
             function(xhr, e) { uploadFailure(file, xhr, e); });
     }
 
+    var uploadTfliteModel = function () {
+        var feedback = document.getElementById('id_tflite_model_feedback');
+        var file = feedback.dataFile;
+        console.log("uploadTfliteModel() name=" + file.name);
+        var url = URI_UPLOAD_TFLITE_MODEL_FILE;
+        showUploadBlocker();
+        uploadFile(file, url,
+            function(xhr, e) {
+                uploadSuccess(file, xhr, e);
+                showToast('id_tflite_model_upload_complete', 'TensorFlow Lite model upload complete');
+            },
+            function(xhr, e) { uploadFailure(file, xhr, e); });
+    }
+
     var uploadOta = function () {
         var feedback = document.getElementById('id_ota_feedback');
         var file = feedback.dataFile;
@@ -328,34 +592,64 @@
             });
      }
 
-    var onRenameRC = function () {
-        console.log("onRenameRC()");
+    var onSubmitNetworkSettings = function () {
+        console.log("onSubmitNetworkSettings()");
         var newName = document.getElementById("id_rc_name").value.trim();
-        if (newName.length < 2 || newName.length > 40) {
-            alert("RC Name must be between 2 and 40 chars");
+        var newPw = document.getElementById("id_ap_new_password").value;
+        var confirmPw = document.getElementById("id_ap_confirmed_password").value;
+        var newChannelName = document.getElementById("id_ap_channel").value;
+        if (newName.length < 2 || newName.length > 32) {
+            alert("RC Name must be between 2 and 32 chars");
         } else if (newName.match(/\s/) != null) {
             alert("RC Name must not include whitespace (space, tab, return, etc..)");
-        }
-        else {
-            console.log("newName=" + newName);
+        } else if (newPw && (newPw.length < 8 || newPw.length > 63)) {
+            alert("Password must be between 8 and 63 chars");
+        } else if (newPw && newPw.localeCompare(confirmPw) !== 0) {
+            alert("New password and the confirmation password are different");
+        } else {
+            console.log("newName=" + newName + " newPw= " + newPw + " newChannelName=" + newChannelName);
             var xhr = new XMLHttpRequest();
             var params = PARAM_NAME + '=' + encodeURIComponent(newName);
-            xhr.open('POST', URI_RENAME_RC, true /*async*/);
+            if (newPw) {
+                params += "&" + PARAM_AP_PASSWORD + '=' + encodeURIComponent(newPw);
+            }
+            if (newChannelName) {
+                params += "&" + PARAM_CHANNEL_NAME + '=' + encodeURIComponent(newChannelName);
+            }
+            xhr.open('POST', URI_CHANGE_NETWORK_SETTINGS, true /*async*/);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
-                    refreshRCInfo();
+                    if (xhr.status === 200) {
+                        window.setTimeout(function() {
+                            refreshRCInfo();
+                        }, 200); // Give the settings a chance to apply
+                    } else if (xhr.status === 0) {
+                        // This indicates that we've already disconnected from the network.
+                    } else {
+                        console.log("Network settings failed to apply. Error code: " + xhr.status + " Error text: " + xhr.responseText);
+                        var error = "The network settings failed to apply";
+                        if (xhr.responseText) {
+                            error += ". " + xhr.responseText;
+                        }
+                        alert(error);
+                    }
                 }
             };
             xhr.send(params);
 
-            loadRcInfo(function (rcInfo) {
-                if (rcInfo) {
-                    if (rcInfo.isREVControlHub) {
-                        alert("The Control Hub's name has been changed to " + newName + ". Since the name functions as the WiFi access point name you have been disconnected from the Control Hub's network.  You will need to connect to the new network name and refresh this page.");
-                    }
+            if (isControlHub) {
+                let nameChanged = originalName !== newName;
+                let passwordChanged = originalPassword !== newPw;
+                if (nameChanged && passwordChanged) {
+                    alert("The Control Hub's name and password have been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to connect to the new network.");
+                } else if (nameChanged) {
+                    alert("The Control Hub's name has been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to connect to the new network.");
+                } else if (passwordChanged) {
+                    // If the password changed but not the name, the user needs to "forget" the old network before reconnecting.
+                    alert("The Control Hub's password has been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to \"forget\" the network, and then connect to it again.");
                 }
-            });
+            }
         }
     }
 
@@ -371,47 +665,38 @@
         }
     }
 
-    var onChangeApPassword = function () {
-        console.log("onChangeApPassword()");
-        var newPw = document.getElementById("id_ap_new_password").value;
-        var confirmPw = document.getElementById("id_ap_confirmed_password").value;
-        if (newPw.length < 8 || newPw.length > 128) {
-            alert("Password must be between 8 and 128 chars");
-        } else if (newPw.localeCompare(confirmPw) != 0) {
-            alert("New password and the confirmation password are different");
+    var updateChannelList = function (channelNameToSelect) {
+        var show5GhzChannels = document.getElementById("id_wifi_band_5").checked;
+        var showOverlappingChannels = document.getElementById("id_show_overlapping_channels_checkbox").checked;
+        var channelDropdown = document.getElementById("id_ap_channel");
+        hideElement(document.getElementById("id_show_overlapping_channels"), show5GhzChannels);
+        channelDropdown.innerText = '';
+        allAvailableChannels.forEach(function(channel) {
+            var fiveGhzChannel = (channel.band === "BAND_5_GHZ");
+            var showChannel = (show5GhzChannels && fiveGhzChannel) || (!show5GhzChannels && !fiveGhzChannel);
+            if (!showOverlappingChannels && channel.overlapsWithOtherChannels) {
+                showChannel = false;
+            }
+            if (showChannel) {
+                var channelOption = document.createElement("option");
+                channelOption.value = channel.name;
+                channelOption.textContent = channel.displayName;
+                channelDropdown.appendChild(channelOption);
+            }
+        });
+
+        if (channelNameToSelect) {
+            channelDropdown.value = channelNameToSelect;
         } else {
-            var xhr = new XMLHttpRequest();
-            var params = PARAM_NAME + '=' + encodeURIComponent(newPw);
-            xhr.open('POST', URI_CHANGE_AP_PASSWORD, true /*async*/);
-            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    refreshRCInfo();
-                }
-            };
-            xhr.send(params);
-            alert("The password has been changed, you have been disconnected from the Control Hub's network.  You will need to login again and refresh this page.");
+            channelDropdown.value = '';
         }
     }
 
-    var onChangeApChannel = function () {
-        console.log("onChangeApChannel()");
-        var newCh = $("#id_ap_channel").val();
-        if (newCh < 0 ) {
-            alert("Please select Auto or one of the channels")
-        }
-        else {
-            console.log(newCh);
-            var xhr = new XMLHttpRequest();
-            var params = PARAM_NAME + '=' + encodeURIComponent(newCh);
-            xhr.open('POST', URI_CHANGE_AP_CHANNEL, true /*async*/);
-            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    refreshRCInfo();
-                }
-            };
-            xhr.send(params);
+    var selectBand = function (select5GHzBand) {
+        if (select5GHzBand) {
+            document.getElementById("id_wifi_band_5").checked = true;
+        } else {
+            document.getElementById("id_wifi_band_24").checked = true;
         }
     }
 
@@ -421,13 +706,62 @@
                 scaleTextInDocumentBody(rcInfo);
 
                 document.getElementById("id_rc_name").value = rcInfo.deviceName;
+                document.getElementById("id_ap_new_password").value = rcInfo.passphrase;
+                document.getElementById("id_ap_confirmed_password").value = rcInfo.passphrase;
+
                 var uaIsRobotController = rcInfo.ftcUserAgentCategory === "ROBOT_CONTROLLER";
                 hideElement(document.getElementById("id_download_logs"), uaIsRobotController);
                 hideElement(document.getElementById("id_upload_firmware"), uaIsRobotController);
                 hideElement(document.getElementById("id_update_robot_controller_application"), uaIsRobotController || !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_control_hub_wifi_warnings"), !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_password_group"), !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_confirmed_password_group"), !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_wifi_band_group"), !rcInfo.supports5GhzAp);
                 hideElement(document.getElementById("id_update_control_hub_operating_system"), !rcInfo.supportsOtaUpdate || !rcInfo.isREVControlHub);
-                hideElement(document.getElementById("id_control_hub_password_block"), !rcInfo.isREVControlHub);
-                hideElement(document.getElementById("id_control_hub_channel_block"), !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_control_hub_os_version_item"), !rcInfo.isREVControlHub);
+                hideElement(document.getElementById("id_rev_firmware_versions_item"), !rcInfo.revHubNamesAndVersions || rcInfo.revHubNamesAndVersions.length === 0);
+
+                allAvailableChannels = rcInfo.availableChannels;
+                isControlHub = rcInfo.isREVControlHub;
+                originalName = rcInfo.deviceName;
+                originalPassword = rcInfo.passphrase;
+
+                let select5GhzBand = false;
+                let currentChannel = "";
+                if (rcInfo.currentChannel.name !== "UNKNOWN") {
+                    currentChannel = rcInfo.currentChannel.name;
+                    if (rcInfo.currentChannel.band === "BAND_5_GHZ") {
+                        select5GhzBand = true;
+                    }
+                    if (rcInfo.currentChannel.overlapsWithOtherChannels === true) {
+                        document.getElementById("id_show_overlapping_channels_checkbox").checked = true;
+                    }
+                } else if (rcInfo.supports5GhzAp) {
+                    select5GhzBand = true;
+                }
+                selectBand(select5GhzBand);
+                updateChannelList();
+                document.getElementById("id_ap_channel").value = currentChannel;
+
+                document.getElementById("id_rc_version").textContent = rcInfo.rcVersion;
+                document.getElementById("id_control_hub_os_version").textContent = rcInfo.chOsVersion;
+
+                var revFirmwareVersions = document.getElementById("id_rev_firmware_versions");
+                revFirmwareVersions.textContent = "";
+
+                if (rcInfo.revHubNamesAndVersions) {
+                    rcInfo.revHubNamesAndVersions.forEach(function(nameAndVersion) {
+                        var entry = document.createElement('p');
+                        entry.innerHTML = '<b><i>' + nameAndVersion.name + '</i></b>: ' + nameAndVersion.firmwareVersion;
+                        revFirmwareVersions.appendChild(entry);
+                    });
+                }
+
+
+                // Only update the fw update button if no fw file has been selected
+                if (!document.getElementById("id_input_file_firmware").value) {
+                    document.getElementById("id_action_firmware").innerText = "Update to firmware version " + rcInfo.includedFirmwareFileVersion;
+                }
 
                 if (rcInfo.appUpdateRequiresReboot) {
                     appUpdateRequiresReboot = true;
@@ -484,6 +818,7 @@
     }
 
 </script>
+    <script type="text/javascript" src="/js/util.js"></script>
 
 </body>
 </html>

@@ -108,17 +108,9 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
             networkConnectionHandler.pushReceiveLoopCallback(this);
             }
 
-        try
-            {
-            usbScanManager = new USBScanManager(context, remoteConfigure);
-            this.usbScanManager.startExecutorService();
-            this.usbScanManager.startDeviceScanIfNecessary();
-            }
-        catch (RobotCoreException e)
-            {
-            appUtil.showToast(UILocation.ONLY_LOCAL, getString(R.string.templateConfigureFailedToOpenUSBScanManager));
-            RobotLog.ee(TAG, e, "Failed to open usb scan manager: " + e.toString());
-            }
+        usbScanManager = new USBScanManager(context, remoteConfigure);
+        this.usbScanManager.startExecutorService();
+        this.usbScanManager.startDeviceScanIfNecessary();
 
         this.feedbackAnchor = (ViewGroup)findViewById(R.id.feedbackAnchor);
         }

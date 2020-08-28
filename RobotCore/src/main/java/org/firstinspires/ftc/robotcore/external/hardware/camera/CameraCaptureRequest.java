@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.external.hardware.camera;
 
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.external.android.util.Size;
 
@@ -74,7 +74,7 @@ public interface CameraCaptureRequest
 
     /**
      * Returns an empty bitmap which is compatible with this capture request. The contents of a
-     * {@link CameraFrame} can be transfered to this bitmap using {@link CameraFrame#copyToBitmap(Bitmap)}.
+     * {@link CameraFrame} can be transferred to this bitmap using {@link CameraFrame#copyToBitmap(Bitmap)}.
      *
      * @return an empty bitmap which is compatible with this request
      */

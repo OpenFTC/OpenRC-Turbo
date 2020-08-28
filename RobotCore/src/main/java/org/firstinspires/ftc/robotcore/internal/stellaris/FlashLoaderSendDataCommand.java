@@ -53,7 +53,7 @@ public class FlashLoaderSendDataCommand extends FlashLoaderCommand
     // Programmer actually uses 60 bytes. sflash uses 8 (by default). Hmmm... we'll use
     // a small number, to be on the safe side. The firmware update will run more slowly,
     // but (probably) has less chance of bricking.
-    public static final int QUANTUM = 16;
+    public static final int QUANTUM = 8;
 
     public FlashLoaderSendDataCommand(byte[] data)
         {

@@ -1,18 +1,19 @@
 /*
-Copyright 2018 Google LLC.
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package org.firstinspires.ftc.robotcore.external.navigation;
 
 import android.content.Context;
@@ -20,8 +21,13 @@ import android.content.res.AssetManager;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
@@ -33,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -390,4 +397,26 @@ public abstract class VuforiaBase {
     return sb.toString();
   }
 
+  /**
+   * Sets the active camera of the switchable camera. Does nothing if the camera is not a
+   * SwitchableCamera.
+   *
+   * @throws IllegalStateException if initialized has not been called yet.
+   */
+  public void setActiveCamera(CameraName cameraName) {
+    Camera camera = getVuforiaLocalizer().getCamera();
+    if (camera instanceof SwitchableCamera) {
+      SwitchableCamera switchableCamera = (SwitchableCamera) camera;
+      switchableCamera.setActiveCamera(cameraName);
+    }
+  }
+
+  public static CameraName getSwitchableCamera(HardwareMap hardwareMap) {
+    List<WebcamName> list = hardwareMap.getAll(WebcamName.class);
+    CameraName[] allWebcams = new CameraName[list.size()];
+    for (int i = 0; i < list.size(); i++) {
+      allWebcams[i] = list.get(i);
+    }
+    return ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(allWebcams);
+  }
 }

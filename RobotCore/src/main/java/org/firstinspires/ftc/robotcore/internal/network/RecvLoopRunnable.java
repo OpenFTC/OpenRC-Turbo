@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.robotcore.internal.network;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolDatagram;
 import com.qualcomm.robotcore.robocol.RobocolDatagramSocket;
+import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -166,7 +167,11 @@ public class RecvLoopRunnable implements Runnable {
                         Thread.yield();
                         continue;
                     }
-                    if (lastRecvPacket != null) lastRecvPacket.reset();
+
+                    // Drop all incoming packets not from our current peer, except for Peer Discovery packets.
+                    boolean packetFromCurrentPeer = packet.getAddress().equals(NetworkConnectionHandler.getInstance().getCurrentPeerAddr());
+                    if (!packetFromCurrentPeer && packet.getMsgType() != RobocolParsable.MsgType.PEER_DISCOVERY) continue;
+                    if (packetFromCurrentPeer && lastRecvPacket != null) lastRecvPacket.reset();
 
                     try {
                         packetProcessingTimer.reset();

@@ -41,45 +41,66 @@ import org.firstinspires.ftc.robotcore.external.function.ThrowingSupplier;
 
 import java.util.concurrent.Callable;
 
-@SuppressWarnings("WeakerAccess")
 public class Tracer
     {
     //------------------------------------------------------------------------------------------
     // State
     //------------------------------------------------------------------------------------------
 
-    public String tag;
-    public boolean enableTrace;
-    public boolean enableErrorTrace;
+    public static boolean DEBUG = true;
+
+    public final String tag;
+    protected boolean enableTrace;
+    protected boolean enableErrorTrace;
 
     public String getTag()
         {
         return tag;
+        }
+    public boolean enableTrace()
+        {
+        return enableTrace;
+        }
+    public boolean enableErrorTrace()
+        {
+        return enableErrorTrace;
         }
 
     //------------------------------------------------------------------------------------------
     // Construction
     //------------------------------------------------------------------------------------------
 
-    private Tracer(String tag, boolean enableTrace, boolean enableErrorTrace)
+    protected Tracer(String tag, boolean enableTrace, boolean enableErrorTrace)
         {
         this.tag = tag;
         this.enableTrace = enableTrace;
         this.enableErrorTrace = enableErrorTrace;
         }
 
-    private Tracer(String tag, boolean enableTrace)
-        {
-        this(tag, enableTrace, true);
-        }
-
-    public static Tracer create(String tag, boolean enableTrace)
-        {
-        return new Tracer(tag, enableTrace);
-        }
     public static Tracer create(String tag, boolean enableTrace, boolean enableErrorTrace)
         {
         return new Tracer(tag, enableTrace, enableErrorTrace);
+        }
+    public static Tracer create(String tag, boolean enableTrace)
+        {
+        return create(tag, enableTrace, enableTrace);
+        }
+    public static Tracer create(String tag)
+        {
+        return create(tag, DEBUG);
+        }
+
+    public static Tracer create(Object object, String suffix)
+        {
+        return create(object.getClass().getSimpleName() + suffix);
+        }
+    public static Tracer create(Object object)
+        {
+        return create(object.getClass().getSimpleName());
+        }
+    public static Tracer create(Class clazz)
+        {
+        return create(clazz.getSimpleName());
         }
 
     //------------------------------------------------------------------------------------------
@@ -109,7 +130,7 @@ public class Tracer
             RobotLog.ee(getTag(), format, args);
             }
         }
-    protected void logError(Throwable throwable,  String format, Object... args)
+    protected void logError(Throwable throwable, String format, Object... args)
         {
         if (enableErrorTrace)
             {
@@ -171,21 +192,35 @@ public class Tracer
             }
         }
 
-    public <T> T traceResult(String name, Supplier<T> supplier)
+    public <R> R traceResult(String name, Supplier<R> supplier)
         {
-        T t = null;
+        R r = null;
         log("%s...", name);
         try
             {
-            t = supplier.get();
+            r = supplier.get();
             }
         finally
             {
-            log("...%s: %s", name, t);
+            log("...%s: %s", name, r);
             }
-        return t;
+        return r;
         }
 
+    public <R, E extends Throwable> R traceResult(String name, ThrowingSupplier<R, E> supplier) throws E
+        {
+        R r = null;
+        log("%s...", name);
+        try
+            {
+            r = supplier.get();
+            }
+        finally
+            {
+            log("...%s: %s", name, r);
+            }
+        return r;
+        }
 
     public <T,E extends Throwable> T trace(String name, ThrowingSupplier<T,E> func) throws E
         {
@@ -225,4 +260,4 @@ public class Tracer
             log("...%s", name);
             }
         }
-}
+    }

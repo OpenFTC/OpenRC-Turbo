@@ -47,14 +47,18 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Looper;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
+import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
+import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
-import org.firstinspires.ftc.robotcore.internal.network.WifiDirectInviteDialogMonitor;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -81,7 +85,6 @@ public class WifiDirectAssistant extends NetworkConnection {
   private final WifiDirectGroupInfoListener groupInfoListener;
 
   private PreferencesHelper preferencesHelper;
-  private WifiDirectInviteDialogMonitor inviteDialogMonitor = null;
   private boolean isWifiP2pEnabled = false;
   private WifiP2pBroadcastReceiver receiver;
   private int failureReason = WifiP2pManager.ERROR;
@@ -280,7 +283,6 @@ public class WifiDirectAssistant extends NetworkConnection {
     connectionListener = new WifiDirectConnectionInfoListener();
     peerListListener = new WifiDirectPeerListListener();
     groupInfoListener = new WifiDirectGroupInfoListener();
-    inviteDialogMonitor = new WifiDirectInviteDialogMonitor(this.context);
     preferencesHelper = new PreferencesHelper(TAG, this.context);
     preferencesHelper.remove(context.getString(R.string.pref_wifip2p_groupowner_connectedto));
   }
@@ -298,7 +300,6 @@ public class WifiDirectAssistant extends NetworkConnection {
       RobotLog.vv(TAG, "Enabling Wifi Direct Assistant");
       if (receiver == null) receiver = new WifiP2pBroadcastReceiver();
       context.registerReceiver(receiver, intentFilter);
-      inviteDialogMonitor.startMonitoring();
     }
 
     WifiDirectAgent.getInstance().doListen();
@@ -314,7 +315,6 @@ public class WifiDirectAssistant extends NetworkConnection {
       wifiP2pManager.cancelConnect(wifiP2pChannel, null);
 
       try {
-        inviteDialogMonitor.stopMonitoring();
         context.unregisterReceiver(receiver);
       } catch (IllegalArgumentException e) {
         // disable() was called, but enable() was never called; ignore
@@ -625,6 +625,17 @@ public class WifiDirectAssistant extends NetworkConnection {
    */
   @Override
   public void onWaitForConnection() { }
+
+  @Override
+  public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) throws InvalidNetworkSettingException {
+    // We can only change the device name and the channel
+    if (deviceName != null) {
+      DeviceNameManagerFactory.getInstance().setDeviceName(deviceName, true);
+    }
+    if (channel != null) {
+      ApChannelManagerFactory.getInstance().setChannel(channel, true);
+    }
+  }
 
   @Override
   public void detectWifiReset() { }

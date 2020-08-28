@@ -65,6 +65,9 @@ var WEBSOCKET_CORE = function () {
     function WebSocketMessage(namespace, type, payload) {
         this.namespace = namespace;
         this.type = type;
+        if (payload && typeof payload !== 'string') {
+            throw new Error('If a payload is provided, it must be a string')
+        }
         this.payload = payload ? payload : "";
     }
 
@@ -334,13 +337,7 @@ var WEBSOCKET_CORE = function () {
             console.log(message);
         }
 
-        var rawMessage = {
-            namespace: message.namespace,
-            type: message.type,
-            encodedPayload: btoa(message.payload)
-        }
-
-        globalState.webSocket.send(JSON.stringify(rawMessage));
+        globalState.webSocket.send(JSON.stringify(message));
         return true;
     }
 
@@ -365,8 +362,7 @@ var WEBSOCKET_CORE = function () {
         globalState.webSocket.onmessage = function (messageEvent) {
             var json = messageEvent.data;
             var rawMessage = JSON.parse(json);
-            var payload = rawMessage.encodedPayload ? atob(rawMessage.encodedPayload) : ""
-            var message = new WebSocketMessage(rawMessage.namespace, rawMessage.type, payload);
+            var message = new WebSocketMessage(rawMessage.namespace, rawMessage.type, rawMessage.payload);
 
             if (globalState.logMessages) {
                 console.log("Received message:");

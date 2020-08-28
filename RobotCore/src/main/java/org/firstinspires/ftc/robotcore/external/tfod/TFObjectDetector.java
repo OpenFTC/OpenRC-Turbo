@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2018 Google LLC
+ * Copyright 2018 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,9 @@
 package org.firstinspires.ftc.robotcore.external.tfod;
 
 import android.app.Activity;
-import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.ViewGroup;
 
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
@@ -69,6 +69,14 @@ public interface TFObjectDetector extends CameraStreamSource {
   void setClippingMargins(int left, int top, int right, int bottom);
 
   /**
+   * Indicates that only the zoomed center area of each image will be passed to the TensorFlow
+   * object detector. For no zooming, set magnification to 1.0. For best results, the aspect ratio
+   * should match the aspect ratio of the images that were used to train the TensorFlow model
+   * (1.7777 for 16/9).
+   */
+  void setZoom(double magnification, double aspectRatio);
+
+  /**
    * Returns the list of recognitions, but only if they are different than the last call to {@link #getUpdatedRecognitions()}.
    */
   List<Recognition> getUpdatedRecognitions();
@@ -87,9 +95,26 @@ public interface TFObjectDetector extends CameraStreamSource {
    * {@link Parameters} provides configuration information for instantiating the TFObjectDetector
    */
   class Parameters {
+    /** @deprecated Use minResultConfidence instead */
+    @Deprecated
     public double minimumConfidence = 0.4;
 
     public boolean useObjectTracker = true;
+
+    // Additional configuration requested in
+    // https://github.com/FIRST-Tech-Challenge/SkyStone/issues/210.
+    public boolean isModelQuantized = true;
+    public int inputSize = 300; // px
+    public int numInterpreterThreads = 1;
+    public int numExecutorThreads = 2;
+    public int maxNumDetections = 10;
+    public int timingBufferSize = 10;
+    public double maxFrameRate = 30;
+    public float minResultConfidence = 0.4f;
+    public float trackerMaxOverlap = 0.2f;
+    public float trackerMinSize = 16.0f;
+    public float trackerMarginalCorrelation = 0.75f;
+    public float trackerMinCorrelation = 0.3f;
 
     /**
      * The resource id of the view within {@link #activity} that will be used

@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.robotcore.internal.network;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Utility for managing passwords on a device.
@@ -12,14 +12,14 @@ public interface PasswordManager {
      *
      * Sets the password of the device to the given password.
      */
-    boolean setPassword(@NonNull String password);
+    void setPassword(@NonNull String password, boolean sendChangeToSystem) throws InvalidNetworkSettingException;
 
     /**
      * resetPassword
      *
      * Resets the password to the factory default.
      */
-    boolean resetPassword();
+    String resetPassword(boolean sendChangeToSystem);
 
     /**
      * isDefault

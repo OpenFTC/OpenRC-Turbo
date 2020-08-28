@@ -36,7 +36,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -189,14 +189,10 @@ public class FtcRobotControllerWatchdogService extends Service
             // We only *ever* autorun in the embedded, headless lynx case
             if (LynxConstants.isRevControlHub())
                 {
-                // But we might be asked to pretend we're not there
-                if (!LynxConstants.shouldDisableAndroidBoard())
+                // We examine the policy flag
+                if (LynxConstants.autorunRobotController())
                     {
-                    // We examine the policy flag
-                    if (LynxConstants.autorunRobotController())
-                        {
-                        result = true;
-                        }
+                    result = true;
                     }
                 }
             }

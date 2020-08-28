@@ -1,15 +1,19 @@
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by Fernflower decompiler)
+//
+
 package org.firstinspires.ftc.robotcore.internal.camera;
 
-import android.content.res.Resources;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.FieldPacker;
-import android.renderscript.RSRuntimeException;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptC;
-import android.renderscript.Script.FieldID;
-import android.renderscript.Script.KernelID;
-import android.renderscript.Script.LaunchOptions;
+import androidx.renderscript.Allocation;
+import androidx.renderscript.Element;
+import androidx.renderscript.FieldPacker;
+import androidx.renderscript.RSRuntimeException;
+import androidx.renderscript.RenderScript;
+import androidx.renderscript.ScriptC;
+import androidx.renderscript.Script.FieldID;
+import androidx.renderscript.Script.KernelID;
+import androidx.renderscript.Script.LaunchOptions;
 
 public class ScriptC_format_convert extends ScriptC {
     private static final String __rs_resource_name = "format_convert";
@@ -27,11 +31,7 @@ public class ScriptC_format_convert extends ScriptC {
     private static final int mExportForEachIdx_yuv2_to_argb8888 = 1;
 
     public ScriptC_format_convert(RenderScript rs) {
-        this(rs, rs.getApplicationContext().getResources(), rs.getApplicationContext().getResources().getIdentifier("format_convert", "raw", rs.getApplicationContext().getPackageName()));
-    }
-
-    public ScriptC_format_convert(RenderScript rs, Resources resources, int id) {
-        super(rs, resources, id);
+        super(rs, "format_convert", format_convertBitCode.getBitCode32(), format_convertBitCode.getBitCode64());
         this.__ALLOCATION = Element.ALLOCATION(rs);
         this.__I32 = Element.I32(rs);
         this.__U8_4 = Element.U8_4(rs);

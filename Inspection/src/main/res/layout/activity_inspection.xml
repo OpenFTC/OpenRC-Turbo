@@ -23,7 +23,7 @@
             android:adjustViewBounds="true"
             android:layout_margin="1dp"/>
 
-        <TextView 
+        <TextView
             android:id="@+id/textDeviceName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -63,8 +63,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="0dp" />
 
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
@@ -129,7 +128,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/osVersionLayout"
+            android:id="@+id/androidVersionLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -141,11 +140,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="OS Version:"
+                android:text="Android Version:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
-                android:id="@+id/osVersion"
+                android:id="@+id/androidVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/controlHubOsVersionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Control Hub OS Version:"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <TextView
+                android:id="@+id/controlHubOsVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
@@ -162,15 +183,16 @@
                 android:id="@+id/textViewHubFirmware"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Hub Firmware:"
+                android:text="Hub Firmware: "
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
                 android:id="@+id/hubFirmware"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
         </LinearLayout>
 
         <LinearLayout
@@ -202,6 +224,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/airplaneModeLayout"
             android:layout_marginBottom="2dp"
             android:layout_marginTop="2dp"
             android:orientation="horizontal">
@@ -317,15 +340,15 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/labelWidiName"
+                android:id="@+id/labelWifiName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="WiFi Direct Name:"
+                android:text="WiFi Name:"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
-                android:id="@+id/widiName"
+                android:id="@+id/wifiName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
@@ -478,36 +501,6 @@
                 android:id="@+id/isDSInstalled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="2dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/textView5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="ZTE Channel Changer:"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-            <TextView
-                android:id="@+id/txtIsCCInstalled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-            <FrameLayout
-                android:id="@+id/isCCInstalled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
         </LinearLayout>
 
         <Space

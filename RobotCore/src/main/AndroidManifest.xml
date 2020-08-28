@@ -79,6 +79,20 @@
 
     <application android:name="org.firstinspires.ftc.robotcore.internal.system.RobotApplication" >
 
+        <!--
+    Needed to support sending logs from log viewer on Nougat and later.
+    Note: DON'T need to shift meta-data to 'androidx' from 'android.support.FILE_PROVIDER_PATHS'
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+
         <!-- Service that keeps desktop folders up to date with respect to actual phone file system contents -->
         <service
             android:name="org.firstinspires.ftc.robotcore.internal.files.MediaTransferProtocolMonitorService"

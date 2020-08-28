@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.rev;
 
 import com.qualcomm.hardware.broadcom.BroadcomColorSensorImpl;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
@@ -58,7 +59,7 @@ import java.util.Locale;
                   description = "@string/rev_color_sensor_v3_description",
                   xmlTag = "RevColorSensorV3",
                   compatibleControlSystems = ControlSystem.REV_HUB, builtIn = true)
-public class RevColorSensorV3 extends BroadcomColorSensorImpl implements DistanceSensor, OpticalDistanceSensor
+public class RevColorSensorV3 extends BroadcomColorSensorImpl implements DistanceSensor, OpticalDistanceSensor, ColorRangeSensor
 {
     //----------------------------------------------------------------------------------------------
     // State

@@ -37,8 +37,8 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.firstinspires.ftc.robotcore.external.function.Supplier;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
@@ -85,7 +85,7 @@ public class UvcDevice extends NativeObject<UvcContext>
         super(thisPointer);
         try {
             setParent(uvcContext);
-            this.libUsbDevice = new LibUsbDevice(nativeGetLibUsbDevice(pointer));
+            this.libUsbDevice = new LibUsbDevice(nativeGetLibUsbDevice(pointer), usbDevice);
             this.usbDevice = usbDevice==null ? findUsbDevice() : usbDevice;
             this.webcamName = null;
             this.usbDeviceConnection = null;
@@ -269,7 +269,6 @@ public class UvcDevice extends NativeObject<UvcContext>
         {
         int claimInterface(int idx);
         int releaseInterface(int idx);
-        boolean isSetInterfaceAltSettingSupported();
         int setInterfaceAltSetting(int bInterfaceNumber, int bAlternateSetting);
         }
 
@@ -328,32 +327,24 @@ public class UvcDevice extends NativeObject<UvcContext>
             return UvcError.NOT_FOUND.getValue();
             }
 
-        @Override public boolean isSetInterfaceAltSettingSupported()
-            {
-            return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP);
-            }
-
         @Override public int setInterfaceAltSetting(int idx, int alternateSetting)
             {
             tracer.trace("setInterfaceAltSetting(%d,%d)", idx, alternateSetting);
             int interfaceCount = usbDevice.getInterfaceCount();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            for (int i = 0; i < interfaceCount; i++)
                 {
-                for (int i = 0; i < interfaceCount; i++)
+                UsbInterface usbInterface = usbDevice.getInterface(i);
+                if (usbInterface.getId() == idx && usbInterface.getAlternateSetting() == alternateSetting)
                     {
-                    UsbInterface usbInterface = usbDevice.getInterface(i);
-                    if (usbInterface.getId() == idx && usbInterface.getAlternateSetting() == alternateSetting)
+                    if (usbDeviceConnection.setInterface(usbInterface))
                         {
-                        if (usbDeviceConnection.setInterface(usbInterface))
-                            {
-                            tracer.trace("setInterfaceAltSetting(%d,%d) succeeded", idx, alternateSetting);
-                            return UvcError.SUCCESS.getValue();
-                            }
-                        else
-                            {
-                            tracer.traceError("setInterfaceAltSetting(%d, %d) failed", idx, alternateSetting);
-                            return UvcError.IO.getValue();
-                            }
+                        tracer.trace("setInterfaceAltSetting(%d,%d) succeeded", idx, alternateSetting);
+                        return UvcError.SUCCESS.getValue();
+                        }
+                    else
+                        {
+                        tracer.traceError("setInterfaceAltSetting(%d, %d) failed", idx, alternateSetting);
+                        return UvcError.IO.getValue();
                         }
                     }
                 }

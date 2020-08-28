@@ -35,6 +35,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
@@ -48,28 +50,16 @@ import org.firstinspires.ftc.robotcore.internal.system.SystemProperties;
 public final class Device {
   public final static String TAG = "Device";
 
-  public final static String MANUFACTURER_ZTE = "zte";
-  public final static String MODEL_ZTE_SPEED = "N9130";
-
-  public final static String UNKNOWN_SERIAL_NUMBER = "unknown";
   private final static boolean DISABLE_FALLBACK_SERIAL_NUMBER_RETRIEVAL = false;
   private final static String SERIAL_NUMBER_PROPERTY = "ro.serialno";
   private final static String SERIAL_NUMBER_RETRIEVAL_COMMAND = "getprop " + SERIAL_NUMBER_PROPERTY;
 
-
+  public final static String MANUFACTURER_REV = "REV Robotics";
   public final static String MANUFACTURER_MOTOROLA = "motorola";
   public final static String MODEL_E5_PLAY = "moto e5 play";
   public final static String MODEL_E4 = "Moto E (4)";
 
-  /**
-   * Answers whether this is a ZTE Speed phone. For the Speed's, the model number
-   * is sufficiently distinctive and universal that we can reasonably key off of that.
-   * Generally, however, this is not true, as model numbers are by definition primarlily
-   * for human consumption, not programmatic use
-   */
-  public static boolean isZteSpeed() {
-    return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_ZTE) && Build.MODEL.equalsIgnoreCase(MODEL_ZTE_SPEED);
-  }
+  @Nullable private static String cachedSerialNumberOrUnknown;
 
   public static boolean isMotorola() {
     return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA);
@@ -103,19 +93,11 @@ public final class Device {
   }
 
   /**
-   * When running on the ZTE, should we use the ZTE-provided channel-changing utility app,
-   * or should we just go with our own UI. Testing shows that we don't have any method of
-   * channel changing on the ZTEs that will work other than using the ZTE app. Unfortunate.
-   */
-  public static boolean useZteProvidedWifiChannelEditorOnZteSpeeds() {
-    return true;
-  }
-
-  /**
    * Is it possible to remote channel change from a driver station to this device?
    */
   public static boolean wifiP2pRemoteChannelChangeWorks() {
-    return !(isZteSpeed() && useZteProvidedWifiChannelEditorOnZteSpeeds());
+    // TODO(Noah): Add support for the CH to the in-settings channel and get rid of this method
+    return !isRevControlHub();
   }
 
   /**
@@ -136,31 +118,19 @@ public final class Device {
    * @throws AndroidSerialNumberNotFoundException if the serial number could not be determined
    */
   public static String getSerialNumber() throws AndroidSerialNumberNotFoundException {
-    String serialNumber;
-    if (Build.VERSION.SDK_INT < 28) {
-      serialNumber = Build.SERIAL;
-    } else {
-      serialNumber = Build.getSerial();
+    if (cachedSerialNumberOrUnknown == null) {
+      try {
+        cachedSerialNumberOrUnknown = internalGetSerialNumber();
+      } catch (AndroidSerialNumberNotFoundException e) {
+        cachedSerialNumberOrUnknown = Build.UNKNOWN;
+      }
     }
 
-    if (!serialNumber.equals(UNKNOWN_SERIAL_NUMBER)) return serialNumber;
-    serialNumber = SystemProperties.get(SERIAL_NUMBER_PROPERTY, UNKNOWN_SERIAL_NUMBER);
-    if (!serialNumber.equals(UNKNOWN_SERIAL_NUMBER)) return serialNumber;
-
-    if (DISABLE_FALLBACK_SERIAL_NUMBER_RETRIEVAL) throw new AndroidSerialNumberNotFoundException();
-
-    // If we can't get the serial number through the API, try the command line
-    RobotLog.ww(TAG, "Failed to find Android serial number through Android API. Using fallback method.");
-    RunShellCommand shell = new RunShellCommand();
-    RunShellCommand.ProcessResult result = shell.run(SERIAL_NUMBER_RETRIEVAL_COMMAND);
-    String output = result.getOutput().trim();
-
-    if (result.getReturnCode() == 0 && !output.isEmpty() && !output.equals(UNKNOWN_SERIAL_NUMBER)) {
-      serialNumber = output;
-    } else {
+    if (cachedSerialNumberOrUnknown.isEmpty() || cachedSerialNumberOrUnknown.equals(Build.UNKNOWN)) {
       throw new AndroidSerialNumberNotFoundException();
     }
-    return serialNumber;
+
+    return cachedSerialNumberOrUnknown;
   }
 
   /**
@@ -171,7 +141,39 @@ public final class Device {
     try {
       return getSerialNumber();
     } catch (AndroidSerialNumberNotFoundException e) {
-      return UNKNOWN_SERIAL_NUMBER;
+      return Build.UNKNOWN;
     }
+  }
+
+  private static String internalGetSerialNumber() throws AndroidSerialNumberNotFoundException {
+    String serialNumber;
+    if (Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+      serialNumber = Build.SERIAL;
+    } else {
+      try {
+        serialNumber = Build.getSerial();
+      } catch (SecurityException e) {
+        serialNumber = Build.UNKNOWN;
+      }
+    }
+
+    if (!serialNumber.isEmpty() && !serialNumber.equals(Build.UNKNOWN)) return serialNumber;
+    serialNumber = SystemProperties.get(SERIAL_NUMBER_PROPERTY, Build.UNKNOWN);
+    if (!serialNumber.equals(Build.UNKNOWN)) return serialNumber;
+
+    if (DISABLE_FALLBACK_SERIAL_NUMBER_RETRIEVAL) throw new AndroidSerialNumberNotFoundException();
+
+    // If we can't get the serial number through the API, try the command line
+    RobotLog.ww(TAG, "Failed to find Android serial number through Android API. Using fallback method.");
+    RunShellCommand shell = new RunShellCommand();
+    RunShellCommand.ProcessResult result = shell.run(SERIAL_NUMBER_RETRIEVAL_COMMAND);
+    String output = result.getOutput().trim();
+
+    if (result.getReturnCode() == 0 && !output.isEmpty() && !output.equals(Build.UNKNOWN)) {
+      serialNumber = output;
+    } else {
+      throw new AndroidSerialNumberNotFoundException();
+    }
+    return serialNumber;
   }
 }

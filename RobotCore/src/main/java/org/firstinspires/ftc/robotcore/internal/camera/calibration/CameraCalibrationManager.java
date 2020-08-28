@@ -43,9 +43,9 @@ package org.firstinspires.ftc.robotcore.internal.camera.calibration;
 
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.XmlRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.XmlRes;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.ClassUtil;
@@ -306,7 +306,7 @@ public final class CameraCalibrationManager
             parseIgnoreElementChildren(); // all our content is in the attributes
 
             CameraCalibrationIdentity identity = new VendorProductCalibrationIdentity(vid, pid);
-            return new CameraCalibration(identity, parseIntArray(2, size), parseFloatArray(2, focalLength), parseFloatArray(2, principalPoint), parseFloatArray(8, distortionCoefficients), parseBoolean(remove));
+            return new CameraCalibration(identity, parseIntArray(2, size), parseFloatArray(2, focalLength), parseFloatArray(2, principalPoint), parseFloatArray(8, distortionCoefficients), parseBoolean(remove), false);
             }
         catch (RuntimeException e)
             {

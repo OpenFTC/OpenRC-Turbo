@@ -224,7 +224,6 @@ public class TfodParameters {
       if (maxFrameRate <= 0 || maxFrameRate > 100) {
         throw new IllegalArgumentException("maxFrameRate must be in range (0, 100] (Hz)");
       }
-
       this.maxFrameRate = maxFrameRate;
       return this;
     }

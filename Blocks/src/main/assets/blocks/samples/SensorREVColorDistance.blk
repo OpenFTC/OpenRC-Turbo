@@ -1,9 +1,8 @@
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<xml xmlns="https://developers.google.com/blockly/xml">
 <variables>
-<variable type="" id="*YL{$HxCyqE2`nsWN]Dv">colorHSV</variable>
-<variable type="" id="0;vj(c6!Mg]vk4()j5F]">hue</variable>
-<variable type="" id="9ApQ8KvDslXqv}4}DDr:">sat</variable>
-<variable type="" id="B](w)xMp:/L@pXgq!?92">val</variable>
+<variable id="0;vj(c6!Mg]vk4()j5F]">hue</variable>
+<variable id="9ApQ8KvDslXqv}4}DDr:">sat</variable>
+<variable id="B](w)xMp:/L@pXgq!?92">val</variable>
 </variables>
 <block type="procedures_defnoreturn" id="N5+,3)OebbE6UZcs_7Pq" deletable="false" editable="false" x="30" y="20">
 <field name="NAME">runOpMode</field>
@@ -30,8 +29,7 @@
 <next>
 <block type="controls_if" id="3MplzZs9L9nVpiVq!9j$">
 <value name="IF0">
-<block type="linearOpMode_opModeIsActive" id="Nuc!1Q_C}64C,eh7u$]$">
-</block>
+<block type="linearOpMode_opModeIsActive" id="Nuc!1Q_C}64C,eh7u$]$"/>
 </value>
 <statement name="DO0">
 <block type="comment" id="#Kwr+=rj6!eW43Dp@GrJ">
@@ -40,8 +38,7 @@
 <block type="controls_whileUntil" id="i%lNsp|TaIiK9GA#+0G8">
 <field name="MODE">WHILE</field>
 <value name="BOOL">
-<block type="linearOpMode_opModeIsActive" id="TLkpMw61x?e^]0$REbAq">
-</block>
+<block type="linearOpMode_opModeIsActive" id="TLkpMw61x?e^]0$REbAq"/>
 </value>
 <statement name="DO">
 <block type="comment" id="Xe%Qm9[Gug.r!rx=O:QZ">
@@ -58,8 +55,8 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getDistance_Number" id="G::~+y1/s{x=rqtZR5F1">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<data>{"IDENTIFIER":"rev3"}</data>
 <value name="UNIT">
 <shadow type="navigation_typedEnum_distanceUnit" id="MkE2VUev],.AI8t*YC)w">
 <field name="DISTANCE_UNIT">CM</field>
@@ -82,76 +79,53 @@
 <field name="NUM">123</field>
 </shadow>
 <block type="lynxI2cColorRangeSensor_getProperty_Number" id="C@#iSBZd2CRv+p@dE;Xj">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
 <field name="PROP">LightDetected</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
+<data>{"IDENTIFIER":"rev3"}</data>
 </block>
 </value>
 <next>
 <block type="comment" id="xn`moI0ka%(z!w(+[l6p">
-<field name="COMMENT">Convert RGB values to HSV color model.</field>
+<field name="COMMENT">Convert RGB values to Hue, Saturation, and Value.</field>
 <next>
 <block type="comment" id="uvmL.J2j$k:?.q#c9!}]">
 <field name="COMMENT">See https://en.wikipedia.org/wiki/HSL_and_HSV for details on HSV color model.</field>
-<next>
-<block type="variables_set" id="9vWzr7Y,E%Sz*Z;[%@Q(">
-<field name="VAR" id="*YL{$HxCyqE2`nsWN]Dv" variabletype="">colorHSV</field>
-<value name="VALUE">
-<block type="color_argbToColor_Number" id=";!^QPn[4pW?PrMXzoc{B">
-<value name="ALPHA">
-<shadow type="math_number" id="~~[^yTx!Wq^{x2]4z=Ui">
-<field name="NUM">255</field>
-</shadow>
-<block type="lynxI2cColorRangeSensor_getProperty_Number" id="c5d=Yad!a=J}z]Y0Mw#S">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
-<field name="PROP">Alpha</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
-</block>
-</value>
-<value name="RED">
-<shadow type="math_number" id="TXC`L!dQ#e_dGoCiVtzn">
-<field name="NUM">255</field>
-</shadow>
-<block type="lynxI2cColorRangeSensor_getProperty_Number" id="tU#YV.pJZ]G7cM.QiDOf">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
-<field name="PROP">Red</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
-</block>
-</value>
-<value name="GREEN">
-<shadow type="math_number" id="jne=,f!U~D4?4/Lyq)9q">
-<field name="NUM">255</field>
-</shadow>
-<block type="lynxI2cColorRangeSensor_getProperty_Number" id="ERz}nQ|7M`@?[Mdgu`6!">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
-<field name="PROP">Green</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
-</block>
-</value>
-<value name="BLUE">
-<shadow type="math_number" id="_r$Y0O*SZ)*ZOyOT$$F8">
-<field name="NUM">255</field>
-</shadow>
-<block type="lynxI2cColorRangeSensor_getProperty_Number" id="8zjF?qGNf?K/-_UdiP-a">
-<field name="IDENTIFIER">sensorColorRangeAsREVColorRangeSensor</field>
-<field name="PROP">Blue</field>
-<data>{"IDENTIFIER":"sensorColorRange"}</data>
-</block>
-</value>
-</block>
-</value>
 <next>
 <block type="comment" id="VwvvbwwA+@9i5Tsa/7b!">
 <field name="COMMENT">Get hue.</field>
 <next>
 <block type="variables_set" id="B3$A(ZX8!Z_ih2bP}+bs">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 <value name="VALUE">
-<block type="color_getProperty_Number" id="ES:tL!LTi+P2V-*yNSC^">
-<field name="PROP">Hue</field>
-<value name="COLOR">
-<block type="variables_get" id="hry+X1fy2a6Gyi1P]/5N">
-<field name="VAR" id="*YL{$HxCyqE2`nsWN]Dv" variabletype="">colorHSV</field>
+<block type="color_rgbToHue" id="?Eo7~F:x$b4,$B!ZOKUb">
+<value name="RED">
+<shadow type="math_number" id="du-u1wnmv389MA_kLoSK">
+<field name="NUM">255</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="tU#YV.pJZ]G7cM.QiDOf">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Red</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="tb[h1@}6uSACY3r4lk[G">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="ERz}nQ|7M`@?[Mdgu`6!">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Green</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id="aIRf`/vgBP?e)dE4u6k%">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="8zjF?qGNf?K/-_UdiP-a">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Blue</field>
+<data>{"IDENTIFIER":"rev3"}</data>
 </block>
 </value>
 </block>
@@ -167,8 +141,20 @@
 <shadow type="math_number" id="R0kOd.7^wiNsCUI1,~1y">
 <field name="NUM">123</field>
 </shadow>
+<block type="misc_roundDecimal" id="7a!0%#O?:+{rM^z#pGv.">
+<value name="NUMBER">
+<shadow type="math_number" id="?j]@M,OKJg#(kfdjUA~~">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="variables_get" id="n)Xt}=M_aL2iE87c{]TA">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="^5b#v(0WBsrsP@_O(b;F">
+<field name="NUM">0</field>
+</shadow>
+</value>
 </block>
 </value>
 <next>
@@ -176,13 +162,37 @@
 <field name="COMMENT">Get saturation.</field>
 <next>
 <block type="variables_set" id="*o}rz~~gc2oi`K4~/F)p">
-<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:" variabletype="">sat</field>
+<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:">sat</field>
 <value name="VALUE">
-<block type="color_getProperty_Number" id="Wl|)n:ODa?sPj46nnJ{~">
-<field name="PROP">Saturation</field>
-<value name="COLOR">
-<block type="variables_get" id="12O!/DZYzu_)yUOmPppW">
-<field name="VAR" id="*YL{$HxCyqE2`nsWN]Dv" variabletype="">colorHSV</field>
+<block type="color_rgbToSaturation" id="}3Lgzz)_bd^iJ]S{O0mp">
+<value name="RED">
+<shadow type="math_number" id="IE$u|!#o[$p;fIAuMO}K">
+<field name="NUM">255</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="vDHm{(g7B9kE.UE,gO+-">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Red</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="N.k3uyqAuEUq7yOSx]cZ">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="pO?YR{mCFX*XWH]%|`.:">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Green</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id="fhL@*guv|kaffb3Sh#fC">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="#HAcG/=*9,jV2{yz6Yph">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Blue</field>
+<data>{"IDENTIFIER":"rev3"}</data>
 </block>
 </value>
 </block>
@@ -198,8 +208,20 @@
 <shadow type="math_number" id="R0kOd.7^wiNsCUI1,~1y">
 <field name="NUM">123</field>
 </shadow>
+<block type="misc_roundDecimal" id="wB[QEwsN1|Ue34vZi#]]">
+<value name="NUMBER">
+<shadow type="math_number" id="X,{k42Sp=Dt(nc~VnqPK">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="variables_get" id="gA!cZzX8$X}u#3eXitLe">
-<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:" variabletype="">sat</field>
+<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:">sat</field>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="_o0cD~bCesPV]:ASvt2H">
+<field name="NUM">2</field>
+</shadow>
+</value>
 </block>
 </value>
 <next>
@@ -207,13 +229,37 @@
 <field name="COMMENT">Get value.</field>
 <next>
 <block type="variables_set" id=";-bi%e.RXv5(/{?pSr5F">
-<field name="VAR" id="B](w)xMp:/L@pXgq!?92" variabletype="">val</field>
+<field name="VAR" id="B](w)xMp:/L@pXgq!?92">val</field>
 <value name="VALUE">
-<block type="color_getProperty_Number" id="P3*Q4c7woyF--X/b@SEz">
-<field name="PROP">Value</field>
-<value name="COLOR">
-<block type="variables_get" id="O~UkEK6UM;?~q$:T~+M^">
-<field name="VAR" id="*YL{$HxCyqE2`nsWN]Dv" variabletype="">colorHSV</field>
+<block type="color_rgbToValue" id="5g.+r:RbuZm%${{3a|`D">
+<value name="RED">
+<shadow type="math_number" id=",:WaT6z;$oC3J1^HG0uv">
+<field name="NUM">255</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="^`Qv$vV[bpXlRNil8qq3">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Red</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="?Q8bj^eWZ}dZC_)quU?w">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="B?zp9%IM#4/gY^iY[$)G">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Green</field>
+<data>{"IDENTIFIER":"rev3"}</data>
+</block>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id="#zt2vdWTE4J0W_dOu*V:">
+<field name="NUM">0</field>
+</shadow>
+<block type="lynxI2cColorRangeSensor_getProperty_Number" id="G)1S_U!%K~ccbj]ifC}R">
+<field name="IDENTIFIER">rev3AsREVColorRangeSensor</field>
+<field name="PROP">Blue</field>
+<data>{"IDENTIFIER":"rev3"}</data>
 </block>
 </value>
 </block>
@@ -229,8 +275,53 @@
 <shadow type="math_number" id="R0kOd.7^wiNsCUI1,~1y">
 <field name="NUM">123</field>
 </shadow>
+<block type="misc_roundDecimal" id="=hRua,IeU.8j9JYXQX:l">
+<value name="NUMBER">
+<shadow type="math_number" id="|q@aXUY9efOVR1zS#)p!">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="variables_get" id="|pO3K=/{v5#u~?dHr4($">
-<field name="VAR" id="B](w)xMp:/L@pXgq!?92" variabletype="">val</field>
+<field name="VAR" id="B](w)xMp:/L@pXgq!?92">val</field>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="20(+rNsE/f@e6;M1pY3C">
+<field name="NUM">2</field>
+</shadow>
+</value>
+</block>
+</value>
+<next>
+<block type="comment" id="9adHkcr,[[oB-ghF$kmT">
+<field name="COMMENT">Show the color on the Robot Controller screen.</field>
+<next>
+<block type="color_showColor" id="J;RvTP2(5?cW=*Uh8#xM">
+<value name="COLOR">
+<block type="color_hsvToColor_Number" id="eQF[^anrkIe#zpS6OUVS">
+<value name="HUE">
+<shadow type="math_number" id="Xj^6v/FXiotgg+M*Q1Cn">
+<field name="NUM">60</field>
+</shadow>
+<block type="variables_get" id="Ux0D?QflYYzqSPuZ|7y6">
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
+</block>
+</value>
+<value name="SATURATION">
+<shadow type="math_number" id="BQs8sBh-Em#B3#kIfout">
+<field name="NUM">1</field>
+</shadow>
+<block type="variables_get" id="$,s@Y#KL!+mXuN=q*|,T">
+<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:">sat</field>
+</block>
+</value>
+<value name="VALUE">
+<shadow type="math_number" id="e8pu6sPD{C|K7vuE{##8">
+<field name="NUM">0.5</field>
+</shadow>
+<block type="variables_get" id="Y+SktO_TR#s:*)$KS({k">
+<field name="VAR" id="B](w)xMp:/L@pXgq!?92">val</field>
+</block>
+</value>
 </block>
 </value>
 <next>
@@ -238,14 +329,13 @@
 <field name="COMMENT">Use hue to determine if it's red, green, blue, etc..</field>
 <next>
 <block type="controls_if" id="#;Z~Xt9Od?`KG@,D#;cW">
-<mutation elseif="5" else="1">
-</mutation>
+<mutation elseif="5" else="1"/>
 <value name="IF0">
 <block type="logic_compare" id="?]3*Duvcz]}yrHJXAWZa">
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="B?27K.Ep`78%$B,wox]Q">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -274,7 +364,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="WYnC`_RSC*YN|P=pr8Qu">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -303,7 +393,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="jFeu^AGO.%vP--bErSD`">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -332,7 +422,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="2_{Lh0D01%M[URolksO,">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -361,7 +451,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="9+D)ynlZuXr*`nvF7vpY">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -390,7 +480,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="5pgngb/wO;+R2*Z*kQUT">
-<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]" variabletype="">hue</field>
+<field name="VAR" id="0;vj(c6!Mg]vk4()j5F]">hue</field>
 </block>
 </value>
 <value name="B">
@@ -438,7 +528,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="LD)J-Q$K(oTN{:ZM:`[/">
-<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:" variabletype="">sat</field>
+<field name="VAR" id="9ApQ8KvDslXqv}4}DDr:">sat</field>
 </block>
 </value>
 <value name="B">
@@ -471,7 +561,7 @@
 <field name="OP">LT</field>
 <value name="A">
 <block type="variables_get" id="p_D]_DDHpEV8C:_yOk,{">
-<field name="VAR" id="B](w)xMp:/L@pXgq!?92" variabletype="">val</field>
+<field name="VAR" id="B](w)xMp:/L@pXgq!?92">val</field>
 </block>
 </value>
 <value name="B">
@@ -538,7 +628,27 @@
 </block>
 </next>
 </block>
+</next>
+</block>
 </statement>
+<next>
+<block type="comment" id="1@n-k/.ppH^Ga2Py(2[5">
+<field name="COMMENT">Show white on the Robot Controller screen.</field>
+<next>
+<block type="color_showColor" id="TUg2hmA/WE^w(s6`-0sX">
+<value name="COLOR">
+<block type="color_textToColor_Number" id="M,A1l5SYe.+VxE!xGV~O">
+<value name="TEXT">
+<shadow type="text" id="M-MPTf;`[]C[IV1%Lm6b">
+<field name="TEXT">white</field>
+</shadow>
+</value>
+</block>
+</value>
+</block>
+</next>
+</block>
+</next>
 </block>
 </next>
 </block>

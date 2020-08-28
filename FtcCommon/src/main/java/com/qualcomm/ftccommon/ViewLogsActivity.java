@@ -32,17 +32,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package com.qualcomm.ftccommon;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
+
+import androidx.core.content.FileProvider;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -58,14 +58,16 @@ import java.util.Calendar;
 
 public class ViewLogsActivity extends ThemedActivity {
 
+  public static final String TAG = "ViewLogsActivity";
+
   @Override public String getTag() { return this.getClass().getSimpleName(); }
   @Override protected FrameLayout getBackBar() { return findViewById(org.firstinspires.inspection.R.id.backbar); }
 
-  TextView textAdbLogs;
-  int DEFAULT_NUMBER_OF_LINES = 300;
+  WebView webViewForLogcat;
+  int DEFAULT_NUMBER_OF_LINES = 500;
   public static final String FILENAME = LaunchActivityConstantsList.VIEW_LOGS_ACTIVITY_FILENAME;
-  private File sdcard;
   private File logFile;
+  int errorColor;
 
   String filepath = " ";
 
@@ -74,15 +76,12 @@ public class ViewLogsActivity extends ThemedActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_view_logs);
 
-    textAdbLogs = (TextView) findViewById(R.id.textAdbLogs);
+    errorColor = getResources().getColor(R.color.text_warning);
 
-    final ScrollView scrollView = ((ScrollView) findViewById(R.id.scrollView));
-    scrollView.post(new Runnable() {
-      @Override
-      public void run() {
-        scrollView.fullScroll(ScrollView.FOCUS_DOWN);
-      }
-    });
+    webViewForLogcat = (WebView) findViewById(R.id.webView);
+    webViewForLogcat.getSettings().setBuiltInZoomControls(true); //enable pinch to zoom
+    webViewForLogcat.getSettings().setDisplayZoomControls(false); //don't show cupcake-era zoom buttons
+    webViewForLogcat.setBackgroundColor(getResources().getColor(R.color.logviewer_bgcolor));
   }
 
   @Override
@@ -95,36 +94,47 @@ public class ViewLogsActivity extends ThemedActivity {
       filepath = (String) extra;
     }
 
-    sdcard = Environment.getExternalStorageDirectory();
     logFile = new File(filepath);
 
-    textAdbLogs.setOnLongClickListener(new View.OnLongClickListener() {
-         @Override
-         public boolean onLongClick(View v) {
-           Intent sendIntent = new Intent();
-           sendIntent.setAction(Intent.ACTION_SEND);
-           sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(logFile));
-           sendIntent.putExtra(Intent.EXTRA_SUBJECT, "FTC Robot Log - " +
-                java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime()));
-           sendIntent.setType("text/plain");
-           startActivity(sendIntent);
-           return true;
-         }
-       });
+    try {
+      String output = readNLines(DEFAULT_NUMBER_OF_LINES);
+      Spannable colorized = colorize(output);
 
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          String output = readNLines(DEFAULT_NUMBER_OF_LINES);
-          Spannable colorized = colorize(output);
-          textAdbLogs.setText(colorized);
-        } catch (IOException e) {
-          RobotLog.e(e.toString());
-          textAdbLogs.setText("File not found: " + filepath);
+      String html = String.format("<span style='white-space: nowrap;'><font face='monospace' color='white'>%s</font></span>", Html.toHtml(colorized));
+
+      webViewForLogcat.setWebViewClient(new WebViewClient() {
+        @Override
+        public void onPageFinished(WebView webView, String url) {
+          /*
+           * This is a stupid hack because none of the other ways I could find
+           * on the interwebs for scrolling to the bottom worked. Bah hambug.
+           */
+          webViewForLogcat.scrollTo(0, 900000000);
         }
-      }
-    });
+      });
+
+      webViewForLogcat.setOnLongClickListener(new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View view) {
+          Intent sendIntent = new Intent(android.content.Intent.ACTION_SEND);
+
+          sendIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "FTC Robot Log - " +
+                  java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime()));
+          sendIntent.putExtra(android.content.Intent.EXTRA_STREAM,
+                  FileProvider.getUriForFile(ViewLogsActivity.this, getPackageName() + ".provider", logFile));
+
+          sendIntent.setType("text/plain");
+          startActivity(sendIntent);
+          return false;
+        }
+      });
+
+      webViewForLogcat.loadData(html, "text/html", "UTF-8");
+
+    } catch (IOException e) {
+        RobotLog.ee(TAG, e, "Exception loading logcat data");
+      webViewForLogcat.loadData("<font color='white'>Error loading logcat data</font>", "text/html", "UTF-8");
+    }
   }
 
   public String readNLines(int n) throws IOException {
@@ -170,8 +180,17 @@ public class ViewLogsActivity extends ThemedActivity {
     String[] lines = output.split("\\n");
     int currentStringIndex = 0;
     for (String line : lines) {
-      if (line.contains("E/RobotCore") || line.contains(RobotLog.ERROR_PREPEND)) {
-        span.setSpan(new ForegroundColorSpan(Color.RED),
+      /*
+       * Note: (2020) historically this was "E/RobotCore" || RobotLog.ERROR_PREPEND
+       * and had not been touched since 2015.
+       *
+       * As far as I'm aware, that never actually worked. And in any case,
+       * now we generate errors from tags other than RobotCore, so we just highlight
+       * and error-flagged messages. Also, RobotLog.ERROR_PREPEND was nuked since
+       * this was the only place it was referenced anyway...
+       */
+      if (line.contains(" E ")) {
+        span.setSpan(new ForegroundColorSpan(errorColor),
             currentStringIndex, currentStringIndex + line.length(),
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
       }

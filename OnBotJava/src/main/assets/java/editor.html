@@ -199,6 +199,18 @@
     <div id="left-pane-handle" class="rg-right hidden-print"></div>
     <div id="main-window" class="hidden-print">
         <div id="editor-component-container">
+            <div id="open-files" class="ace-primary-3">
+                <div ng-repeat="tab in tabs.open" class="file-tab ace-primary-2" ng-class="{'active-tab': tabs.isActive(tab)}" title="{{ tab.id }}" ng-click="tabs.switch(tab)">
+                    <i class="fa {{ tab.icon }}"></i>
+                    <span class="file-id">{{ tab.name }}</span>
+                    <i class="fa fa-close" ng-click="tabs.close(tab)" title="Close"></i>
+                </div>
+<!--                <div id="tab-1" class="file-tab active-tab">-->
+<!--                    <i class="fa fa-code"></i>-->
+<!--                    <span class="file-id">Welcome</span>-->
+<!--                    <i class="fa fa-close"></i>-->
+<!--                </div>-->
+            </div>
             <div id="editor" class="editor-font" ui-ace="{theme: editorTheme,
               mode: 'java', onLoad: aceLoaded, onBlur: aceBlurred, onChange: aceChanged}">
                 <div id="loading-screen" class="text-center">
@@ -481,7 +493,7 @@
     <!-- Normalize the JS engine to not break older browsers -->
     <script src="/js/es5-shim.js"></script>
     <script src="/js/es6-shim.js"></script>
-    <script src="/js/jquery-3.1.1.min.js"></script>
+    <script src="/js/jquery-3.4.1.min.js"></script>
     <script src="/java/js/jquery.position.js"></script>
     <script src="/java/js/tether.min.js"></script>
     <script src="/js/bootstrap.min.js" crossorigin="anonymous"></script>
@@ -509,6 +521,7 @@
     <!--suppress HtmlUnknownTarget -->
     <script src="/java/js/settings.js"></script>
     <script src="/java/js/ftclangtools.js"></script>
+    <script src="/java/js/theme-obj.js"></script>
     <script src="/java/js/main.js"></script>
     <script src="/java/js/mode-java.js"></script>
     <script src="/java/js/app.js"></script>

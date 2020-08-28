@@ -67,22 +67,19 @@ public class InstantRunHelper {
             return classNames;
         }
 
-        // Pre-Lollipop devices don't support the current iteration of Instant Run, and we need
-        // access to applicationInfo.splitSourceDirs, which was introduced in API 21.
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            String[] apkFiles = applicationInfo.splitSourceDirs;
-            if (apkFiles != null) {
-                for (String path : apkFiles) {
+        // For the current iteration of Instant Run, and we need access to applicationInfo.splitSourceDirs
+        String[] apkFiles = applicationInfo.splitSourceDirs;
+        if (apkFiles != null) {
+            for (String path : apkFiles) {
+                try {
+                    DexFile dexFile = new DexFile(path);
                     try {
-                        DexFile dexFile = new DexFile(path);
-                        try {
-                            classNames.addAll(Collections.list(dexFile.entries()));
-                        } finally {
-                            dexFile.close();
-                        }
-                    } catch (IOException e) {
-                        RobotLog.ee(TAG, e,"Error accessing apk file: " + path + ", IOException: " + e.toString());
+                        classNames.addAll(Collections.list(dexFile.entries()));
+                    } finally {
+                        dexFile.close();
                     }
+                } catch (IOException e) {
+                    RobotLog.ee(TAG, e,"Error accessing apk file: " + path + ", IOException: " + e.toString());
                 }
             }
         }

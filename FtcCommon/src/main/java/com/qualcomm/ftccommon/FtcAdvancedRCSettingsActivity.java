@@ -38,10 +38,13 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.widget.FrameLayout;
 
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.wifi.NetworkType;
 
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
@@ -71,6 +74,7 @@ public class FtcAdvancedRCSettingsActivity extends ThemedActivity
         {
         protected boolean clientConnected = false;
         protected boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
+        protected boolean controlHubConnectionMode = NetworkConnectionHandler.getDefaultNetworkType(AppUtil.getDefContext()) == NetworkType.WIRELESSAP;
         protected PreferencesHelper preferencesHelper = new PreferencesHelper(TAG);
 
         @Override
@@ -86,35 +90,29 @@ public class FtcAdvancedRCSettingsActivity extends ThemedActivity
             Preference prefChangeChannel = findPreference(getString(R.string.pref_launch_wifi_channel_edit));
             Preference prefLynxFirmwareUpdateMode = findPreference(getString(R.string.pref_launch_lynx_firmware_update));
 
+            // If we are a Control Hub, or are set up to connect to a Control Hub, adjust text accordingly
+            if (LynxConstants.isRevControlHub() || controlHubConnectionMode)
+                {
+                prefLynxFirmwareUpdateMode.setSummary(R.string.summaryLynxFirmwareUpdateCH);
+                }
+
             // TODO(CHv1): Update this channel changer to work for both Wifi Direct and the CH
 
-            // If we're not connected to RC, then disable controls that edit same
-            prefChangeChannel.setEnabled(!remoteConfigure ||
-                    (clientConnected && preferencesHelper.readBoolean(getString(R.string.pref_wifip2p_remote_channel_change_works), false)));
-            prefEditClearRememberedGroups.setEnabled(clientConnected);
-            prefLynxFirmwareUpdateMode.setEnabled(clientConnected);
-
-            // Special case the channel changing on ZTE speeds (for non-special case, app_settings.xml
-            // tells us what to do just fine)
-            if (Device.isZteSpeed() && Device.useZteProvidedWifiChannelEditorOnZteSpeeds())
+            // If we're not connected to RC, then disable ALL controls on this screen
+            if (!clientConnected)
                 {
-                prefChangeChannel.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
+                for (int i = 0; i < getPreferenceScreen().getPreferenceCount(); i++)
                     {
-                    public boolean onPreferenceClick(Preference preference)
-                        {
-                        Intent intent = getActivity().getPackageManager().getLaunchIntentForPackage(LaunchActivityConstantsList.ZTE_WIFI_CHANNEL_EDITOR_PACKAGE);
-                        try
-                            {
-                            startActivity(intent);
-                            }
-                        catch (RuntimeException e)
-                            {
-                            AppUtil.getInstance().showToast(UILocation.ONLY_LOCAL, getActivity().getString(R.string.toastUnableToLaunchZTEWifiChannelEditor));
-                            }
-                        return true;
-                        }
-                    });
+                    getPreferenceScreen().getPreference(i).setEnabled(false);
+                    }
                 }
+
+            // TODO(Noah): At the next Robocol bump, replace this with a special connected_to_control_hub shared pref
+            // Disable WiFi Direct settings when managing a Control Hub
+            boolean changingControlHubSettings = (remoteConfigure && LynxConstants.isRevControlHub()) ||
+                    (clientConnected && !preferencesHelper.readBoolean(getString(R.string.pref_wifip2p_remote_channel_change_works), false));
+            prefChangeChannel.setEnabled(!changingControlHubSettings);
+            prefEditClearRememberedGroups.setEnabled(!changingControlHubSettings);
 
             RobotLog.vv(TAG, "clientConnected=%s", clientConnected);
             }

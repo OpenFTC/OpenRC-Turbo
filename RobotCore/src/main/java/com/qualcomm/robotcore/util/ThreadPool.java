@@ -38,8 +38,8 @@ import android.os.Build;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Process;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.LongSparseArray;
 
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
@@ -169,7 +169,7 @@ public class ThreadPool
                     inFlight = true;
 
                     // Run and remember the future for later
-                    result = new SingletonResult<T>(msAwaitDefault, this.service.submit(new Callable<T>()
+                    result = new SingletonResult<T>(msAwaitDefault, this, this.service.submit(new Callable<T>()
                         {
                         @Override public T call() throws Exception
                             {
@@ -255,18 +255,15 @@ public class ThreadPool
         {
         private Future<T> future = null;
         private long      nsDeadline;
+        private Singleton<T> singleton;
 
-        public SingletonResult(int msAwaitDefault, Future<T> future)
+        public SingletonResult(int msAwaitDefault, Singleton<T> singleton, Future<T> future)
             {
+            this.singleton = singleton;
             this.future = future;
             this.nsDeadline = msAwaitDefault==Singleton.INFINITE_TIMEOUT
                     ? -1
                     : System.nanoTime() + msAwaitDefault * ElapsedTime.MILLIS_IN_NANO;
-            }
-
-        public SingletonResult()
-            {
-            this(0, null);
             }
 
         public void setFuture(Future<T> future)
@@ -295,7 +292,10 @@ public class ThreadPool
                 }
             catch (TimeoutException e)
                 {
-                RobotLog.ee(TAG, e, "singleton timed out");
+                if (nsDeadline > 0 && nsDeadline < System.nanoTime())
+                    {
+                    singleton.inFlight = false; // The deadline has expired, allow the next attempt to try again
+                    }
                 }
             return null;
             }
@@ -1065,17 +1065,8 @@ public class ThreadPool
              * Amazingly, threads which are scheduled but then cancelled are NOT automatically
              * removed from 'working' and made again available for subsequent work. Instead, one
              * has to set the 'remove on cancel policy' to make that happen.
-             *
-             * Unfortunately, while that API exists on KitKat, it is buggy. Presumably that's
-             * why Android Studio and the Android docs report that API 21 is needed to use it.
-             * We set that when we can so as to improve thread management on those platforms, but
-             * on KitKat, we just live with it. So beware if you schedule a lot of actions that
-             * you ultimately cancel.
-             */
-            if (Build.VERSION.SDK_INT >= 21)
-                {
-                this.executor.setRemoveOnCancelPolicy(true);
-                }
+             **/
+            this.executor.setRemoveOnCancelPolicy(true);
             }
 
         public void setKeepAliveTime(long time, TimeUnit timeUnit)

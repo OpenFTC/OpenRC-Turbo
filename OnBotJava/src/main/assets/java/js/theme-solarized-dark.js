@@ -41,7 +41,7 @@ width: 1px;\
 background: #33555E\
 }\
 .ace-solarized-dark {\
-background-color: #002B36 !important;\
+background-color: #002B36;\
 color: #93A1A1\
 }\
 .ace-solarized-dark .ace_entity.ace_other.ace_attribute-name,\

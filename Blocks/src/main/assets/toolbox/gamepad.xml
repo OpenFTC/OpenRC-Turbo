@@ -17,6 +17,14 @@
   </block>
   <block type="gamepad_getProperty_Boolean">
     <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Circle</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Cross</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
     <field name="PROP">DpadDown</field>
   </block>
   <block type="gamepad_getProperty_Boolean">
@@ -57,6 +65,14 @@
   </block>
   <block type="gamepad_getProperty_Boolean">
     <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Options</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">PS</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
     <field name="PROP">RightBumper</field>
   </block>
   <block type="gamepad_getProperty_Boolean">
@@ -77,7 +93,23 @@
   </block>
   <block type="gamepad_getProperty_Boolean">
     <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Share</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Square</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
     <field name="PROP">Start</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Touchpad</field>
+  </block>
+  <block type="gamepad_getProperty_Boolean">
+    <field name="IDENTIFIER">gamepad1</field>
+    <field name="PROP">Triangle</field>
   </block>
   <block type="gamepad_getProperty_Boolean">
     <field name="IDENTIFIER">gamepad1</field>

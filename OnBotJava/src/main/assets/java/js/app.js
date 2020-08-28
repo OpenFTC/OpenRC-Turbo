@@ -114,19 +114,137 @@
             $scope.codeError = null;
             $scope.projectViewHasNodesSelected = false;
             env.loadError = false;
+            $scope.offline = false;
+
+            $scope.tabs = {
+                active: null,
+                documentIdToTab: function documentIdToTab(docId) {
+                    if (docId === '') {
+                        return {
+                            id: '',
+                            title: 'Welcome to OnBotJava',
+                            icon: 'fa-file-text',
+                            name: 'Welcome',
+                            session: null
+                        }
+                    }
+
+                    var strings = env.documentId.split('/');
+                    var page = strings[strings.length - 1];
+                    return {
+                        id: docId,
+                        title: docId,
+                        name: page,
+                        icon: page.endsWith('.java') ? 'fa-code' : 'fa-file-text',
+                        session: null
+                    }
+                },
+                open: [],
+                switch: function (tab) {
+                    if (env.editor) {
+                        $scope.tabs.active.session = {
+                            selection: env.editor.selection.getRange(),
+                            scrollLeft: env.editor.session.getScrollLeft(),
+                            scrollTop: env.editor.session.getScrollTop()
+                        };
+                        sessionStorage.setItem('_tabs', angular.toJson($scope.tabs.open))
+                    }
+                    env.changeDocument(tab['id']);
+                },
+                switchedTo: function (id) {
+                    for (var tab of $scope.tabs.open) {
+                        if (id === tab['id']) {
+                            $scope.tabs.active = tab;
+                            env.editor.clearSelection();
+                            if (tab.session !== null) {
+                                env.editor.clearSelection();
+                                env.editor.selection.setRange(tab.session.selection);
+                                env.editor.session.setScrollLeft(tab.session.scrollLeft);
+                                env.editor.session.setScrollTop(tab.session.scrollTop);
+                            }
+                            if ($scope.error) {
+                                if ($scope.error.col === 0) {
+                                    $scope.error.col = 1;
+                                }
+
+                                _editor.gotoLine($scope.error.line, $scope.error.col - 1);
+                                $scope.error = null;
+                            }
+                            sessionStorage.setItem('_active_tab', angular.toJson($scope.tabs.active));
+                            return;
+                        }
+                    }
+                    var newTab = $scope.tabs.documentIdToTab(id);
+                    $scope.tabs.open = [newTab].concat($scope.tabs.open);
+                    sessionStorage.setItem('_tabs', angular.toJson($scope.tabs.open))
+                    $scope.tabs.active = newTab;
+                    sessionStorage.setItem('_active_tab', angular.toJson($scope.tabs.active));
+                },
+                close: function (tab) {
+                    var wasActive = $scope.tabs.isActive(tab);
+                    var last_active = -1;
+                    var found = false;
+                    $scope.tabs.open = $scope.tabs.open.filter(function(t, i) {
+                        if (t['id'] === tab['id']) {
+                            found = true;
+                            return false;
+                        }
+
+                        if (!found) {
+                            last_active++;
+                        }
+
+                        return true;
+                    });
+
+                    if (wasActive) {
+                        if (last_active === -1) {
+                            if ($scope.tabs.open.length === 0) {
+                                $scope.tabs.open = [$scope.tabs.documentIdToTab('')]
+                            }
+                            $scope.tabs.switch($scope.tabs.open[0])
+                        } else {
+                            $scope.tabs.switch($scope.tabs.open[last_active]);
+                        }
+                    }
+                    sessionStorage.setItem('_tabs', angular.toJson($scope.tabs.open));
+                },
+                isActive: function (tab) {
+                    return tab['id'] === env.documentId;
+                }
+            };
 
             env.ws.connectionHandlers(() => {
-                $scope.disabled = false;
+                if ($scope.disconnect_state) {
+                    $scope.offline = false;
+                    $scope.disabled = false;
+                    $scope.editor.setReadOnly($scope.disconnect_state.read_only);
+                } else {
+                    $scope.offline = false;
+                }
+
                 var $build = $('#build-button');
                 $build.html('<i class="fa fa-2x fa-wrench"></i>');
+                if ($scope.tabs.active && env.editor) {
+                    $scope.tabs.switch($scope.tabs.active);
+                }
                 loadLogsFromLocalStorage();
             }, () => {
+                $scope.disconnect_state = {
+                    offline: $scope.offline,
+                    disabled: $scope.disabled,
+                    read_only: $scope.editor.getReadOnly()
+                }
+                $scope.offline = true;
                 $scope.disabled = true;
+                $scope.editor.setReadOnly(true);
                 var $buildContent = $('#build-log-content');
                 var $build = $('#build-button');
                 $build.html('<i class="fa fa-2x fa-warning"></i>');
                 $buildContent.html("Could not access the build system.\n" +
-                    "Please verify you are still connected to the Robot Controller and check your logs.");
+                    "Please verify you are still connected to the Robot Controller and check your logs.\n" +
+                    "\n" +
+                    "Files are read-only right now. Please connect to the Robot Controller to edit files.");
             });
 
             $scope.currentBuildStatus = null;
@@ -155,7 +273,7 @@
                            .replace(/([\w/\d.]+)\((\d+):(\d+)\): ([^:]+):/g,
                                '<a class="obj-error-link" href="' + srcDir + '$1" data-obj-line="$2" data-obj-col="$3">$1</a> line $2, column $3: $4:')
                            .replace(/ERROR/g, '<span class="error">ERROR</span>')
-                           .replace(/WARNING/g, '<span class="warning">WARNING</span>');
+                           .replace(/(WARNING|MANDATORY_WARNING)/g, '<span class="warning">WARNING</span>');
                        $buildContent.append(dataString);
                        $('a.obj-error-link').click(function (e) {
                            e.preventDefault();
@@ -164,7 +282,8 @@
                                line: Number.parseInt(target.attr('data-obj-line')),
                                col: Number.parseInt(target.attr('data-obj-col')) - 1,
                            };
-                           env.changeDocument('/src/' + target.html());
+                           var newTab = $scope.tabs.documentIdToTab(target.html())
+                           $scope.tabs.switch(newTab);
                        });
                    });
                };
@@ -238,6 +357,25 @@
                 }
             }
 
+            function setupEditorWithData(data, readonly, _editor) {
+                if (readonly === undefined) readonly = false;
+                // Normalize any Windows line-endings to Nix style, otherwise our auto-complete parser is thrown off
+                data = data.replace(/\r\n/g, '\n');
+
+                // Normalize any Windows line-endings to Nix style, otherwise our auto-complete parser is thrown off
+                data = data.replace(/\r\n/g, '\n');
+
+                _editor.setReadOnly(false);
+                _editor.setValue(data);
+                _editor.getSession().setUndoManager(new ace.UndoManager());
+                _editor.clearSelection();
+
+                $scope.code = data;
+                _editor.setReadOnly(readonly);
+
+                $scope.tabs.switchedTo(env.documentId);
+            }
+
             function getFromRawSource(url, _editor, readonly) {
                 if (url === null) {
                     console.error("Cowardly refusing to attempt to fetch from self!");
@@ -248,50 +386,28 @@
                 var whitespace = ace.require("ace/ext/whitespace");
 
                 console.log("Getting " + url);
-                function setupEditorWithData(data, readonly) {
-                    if (readonly === undefined) readonly = false;
-                    // Normalize any Windows line-endings to Nix style, otherwise our auto-complete parser is thrown off
-                    data = data.replace(/\r\n/g, '\n');
 
-                    // Normalize any Windows line-endings to Nix style, otherwise our auto-complete parser is thrown off
-                    data = data.replace(/\r\n/g, '\n');
-
-                    _editor.setReadOnly(false);
-                    _editor.setValue(data);
-                    _editor.getSession().setUndoManager(new ace.UndoManager());
-                    _editor.clearSelection();
-
-                    $scope.code = data;
-                    _editor.setReadOnly(readonly);
-                    if ($scope.error) {
-                        if ($scope.error.col === 0) {
-                            $scope.error.col = 1;
-                        }
-
-                        _editor.gotoLine($scope.error.line, $scope.error.col - 1);
-                        $scope.error = null;
-                    } else {
-                        _editor.gotoLine(1, 1);
-                    }
-                }
 
                 $.get(url, function (data) {
                     if (data !== null) { // Sanity check
-                        setupEditorWithData(data, readonly);
+                        localStorage.setItem(env.documentId, data);
+                        setupEditorWithData(data, readonly, _editor);
                         env.loadError = false;
                         whitespace.detectIndentation(_editor.session);
                         if (document.URL.indexOf(env.javaUrlRoot) === -1) {
                             $scope.outsideSource = true;
                         }
                     } else {
-                        setupEditorWithData('// An unknown error occurred', true);
+                        env.loadError = true;
+                        setupEditorWithData('// An unknown error occurred', true, _editor);
                     }
                 }, "text").fail(function (jqxhr, status, error) {
+                    env.loadError = true;
                     setupEditorWithData('// An error occurred trying to fetch:\n' +
                         "\t// '" + url + "'\n" +
                         "\t//\n" +
-                        "\t//The server responded with the status '" + error + "'", true);
-                    env.loadError = true;
+                        "\t//The server responded with the status '" + error + "'", true, _editor);
+
                 });
             }
 
@@ -316,7 +432,26 @@
 
             function detectAndLoadJavaProgrammingModeFile() {
                 var documentId = env.documentId;
-                if (document.URL.indexOf(env.urls.URI_JAVA_EDITOR) + env.urls.URI_JAVA_EDITOR.length !== document.URL.length || (documentId !== null && documentId !== '')) {
+
+                var fileName = documentId.substring(documentId.lastIndexOf("/") + 1);
+
+                if ($scope.offline) {
+                    var contents = localStorage.getItem(env.documentId);
+                    if (typeof setDocumentTitle === 'undefined') {
+                        document.title = fileName + " | FTC Code Editor";
+                        console.warn('util.js not loaded correctly');
+                    } else {
+                        setDocumentTitle(fileName + ' | FTC Code Editor');
+                    }
+
+                    if (contents) {
+                        setupEditorWithData(contents, true, env.editor);
+                        configureEditorLang(fileName, env.editor)
+                    } else {
+                        setupEditorWithData('Connect to the Robot Controller to see this file', env.editor);
+                        configureEditorLang('.md', env.editor);
+                    }
+                } else if (document.URL.indexOf(env.urls.URI_JAVA_EDITOR) + env.urls.URI_JAVA_EDITOR.length !== document.URL.length || ((documentId !== '') && !documentId.startsWith('?'))) {
                     var fetchLocation = env.urls.URI_FILE_GET + '?' + env.urls.REQUEST_KEY_FILE + '=' + documentId;
                     loadFromUrlAddress(fetchLocation);
                     var fileName = documentId.substring(documentId.lastIndexOf("/") + 1);
@@ -343,17 +478,13 @@
             }
 
             env.changeDocument = function changeOnBotJavaDocument(newDocumentId) {
-                if (!newDocumentId) {
+                if (newDocumentId === null) { // empty string is the default page, but it would fail a less precise test
                     console.warn("Can't change document id. newDocumentId is invalid");
+                    return;
                 }
 
-                if (env.documentId === newDocumentId) {
-                    if ($scope.error) {
-                        env.editor.gotoLine($scope.error.line, $scope.error.col - 1, true);
-                        $scope.error = false;
-                    }
-
-                    return;
+                if ($scope.offline) {
+                    console.log('offline mode')
                 }
 
                 $scope.editor.setReadOnly(true);
@@ -366,8 +497,10 @@
                 env.documentId = newDocumentId;
 
                 var newUrl;
-                if (oldDocumentId === null || oldDocumentId === '') {
+                if ((oldDocumentId === null || oldDocumentId === '') && newDocumentId !== '') {
                     newUrl = document.URL + '?' + newDocumentId;
+                } else if (newDocumentId === '') {
+                    newUrl = document.URL.replace('?' + oldDocumentId, '');
                 } else {
                     newUrl = document.URL.replace(oldDocumentId, newDocumentId);
                 }
@@ -378,6 +511,7 @@
                 var parentPrefix = parentUrl.substring(0, parentUrl.indexOf('java/editor.html'));
                 var childPage = newUrl.substring(newUrl.indexOf(('java/editor.html')));
                 parent.history.pushState('', document.title, parentPrefix + childPage + '&pop=true');
+
             };
 
             $scope.aceLoaded = function (_editor) {
@@ -389,7 +523,27 @@
                 env.editor = _editor;
                 $('#left-pane').addClass('ace-' + env.editorTheme);
                 $('#build-log-pane').addClass('ace-' + env.editorTheme);
+                $('#open-files').addClass('ace-' + env.editorTheme);
 
+                // configure tabs here otherwise we might not have finished configuring env
+                (function() {
+                    let tabs = sessionStorage.getItem('_tabs');
+                    if (sessionStorage.getItem('_tabs')) {
+                        $scope.tabs.open = angular.fromJson(tabs);
+                        let jsonActiveTab = sessionStorage.getItem('_active_tab');
+                        let activeTab = angular.fromJson(jsonActiveTab);
+                        if (activeTab) {
+                            env.documentId = activeTab.id;
+                        } else {
+                            //$scope.tabs.active = $scope.tabs.open[0];
+                        }
+                    } else {
+                        $scope.tabs.open = [
+                            $scope.tabs.documentIdToTab(env.documentId)
+                        ];
+                        //$scope.tabs.active = $scope.tabs.open[0];
+                    }
+                })();
                 detectAndLoadJavaProgrammingModeFile();
 
                 _editor.clearSelection();
@@ -517,10 +671,14 @@
                 $scope.code = $scope.editor.getValue();
 
                 loadLogsFromLocalStorage();
+                //$(window).trigger('resize');
             };
 
+
             function save() {
-                $scope.tools.saveCode($scope.editor);
+                if (!$scope.offline) {
+                    $scope.tools.saveCode($scope.editor);
+                }
             }
 
             $scope.aceBlurred = function () {
@@ -532,6 +690,7 @@
 
             $scope.aceChanged = function () {
                 $scope.changed = true;
+
             };
 
             env.tools = $scope.tools = {
@@ -753,6 +912,7 @@
                     } else if (env.settings.get('whitespace') === 'tab') {
                         code = code.replace(new RegExp(tabWidthSpaces, 'g'), '\t');
                     }
+                    localStorage.setItem(env.documentId, code);
                     var encodedCode = env.fixedUriEncode(code);
                     var saveData = env.urls.REQUEST_KEY_SAVE + '=' + encodedCode;
                     if (documentId === null || documentId === '') return;

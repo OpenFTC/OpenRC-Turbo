@@ -190,7 +190,7 @@ public abstract class OpMode {
   public int msStuckDetectInitLoop = 5000;
   public int msStuckDetectStart    = 5000;
   public int msStuckDetectLoop     = 5000;
-  public int msStuckDetectStop     = 1000;
+  public int msStuckDetectStop     = 900;
 
   //----------------------------------------------------------------------------------------------
   // Internal

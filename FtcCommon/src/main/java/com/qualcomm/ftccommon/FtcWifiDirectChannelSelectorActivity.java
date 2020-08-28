@@ -66,9 +66,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.annotation.AnyRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
+import androidx.annotation.AnyRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -183,6 +183,7 @@ public class FtcWifiDirectChannelSelectorActivity extends ThemedActivity impleme
         WifiDirectChannelAndDescription[] items = WifiDirectChannelAndDescription.load().toArray(new WifiDirectChannelAndDescription[0]);
         Arrays.sort(items);
 
+        // TODO(Noah): Get available channel list and set channel via Robocol (minus 5 GHz channels if the local device does not support)
         // if 5GHz is not available, then truncate list of available channels.
         if (WifiUtil.is5GHzAvailable() == false)
             {

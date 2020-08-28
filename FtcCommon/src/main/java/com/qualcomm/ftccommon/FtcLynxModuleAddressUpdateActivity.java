@@ -35,8 +35,8 @@ package com.qualcomm.ftccommon;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +47,7 @@ import android.widget.TextView;
 
 import com.qualcomm.ftccommon.configuration.EditActivity;
 import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.hardware.USBAccessibleLynxModule;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -61,6 +62,7 @@ import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -116,6 +118,22 @@ public class FtcLynxModuleAddressUpdateActivity extends EditActivity
                     {
                     // this can take a long time, so we run it here in the background
                     currentModules = getUSBAccessibleLynxModules();
+                    Iterator<USBAccessibleLynxModule> moduleIterator = currentModules.iterator();
+                    while (moduleIterator.hasNext())
+                        {
+                        // Don't show the Control Hub module at all if the Robot Controller has
+                        // marked it as unchangeable. We want to pretend that the Control Hub
+                        // doesn't have an address at all.
+
+                        // If the RC has marked it as changeable, it must be running a version older
+                        // than 6.0, in which case the Control Hub address is still changeable, and
+                        // it should be shown here.
+                        USBAccessibleLynxModule module = moduleIterator.next();
+                        if (!module.isModuleAddressChangeable() && module.getSerialNumber().isEmbedded())
+                            {
+                            moduleIterator.remove();
+                            }
+                        }
                     }
                 },
             new Runnable()
@@ -149,7 +167,7 @@ public class FtcLynxModuleAddressUpdateActivity extends EditActivity
 
     protected class DisplayedModuleList
         {
-        protected int                  lastModuleAddressChoice = LynxConstants.MAX_MODULE_ADDRESS_CHOICE;
+        protected int                  lastModuleAddressChoice = LynxConstants.MAX_UNRESERVED_MODULE_ADDRESS;
         protected AddressConfiguration currentAddressConfiguration = new AddressConfiguration();
         protected ViewGroup            moduleList;
 
@@ -535,7 +553,7 @@ public class FtcLynxModuleAddressUpdateActivity extends EditActivity
                 case CommandList.CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP:
                     CommandList.USBAccessibleLynxModulesResp serialNumbers = CommandList.USBAccessibleLynxModulesResp.deserialize(command.getExtra());
                     availableLynxModules.offer(serialNumbers);
-                    return CallbackResult.HANDLED;
+                    return CallbackResult.HANDLED_CONTINUE; // Allow processing by RevHubsAvailableForUpdate WebHandler
                 }
             return super.commandEvent(command);
             }

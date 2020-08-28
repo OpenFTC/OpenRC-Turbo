@@ -94,13 +94,15 @@ package com.qualcomm.ftccommon;
 
 import android.app.Activity;
 import android.graphics.Color;
-import android.support.annotation.CallSuper;
-import android.support.annotation.NonNull;
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.ftccommon.configuration.FtcConfigurationActivity;
 import com.qualcomm.ftccommon.configuration.RobotConfigFile;
 import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
+import com.qualcomm.hardware.lynx.EmbeddedControlHubModule;
 import com.qualcomm.robotcore.hardware.Blinker;
+import com.qualcomm.robotcore.hardware.USBAccessibleLynxModule;
 import com.qualcomm.robotcore.hardware.VisuallyIdentifiableHardwareDevice;
 import com.qualcomm.robotcore.hardware.ScannedDevices;
 import com.qualcomm.ftccommon.configuration.USBScanManager;
@@ -136,10 +138,12 @@ import org.firstinspires.ftc.robotcore.external.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Supplier;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.PreferenceRemoterRC;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList.LynxFirmwareUpdateResp;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectGroupName;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectPersistentGroupManager;
@@ -162,6 +166,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -171,6 +176,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings("WeakerAccess")
 public abstract class FtcEventLoopBase implements EventLoop
     {
+    // TODO(Noah): Look into making FtcEventLoopBase available before the Robot first starts up.
+    //             This would allow many commands (including injected commands) to succeed much earlier.
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
@@ -184,6 +191,7 @@ public abstract class FtcEventLoopBase implements EventLoop
     protected boolean runningOnDriverStation = false;
     protected USBScanManager usbScanManager;
     protected final OpModeRegister userOpmodeRegister;
+    protected final AtomicBoolean firmwareUpdateInProgress;
 
     protected final RegisteredOpModes registeredOpModes;
     private AppUtil.DialogContext dialogContext; //added for OpenRC
@@ -199,6 +207,7 @@ public abstract class FtcEventLoopBase implements EventLoop
         this.activityContext = activityContext;
         this.robotCfgFileMgr = new RobotConfigFileManager(activityContext);
         this.ftcEventLoopHandler = new FtcEventLoopHandler(hardwareFactory, callback, activityContext);
+        this.firmwareUpdateInProgress = new AtomicBoolean(false);
         this.usbScanManager = null;
         }
 
@@ -206,7 +215,7 @@ public abstract class FtcEventLoopBase implements EventLoop
     // Scanning
     //----------------------------------------------------------------------------------------------
 
-    protected @NonNull USBScanManager startUsbScanMangerIfNecessary() throws RobotCoreException
+    protected @NonNull USBScanManager startUsbScanMangerIfNecessary()
         {
         // Demand-start our local USB scanner in order to save resources.
         USBScanManager result = this.usbScanManager;
@@ -254,6 +263,14 @@ public abstract class FtcEventLoopBase implements EventLoop
         else if (name.equals(CommandList.CMD_CLEAR_REMEMBERED_GROUPS))
             {
             handleCommandClearRememberedGroups();
+            }
+        else if (name.equals(CommandList.CMD_SCAN))
+            {
+            handleCommandScan(extra);
+            }
+        else if (name.equals(CommandList.CMD_DISCOVER_LYNX_MODULES))
+            {
+            handleCommandDiscoverLynxModules(extra);
             }
         else if (name.equals(CommandList.CMD_LYNX_FIRMWARE_UPDATE))
             {
@@ -363,6 +380,10 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             result = handleCommandVisuallyConfirmWifiReset();
             }
+        else if (name.equals(CommandList.CMD_VISUALLY_CONFIRM_WIFI_BAND_SWITCH))
+            {
+            result = handleCommandVisuallyConfirmWifiBandSwitch(command);
+            }
         else
             {
             result = CallbackResult.NOT_HANDLED;
@@ -447,7 +468,8 @@ public abstract class FtcEventLoopBase implements EventLoop
 
         try
             {
-            WriteXMLFileHandler writeXMLFileHandler = new WriteXMLFileHandler(activityContext);
+            // It's important to parse and re-serialize the configuration file, so that we can apply any needed transformations prior to transmission.
+            WriteXMLFileHandler writeXMLFileHandler = new WriteXMLFileHandler();
             ArrayList<ControllerConfiguration> deviceList = (ArrayList<ControllerConfiguration>) parser.parse(file.getXml());
             String xmlData = writeXMLFileHandler.toXml(deviceList);
             RobotLog.vv(FtcConfigurationActivity.TAG, "FtcEventLoop: handleCommandRequestParticularConfigFile, data: " + xmlData);
@@ -519,6 +541,75 @@ public abstract class FtcEventLoopBase implements EventLoop
         }
 
     /**
+     * @see FtcConfigurationActivity#doUSBScanAndUpdateUI()
+     */
+    protected void handleCommandScan(String extra) throws RobotCoreException, InterruptedException {
+        RobotLog.vv(FtcConfigurationActivity.TAG, "handling command SCAN");
+
+        final USBScanManager usbScanManager = startUsbScanMangerIfNecessary();
+
+        // Start a scan and wait for it to complete, but if a scan is already in progress, then just wait for that one to finish
+        final ThreadPool.SingletonResult<ScannedDevices> future = usbScanManager.startDeviceScanIfNecessary();
+
+        // Actually carry out the scan in a worker thread so that we don't hold up the receive loop for
+        // half-second or so that carrying out the scan will take.
+        ThreadPool.getDefault().execute(new Runnable()
+            {
+            @Override public void run()
+                {
+                try
+                    {
+                    ScannedDevices scannedDevices = future.await();
+                    if (scannedDevices==null) scannedDevices = new ScannedDevices();
+
+                    // Package up the raw scanned device info and send that back to the DS
+                    String data = usbScanManager.packageCommandResponse(scannedDevices);
+                    RobotLog.vv(FtcConfigurationActivity.TAG, "handleCommandScan data='%s'", data);
+                    networkConnectionHandler.sendCommand(new Command(CommandList.CMD_SCAN_RESP, data));
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    }
+                }
+            });
+        }
+
+    protected void handleCommandDiscoverLynxModules(String extra) throws RobotCoreException
+        {
+        RobotLog.vv(FtcConfigurationActivity.TAG, "handling command DiscoverLynxModules");
+        final SerialNumber serialNumber = SerialNumber.fromString(extra);
+
+        final USBScanManager usbScanManager = startUsbScanMangerIfNecessary();
+
+        // Start a scan and wait for it to complete, but if a scan is already in progress, then just wait for that one to finish
+        final ThreadPool.SingletonResult<LynxModuleMetaList> future = this.usbScanManager.startLynxModuleEnumerationIfNecessary(serialNumber);
+
+        // Actually carry out the scan in a worker thread so that we don't hold up the receive loop for
+        // full second or more that carrying out the discovery will take.
+        ThreadPool.getDefault().execute(new Runnable()
+            {
+            @Override public void run()
+                {
+                try
+                    {
+                    LynxModuleMetaList lynxModules = future.await();
+                    if (lynxModules==null) lynxModules = new LynxModuleMetaList(serialNumber);
+
+                    // Package up the raw module list and send that back to the DS
+                    String data = usbScanManager.packageCommandResponse(lynxModules);
+                    RobotLog.vv(FtcConfigurationActivity.TAG, "DiscoverLynxModules data='%s'", data);
+                    networkConnectionHandler.sendCommand(new Command(CommandList.CMD_DISCOVER_LYNX_MODULES_RESP, data));
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    }
+                }
+            });
+        }
+
+    /**
      * Update the firmware of the device indicated in the command.
      *
      * Note: we need to run this in a worker thread so that our command processor here
@@ -527,17 +618,14 @@ public abstract class FtcEventLoopBase implements EventLoop
     protected void handleCommandLynxFirmwareUpdate(final Command commandRequest)
         {
         RobotLog.vv(TAG, "handleCommandLynxFirmwareUpdate received");
-        final CommandList.LynxFirmwareUpdate params = SimpleGson.getInstance().fromJson(commandRequest.getExtra(), CommandList.LynxFirmwareUpdate.class);
+        final CommandList.LynxFirmwareUpdate params = CommandList.LynxFirmwareUpdate.deserialize(commandRequest.getExtra());
 
         ThreadPool.getDefault().submit(new Runnable()
             {
             @Override public void run()
                 {
-                boolean success = updateLynxFirmware(params.serialNumber, params.firmwareImageFile);
-                //
-                CommandList.LynxFirmwareUpdateResp result = new CommandList.LynxFirmwareUpdateResp();
-                result.success = success;
-                networkConnectionHandler.sendReply(commandRequest, new Command(CommandList.CMD_LYNX_FIRMWARE_UPDATE_RESP, SimpleGson.getInstance().toJson(result)));
+                LynxFirmwareUpdateResp result = updateLynxFirmware(params.serialNumber, params.firmwareImageFile, params.originatorId);
+                networkConnectionHandler.sendReply(commandRequest, new Command(CommandList.CMD_LYNX_FIRMWARE_UPDATE_RESP, result.serialize()));
                 }
             });
         }
@@ -546,18 +634,56 @@ public abstract class FtcEventLoopBase implements EventLoop
      * Updates the firmware of the Expansion Hub in the indicated USB-attached device
      * to be the indicated firmware.
      */
-    protected boolean updateLynxFirmware(SerialNumber serialNumber, final CommandList.FWImage imageFileName)
+    protected LynxFirmwareUpdateResp updateLynxFirmware(final SerialNumber serialNumber, final CommandList.FWImage image, String requestId)
         {
-        RobotLog.vv(TAG, "updateLynxFirmware(%s, %s)", serialNumber, imageFileName.getName());
+        LynxFirmwareUpdateResp result = new LynxFirmwareUpdateResp();
+        result.success = false;
+        result.originatorId = requestId;
 
-        boolean success = false;
+        boolean firmwareUpdateAllowed = firmwareUpdateInProgress.compareAndSet(false, true);
+        if (!firmwareUpdateAllowed)
+            {
+            result.errorMessage = AppUtil.getDefContext().getString(R.string.lynxFirmwareUpdateAlreadyInProgress);
+            RobotLog.vv(TAG, "Cannot update firmware: a firmware update is already in progress");
+            return result;
+            }
+        RobotLog.vv(TAG, "updateLynxFirmware(%s, %s)", serialNumber, image.getName());
+
+        final boolean updatingControlHub = serialNumber.isEmbedded();
+        Consumer<ProgressParameters> progressConsumer = new Consumer<ProgressParameters>()
+            {
+            Double prevPercentComplete = null;
+            @Override public void accept(ProgressParameters parameters)
+                {
+                double percentComplete = Math.round(parameters.fractionComplete() * 100);
+                if (prevPercentComplete==null || prevPercentComplete != percentComplete)
+                    {
+                    prevPercentComplete = percentComplete;
+                    String message;
+                    if (updatingControlHub)
+                        {
+                        message = String.format(activityContext.getString(R.string.controlHubFirmwareUpdateMessage), image.getName());
+                        }
+                    else
+                        {
+                        message = String.format(activityContext.getString(R.string.expansionHubFirmwareUpdateMessage), serialNumber, image.getName());
+                        }
+                    AppUtil.getInstance().showProgress(UILocation.BOTH,
+                            message,
+                            parameters.fractionComplete(),
+                            100);
+                    }
+                }
+            };
 
         try {
-            final LynxUsbDeviceContainer lynxUsbDevice = getLynxUsbDeviceForFirmwareUpdate(serialNumber);
+            // Show an indeterminate progress bar, in case we aren't able to start the flashing process right away
+            progressConsumer.accept(new ProgressParameters(0, 1));
+            final LynxUsbDevice lynxUsbDevice = getLynxUsbDeviceForFirmwareUpdate(serialNumber);
             if (lynxUsbDevice != null)
                 {
                 try {
-                    byte[] firmwareImage = ReadWriteFile.readBytes(imageFileName);
+                    byte[] firmwareImage = ReadWriteFile.readBytes(image);
                     if (firmwareImage.length > 0)
                         {
                         RobotLog.vv(TAG, "disengaging lynx usb device %s", lynxUsbDevice.getSerialNumber());
@@ -566,13 +692,13 @@ public abstract class FtcEventLoopBase implements EventLoop
                             // Try the update few times, in the hope of mitigating transient errors. Each time
                             // we reset the hub and toggle it to enter programming mode, so it will at least
                             // pay attention to us and try to cooperate, even after a failed update.
-                            int cRetryFirmwareUpdate = 4;
+                            int cRetryFirmwareUpdate = 2;
                             for (int i = 0; i < cRetryFirmwareUpdate; i++)
                                 {
                                 RobotLog.vv(TAG, "trying firmware update: count=%d", i);
-                                if (updateFirmwareOnce(lynxUsbDevice, imageFileName.getName(), firmwareImage, serialNumber))
+                                if (updateFirmwareOnce(lynxUsbDevice, firmwareImage, serialNumber, progressConsumer))
                                     {
-                                    success = true;
+                                    result.success = true;
                                     break;
                                     }
                                 }
@@ -591,6 +717,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                 finally
                     {
                     lynxUsbDevice.close();
+                    firmwareUpdateInProgress.set(false);
                     }
                 }
             else
@@ -602,33 +729,22 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             RobotLog.ee(TAG, e, "RuntimeException in updateLynxFirmware()");
             }
-        RobotLog.vv(TAG, "updateLynxFirmware(%s, %s): success=%s", serialNumber, imageFileName.getName(), success);
-        return success;
+        finally
+            {
+            AppUtil.getInstance().dismissProgress(UILocation.BOTH);
+            }
+        RobotLog.vv(TAG, "updateLynxFirmware(%s, %s): result=%s", serialNumber, image.getName(), result.serialize());
+        return result;
         }
 
-    protected boolean updateFirmwareOnce(final LynxUsbDeviceContainer lynxUsbDevice, final String imageFileName, byte[] firmwareImage, SerialNumber serialNumber)
+    protected boolean updateFirmwareOnce(final LynxUsbDevice lynxUsbDevice, byte[] firmwareImage, SerialNumber serialNumber, Consumer<ProgressParameters> fractionCompleteFeedback)
         {
         boolean success = true;
         if (enterFirmwareUpdateMode(lynxUsbDevice.getRobotUsbDevice()))
             {
             FlashLoaderManager manager = new FlashLoaderManager(lynxUsbDevice.getRobotUsbDevice(), firmwareImage);
             try {
-                manager.updateFirmware(new Consumer<ProgressParameters>()
-                    {
-                    Double prevPercentComplete = null;
-                    @Override public void accept(ProgressParameters parameters)
-                        {
-                        double percentComplete = Math.round(parameters.fractionComplete() * 100);
-                        if (prevPercentComplete==null || prevPercentComplete != percentComplete)
-                            {
-                            prevPercentComplete = percentComplete;
-                            AppUtil.getInstance().showProgress(UILocation.BOTH,
-                                String.format(activityContext.getString(R.string.expansionHubFirmwareUpdateMessage), lynxUsbDevice.getSerialNumber(), imageFileName),
-                                parameters.fractionComplete(),
-                                100);
-                            }
-                        }
-                    });
+                manager.updateFirmware(fractionCompleteFeedback);
                 }
             catch (InterruptedException e)
                 {
@@ -640,10 +756,6 @@ public abstract class FtcEventLoopBase implements EventLoop
                 {
                 success = false;
                 RobotLog.ee(TAG, e, "exception while updating firmware: serial=%s", serialNumber);
-                }
-            finally
-                {
-                AppUtil.getInstance().dismissProgress(UILocation.BOTH);
                 }
             }
         else
@@ -708,85 +820,22 @@ public abstract class FtcEventLoopBase implements EventLoop
             });
         }
 
-    protected LynxUsbDeviceContainer getLynxUsbDeviceForFirmwareUpdate(SerialNumber serialNumber)
+    protected LynxUsbDevice getLynxUsbDeviceForFirmwareUpdate(SerialNumber serialNumber)
         {
-        // Is is it something that's already open?
-        for (LynxUsbDeviceImpl lynxUsbDevice : ftcEventLoopHandler.getExtantLynxDeviceImpls())
+        try
             {
-            if (lynxUsbDevice.getSerialNumber().equals(serialNumber))
-                {
-                RobotLog.vv(TAG, "getLynxUsbDeviceForFirmwareUpdate(): found existing %s", serialNumber);
-                return new LynxUsbDeviceContainer(lynxUsbDevice, serialNumber);
-                }
-            }
-
-        // No, then open it
-        try {
-            RobotLog.vv(TAG, "getLynxUsbDeviceForFirmwareUpdate(): opening %s", serialNumber);
-            RobotUsbManager robotUsbManager = HardwareDeviceManager.createUsbManager(AppUtil.getDefContext());
-            RobotUsbDevice robotUsbDevice = LynxUsbUtil.openUsbDevice(true, robotUsbManager, serialNumber);
-            return new LynxUsbDeviceContainer(robotUsbDevice, serialNumber);
+            return (LynxUsbDevice) startUsbScanMangerIfNecessary().getDeviceManager().createLynxUsbDevice(serialNumber, null);
             }
         catch (RobotCoreException e)
             {
             RobotLog.ee(TAG, e, "getLynxUsbDeviceForFirmwareUpdate(): exception opening lynx usb device: %s", serialNumber);
             }
-
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            RobotLog.ee(TAG, "Thread interrupted in getLynxUsbDeviceForFirmwareUpdate");
+            }
         return null;
-        }
-
-    /** abstracts whether we've got a live LynxUsbDeviceImpl or we just opened something locally ourselves. */
-    protected static class LynxUsbDeviceContainer
-        {
-        protected final LynxUsbDeviceImpl     lynxUsbDevice;
-        protected final RobotUsbDevice        robotUsbDevice; // if non-null, close on close
-        protected final SerialNumber          serialNumber;
-
-        public LynxUsbDeviceContainer(@NonNull LynxUsbDeviceImpl lynxUsbDevice, SerialNumber serialNumber) // existing open
-            {
-            this.lynxUsbDevice = lynxUsbDevice;
-            this.robotUsbDevice = null;
-            this.serialNumber = serialNumber;
-            }
-        public LynxUsbDeviceContainer(@NonNull RobotUsbDevice robotUsbDevice, SerialNumber serialNumber) // newly opened
-            {
-            this.lynxUsbDevice = null;
-            this.robotUsbDevice = robotUsbDevice;
-            this.serialNumber = serialNumber;
-            }
-        public void close()
-            {
-            try {
-                if (robotUsbDevice != null)
-                    {
-                    RobotLog.vv(TAG, "getLynxUsbDeviceForFirmwareUpdate(): closing %s", serialNumber);
-                    robotUsbDevice.requestReadInterrupt(true);
-                    robotUsbDevice.close();
-                    }
-                }
-            catch (RuntimeException e)
-                {
-                RobotLog.ee(TAG, e, "RuntimeException in LynxUsbDeviceContainer.close");
-                }
-            }
-        public void disengage()
-            {
-            if (lynxUsbDevice != null) lynxUsbDevice.disengage();
-            }
-        public void engage()
-            {
-            if (lynxUsbDevice != null) lynxUsbDevice.engage();
-            }
-        public RobotUsbDevice getRobotUsbDevice()
-            {
-            if (lynxUsbDevice != null) return lynxUsbDevice.getRobotUsbDevice();
-            return robotUsbDevice;
-            }
-        public SerialNumber getSerialNumber()
-            {
-            if (lynxUsbDevice != null) return lynxUsbDevice.getSerialNumber();
-            return robotUsbDevice.getSerialNumber();
-            }
         }
 
     protected List<USBAccessibleLynxModule> getUSBAccessibleLynxDevices(boolean forFirmwareUpdate) throws RobotCoreException
@@ -809,7 +858,8 @@ public abstract class FtcEventLoopBase implements EventLoop
                 if (entry.getValue() == DeviceManager.UsbDeviceType.LYNX_USB_DEVICE)
                     {
                     SerialNumber serialNumber = entry.getKey();
-                    result.add(new USBAccessibleLynxModule(serialNumber, true));
+                    // The Control Hub's embedded module cannot have its address changed
+                    result.add(new USBAccessibleLynxModule(serialNumber, !serialNumber.isEmbedded()));
                     }
                 }
 
@@ -827,7 +877,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                     }
                 if (!found)
                     {
-                    result.add(new USBAccessibleLynxModule(LynxConstants.SERIAL_NUMBER_EMBEDDED, true));
+                    result.add(new USBAccessibleLynxModule(LynxConstants.SERIAL_NUMBER_EMBEDDED, false));
                     }
                 }
 
@@ -938,8 +988,6 @@ public abstract class FtcEventLoopBase implements EventLoop
             RobotLog.vv(TAG, "...getUSBAccessibleLynxDevices()");
             }
         }
-
-
 
     protected void handleCommandLynxChangeModuleAddresses(final Command commandRequest)
         {
@@ -1173,12 +1221,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                     cmdVisuallyIdentify.serialNumber,
                     new Supplier<USBScanManager>() {
                         @Override public USBScanManager get() {
-                            try {
-                                return startUsbScanMangerIfNecessary();
-                            } catch (RobotCoreException e) {
-                                RobotLog.ee(TAG, e, "exception scanning USB in handleCommandVisuallyIdentify()");
-                            }
-                            return null;
+                            return startUsbScanMangerIfNecessary();
                         }
                     });
                 if (visuallyIdentifiable != null) {
@@ -1189,77 +1232,64 @@ public abstract class FtcEventLoopBase implements EventLoop
         return CallbackResult.HANDLED;
         }
 
-     // TODO: Find/create a less verbose way to get the LynxModule integrated into the Control Hub
-    protected  CallbackResult handleCommandVisuallyConfirmWifiReset()
+    protected CallbackResult handleCommandVisuallyConfirmWifiReset()
+        {
+        if (!LynxConstants.isRevControlHub()) return CallbackResult.HANDLED;
+        ThreadPool.getDefaultSerial().execute(new Runnable() {
+            @Override public void run() {
+                LynxModule embeddedModule = EmbeddedControlHubModule.get();
+                if (embeddedModule != null) {
+                    List<Blinker.Step> confirmButtonPressPattern = new ArrayList<>();
+                    confirmButtonPressPattern.add(new Blinker.Step(Color.MAGENTA, 100, TimeUnit.MILLISECONDS));
+                    confirmButtonPressPattern.add(new Blinker.Step(Color.YELLOW, 100, TimeUnit.MILLISECONDS));
+                    confirmButtonPressPattern.add(new Blinker.Step(Color.CYAN, 100, TimeUnit.MILLISECONDS));
+                    confirmButtonPressPattern.add(new Blinker.Step(Color.RED, 100, TimeUnit.MILLISECONDS));
+
+                    embeddedModule.pushPattern(confirmButtonPressPattern);
+                    try {
+                        Thread.sleep(4000);
+                    } catch (InterruptedException e) {
+                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming WiFi reset");
+                        Thread.currentThread().interrupt();
+                    }
+                    embeddedModule.popPattern();
+                }
+            }
+        });
+        return CallbackResult.HANDLED;
+        }
+
+    protected CallbackResult handleCommandVisuallyConfirmWifiBandSwitch(Command command)
         {
         if (!LynxConstants.isRevControlHub()) return CallbackResult.HANDLED;
 
-        ThreadPool.getDefault().execute(new Runnable()
-            {
-            @Override
-            public void run()
-                {
-                try
-                    {
-                    LynxUsbDevice embeddedPortal = ftcEventLoopHandler.getHardwareDevice(LynxUsbDevice.class, LynxConstants.SERIAL_NUMBER_EMBEDDED, new Supplier<USBScanManager>()
-                        {
-                        @Override
-                        public USBScanManager get()
-                            {
-                            try
-                                {
-                                return startUsbScanMangerIfNecessary();
-                                } catch (RobotCoreException e)
-                                {
-                                RobotLog.ee(TAG, e, "exception scanning USB in handleCommandVisuallyConfirmWifiReset");
-                                }
-                            return null;
-                            }
-                        });
-                    if (embeddedPortal == null)
-                        {
-                        RobotLog.ee(TAG, "Failed to find embedded Lynx portal in handleCommandVisuallyConfirmWifiReset");
-                        return;
-                        }
-                    LynxModuleMetaList moduleMetaList;
-
-                     try
-                        {
-                        moduleMetaList = embeddedPortal.discoverModules();
-                        } catch (RobotCoreException e)
-                        {
-                        RobotLog.ee(TAG, e, "exception discovering modules in handleCommandVisuallyConfirmWifiReset");
-                        return;
-                        }
-
-                     LynxModule embeddedModule = null;
-                    for (LynxModuleMeta meta : moduleMetaList.modules)
-                        {
-                        if (meta.isParent())
-                            {
-                            embeddedModule = embeddedPortal.getConfiguredModule(meta.getModuleAddress());
-                            }
-                        }
-                    if (embeddedModule != null)
-                        {
-                        List<Blinker.Step> confirmButtonPressPattern = new ArrayList<>();
-                        confirmButtonPressPattern.add(new Blinker.Step(Color.MAGENTA, 100, TimeUnit.MILLISECONDS));
-                        confirmButtonPressPattern.add(new Blinker.Step(Color.YELLOW, 100, TimeUnit.MILLISECONDS));
-                        confirmButtonPressPattern.add(new Blinker.Step(Color.CYAN, 100, TimeUnit.MILLISECONDS));
-                        confirmButtonPressPattern.add(new Blinker.Step(Color.RED, 100, TimeUnit.MILLISECONDS));
-
-                         embeddedModule.pushPattern(confirmButtonPressPattern);
-                        Thread.sleep(4000);
-                        embeddedModule.popPattern();
-                        }
+        final int newBand = Integer.parseInt(command.getExtra());
+        ThreadPool.getDefaultSerial().execute(new Runnable() {
+            @Override public void run() {
+                LynxModule embeddedModule = EmbeddedControlHubModule.get();
+                if (embeddedModule != null) {
+                    int bandColor;
+                    if (newBand == ApChannel.AP_BAND_5GHZ) {
+                        bandColor = Color.MAGENTA;
+                    } else {
+                        bandColor = Color.YELLOW;
                     }
-                catch (InterruptedException e)
-                    {
-                        RobotLog.ee(TAG, e, "thread interrupted in handleCommandVisuallyConfirmWifiReset");
+
+                    List<Blinker.Step> confirmBandSwitchPattern = new ArrayList<>();
+                    confirmBandSwitchPattern.add(new Blinker.Step(bandColor, 200, TimeUnit.MILLISECONDS));
+                    confirmBandSwitchPattern.add(new Blinker.Step(Color.BLACK, 100, TimeUnit.MILLISECONDS));
+
+                    embeddedModule.pushPattern(confirmBandSwitchPattern);
+                    try {
+                        Thread.sleep(6000);
+                    } catch (InterruptedException e) {
+                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming WiFi band switch");
                         Thread.currentThread().interrupt();
                     }
+                    embeddedModule.popPattern();
                 }
-            });
+            }
+        });
         return CallbackResult.HANDLED;
         }
     }

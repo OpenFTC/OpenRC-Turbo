@@ -47,6 +47,8 @@ import org.firstinspires.ftc.robotcore.internal.usb.exception.RobotUsbException;
 @SuppressWarnings("WeakerAccess")
 public class LynxUsbUtil
     {
+    private static final String TAG = "LynxUsbUtil";
+
     public static RobotUsbDevice openUsbDevice(boolean doScan, RobotUsbManager robotUsbManager, SerialNumber serialNumber) throws RobotCoreException
         {
         if (doScan)
@@ -88,7 +90,7 @@ public class LynxUsbUtil
 
     private static void logMessageAndThrow(String message) throws RobotCoreException
         {
-        System.err.println(message);
+        RobotLog.ee(TAG, message);
         throw new RobotCoreException(message);
         }
 

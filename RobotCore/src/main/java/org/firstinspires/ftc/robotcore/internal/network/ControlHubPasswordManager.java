@@ -36,7 +36,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.Intents;
@@ -98,14 +98,9 @@ public class ControlHubPasswordManager implements PasswordManager {
         return null;
     }
 
-    private boolean validatePassword(String password)
-    {
-        // TODO: Implement for reals.  But don't be a jerk about password requirements.
-        if ((password.length() < 8) || (password.length() > 128)) {
-            RobotLog.ee(TAG, "Invalid password length of " + password.length() + " chars.");
-            return false;
-        } else {
-            return true;
+    public void validatePassword(String password) throws InvalidNetworkSettingException {
+        if ((password.length() < 8) || (password.length() > 63)) {
+            throw new InvalidNetworkSettingException("Invalid password length of " + password.length() + " chars.");
         }
     }
 
@@ -121,21 +116,20 @@ public class ControlHubPasswordManager implements PasswordManager {
      * in useful during phone to phone AP pairing as opposed to phone to control hub pairing.
      *
      * @param password
+     * @param sendChangeToSystem
      */
     @Override
-    public boolean setPassword(@NonNull String password)
-    {
-        if (validatePassword(password) == false) {
-            return false;
-        }
+    public synchronized void setPassword(@NonNull String password, boolean sendChangeToSystem) throws InvalidNetworkSettingException {
+        validatePassword(password);
 
         internalSetDevicePassword(password);
 
-        RobotLog.vv(TAG, "Sending password change intent");
-        Intent intent = new Intent(Intents.ACTION_FTC_AP_PASSWORD_CHANGE);
-        intent.putExtra(Intents.EXTRA_AP_PREF, password);
-        context.sendBroadcast(intent);
-        return true;
+        if (sendChangeToSystem) {
+            RobotLog.vv(TAG, "Sending password change intent");
+            Intent intent = new Intent(Intents.ACTION_FTC_AP_PASSWORD_CHANGE);
+            intent.putExtra(Intents.EXTRA_AP_PREF, password);
+            context.sendBroadcast(intent);
+        }
     }
 
     protected void internalSetDevicePassword(@NonNull String password)
@@ -169,9 +163,15 @@ public class ControlHubPasswordManager implements PasswordManager {
      * Resets the password to the factory default.
      */
     @Override
-    public boolean resetPassword()
+    public synchronized String resetPassword(boolean sendChangeToSystem)
     {
-        return setPassword(FACTORY_DEFAULT_PASSWORD);
+        String defaultPassword = FACTORY_DEFAULT_PASSWORD;
+        try {
+            setPassword(defaultPassword, sendChangeToSystem);
+        } catch (InvalidNetworkSettingException e) {
+            RobotLog.ee(TAG, e, "Unable to reset password to " + defaultPassword);
+        }
+        return defaultPassword;
     }
 
     @Override
@@ -181,7 +181,7 @@ public class ControlHubPasswordManager implements PasswordManager {
     }
 
     @Override
-    public String getPassword()
+    public synchronized String getPassword()
     {
         initializePasswordIfNecessary();
 

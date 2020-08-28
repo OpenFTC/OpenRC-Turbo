@@ -40,11 +40,13 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -390,6 +392,9 @@ public class SoftApAssistant extends NetworkConnection {
    */
   @Override
   public void onWaitForConnection() { }
+
+  @Override
+  public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) { }
 
   @Override
   public void detectWifiReset() { }

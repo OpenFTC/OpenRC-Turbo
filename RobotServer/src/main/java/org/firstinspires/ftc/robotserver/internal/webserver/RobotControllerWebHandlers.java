@@ -34,26 +34,28 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.Device;
+import com.qualcomm.robotcore.util.IncludedFirmwareFileInfo;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.ThreadPool;
 
 import com.qualcomm.robotcore.util.WebHandlerManager;
 import com.qualcomm.robotcore.util.WebServer;
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
-import org.firstinspires.ftc.robotcore.internal.network.ApChannelManager;
-import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
-import org.firstinspires.ftc.robotcore.internal.network.DeviceNameListener;
-import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
-import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
-import org.firstinspires.ftc.robotcore.internal.network.PasswordManager;
-import org.firstinspires.ftc.robotcore.internal.network.PasswordManagerFactory;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
+import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
+import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.ftc.robotcore.internal.webserver.RobotControllerWebInfo;
@@ -76,12 +78,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 
 import fi.iki.elonen.NanoHTTPD;
 
 import static fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import static fi.iki.elonen.NanoHTTPD.MIME_PLAINTEXT;
 import static fi.iki.elonen.NanoHTTPD.Response;
 import static fi.iki.elonen.NanoHTTPD.newChunkedResponse;
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
@@ -104,12 +106,13 @@ public class RobotControllerWebHandlers
     public static final String URI_PING = "/ping";
     public static final String URI_LIST_LOG_FILES = "/listLogs";
     public static final String URI_DOWNLOAD_FILE = "/downloadFile";
-    public static final String URI_RENAME_RC = "/renameRC";
-    public static final String URI_CHANGE_AP_PASSWORD = "/changeApPassword";
-    public static final String URI_CHANGE_AP_CHANNEL = "/changeApChannel";
+    public static final String URI_CHANGE_NETWORK_SETTINGS = "/changeNetworkSettings";
     public static final String URI_UPLOAD_EXPANSION_HUB_FIRMWARE = "/uploadExpansionHubFirmware";
+    public static final String URI_REV_HUBS_AVAILABLE_FOR_UPDATE = "/revHubsAvailableForUpdate";
+    public static final String URI_PERFORM_REV_FIRMWARE_UPDATE = "/performRevFirmwareUpdate";
     public static final String URI_UPDATE_CONTROL_HUB_APK = "/updateControlHubAPK";
     public static final String URI_UPLOAD_WEBCAM_CALIBRATION_FILE = "/uploadWebcamCalibrationFile";
+    public static final String URI_UPLOAD_TFLITE_MODEL_FILE = "/uploadTfliteModelFile";
     public static final String URI_UPLOAD_CONTROL_HUB_OTA = "/uploadControlHubOta";
     public static final String URI_REBOOT = "/reboot";
     public static final String URI_RC_INFO = "/js/rcInfo.json";
@@ -124,8 +127,11 @@ public class RobotControllerWebHandlers
 
     public static final String PARAM_NAME = "name";
     public static final String PARAM_AP_PASSWORD = "password";
+    public static final String PARAM_CHANNEL_NAME = "channelName";
     public static final String PARAM_NEW_NAME = "new_name";
     public static final String PARAM_MESSAGE = "message";
+    public static final String PARAM_SERIAL_NUMBER = "serialNumber";
+    public static final String PARAM_FILENAME = "filename";
 
     public static void initialize(WebHandlerManager manager)
     {
@@ -150,12 +156,13 @@ public class RobotControllerWebHandlers
         manager.register(URI_PING,                  decorateWithParms(new ClientPing())); // overridden in ProgrammingWebHandlers
         manager.register(URI_LIST_LOG_FILES,        new ListLogFiles());
         manager.register(URI_DOWNLOAD_FILE,         new FileDownload());
-        manager.register(URI_RENAME_RC,             decorateWithParms(new RenameRobotController()));
-        manager.register(URI_CHANGE_AP_PASSWORD,    decorateWithParms(new ChangeApPassword()));
-        manager.register(URI_CHANGE_AP_CHANNEL,     decorateWithParms(new ChangeApChannel()));
+        manager.register(URI_CHANGE_NETWORK_SETTINGS, decorateWithParms(new ChangeNetworkSettings()));
         manager.register(URI_UPDATE_CONTROL_HUB_APK, apkUpdateHandler);
         manager.register(URI_UPLOAD_EXPANSION_HUB_FIRMWARE, new StandardUpload(AppUtil.LYNX_FIRMWARE_UPDATE_DIR.getAbsolutePath()));
+        manager.register(URI_REV_HUBS_AVAILABLE_FOR_UPDATE, new RevHubsAvailableForUpdate());
+        manager.register(URI_PERFORM_REV_FIRMWARE_UPDATE, decorateWithParms(new PerformRevFirmwareUpdate()));
         manager.register(URI_UPLOAD_WEBCAM_CALIBRATION_FILE, new StandardUpload(AppUtil.WEBCAM_CALIBRATIONS_DIR.getAbsolutePath()));
+        manager.register(URI_UPLOAD_TFLITE_MODEL_FILE, new StandardUpload(AppUtil.TFLITE_MODELS_DIR.getAbsolutePath()));
         manager.register(URI_UPLOAD_CONTROL_HUB_OTA, new OtaUpdate(chUpdaterCommManager));
         manager.register(URI_RC_CONFIG,             new RobotControllerConfiguration());
         manager.register(URI_RC_INFO,               new RobotControllerInfoHandler(manager.getWebServer()));
@@ -386,8 +393,6 @@ public class RobotControllerWebHandlers
          */
         public abstract File provideDestinationDirectory(String fileName, File tempFile);
 
-
-
         /**
          * Write an update file to the Updates directory.
          *
@@ -479,11 +484,165 @@ public class RobotControllerWebHandlers
         @Override
         public Response hook(File uploadedFile)
         {
-            return RobotWebHandlerManager.OK_RESPONSE;
+            return newFixedLengthResponse(uploadedFile.getName());
         }
 
         @Override public File provideDestinationDirectory(String filename, File tempFile) {
             return destinationDir;
+        }
+    }
+
+    private static final class RevHubsAvailableForUpdate implements WebHandler
+    {
+        @Override
+        public Response getResponse(IHTTPSession session)
+        {
+            if (!NetworkConnectionHandler.getInstance().readyForCommandProcessing())
+            {
+                Response errorResponse =  NanoHTTPD.newFixedLengthResponse(
+                        Response.Status.SERVICE_UNAVAILABLE,
+                        MIME_PLAINTEXT,
+                        "Currently unable to scan for REV Hubs");
+                errorResponse.addHeader("Retry-After", "5");
+                return errorResponse;
+            }
+
+            UsbAccessibleLynxModulesReceiver receiver = new UsbAccessibleLynxModulesReceiver();
+            RobotCoreCommandList.USBAccessibleLynxModulesRequest getModulesRequest = new RobotCoreCommandList.USBAccessibleLynxModulesRequest();
+            getModulesRequest.forFirmwareUpdate = true;
+            Command getModulesCommand = new Command(RobotCoreCommandList.CMD_GET_USB_ACCESSIBLE_LYNX_MODULES, getModulesRequest.serialize());
+
+            NetworkConnectionHandler.getInstance().pushReceiveLoopCallback(receiver);
+            NetworkConnectionHandler.getInstance().injectReceivedCommand(getModulesCommand);
+
+            String modules = "";
+            try
+            {
+                modules = receiver.waitForUsbAccessibleLynxModules();
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+                return RobotWebHandlerManager.INTERNAL_ERROR_RESPONSE;
+            }
+            finally
+            {
+                NetworkConnectionHandler.getInstance().removeReceiveLoopCallback(receiver);
+            }
+            return newFixedLengthResponse(Response.Status.OK, MimeTypesUtil.MIME_JSON, modules);
+        }
+
+        private static final class UsbAccessibleLynxModulesReceiver extends RecvLoopRunnable.DegenerateCallback
+        {
+            private final CountDownLatch latch = new CountDownLatch(1);
+            volatile String usbAccessibleLynxModules;
+
+            @Override
+            public CallbackResult commandEvent(Command command)
+            {
+                if (RobotCoreCommandList.CMD_GET_USB_ACCESSIBLE_LYNX_MODULES_RESP.equals(command.getName()))
+                {
+                    usbAccessibleLynxModules = command.getExtra();
+                    latch.countDown();
+                    return CallbackResult.HANDLED_CONTINUE;
+                }
+                return CallbackResult.NOT_HANDLED;
+            }
+
+            public String waitForUsbAccessibleLynxModules() throws InterruptedException
+            {
+                latch.await();
+                return usbAccessibleLynxModules;
+            }
+        }
+    }
+
+    private static final class PerformRevFirmwareUpdate implements WebHandler
+    {
+        @Override
+        public Response getResponse(IHTTPSession session)
+        {
+            if (session.getMethod() != NanoHTTPD.Method.POST)
+            {
+                return NanoHTTPD.newFixedLengthResponse(Response.Status.BAD_REQUEST, MimeTypesUtil.MIME_TEXT, "Only POST method is supported");
+            }
+
+            List<String> serialNumberParameters = session.getParameters().get(PARAM_SERIAL_NUMBER);
+            if (serialNumberParameters == null)
+            {
+                return NanoHTTPD.newFixedLengthResponse(Response.Status.BAD_REQUEST, MimeTypesUtil.MIME_TEXT, "serialNumber parameter not provided");
+            }
+            SerialNumber serialNumber = SerialNumber.fromString(serialNumberParameters.get(0));
+            RobotCoreCommandList.FWImage fwImage;
+            if (session.getParameters().containsKey(PARAM_FILENAME))
+            {
+                File fwFile = new File(AppUtil.LYNX_FIRMWARE_UPDATE_DIR, session.getParameters().get(PARAM_FILENAME).get(0));
+                fwImage = new RobotCoreCommandList.FWImage(fwFile, false);
+            }
+            else // No provided filename indicates that we should use the bundled fw file
+            {
+                fwImage = IncludedFirmwareFileInfo.FW_IMAGE;
+            }
+
+            RobotCoreCommandList.LynxFirmwareUpdate commandPayload = new RobotCoreCommandList.LynxFirmwareUpdate();
+            commandPayload.firmwareImageFile = fwImage;
+            commandPayload.serialNumber = serialNumber;
+            commandPayload.originatorId = UUID.randomUUID().toString();
+            Command firmwareUpdateCommand = new Command(RobotCoreCommandList.CMD_LYNX_FIRMWARE_UPDATE, commandPayload.serialize());
+
+            FirmwareUpdateResultReceiver receiver = new FirmwareUpdateResultReceiver(commandPayload.originatorId);
+            NetworkConnectionHandler.getInstance().pushReceiveLoopCallback(receiver);
+            NetworkConnectionHandler.getInstance().injectReceivedCommand(firmwareUpdateCommand);
+            String result;
+            try
+            {
+                result = receiver.didUpdateSucceed();
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+                return RobotWebHandlerManager.INTERNAL_ERROR_RESPONSE;
+            }
+            finally
+            {
+                NetworkConnectionHandler.getInstance().removeReceiveLoopCallback(receiver);
+            }
+
+            return newFixedLengthResponse(Response.Status.OK, MimeTypesUtil.MIME_JSON, result);
+        }
+
+        private static final class FirmwareUpdateResultReceiver extends RecvLoopRunnable.DegenerateCallback {
+            private final CountDownLatch latch = new CountDownLatch(1);
+            private final String originatorId;
+            volatile String result = null;
+
+        public FirmwareUpdateResultReceiver(String originatorId)
+            {
+                this.originatorId = originatorId;
+            }
+
+        @Override
+            public CallbackResult commandEvent(Command command)
+            {
+                if (RobotCoreCommandList.CMD_LYNX_FIRMWARE_UPDATE_RESP.equals(command.getName()))
+                {
+                    RobotCoreCommandList.LynxFirmwareUpdateResp deserializedResponse = RobotCoreCommandList.LynxFirmwareUpdateResp.deserialize(command.getExtra());
+                    if (originatorId.equals(deserializedResponse.originatorId))
+                    {
+                        deserializedResponse.originatorId = null; // There's no need to send the originatorId in the HTTP response
+                        result = deserializedResponse.serialize();
+                        latch.countDown();
+                        return CallbackResult.HANDLED;
+                    }
+                }
+                return CallbackResult.NOT_HANDLED;
+            }
+
+            public String didUpdateSucceed() throws InterruptedException
+            {
+                latch.await();
+                return result;
+            }
         }
     }
 
@@ -680,81 +839,31 @@ public class RobotControllerWebHandlers
         }
     }
 
-    /** Renames the robot controller */
-    public static class RenameRobotController extends RequireNameHandler
-    {
-        public static final String TAG = RenameRobotController.class.getSimpleName();
-
-        @Override
-        public Response getResponse(IHTTPSession session, final @NonNull String desiredDeviceName) throws IOException, NanoHTTPD.ResponseException
-        {
-            synchronized (this) {
-                if (DEBUG) {
-                    RobotLog.dd(TAG, "name=%s", desiredDeviceName);
-                }
-
-                final DeviceNameManager nameManager = DeviceNameManagerFactory.getInstance();
-                if (!desiredDeviceName.equals(nameManager.getDeviceName())) {
-                    // Change the name and wait synchronously (for a bit) for the change to take effect
-                    // This helps the web ui reflect the change.
-                    final Semaphore semaphore = new Semaphore(0);
-
-                    final DeviceNameListener callback = new DeviceNameListener() {
-                        @Override public void onDeviceNameChanged(String newDeviceName) {
-                            if (newDeviceName.equals(desiredDeviceName)) {
-                                RobotLog.vv(TAG, "name change to %s observed", desiredDeviceName);
-                                semaphore.release(1);
-                            }
-                        }
-                    };
-                    nameManager.registerCallback(callback);
-                    try {
-                        nameManager.setDeviceName(desiredDeviceName);
-                        semaphore.tryAcquire(250, TimeUnit.MILLISECONDS); // an eternity
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    } finally {
-                        nameManager.unregisterCallback(callback);
-                    }
-                } else {
-                    RobotLog.vv(TAG, "name change to existing name %s; ignored", desiredDeviceName);
-                }
-                return RobotWebHandlerManager.OK_RESPONSE;
-            }
-        }
-    }
-
-    public static class ChangeApPassword extends RequireNameHandler
+    public static class ChangeNetworkSettings implements WebHandler
     {
         @Override
-        protected Response getResponse(IHTTPSession session, @NonNull String name) throws IOException, NanoHTTPD.ResponseException
+        public synchronized Response getResponse(IHTTPSession session) throws IOException, NanoHTTPD.ResponseException
         {
-            synchronized (this) {
-                RobotLog.i("ChangeApPassword " + name);
-                final PasswordManager passwordManager = PasswordManagerFactory.getInstance();
-                if (passwordManager.setPassword(name) == true) {
-                    return RobotWebHandlerManager.OK_RESPONSE;
-                } else {
-                    return RobotWebHandlerManager.internalErrorResponse(TAG, "Invalid password");
-                }
-            }
-        }
-    }
+            String name = null;
+            String password = null;
+            ApChannel channel = null;
 
-    public static class ChangeApChannel extends RequireNameHandler
-    {
-        @Override
-        protected Response getResponse(IHTTPSession session, @NonNull String channel) throws IOException, NanoHTTPD.ResponseException
-        {
-            synchronized (this) {
-                RobotLog.i("ChangeApChannel " + channel);
-                final ApChannelManager apChannelManager = ApChannelManagerFactory.getInstance();
-                if (apChannelManager.setChannel(channel)) {
-                    return RobotWebHandlerManager.OK_RESPONSE;
-                } else {
-                    return RobotWebHandlerManager.internalErrorResponse(TAG, "Invalid channel");
-                }
+            List<String> names = session.getParameters().get(PARAM_NAME);
+            List<String> passwords = session.getParameters().get(PARAM_AP_PASSWORD);
+            List<String> channelNames = session.getParameters().get(PARAM_CHANNEL_NAME);
+
+            if (names != null) name = names.get(0);
+            if (passwords != null) password = passwords.get(0);
+            if (channelNames != null) {
+                channel = ApChannel.fromName(channelNames.get(0));
             }
+
+            try {
+                NetworkConnectionHandler.getInstance().getNetworkConnection().setNetworkSettings(name, password, channel);
+            } catch (InvalidNetworkSettingException e) {
+                return RobotWebHandlerManager.internalErrorResponse(TAG, e);
+            }
+            return RobotWebHandlerManager.OK_RESPONSE;
         }
     }
 
@@ -774,31 +883,18 @@ public class RobotControllerWebHandlers
     }
 
     /**
-     * Respond to a ping. See also LoggingPing. Responds with the list of current ping details
+     * Responds to pings with the list of current connected devices and our serial number.
      */
     public static class ClientPing extends RequireNameHandler
     {
-        final PingDetailsHolder pingDetailsHolder = new PingDetailsHolder();
+        final PingResponse pingResponse = new PingResponse();
 
         @Override
         public Response getResponse(NanoHTTPD.IHTTPSession session, @NonNull String name) throws IOException, NanoHTTPD.ResponseException
         {
-            synchronized (pingDetailsHolder) {
-                pingDetailsHolder.addPing(getPingDetails(session));
-                pingDetailsHolder.removeOldPings();
-                logPing(session);
-                return NoCachingWebHandler.setNoCache(session, newFixedLengthResponse(Response.Status.OK, MimeTypesUtil.getMimeType("json"), pingDetailsHolder.toJson()));
-            }
-        }
-
-        protected PingDetails getPingDetails(IHTTPSession session)
-        {
-            return PingDetails.from(session);
-        }
-
-        protected void logPing(NanoHTTPD.IHTTPSession session)
-        {
-            // hook for subclass
+            pingResponse.noteDevicePing(ConnectedHttpDevice.from(session));
+            pingResponse.removeOldPings();
+            return NoCachingWebHandler.setNoCache(session, newFixedLengthResponse(Response.Status.OK, MimeTypesUtil.getMimeType("json"), pingResponse.toJson()));
         }
     }
 
@@ -861,12 +957,13 @@ public class RobotControllerWebHandlers
             appendVariable(js, "URI_PING", URI_PING);
             appendVariable(js, "URI_LIST_LOG_FILES", URI_LIST_LOG_FILES);
             appendVariable(js, "URI_DOWNLOAD_FILE", URI_DOWNLOAD_FILE);
-            appendVariable(js, "URI_RENAME_RC", URI_RENAME_RC);
-            appendVariable(js, "URI_CHANGE_AP_PASSWORD", URI_CHANGE_AP_PASSWORD);
-            appendVariable(js, "URI_CHANGE_AP_CHANNEL", URI_CHANGE_AP_CHANNEL);
+            appendVariable(js, "URI_CHANGE_NETWORK_SETTINGS", URI_CHANGE_NETWORK_SETTINGS);
             appendVariable(js, "URI_UPLOAD_EXPANSION_HUB_FIRMWARE", URI_UPLOAD_EXPANSION_HUB_FIRMWARE);
+            appendVariable(js, "URI_REV_HUBS_AVAILABLE_FOR_UPDATE", URI_REV_HUBS_AVAILABLE_FOR_UPDATE);
+            appendVariable(js, "URI_PERFORM_REV_FIRMWARE_UPDATE", URI_PERFORM_REV_FIRMWARE_UPDATE);
             appendVariable(js, "URI_UPDATE_CONTROL_HUB_APK", URI_UPDATE_CONTROL_HUB_APK);
             appendVariable(js, "URI_UPLOAD_WEBCAM_CALIBRATION_FILE", URI_UPLOAD_WEBCAM_CALIBRATION_FILE);
+            appendVariable(js, "URI_UPLOAD_TFLITE_MODEL_FILE", URI_UPLOAD_TFLITE_MODEL_FILE);
             appendVariable(js, "URI_UPLOAD_CONTROL_HUB_OTA", URI_UPLOAD_CONTROL_HUB_OTA);
             appendVariable(js, "URI_NAV_HOME", URI_NAV_HOME);
             appendVariable(js, "URI_NAV_MANAGE", URI_NAV_MANAGE);
@@ -876,8 +973,12 @@ public class RobotControllerWebHandlers
             appendVariable(js, "URI_COLORS", URI_COLORS);
 
             appendVariable(js, "PARAM_NAME", PARAM_NAME);
+            appendVariable(js, "PARAM_AP_PASSWORD", PARAM_AP_PASSWORD);
+            appendVariable(js, "PARAM_CHANNEL_NAME", PARAM_CHANNEL_NAME);
             appendVariable(js, "PARAM_NEW_NAME", PARAM_NEW_NAME);
             appendVariable(js, "PARAM_MESSAGE", PARAM_MESSAGE);
+            appendVariable(js, "PARAM_SERIAL_NUMBER", PARAM_SERIAL_NUMBER);
+            appendVariable(js, "PARAM_FILENAME", PARAM_FILENAME);
 
             appendVariable(js, "URI_EXIT_PROGRAM_AND_MANAGE", URI_EXIT_PROGRAM_AND_MANAGE);
             appendVariable(js, "URI_TOAST", URI_TOAST);

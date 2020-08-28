@@ -34,9 +34,13 @@ import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import androidx.annotation.Nullable;
+
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
+import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.net.InetAddress;
@@ -118,6 +122,9 @@ public abstract class NetworkConnection {
 
   public abstract void onWaitForConnection();
 
+  /** Should only be called on Robot Controller */
+  public abstract void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) throws InvalidNetworkSettingException;
+
   /**
    * Return true if the device name is valid. A valid device name is greater
    * than 0 characters and contains only alphanumeric or punctuation characters
@@ -144,11 +151,7 @@ public abstract class NetworkConnection {
     WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     WifiInfo info = wifiManager.getConnectionInfo();
     int freq;
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-      freq = info.getFrequency();
-    } else {
-      freq = 0;
-    }
+    freq = info.getFrequency();
 
     /*
      * Formula here taken from ieee 802.11 spec.

@@ -63,13 +63,13 @@ public class Deadline extends ElapsedTime
     public Deadline(long duration, TimeUnit unit)
         {
         nsDuration = unit.toNanos(duration);
-        nsDeadline = nsStartTime + nsDuration;
+        nsDeadline = Misc.saturatingAdd(nsStartTime, nsDuration);
         }
 
     public void reset()
         {
         super.reset();
-        nsDeadline = nsStartTime + nsDuration;
+        nsDeadline = Misc.saturatingAdd(nsStartTime, nsDuration);
         }
 
     public void cancel() // a handy and usefully-rememberable synonym

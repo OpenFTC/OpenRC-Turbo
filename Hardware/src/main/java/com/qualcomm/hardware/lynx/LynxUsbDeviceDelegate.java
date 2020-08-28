@@ -32,8 +32,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.hardware.lynx;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.robotcore.exception.RobotCoreException;
@@ -150,6 +150,12 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         {
         delegate.lockNetworkLockAcquisitions();
         }
+
+    @Override public void setThrowOnNetworkLockAcquisition(boolean shouldThrow)
+        {
+        delegate.setThrowOnNetworkLockAcquisition(shouldThrow);
+        }
+
     @Override public void changeModuleAddress(LynxModule module, int newAddress, Runnable runnable)
         {
         assertOpen();
@@ -194,6 +200,12 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         {
         assertOpen();
         delegate.transmit(message);
+        }
+
+    @Override public boolean setControlHubModuleAddressIfNecessary() throws RobotCoreException, InterruptedException
+        {
+        assertOpen();
+        return delegate.setControlHubModuleAddressIfNecessary();
         }
 
     //----------------------------------------------------------------------------------------------

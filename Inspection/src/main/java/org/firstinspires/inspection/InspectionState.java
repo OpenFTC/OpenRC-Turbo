@@ -34,32 +34,25 @@ package org.firstinspires.inspection;
 
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.LynxModuleMeta;
-import com.qualcomm.robotcore.hardware.RobotCoreLynxModule;
-import com.qualcomm.robotcore.hardware.RobotCoreLynxUsbDevice;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
-import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
-import org.firstinspires.ftc.robotcore.internal.network.PasswordManager;
 import org.firstinspires.ftc.robotcore.internal.network.PasswordManagerFactory;
-import org.firstinspires.ftc.robotcore.internal.network.WifiDirectDeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 import org.firstinspires.ftc.robotcore.internal.network.StartResult;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,19 +65,19 @@ public class InspectionState
     // State
     //----------------------------------------------------------------------------------------------
 
-    public static final String zteChannelChangePackage = "com.zte.wifichanneleditor"; // see also: LaunchActivityConstantsList.ZTE_WIFI_CHANNEL_EDITOR_PACKAGE;
     public static final String robotControllerPackage = "com.qualcomm.ftcrobotcontroller";
     public static final String driverStationPackage = "com.qualcomm.ftcdriverstation";
 
-    public static final String noPackageVersion = "";
-    private static String firmwareInspectionVersion = "N/A";
-
+    public static final String NO_VERSION = "";
+    public static final int NO_VERSION_CODE = 0;
 
     public String manufacturer;
     public String model;
-    public String osVersion;
-    public String firmwareVersion;
+    public String osVersion; // Android version (e.g. 7.1.1)
+    public String controlHubOsVersion; // Control Hub OS version (e.g. 1.1.1)
+    public String firmwareVersion; // TODO(Noah): The next time we bump Robocol, send a list of firmware versions instead
     public int sdkInt;
+    public int controlHubOsVersionNum;
     public boolean airplaneModeOn;
     public boolean bluetoothOn;
     public boolean wifiEnabled;
@@ -93,18 +86,20 @@ public class InspectionState
     public boolean wifiDirectConnected;
     public String deviceName;
     public double batteryFraction;
-    public String zteChannelChangeVersion;
-    public int    ztcChannelChangeVersionCode;
     public String robotControllerVersion;
     public int    robotControllerVersionCode;
     public String driverStationVersion;
     public int    driverStationVersionCode;
-    public boolean isAppInventorInstalled;
-    public boolean channelChangerRequired;
     public long    rxDataCount;
     public long    txDataCount;
     public long    bytesPerSecond;
     public boolean isDefaultPassword;
+
+    // Legacy fields that can be removed once the Robocol version has been moved past 121
+    public String zteChannelChangeVersion = NO_VERSION;
+    public int    ztcChannelChangeVersionCode = NO_VERSION_CODE;
+    public boolean channelChangerRequired = false;
+    public boolean isAppInventorInstalled = false;
 
     //----------------------------------------------------------------------------------------------
     // Construction and initialization
@@ -112,6 +107,9 @@ public class InspectionState
 
     public InspectionState()
         {
+        // For deserialization, initialize CH OS version to NO_VERSION value.
+        // Otherwise, it will be null when the RC is running 5.x
+        this.controlHubOsVersion = NO_VERSION;
         }
 
     public void initializeLocal()
@@ -128,37 +126,39 @@ public class InspectionState
         this.manufacturer = Build.MANUFACTURER;
         this.model = Build.MODEL;
         this.osVersion = Build.VERSION.RELEASE;
-        this.firmwareVersion = firmwareInspectionVersion;
+        this.firmwareVersion = getFirmwareInspectionVersions();
         this.sdkInt = Build.VERSION.SDK_INT;
         this.airplaneModeOn = WifiUtil.isAirplaneModeOn();
         this.bluetoothOn = WifiUtil.isBluetoothOn();
         this.wifiEnabled = WifiUtil.isWifiEnabled();
         this.batteryFraction = getLocalBatteryFraction();
 
-        this.zteChannelChangeVersion        = getPackageVersion(zteChannelChangePackage);
-        this.ztcChannelChangeVersionCode    = getPackageVersionCode(zteChannelChangePackage);
         this.robotControllerVersion         = getPackageVersion(robotControllerPackage);
         this.robotControllerVersionCode     = getPackageVersionCode(robotControllerPackage);
         this.driverStationVersion           = getPackageVersion(driverStationPackage);
         this.driverStationVersionCode       = getPackageVersionCode(driverStationPackage);
-        this.isAppInventorInstalled         = isAppInventorLocallyInstalled();
         this.deviceName                     = nameManager.getDeviceName();
 
-        this.channelChangerRequired = Device.isZteSpeed()
-                && Device.useZteProvidedWifiChannelEditorOnZteSpeeds()
-                && AppUtil.getInstance().isRobotController();
-
         NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
-        if (networkConnectionHandler.getNetworkType() == NetworkType.WIRELESSAP)
+        NetworkType networkType = networkConnectionHandler.getNetworkType();
+        if (networkType == NetworkType.WIRELESSAP || networkType == NetworkType.RCWIRELESSAP)
             {
             if (Device.isRevControlHub())
                 {
+                this.controlHubOsVersion = LynxConstants.getControlHubOsVersion();
+                if (this.controlHubOsVersion == null)
+                    {
+                    this.controlHubOsVersion = "unknown";
+                    }
+                this.controlHubOsVersionNum = LynxConstants.getControlHubOsVersionNum();
                 this.isDefaultPassword = PasswordManagerFactory.getInstance().isDefault();
                 this.wifiEnabled = WifiUtil.isWifiApEnabled();
                 if (this.wifiEnabled) this.wifiConnected = true;
                 }
                 else
                 {
+                this.controlHubOsVersion = NO_VERSION;
+                this.controlHubOsVersionNum = NO_VERSION_CODE;
                 this.deviceName = WifiUtil.getConnectedSsid();
                 this.wifiDirectEnabled = WifiUtil.isWifiEnabled();
                 this.wifiConnected = WifiUtil.isWifiConnected();
@@ -171,12 +171,12 @@ public class InspectionState
             this.wifiDirectEnabled = WifiDirectAgent.getInstance().isWifiDirectEnabled();
             this.wifiDirectConnected = WifiDirectAgent.getInstance().isWifiDirectConnected();
             }
-            this.rxDataCount = networkConnectionHandler.getRxDataCount();
-            this.txDataCount = networkConnectionHandler.getTxDataCount();
-            this.bytesPerSecond = networkConnectionHandler.getBytesPerSecond();
+        this.rxDataCount = networkConnectionHandler.getRxDataCount();
+        this.txDataCount = networkConnectionHandler.getTxDataCount();
+        this.bytesPerSecond = networkConnectionHandler.getBytesPerSecond();
         }
 
-    public static boolean isPackageInstalled(String packageVersion) { return !packageVersion.equals(noPackageVersion); }
+    public static boolean isPackageInstalled(String packageVersion) { return !packageVersion.equals(NO_VERSION); }
 
     public boolean isRobotControllerInstalled()
         {
@@ -185,14 +185,6 @@ public class InspectionState
     public boolean isDriverStationInstalled()
         {
         return isPackageInstalled(driverStationVersion);
-        }
-    public boolean isChannelChangerInstalled()
-        {
-        return isPackageInstalled(zteChannelChangeVersion);
-        }
-    protected boolean isAppInventorInstalled()
-        {
-        return isAppInventorInstalled;
         }
 
     protected double getLocalBatteryFraction()
@@ -213,7 +205,7 @@ public class InspectionState
             }
         catch (PackageManager.NameNotFoundException e)
             {
-            return 0;
+            return NO_VERSION_CODE;
             }
         }
 
@@ -226,27 +218,8 @@ public class InspectionState
             }
         catch (PackageManager.NameNotFoundException e)
             {
-            return noPackageVersion;
+            return NO_VERSION;
             }
-        }
-
-    protected boolean isAppInventorLocallyInstalled()
-        {
-        final PackageManager pm = AppUtil.getDefContext().getPackageManager();
-        final List<ApplicationInfo> installedApps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
-        if (installedApps != null)
-            {
-            for (ApplicationInfo app : installedApps)
-                {
-                if (app.packageName.startsWith("appinventor.ai_"))
-                    {
-                    return true;
-                    }
-                }
-            }
-
-        return false;
         }
 
     //----------------------------------------------------------------------------------------------
@@ -258,88 +231,42 @@ public class InspectionState
         return SimpleGson.getInstance().toJson(this);
         }
 
-    //----------------------------------------------------------------------------------------------
-    // Firmware determination
-    //----------------------------------------------------------------------------------------------
-
     public static InspectionState deserialize(String serialized)
         {
         return SimpleGson.getInstance().fromJson(serialized, InspectionState.class);
         }
 
-    /*
-     * getFirmwareVersions
-     *
-     * Returns a list of firmware versions for all connected expansion/control hubs
-     */
-    protected static List<String> getFirmwareVersions(HardwareMap hardwareMap)
-        {
-        List<String> versions = new ArrayList<String>();
-
-        if (hardwareMap == null)
-            {
-            return versions;
-            }
-
-        List<RobotCoreLynxModule> lynxModules = hardwareMap.getAll(RobotCoreLynxModule.class);
-
-        for (RobotCoreLynxModule lynxModule : lynxModules)
-            {
-            versions.add(lynxModule.getFirmwareVersionString());
-            }
-        return versions;
-        }
+    //----------------------------------------------------------------------------------------------
+    // Firmware determination
+    //----------------------------------------------------------------------------------------------
 
     /*
      * getFirmwareDisplayVersion
      *
-     * Returns displayable text that we can use for firmware version on the Inspection activity.
-     * For simplification purposes, this will be either the firmware string, or in the case of multiple
-     * hubs and mismatched firmare, the text "Mismatched".  This eliminates the need to have an arbitrary
-     * number of firmware entries but prompts the user to go look at the firmware on the user's hubs.
+     * Returns displayable text that we can use for firmware versions on the Inspection activity.
      */
-    public static String getFirmwareInspectionVersion(HardwareMap hardwareMap)
+    private static String getFirmwareInspectionVersions()
         {
-        List<String> versions = getFirmwareVersions(hardwareMap);
-        String first;
+        List<CachedLynxFirmwareVersions.LynxModuleInfo> versions = CachedLynxFirmwareVersions.getFormattedVersions();
 
-        if (versions.isEmpty())
+        if (versions ==  null || versions.isEmpty())
             {
             return "N/A";
             }
 
-        if (versions.size() == 1)
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < versions.size(); i++)
             {
-            return formatFirmwareVersion(versions.get(0));
-            }
-        else
-            {
-            first = versions.get(0);
-            for (String version : versions)
+            stringBuilder.append(String.format("[%s] %s", versions.get(i).name, versions.get(i).firmwareVersion));
+
+            // Append carriage returns, but not for the last item
+            if(i < versions.size()-1)
                 {
-                if (!version.equals(first))
-                    {
-                    return "Mismatched";
-                    }
+                stringBuilder.append("\n");
                 }
-            return formatFirmwareVersion(first);
             }
-        }
 
-    public static void cacheFirmwareInspectionVersion(HardwareMap hardwareMap)
-        {
-        firmwareInspectionVersion = getFirmwareInspectionVersion(hardwareMap);
+        return stringBuilder.toString();
         }
-
-    /*
-     * formatFirmwareVersion
-     *
-     * Strip the leading hardware revision, and all alphabetic chars.
-     */
-    protected static String formatFirmwareVersion(String version)
-        {
-        String tmp = version.substring(version.indexOf(',')+1).replaceAll("[a-zA-Z: ]*", "").replaceAll(",", ".");
-        return tmp;
-        }
-
     }

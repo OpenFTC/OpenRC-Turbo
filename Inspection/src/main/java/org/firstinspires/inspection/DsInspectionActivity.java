@@ -14,8 +14,8 @@ public class DsInspectionActivity extends InspectionActivity  {
     @Override
     protected boolean validateAppsInstalled(InspectionState state) {
 
-        // Robot Controller or AppInventor cannot be installed
-        if (state.isRobotControllerInstalled() || state.isAppInventorInstalled()) {
+        // Robot Controller cannot be installed
+        if (state.isRobotControllerInstalled()) {
             return false;
         }
         // Driver Station is required

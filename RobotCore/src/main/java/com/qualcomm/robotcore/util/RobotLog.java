@@ -93,8 +93,6 @@ public class RobotLog {
   public static final String OPMODE_START_TAG = "******************** START - OPMODE %s ********************";
   public static final String OPMODE_STOP_TAG  = "******************** STOP - OPMODE %s ********************";
 
-  public static final String ERROR_PREPEND = "### ERROR: ";
-
   private static final Object globalErrorLock = new Object();
   private static String       globalErrorMessage = "";
   private static final Object globalWarningLock = new Object();
@@ -342,16 +340,30 @@ public class RobotLog {
 
 
   /**
-   * Sets the global warning message.
+   * Adds a global warning message.
    *
    * This stays set until clearGlobalWarningMsg is called.
    *
    * @param message the warning message to set
    */
+  @Deprecated
   public static void setGlobalWarningMessage(String message) {
+    addGlobalWarningMessage(message);
+  }
+
+  /**
+   * Adds a global warning message.
+   *
+   * This stays set until clearGlobalWarningMsg is called.
+   *
+   * @param msg the warning message to set
+   */
+  public static void addGlobalWarningMessage(String msg) {
     synchronized (globalWarningLock) {
-      if (globalWarningMessage.isEmpty()) {
-        globalWarningMessage += message;
+      if(!globalWarningMessage.isEmpty()) {
+        globalWarningMessage += ("; " + msg);
+      } else {
+        globalWarningMessage = msg;
       }
     }
   }
@@ -618,10 +630,6 @@ public class RobotLog {
   private static void logMatch() {
     final File   file     = new File(matchLogFilename);
     final String filename = file.getAbsolutePath();
-
-    if (Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.KITKAT) {
-      return;
-    }
 
     pruneMatchLogsIfNecessary();
 

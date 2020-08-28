@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.hardware.usb.RobotUsbDeviceImplBase;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbManager;
 
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.usb.exception.RobotUsbException;
 import com.qualcomm.robotcore.util.SerialNumber;
 
@@ -64,16 +65,14 @@ public class RobotUsbManagerTty implements RobotUsbManager
 
     public static final String TAG = "RobotUsbManagerTty";
 
-    protected Context      context;
     protected SerialNumber serialNumberEmbedded;
 
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public RobotUsbManagerTty(Context context)
+    public RobotUsbManagerTty()
         {
-        this.context = context;
         serialNumberEmbedded = LynxConstants.SERIAL_NUMBER_EMBEDDED;
         }
 
@@ -115,7 +114,7 @@ public class RobotUsbManagerTty implements RobotUsbManager
                     deviceTTY.setFirmwareVersion(new RobotUsbDevice.FirmwareVersion(1,0));
                     deviceTTY.setDeviceType(DeviceManager.UsbDeviceType.LYNX_USB_DEVICE);
                     deviceTTY.setUsbIdentifiers(RobotUsbDevice.USBIdentifiers.createLynxIdentifiers());
-                    deviceTTY.setProductName(context.getString(R.string.descriptionLynxEmbeddedModule));
+                    deviceTTY.setProductName(AppUtil.getDefContext().getString(R.string.descriptionLynxEmbeddedModule));
                     try { deviceTTY.setBaudRate(LynxConstants.SERIAL_MODULE_BAUD_RATE); } catch (RobotUsbException e) {/*ignored*/}
                     return deviceTTY;
                     }

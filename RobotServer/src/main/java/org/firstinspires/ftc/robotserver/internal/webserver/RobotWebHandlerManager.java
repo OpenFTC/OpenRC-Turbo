@@ -51,6 +51,7 @@ import fi.iki.elonen.NanoHTTPD;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebObserver;
 
+import static fi.iki.elonen.NanoHTTPD.MIME_PLAINTEXT;
 import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 
 /**
@@ -93,6 +94,15 @@ public final class RobotWebHandlerManager implements WebHandlerManager {
                 NanoHTTPD.Response.Status.INTERNAL_ERROR,
                 NanoHTTPD.MIME_PLAINTEXT,
                 errorString);
+    }
+
+    public static NanoHTTPD.Response internalErrorResponse(String tag, Throwable e)
+    {
+        RobotLog.ee(tag, e, e.getMessage());
+        return newFixedLengthResponse(
+                NanoHTTPD.Response.Status.INTERNAL_ERROR,
+                MIME_PLAINTEXT,
+                e.getMessage());
     }
 
     /**
