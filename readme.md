@@ -26,7 +26,6 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
      - OnBotJava removed
 
  - **Extreme Turbo - 4MB APK** *(10x smaller!)*
-     - **IMPORTANT NOTE ABOUT THE CONTROL HUB:** The Extreme Turbo build variant strips the webserver, which has the potential to be problematic on the Control Hub. Please only choose Extreme Turbo for a Control Hub if you know what you understand the consequences of removal of the webserver. (Namely, needing to apply OS updates from fastboot instead of from the manage page, and the like).
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
