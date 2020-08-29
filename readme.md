@@ -13,7 +13,7 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 ## Device compatibility
 
-Unfortunately, OpenRC is only compatible with devices that run Android 6.0 or higher. For FTC, this means that it is incompatible with the ZTE Speed. OpenRC will work fine on all other FTC-legal devices (including the new Control Hub).
+Unfortunately, OpenRC is only compatible with devices that run Android 6.0 or higher. For FTC, this means that it is incompatible with the ZTE Speed. OpenRC will work fine on all other FTC-legal devices (including the new Control Hub). **IMPORTANT NOTE ABOUT THE CONTROL HUB:** The Extreme Turbo build variant strips the webserver, which has the potential to be problematic on the Control Hub. Please only choose Extreme Turbo for a Control Hub if you know what you understand the consequences of removal of the webserver. (Namely, needing to apply OS updates from fastboot instead of from the manage page, and the like).
 
 For the curious: the cause of the incompatibility is the result of a bug in the `dlopen()` function of Android versions prior to 6.0. When loading the `libRobotCore.so` on older Android versions, an `UnsatisfiedLinkError` will be thrown because it cannot find a symbol that is declared in `libVuforia.so` and `dlopen()` is not smart enough to know that `libVuforia.so` has already been loaded into memory. See the "Correct soname/path handling" section of [this](https://android.googlesource.com/platform/bionic/+/master/android-changes-for-ndk-developers.md) page for more details.
 
@@ -32,6 +32,7 @@ For the curious: the cause of the incompatibility is the result of a bug in the 
      - OnBotJava removed
 
  - **Extreme Turbo - 4MB APK** *(10x smaller!)*
+     - **IMPORTANT NOTE ABOUT THE CONTROL HUB:** The Extreme Turbo build variant strips the webserver, which has the potential to be problematic on the Control Hub. Please only choose Extreme Turbo for a Control Hub if you know what you understand the consequences of removal of the webserver. (Namely, needing to apply OS updates from fastboot instead of from the manage page, and the like).
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
