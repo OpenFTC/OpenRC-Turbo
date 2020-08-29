@@ -351,8 +351,8 @@ public class FtcRobotControllerActivity extends Activity
     dimmer.longBright();
 
     programmingModeManager = new ProgrammingModeManager();
-    programmingModeManager.register(new ProgrammingWebHandlers());
-    programmingModeManager.register(new OnBotJavaProgrammingMode());
+//    programmingModeManager.register(new ProgrammingWebHandlers());
+//    programmingModeManager.register(new OnBotJavaProgrammingMode());
 
     updateUI = createUpdateUI();
     callback = createUICallback(updateUI);

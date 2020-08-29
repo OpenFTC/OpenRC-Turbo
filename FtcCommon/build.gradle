@@ -22,6 +22,7 @@ dependencies {
     implementation project(':RobotCore')
 
     turboImplementation project(':RobotServer')
+    extremeTurboImplementation project(':RobotServer')
     //turboImplementation project(':OpenRC')
 
     //extremeTurboImplementation project(':OpenRC')
