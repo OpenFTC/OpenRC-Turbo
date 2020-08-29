@@ -8,13 +8,4 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:required="true" />
-
-    <application>
-        <activity
-            android:name="org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/program_and_manage_activity" >
-        </activity>
-    </application>
-
 </manifest>
