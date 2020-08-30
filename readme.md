@@ -11,6 +11,10 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 **HOWEVER**, in order to address this, OpenRC has a `stock` build variant which will compile the `TeamCode` and `FtcRobotController` modules against the official, unmodified AAR files, rather than against the extracted modules.
 
+## Device Compatibility
+
+Compatible with all legal FTC Robot Controller devices for the 2020-2021 season, including the Control Hub.
+
 ## Build variants
 
 ### Variant Descriptions
