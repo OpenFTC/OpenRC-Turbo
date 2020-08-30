@@ -15,17 +15,20 @@ According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/si
 
 ### Variant Descriptions
 
- - **Stock - 40MB APK** *(oof!)*
-     - Competition legal
+Normal SDK 5.5 APK size: 42MB
 
- - **Turbo - 10MB APK** *(4x smaller!)*
+ - **Stock - 33.5MB APK** *(1.25x smaller)*
+     - Competition legal
+     - 64-bit libs removed
+
+ - **Turbo - 9.2MB APK** *(4.5x smaller)*
 
      *Note: If you would like to use Blocks, you will need to copy your private Vuforia key into the `Blocks/src/main/assets/CzechWolf` file*
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
 
- - **Extreme Turbo - 4MB APK** *(10x smaller!)*
+ - **Extreme Turbo - 4.8MB APK** *(8.7x smaller)*
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
