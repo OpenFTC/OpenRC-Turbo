@@ -221,6 +221,7 @@
     <string name="pref_wifi_automute">Wifi Auto Mute</string>
     <string name="prefedit_wifi_automute">Wifi Auto Mute</string>
     <string name="prefedit_wifi_automute_summary">Turn wifi off automatically after a period of inactivity.</string>
+    <string name="program_and_manage_activity">Program &amp; Manage</string>
     <string name="readOnlyConfigFeedback">read-only</string>
     <string name="readOnlyExplanation">Read-only configurations can be edited, but must be saved under a new name.</string>
     <string name="readXML_text">Select an XML file to instantiate a Robot from that file</string>

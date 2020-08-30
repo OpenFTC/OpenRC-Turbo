@@ -205,6 +205,11 @@
             android:label="@string/edit_analog_output_devices_activity"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
+        <activity
+            android:name="org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/program_and_manage_activity" >
+        </activity>
 
         <!-- Assistant that autostarts the robot controller on android boot (if it's supposed to) -->
         <receiver

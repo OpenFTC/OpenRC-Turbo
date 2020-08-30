@@ -22,5 +22,6 @@ dependencies {
     api 'com.google.code.gson:gson:2.8.0'
     api 'org.openftc:tfod-google-ftcsdk-repackaged:5.0' //Specific version of TFOD core library used by FTC SDK
     api 'org.openftc:tfod-ftc-repackaged:5.0' //FTC specific addons to core TFOD lib
-    api 'androidx.appcompat:appcompat:1.2.0'
+    api 'androidx.annotation:annotation:1.1.0'
+    api 'androidx.core:core:1.3.0'
 }

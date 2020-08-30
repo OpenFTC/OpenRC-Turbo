@@ -41,6 +41,7 @@ dependencies {
     extremeTurboApi project(':Inspection')
     extremeTurboApi project(':Hardware')
     extremeTurboApi project(':OpenRC')
+    extremeTurboApi project(':RobotServer')
 
     stockApi 'org.firstinspires.ftc:Inspection:5.5'
     stockApi 'org.firstinspires.ftc:Blocks:5.5'
