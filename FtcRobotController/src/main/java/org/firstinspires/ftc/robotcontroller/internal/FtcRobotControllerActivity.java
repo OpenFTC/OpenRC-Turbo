@@ -266,6 +266,7 @@ public class FtcRobotControllerActivity extends Activity
 
     RobotLog.onApplicationStart();  // robustify against onCreate() following onDestroy() but using the same app instance, which apparently does happen
     RobotLog.vv(TAG, "onCreate()");
+    RobotLog.vv(TAG, "App version: OpenRC " + getString(R.string.version_name_for_manifest) + " " + getString(R.string.openrc_variant));
     ThemedActivity.appAppThemeToActivity(getTag(), this); // do this way instead of inherit to help AppInventor
 
     // Oddly, sometimes after a crash & restart the root activity will be something unexpected, like from the before crash? We don't yet understand
