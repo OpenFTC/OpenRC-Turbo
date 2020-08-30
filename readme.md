@@ -110,6 +110,14 @@ tfod.loadModelFromFile("/sdcard/FIRST/DatasetName.tflite");
 
 ## Release Notes:
 
+### 5.5B
+
+Released on 30 August 2020
+
+ - Shrinks Turbo/ExtremeTurbo APK size by a few hundred KB since 5.5A release
+ - Adds core web management to Extreme Turbo variant, increasing compatibility with Control Hub
+ - Logs build variant to RobotLog
+
 ### 5.5A
 
 Released on 28 August 2020
