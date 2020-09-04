@@ -9,15 +9,50 @@ android {
         versionCode 73
         versionName "11.15"
 
+        renderscriptTargetApi 28
+        renderscriptSupportModeEnabled true
+        renderscriptNdkModeEnabled false
         buildConfigField "int", "RS_TARGET_API", "28"
+
+        externalNativeBuild {
+            ndkBuild {
+                cppFlags "-Wno-invalid-offsetof" // all our uses of offsetof() are in fact ok. disable overzealous warning
+            }
+        }
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+            renderscriptDebuggable true
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+            externalNativeBuild {
+                ndkBuild {
+                }
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            externalNativeBuild {
+                ndkBuild {
+                }
+            }
         }
     }
+
+    // Encapsulates your external native build configurations.
+    externalNativeBuild {
+        ndkBuild {
+            path "Android.mk"
+        }
+    }
+
+    ndkVersion '21.0.6113669'
 
 }
 
