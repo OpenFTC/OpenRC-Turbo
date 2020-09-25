@@ -52,7 +52,7 @@ Normal SDK 5.5 APK size: 42MB
  1. Fork this repository
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
- 4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST` folder on the RC's internal storage
+ 4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST/vision` folder on the RC's internal storage
  5. Select your desired build variant (see the *Switching Build Variants* section)
 
 ## Update Process
