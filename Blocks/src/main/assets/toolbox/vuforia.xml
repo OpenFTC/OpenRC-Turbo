@@ -1,18 +1,18 @@
   <category name="Vuforia">
-    <category name="Optimized for SKYSTONE">
-      <placeholder_camera_vuforiaSkyStone_initialize_withCameraDirection/>
-      <placeholder_webcam_vuforiaSkyStone_initialize_withWebcam/>
+    <category name="Optimized for placeholder_current_game_name">
+      <placeholder_camera_vuforiaCurrentGame_initialize_withCameraDirection/>
+      <placeholder_webcam_vuforiaCurrentGame_initialize_withWebcam/>
       <placeholder_switchableCamera_navigation_switchableCamera/>
-      <block type="vuforiaSkyStone_activate"></block>
-      <block type="vuforiaSkyStone_deactivate"></block>
-      <placeholder_switchableCamera_vuforiaSkyStone_setActiveCamera/>
-      <block type="vuforiaSkyStone_track">
-        <value name="TRACKABLE_NAME"><shadow type="vuforiaSkyStone_typedEnum_trackableName"></shadow></value>
+      <block type="vuforiaCurrentGame_activate"></block>
+      <block type="vuforiaCurrentGame_deactivate"></block>
+      <placeholder_switchableCamera_vuforiaCurrentGame_setActiveCamera/>
+      <block type="vuforiaCurrentGame_track">
+        <value name="TRACKABLE_NAME"><shadow type="vuforiaCurrentGame_typedEnum_trackableName"></shadow></value>
       </block>
-      <block type="vuforiaSkyStone_trackPose">
-        <value name="TRACKABLE_NAME"><shadow type="vuforiaSkyStone_typedEnum_trackableName"></shadow></value>
+      <block type="vuforiaCurrentGame_trackPose">
+        <value name="TRACKABLE_NAME"><shadow type="vuforiaCurrentGame_typedEnum_trackableName"></shadow></value>
       </block>
-      <block type="vuforiaSkyStone_typedEnum_trackableName"></block>
+      <placeholder_vuforia_current_game_trackable_names/>
       <block type="vuforiaTrackingResults_getProperty_String">
           <field name="PROP">Name</field>
           <value name="VUFORIA_TRACKING_RESULTS"><block type="variables_get"><field name="VAR">{vuforiaTrackingResultsVariable}</field></block></value>
@@ -83,7 +83,7 @@
       <placeholder_webcam_vuforiaLocalizerParameters_addWebcamCalibrationFile/>
       <block type="vuforiaLocalizerParameters_setUseExtendedTracking">
         <value name="VUFORIA_LOCALIZER_PARAMETERS"><block type="variables_get"><field name="VAR">{vuforiaLocalizerParametersVariable}</field></block></value>
-        <value name="USE_EXTENDED_TRACKING"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+        <value name="USE_EXTENDED_TRACKING"><shadow type="logic_boolean"><field name="BOOL">FALSE</field></shadow></value>
       </block>
       <block type="vuforiaLocalizerParameters_setEnableCameraMonitoring">
         <value name="VUFORIA_LOCALIZER_PARAMETERS"><block type="variables_get"><field name="VAR">{vuforiaLocalizerParametersVariable}</field></block></value>

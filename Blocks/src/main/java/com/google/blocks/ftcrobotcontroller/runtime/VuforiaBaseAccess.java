@@ -35,14 +35,15 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
   private final HardwareMap hardwareMap;
   private T vuforiaBase;
 
-  VuforiaBaseAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, "Vuforia");
+  VuforiaBaseAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap,
+      String blockFirstName) {
+    super(blocksOpMode, identifier, blockFirstName);
     this.hardwareMap = hardwareMap;
   }
 
   private boolean checkAndSetVuforiaBase() {
     if (vuforiaBase != null) {
-      reportWarning("Vuforia.initialize has already been called!");
+      reportWarning(blockFirstName + ".initialize has already been called!");
       return false;
     }
     vuforiaBase = createVuforia();
@@ -53,7 +54,7 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
 
   T getVuforiaBase() {
     if (vuforiaBase == null) {
-      reportWarning("You forgot to call Vuforia.initialize!");
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
       return null;
     }
     return vuforiaBase;

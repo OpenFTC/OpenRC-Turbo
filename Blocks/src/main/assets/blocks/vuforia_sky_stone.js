@@ -22,8 +22,8 @@
 
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
 // vuforiaSkyStoneIdentifierForJavaScript
-// createSkyStoneTrackableNameDropdown
-// SKY_STONE_TRACKABLE_NAME_TOOLTIPS
+// createVuforiaSkyStoneTrackableNameDropdown
+// VUFORIA_SKY_STONE_TRACKABLE_NAME_TOOLTIPS
 // The following are defined in vars.js:
 // createNonEditableField
 // functionColor
@@ -291,11 +291,11 @@ Blockly.Blocks['vuforiaSkyStone_typedEnum_trackableName'] = {
     this.appendDummyInput()
         .appendField(createNonEditableField('TrackableName'))
         .appendField('.')
-        .appendField(createSkyStoneTrackableNameDropdown(), 'TRACKABLE_NAME');
+        .appendField(createVuforiaSkyStoneTrackableNameDropdown(), 'TRACKABLE_NAME');
     this.setColour(getPropertyColor);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
-    var TOOLTIPS = SKY_STONE_TRACKABLE_NAME_TOOLTIPS;
+    var TOOLTIPS = VUFORIA_SKY_STONE_TRACKABLE_NAME_TOOLTIPS;
     this.setTooltip(function() {
       var key = thisBlock.getFieldValue('TRACKABLE_NAME');
       for (var i = 0; i < TOOLTIPS.length; i++) {

@@ -135,6 +135,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/telemetry.js");
     assetsToInclude.add("blocks/temperature.js");
     assetsToInclude.add("blocks/tfod.js");
+    assetsToInclude.add("blocks/tfod_current_game.js");
     assetsToInclude.add("blocks/tfod_custom_model.js");
     assetsToInclude.add("blocks/tfod_recognition.js");
     assetsToInclude.add("blocks/tfod_rover_ruckus.js");
@@ -147,6 +148,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/velocity.js");
     assetsToInclude.add("blocks/voltage_sensor.js");
     assetsToInclude.add("blocks/vuforia.js");
+    assetsToInclude.add("blocks/vuforia_current_game.js");
     assetsToInclude.add("blocks/vuforia_localizer.js");
     assetsToInclude.add("blocks/vuforia_localizer_parameters.js");
     assetsToInclude.add("blocks/vuforia_relic_recovery.js");

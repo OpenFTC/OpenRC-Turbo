@@ -16,6 +16,9 @@
 
 package com.google.blocks.ftcrobotcontroller.util;
 
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA;
+
 import androidx.annotation.Nullable;
 
 /**
@@ -84,6 +87,8 @@ public enum Identifier {
       null, null),
   TFOD_CUSTOM_MODEL("tfodCustomModelAccess", "tfodCustomModelIdentifierForJavaScript",
       "tfodCustomModel", "tfodCustomModelIdentifierForFtcJava"),
+  TFOD_CURRENT_GAME("tfodCurrentGameAccess", "tfodCurrentGameIdentifierForJavaScript",
+      TFOD_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA, "tfodCurrentGameIdentifierForFtcJava"),
   TFOD_ROVER_RUCKUS("tfodRoverRuckusAccess", "tfodRoverRuckusIdentifierForJavaScript",
       "tfodRoverRuckus", "tfodRoverRuckusIdentifierForFtcJava"),
   TFOD_SKY_STONE("tfodSkyStoneAccess", "tfodSkyStoneIdentifierForJavaScript",
@@ -92,6 +97,8 @@ public enum Identifier {
       null, null),
   VELOCITY("velocityAccess", "velocityIdentifierForJavaScript",
       null, null),
+  VUFORIA_CURRENT_GAME("vuforiaCurrentGameAccess", "vuforiaCurrentGameIdentifierForJavaScript",
+      VUFORIA_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA, "vuforiaCurrentGameIdentifierForFtcJava"),
   VUFORIA_RELIC_RECOVERY("vuforiaAccess", "vuforiaIdentifierForJavaScript", // For backwards compatibility
       "vuforiaRelicRecovery", "vuforiaRelicRecoveryIdentifierForFtcJava"),
   VUFORIA_ROVER_RUCKUS("vuforiaRoverRuckusAccess", "vuforiaRoverRuckusIdentifierForJavaScript",

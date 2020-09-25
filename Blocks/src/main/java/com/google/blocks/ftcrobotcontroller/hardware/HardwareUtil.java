@@ -16,6 +16,9 @@
 
 package com.google.blocks.ftcrobotcontroller.hardware;
 
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.CURRENT_GAME_NAME;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.ProjectsUtil.escapeSingleQuotes;
 
 import android.content.Context;
@@ -61,8 +64,10 @@ import org.firstinspires.ftc.robotcore.external.ExportToBlocks;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool;
 import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
+import org.firstinspires.ftc.robotcore.external.tfod.TfodCurrentGame;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
 import org.firstinspires.ftc.robotcore.internal.opmode.BlocksClassFilter;
@@ -171,6 +176,12 @@ public class HardwareUtil {
         .replaceAll("\\> +\\<", "><");
     // The toolbox is added at the end, because it makes it easier to troubleshoot problems with
     // this code.
+
+    jsHardware
+        .append("var currentGameName = '" + CURRENT_GAME_NAME + "';\n")
+        .append("var tfodCurrentGameBlocksFirstName = '" + TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME + "';\n")
+        .append("var vuforiaCurrentGameBlocksFirstName = '" + VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME + "';\n")
+        .append("\n");
 
     jsHardware
         .append("var methodLookupStrings = [\n");
@@ -373,108 +384,160 @@ public class HardwareUtil {
         .append(SWITCHABLE_CAMERA_NAME)
         .append("';\n");
 
-    // Rover Ruckus tfod labels
-    StringBuilder createRoverRuckusTfodLabelDropdown = new StringBuilder();
-    StringBuilder roverRuckusTfodLabelTooltips = new StringBuilder();
-    createRoverRuckusTfodLabelDropdown
-        .append("function createRoverRuckusTfodLabelDropdown() {\n")
+    // TFOD Rover Ruckus labels
+    StringBuilder createTfodRoverRuckusLabelDropdown = new StringBuilder();
+    StringBuilder tfodRoverRuckusLabelTooltips = new StringBuilder();
+    createTfodRoverRuckusLabelDropdown
+        .append("function createTfodRoverRuckusLabelDropdown() {\n")
         .append("  var CHOICES = [\n");
-    roverRuckusTfodLabelTooltips
-        .append("var ROVER_RUCKUS_TFOD_LABEL_TOOLTIPS = [\n");
+    tfodRoverRuckusLabelTooltips
+        .append("var TFOD_ROVER_RUCKUS_LABEL_TOOLTIPS = [\n");
     for (String tfodLabel : TfodRoverRuckus.LABELS) {
-      createRoverRuckusTfodLabelDropdown
+      createTfodRoverRuckusLabelDropdown
           .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(tfodLabel))).append("', '")
           .append(escapeSingleQuotes(tfodLabel)).append("'],\n");
-      roverRuckusTfodLabelTooltips
+      tfodRoverRuckusLabelTooltips
           .append("  ['").append(escapeSingleQuotes(tfodLabel)).append("', 'The Label value ")
           .append(escapeSingleQuotes(tfodLabel)).append(".'],\n");
     }
-    createRoverRuckusTfodLabelDropdown.append("  ];\n")
+    createTfodRoverRuckusLabelDropdown.append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
-    roverRuckusTfodLabelTooltips
+    tfodRoverRuckusLabelTooltips
         .append("];\n");
     jsHardware
-        .append(createRoverRuckusTfodLabelDropdown)
-        .append(roverRuckusTfodLabelTooltips)
+        .append(createTfodRoverRuckusLabelDropdown)
+        .append(tfodRoverRuckusLabelTooltips)
         .append("\n");
 
     // Rover Ruckus trackable names
-    StringBuilder createRoverRuckusTrackableNameDropdown = new StringBuilder();
-    StringBuilder roverRuckusTrackableNameTooltips = new StringBuilder();
-    createRoverRuckusTrackableNameDropdown
-        .append("function createRoverRuckusTrackableNameDropdown() {\n")
+    StringBuilder createVuforiaRoverRuckusTrackableNameDropdown = new StringBuilder();
+    StringBuilder vuforiaRoverRuckusTrackableNameTooltips = new StringBuilder();
+    createVuforiaRoverRuckusTrackableNameDropdown
+        .append("function createVuforiaRoverRuckusTrackableNameDropdown() {\n")
         .append("  var CHOICES = [\n");
-    roverRuckusTrackableNameTooltips
-        .append("var ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS = [\n");
+    vuforiaRoverRuckusTrackableNameTooltips
+        .append("var VUFORIA_ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS = [\n");
     for (String trackableName : VuforiaRoverRuckus.TRACKABLE_NAMES) {
-      createRoverRuckusTrackableNameDropdown
+      createVuforiaRoverRuckusTrackableNameDropdown
           .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(trackableName))).append("', '")
           .append(escapeSingleQuotes(trackableName)).append("'],\n");
-      roverRuckusTrackableNameTooltips
+      vuforiaRoverRuckusTrackableNameTooltips
           .append("  ['").append(escapeSingleQuotes(trackableName)).append("', 'The TrackableName value ")
           .append(escapeSingleQuotes(trackableName)).append(".'],\n");
     }
-    createRoverRuckusTrackableNameDropdown.append("  ];\n")
+    createVuforiaRoverRuckusTrackableNameDropdown.append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
-    roverRuckusTrackableNameTooltips
+    vuforiaRoverRuckusTrackableNameTooltips
         .append("];\n");
     jsHardware
-        .append(createRoverRuckusTrackableNameDropdown)
-        .append(roverRuckusTrackableNameTooltips)
+        .append(createVuforiaRoverRuckusTrackableNameDropdown)
+        .append(vuforiaRoverRuckusTrackableNameTooltips)
         .append("\n");
 
     // SKYSTONE tfod labels
-    StringBuilder createSkyStoneTfodLabelDropdown = new StringBuilder();
-    StringBuilder skyStoneTfodLabelTooltips = new StringBuilder();
-    createSkyStoneTfodLabelDropdown
-        .append("function createSkyStoneTfodLabelDropdown() {\n")
+    StringBuilder createTfodSkyStoneLabelDropdown = new StringBuilder();
+    StringBuilder tfodSkyStoneLabelTooltips = new StringBuilder();
+    createTfodSkyStoneLabelDropdown
+        .append("function createTfodSkyStoneLabelDropdown() {\n")
         .append("  var CHOICES = [\n");
-    skyStoneTfodLabelTooltips
-        .append("var SKY_STONE_TFOD_LABEL_TOOLTIPS = [\n");
+    tfodSkyStoneLabelTooltips
+        .append("var TFOD_SKY_STONE_LABEL_TOOLTIPS = [\n");
     for (String tfodLabel : TfodSkyStone.LABELS) {
-      createSkyStoneTfodLabelDropdown
+      createTfodSkyStoneLabelDropdown
           .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(tfodLabel))).append("', '")
           .append(escapeSingleQuotes(tfodLabel)).append("'],\n");
-      skyStoneTfodLabelTooltips
+      tfodSkyStoneLabelTooltips
           .append("  ['").append(escapeSingleQuotes(tfodLabel)).append("', 'The Label value ")
           .append(escapeSingleQuotes(tfodLabel)).append(".'],\n");
     }
-    createSkyStoneTfodLabelDropdown.append("  ];\n")
+    createTfodSkyStoneLabelDropdown.append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
-    skyStoneTfodLabelTooltips
+    tfodSkyStoneLabelTooltips
         .append("];\n");
     jsHardware
-        .append(createSkyStoneTfodLabelDropdown)
-        .append(skyStoneTfodLabelTooltips)
+        .append(createTfodSkyStoneLabelDropdown)
+        .append(tfodSkyStoneLabelTooltips)
         .append("\n");
 
     // SKYSTONE trackable names
-    StringBuilder createSkyStoneTrackableNameDropdown = new StringBuilder();
-    StringBuilder skyStoneTrackableNameTooltips = new StringBuilder();
-    createSkyStoneTrackableNameDropdown
-        .append("function createSkyStoneTrackableNameDropdown() {\n")
+    StringBuilder createVuforiaSkyStoneTrackableNameDropdown = new StringBuilder();
+    StringBuilder vuforiaSkyStoneTrackableNameTooltips = new StringBuilder();
+    createVuforiaSkyStoneTrackableNameDropdown
+        .append("function createVuforiaSkyStoneTrackableNameDropdown() {\n")
         .append("  var CHOICES = [\n");
-    skyStoneTrackableNameTooltips
-        .append("var SKY_STONE_TRACKABLE_NAME_TOOLTIPS = [\n");
+    vuforiaSkyStoneTrackableNameTooltips
+        .append("var VUFORIA_SKY_STONE_TRACKABLE_NAME_TOOLTIPS = [\n");
     for (String trackableName : VuforiaSkyStone.TRACKABLE_NAMES) {
-      createSkyStoneTrackableNameDropdown
+      createVuforiaSkyStoneTrackableNameDropdown
           .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(trackableName))).append("', '")
           .append(escapeSingleQuotes(trackableName)).append("'],\n");
-      skyStoneTrackableNameTooltips
+      vuforiaSkyStoneTrackableNameTooltips
           .append("  ['").append(escapeSingleQuotes(trackableName)).append("', 'The TrackableName value ")
           .append(escapeSingleQuotes(trackableName)).append(".'],\n");
     }
-    createSkyStoneTrackableNameDropdown.append("  ];\n")
+    createVuforiaSkyStoneTrackableNameDropdown.append("  ];\n")
         .append("  return createFieldDropdown(CHOICES);\n")
         .append("}\n\n");
-    skyStoneTrackableNameTooltips
+    vuforiaSkyStoneTrackableNameTooltips
         .append("];\n");
     jsHardware
-        .append(createSkyStoneTrackableNameDropdown)
-        .append(skyStoneTrackableNameTooltips)
+        .append(createVuforiaSkyStoneTrackableNameDropdown)
+        .append(vuforiaSkyStoneTrackableNameTooltips)
+        .append("\n");
+
+    // Current game tfod labels
+    StringBuilder createTfodCurrentGameLabelDropdown = new StringBuilder();
+    StringBuilder tfodCurrentGameLabelTooltips = new StringBuilder();
+    createTfodCurrentGameLabelDropdown
+        .append("function createTfodCurrentGameLabelDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    tfodCurrentGameLabelTooltips
+        .append("var TFOD_CURRENT_GAME_LABEL_TOOLTIPS = [\n");
+    for (String tfodLabel : TfodCurrentGame.LABELS) {
+      createTfodCurrentGameLabelDropdown
+          .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(tfodLabel))).append("', '")
+          .append(escapeSingleQuotes(tfodLabel)).append("'],\n");
+      tfodCurrentGameLabelTooltips
+          .append("  ['").append(escapeSingleQuotes(tfodLabel)).append("', 'The Label value ")
+          .append(escapeSingleQuotes(tfodLabel)).append(".'],\n");
+    }
+    createTfodCurrentGameLabelDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    tfodCurrentGameLabelTooltips
+        .append("];\n");
+    jsHardware
+        .append(createTfodCurrentGameLabelDropdown)
+        .append(tfodCurrentGameLabelTooltips)
+        .append("\n");
+
+    // Current game vuforia trackable names
+    StringBuilder createVuforiaCurrentGameTrackableNameDropdown = new StringBuilder();
+    StringBuilder vuforiaCurrentGameTrackableNameTooltips = new StringBuilder();
+    createVuforiaCurrentGameTrackableNameDropdown
+        .append("function createVuforiaCurrentGameTrackableNameDropdown() {\n")
+        .append("  var CHOICES = [\n");
+    vuforiaCurrentGameTrackableNameTooltips
+        .append("var VUFORIA_CURRENT_GAME_TRACKABLE_NAME_TOOLTIPS = [\n");
+    for (String trackableName : VuforiaCurrentGame.TRACKABLE_NAMES) {
+      createVuforiaCurrentGameTrackableNameDropdown
+          .append("      ['").append(escapeSingleQuotes(makeVisibleNameForDropdownItem(trackableName))).append("', '")
+          .append(escapeSingleQuotes(trackableName)).append("'],\n");
+      vuforiaCurrentGameTrackableNameTooltips
+          .append("  ['").append(escapeSingleQuotes(trackableName)).append("', 'The TrackableName value ")
+          .append(escapeSingleQuotes(trackableName)).append(".'],\n");
+    }
+    createVuforiaCurrentGameTrackableNameDropdown.append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+    vuforiaCurrentGameTrackableNameTooltips
+        .append("];\n");
+    jsHardware
+        .append(createVuforiaCurrentGameTrackableNameDropdown)
+        .append(vuforiaCurrentGameTrackableNameTooltips)
         .append("\n");
 
     // Hardware
@@ -1022,7 +1085,11 @@ public class HardwareUtil {
         new BufferedReader(new InputStreamReader(assetManager.open(assetName)))) {
       String line = null;
       while ((line = reader.readLine()) != null) {
-        line = line.trim();
+        line = line.trim()
+            .replace("placeholder_current_game_name", CURRENT_GAME_NAME)
+            .replace("<placeholder_tfod_current_game_labels/>", getTfodCurrentGameLabelBlocks())
+            .replace("<placeholder_vuforia_current_game_trackable_names/>", getVuforiaCurrentGameTrackableNameBlocks());
+
         String prefix = "<placeholder_";
         String suffix = "/>";
         if (line.startsWith(prefix) && line.endsWith(suffix)) {
@@ -1053,6 +1120,39 @@ public class HardwareUtil {
       }
     }
   }
+
+  private static String getTfodCurrentGameLabelBlocks() {
+    StringBuilder tfodCurrentGameLabelBlocks = new StringBuilder();
+    if (TfodCurrentGame.LABELS.length <= 3) {
+      for (String tfodLabel : TfodCurrentGame.LABELS) {
+        tfodCurrentGameLabelBlocks
+            .append("<block type=\"tfodCurrentGame_typedEnum_label\"><field name=\"LABEL\">")
+            .append(tfodLabel)
+            .append("</field></block>\n");
+      }
+    } else {
+      tfodCurrentGameLabelBlocks
+          .append("<block type=\"tfodCurrentGame_typedEnum_label\"></block>\n");
+    }
+    return tfodCurrentGameLabelBlocks.toString();
+  }
+
+  private static String getVuforiaCurrentGameTrackableNameBlocks() {
+    StringBuilder vuforiaCurrentGameTrackableNameBlocks = new StringBuilder();
+    if (VuforiaCurrentGame.TRACKABLE_NAMES.length <= 3) {
+      for (String trackableName : VuforiaCurrentGame.TRACKABLE_NAMES) {
+        vuforiaCurrentGameTrackableNameBlocks
+            .append("<block type=\"vuforiaCurrentGame_typedEnum_trackableName\"><field name=\"TRACKABLE_NAME\">")
+            .append(trackableName)
+            .append("</field></block>\n");
+      }
+    } else {
+      vuforiaCurrentGameTrackableNameBlocks
+          .append("<block type=\"vuforiaCurrentGame_typedEnum_trackableName\"></block>\n");
+    }
+    return vuforiaCurrentGameTrackableNameBlocks.toString();
+  }
+
 
   /**
    * Adds the category for Android functionality to the toolbox, iff there is at least one
@@ -1340,9 +1440,11 @@ public class HardwareUtil {
     properties.put("Blue", "Number");
     properties.put("Alpha", "Number");
     properties.put("Argb", "Number");
+    properties.put("Gain", "Number");
     properties.put("I2cAddress7Bit", "Number");
     properties.put("I2cAddress8Bit", "Number");
     Map<String, String[]> setterValues = new HashMap<String, String[]>();
+    setterValues.put("Gain", new String[] { ToolboxUtil.makeNumberShadow(2) });
     setterValues.put("I2cAddress7Bit", new String[] { ToolboxUtil.makeNumberShadow(8) });
     setterValues.put("I2cAddress8Bit", new String[] { ToolboxUtil.makeNumberShadow(16) });
     ToolboxUtil.addProperties(xmlToolbox, hardwareType, identifier, properties,
@@ -1714,12 +1816,14 @@ public class HardwareUtil {
     properties.put("Blue", "Number");
     properties.put("Alpha", "Number");
     properties.put("Argb", "Number");
+    properties.put("Gain", "Number");
     properties.put("I2cAddress7Bit", "Number");
     properties.put("I2cAddress8Bit", "Number");
     properties.put("LightDetected", "Number");
     properties.put("RawLightDetected", "Number");
     properties.put("RawLightDetectedMax", "Number");
     Map<String, String[]> setterValues = new HashMap<String, String[]>();
+    setterValues.put("Gain", new String[] { ToolboxUtil.makeNumberShadow(2) });
     setterValues.put("I2cAddress7Bit", new String[] { ToolboxUtil.makeNumberShadow(8) });
     setterValues.put("I2cAddress8Bit", new String[] { ToolboxUtil.makeNumberShadow(16) });
     ToolboxUtil.addProperties(xmlToolbox, hardwareType, identifier, properties,

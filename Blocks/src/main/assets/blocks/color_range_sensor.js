@@ -31,6 +31,7 @@
 Blockly.Blocks['lynxI2cColorRangeSensor_setProperty_Number'] = {
   init: function() {
     var PROPERTY_CHOICES = [
+        ['Gain', 'Gain'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
     ];
@@ -46,6 +47,7 @@ Blockly.Blocks['lynxI2cColorRangeSensor_setProperty_Number'] = {
     // Assign 'this' to a variable for use in the closures below.
     var thisBlock = this;
     var TOOLTIPS = [
+        ['Gain', 'Sets the gain of the REV color/range sensor.'],
         ['I2cAddress7Bit', 'Sets the 7 bit I2C address of the REV color/range sensor.'],
         ['I2cAddress8Bit', 'Sets the 8 bit I2C address of the REV color/range sensor.'],
     ];
@@ -62,6 +64,8 @@ Blockly.Blocks['lynxI2cColorRangeSensor_setProperty_Number'] = {
       if (inputName == 'VALUE') {
         var property = thisBlock.getFieldValue('PROP');
         switch (property) {
+          case 'Gain':
+            return 'float';
           case 'I2cAddress7Bit':
           case 'I2cAddress8Bit':
             return 'int';
@@ -89,6 +93,10 @@ Blockly.FtcJava['lynxI2cColorRangeSensor_setProperty_Number'] = function(block) 
       block, 'VALUE', Blockly.FtcJava.ORDER_NONE);
   var code;
   switch (property) {
+    case 'Gain':
+      Blockly.FtcJava.generateImport_('NormalizedColorSensor');
+      code = '((NormalizedColorSensor) ' + identifier + ').set' + property + '(' + value + ');\n';
+      break;
     case 'I2cAddress7Bit':
       Blockly.FtcJava.generateImport_('I2cAddr');
       code = identifier + '.setI2cAddress(I2cAddr.create7bit(' + value + '));\n';
@@ -109,6 +117,7 @@ Blockly.Blocks['lynxI2cColorRangeSensor_getProperty_Number'] = {
         ['Alpha', 'Alpha'],
         ['Argb', 'Argb'],
         ['Blue', 'Blue'],
+        ['Gain', 'Gain'],
         ['Green', 'Green'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
@@ -129,6 +138,7 @@ Blockly.Blocks['lynxI2cColorRangeSensor_getProperty_Number'] = {
         ['Alpha', 'Returns the alpha component of the color detected by the REV color/range sensor.'],
         ['Argb', 'Returns an ARGB value representing the color detected by the REV color/range sensor.'],
         ['Blue', 'Returns the blue component of the color detected by the REV color/range sensor.'],
+        ['Gain', 'Returns the gain of the REV color/range sensor.'],
         ['Green', 'Returns the green component of the color detected by the REV color/range sensor.'],
         ['I2cAddress7Bit', 'Returns the 7 bit I2C address of the REV color/range sensor.'],
         ['I2cAddress8Bit', 'Returns the 8 bit I2C address of the REV color/range sensor.'],
@@ -160,6 +170,8 @@ Blockly.Blocks['lynxI2cColorRangeSensor_getProperty_Number'] = {
         case 'I2cAddress7Bit':
         case 'I2cAddress8Bit':
           return 'int';
+        case 'Gain':
+          return 'float';
         case 'LightDetected':
         case 'RawLightDetected':
         case 'RawLightDetectedMax':
@@ -189,6 +201,10 @@ Blockly.FtcJava['lynxI2cColorRangeSensor_getProperty_Number'] = function(block) 
     case 'Green':
     case 'Red':
       code = identifier + '.' + Blockly.FtcJava.makeFirstLetterLowerCase_(property) + '()';
+      break;
+    case 'Gain':
+      Blockly.FtcJava.generateImport_('NormalizedColorSensor');
+      code = '((NormalizedColorSensor) ' + identifier + ').get' + property + '()';
       break;
     case 'I2cAddress7Bit':
       code = identifier + '.getI2cAddress().get7Bit()';

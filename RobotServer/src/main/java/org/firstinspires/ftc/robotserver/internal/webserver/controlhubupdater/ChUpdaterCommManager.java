@@ -51,11 +51,13 @@ import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
+import org.firstinspires.ftc.robotcore.internal.webserver.R;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.FtcWebSocket;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.FtcWebSocketMessage;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.WebSocketManager;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.WebSocketMessageTypeHandler;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.WebSocketNamespaceHandler;
+import org.firstinspires.ftc.robotserver.internal.webserver.controlhubupdater.result.OtaResultType;
 import org.firstinspires.ftc.robotserver.internal.webserver.controlhubupdater.result.Result;
 
 import java.io.File;
@@ -70,6 +72,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import androidx.annotation.Nullable;
 
 /**
  * Handles all communication between the Control Hub Updater system application built into the
@@ -202,8 +206,11 @@ public final class ChUpdaterCommManager extends WebSocketNamespaceHandler {
     /**
      * Convert a CH Updater Result into a WebSocket message ready to be sent to a browser
      */
-    private static FtcWebSocketMessage createWsMessageFromResult(Result result, boolean isBroadcast) {
-        String message = result.getMessage();
+    private static FtcWebSocketMessage createWsMessageFromResult(Result result, boolean isBroadcast, @Nullable String messageOverride) {
+        String message = messageOverride;
+        if (message == null) {
+            message = result.getMessage();
+        }
         String detailMessage = result.getDetailMessage();
         Result.DetailMessageType detailMessageType = result.getDetailMessageType();
         Result.PresentationType presentationType = result.getPresentationType();
@@ -299,7 +306,7 @@ public final class ChUpdaterCommManager extends WebSocketNamespaceHandler {
                 }
             }
 
-            FtcWebSocketMessage wsMessage = createWsMessageFromResult(result, true);
+            FtcWebSocketMessage wsMessage = createWsMessageFromResult(result, true, null);
             int webSocketsThatReceivedMessage = 0;
 
             synchronized (outerClassReferenceLock) {
@@ -455,7 +462,15 @@ public final class ChUpdaterCommManager extends WebSocketNamespaceHandler {
 
             synchronized (toastQueueLock) {
                 if (webSocket != null && webSocket.isOpen()) { // It's important to synchronize this null check too (or at least it was at one point)
-                    webSocket.send(createWsMessageFromResult(result, false));
+                    String messageOverride = null;
+                    if (result.getResultType() == OtaResultType.VERIFICATION_SUCCEEDED && webSocket.getRemoteIpAddress().isLoopbackAddress()) {
+                        // The fact that the request is coming in via localhost means that the client is not connected via WiFi, so we can show
+                        // them a version of the message that lacks the warning about WiFi.
+                        // This is mostly useful for the REV UI application.
+                        messageOverride = AppUtil.getDefContext().getString(R.string.ota_result_type_verification_succeeded_localhost);
+                    }
+                    FtcWebSocketMessage resultMessage = createWsMessageFromResult(result, false, messageOverride);
+                    webSocket.send(resultMessage);
                 } else { // The WebSocket is disconnected
                     lastResult = result;
 
@@ -475,7 +490,7 @@ public final class ChUpdaterCommManager extends WebSocketNamespaceHandler {
         private synchronized void setWebSocket(FtcWebSocket webSocket) {
             this.webSocket = webSocket;
             if (lastResult != null) {
-                webSocket.send(createWsMessageFromResult(lastResult, false));
+                webSocket.send(createWsMessageFromResult(lastResult, false, null));
             }
         }
 

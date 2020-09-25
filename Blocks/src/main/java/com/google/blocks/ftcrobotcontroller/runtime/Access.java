@@ -49,7 +49,7 @@ abstract class Access {
 
   protected final BlocksOpMode blocksOpMode;
   private final String identifier;
-  private final String blockFirstName;
+  protected final String blockFirstName;
 
   protected Access(BlocksOpMode blocksOpMode, String identifier, String blockFirstName) {
     this.blocksOpMode = blocksOpMode;
@@ -213,7 +213,7 @@ abstract class Access {
   private final void reportWarning(String format, Object... args) {
     String message = String.format(format, args);
     RobotLog.ww("Blocks", message);
-    RobotLog.setGlobalWarningMessage(message);
+    RobotLog.addGlobalWarningMessage(message);
   }
 
   private final String getTypeFromClass(Class clazz) {

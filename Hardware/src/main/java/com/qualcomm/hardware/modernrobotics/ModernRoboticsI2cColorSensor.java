@@ -75,6 +75,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.TypeConversion;
 
 /**
@@ -145,6 +146,7 @@ public class ModernRoboticsI2cColorSensor extends I2cDeviceSynchDevice<I2cDevice
     protected final float colorNormalizationFactor = 1.0f / 65536.0f;
 
     protected boolean isLightOn = false;
+    private float softwareGain = 1;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -252,20 +254,32 @@ public class ModernRoboticsI2cColorSensor extends I2cDeviceSynchDevice<I2cDevice
     @Override
     public @ColorInt int argb()
         {
-        return Color.argb(alpha(), red(), green(), blue());
+        return getNormalizedColors().toColor();
         }
 
     @Override public NormalizedRGBA getNormalizedColors()
         {
         NormalizedRGBA result = new NormalizedRGBA();
-        result.red   = readUnsignedShort(Register.NORMALIZED_RED_READING)   * colorNormalizationFactor;
-        result.green = readUnsignedShort(Register.NORMALIZED_GREEN_READING) * colorNormalizationFactor;
-        result.blue  = readUnsignedShort(Register.NORMALIZED_BLUE_READING)  * colorNormalizationFactor;
-        result.alpha = readUnsignedShort(Register.NORMALIZED_ALPHA_READING) * colorNormalizationFactor;
+        result.red   = Range.clip(this.softwareGain * readUnsignedShort(Register.NORMALIZED_RED_READING)   * colorNormalizationFactor, 0f, 1f);
+        result.green = Range.clip(this.softwareGain * readUnsignedShort(Register.NORMALIZED_GREEN_READING) * colorNormalizationFactor, 0f, 1f);
+        result.blue  = Range.clip(this.softwareGain * readUnsignedShort(Register.NORMALIZED_BLUE_READING)  * colorNormalizationFactor, 0f, 1f);
+        result.alpha = Range.clip(this.softwareGain * readUnsignedShort(Register.NORMALIZED_ALPHA_READING) * colorNormalizationFactor, 0f, 1f);
         return result;
         }
 
-    @Override
+        @Override
+        public float getGain()
+            {
+            return this.softwareGain;
+            }
+
+        @Override
+        public void setGain(float newGain)
+            {
+            this.softwareGain = newGain;
+            }
+
+        @Override
     public synchronized void enableLed(boolean enable)
         {
         writeCommand(enable ? Command.ACTIVE_LED : Command.PASSIVE_LED);
@@ -293,5 +307,12 @@ public class ModernRoboticsI2cColorSensor extends I2cDeviceSynchDevice<I2cDevice
     public I2cAddr getI2cAddress()
         {
         return this.deviceClient.getI2cAddress();
+        }
+
+    @Override
+    public void resetDeviceConfigurationForOpMode()
+        {
+        super.resetDeviceConfigurationForOpMode();
+        this.softwareGain = 1;
         }
     }

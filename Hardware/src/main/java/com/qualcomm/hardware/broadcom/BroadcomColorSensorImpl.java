@@ -44,6 +44,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.I2cWaitControl;
 import com.qualcomm.robotcore.hardware.Light;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 
@@ -63,6 +64,7 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
     public static final String TAG = "BroadcomColorSensorImpl";
     NormalizedRGBA colors = new NormalizedRGBA();
     int red = 0, green = 0, blue = 0, alpha = 0;
+    float softwareGain = 1;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -120,10 +122,11 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
             dumpState();
 
             // set the gain, LED parameters and resolution
-            setGain(parameters.gain);
+            setHardwareGain(parameters.gain);
             setLEDParameters(parameters.pulseModulation, parameters.ledCurrent);
             setProximityPulseCount(parameters.proximityPulseCount);
             setPSRateAndRes(parameters.proximityResolution, parameters.proximityMeasRate);
+            setLSRateAndRes(parameters.lightSensorResolution, parameters.lightSensorMeasRate);
 
             // Enable the device
             enable();
@@ -197,7 +200,7 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
         write8(Register.PS_PULSES, proximityPulseCount);
     }
 
-    protected void setGain(Gain gain)
+    protected void setHardwareGain(Gain gain)
     {
         RobotLog.vv(TAG, "setGain(0x%02x)", gain.bVal);
         write8(Register.LS_GAIN, gain.bVal);
@@ -228,6 +231,13 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
         write8(Register.PS_MEAS_RATE, (byte) val);
     }
 
+    protected void setLSRateAndRes(LSResolution res, LSMeasurementRate rate)
+    {
+        int val = (res.bVal << 4) | rate.bVal;
+        RobotLog.vv(TAG, "setLSMeasRate(0x%02x)", (byte) val);
+        write8(Register.LS_MEAS_RATE, (byte) val);
+    }
+
     //----------------------------------------------------------------------------------------------
     // Interfaces
     //----------------------------------------------------------------------------------------------
@@ -249,6 +259,12 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
     @Override
     public synchronized @ColorInt int argb() { return getNormalizedColors().toColor(); }
 
+    @Override
+    public void setGain(float newGain) { this.softwareGain = newGain; }
+
+    @Override
+    public float getGain() { return this.softwareGain; }
+
     private void updateColors()
     {
         // Check for updated color values. If new data is not ready yet, keep the last read values
@@ -262,27 +278,27 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
         if (testBits(mainStatus, MainStatus.LS_DATA_STATUS.bVal))
         {
             // Read red, green and blue values
-            final int cbRead = 12;
-            data = read(Register.LS_DATA_IR, cbRead);
+            final int cbRead = 9;
+            data = read(Register.LS_DATA_GREEN, cbRead);
 
             final int dib = 0;
-            int ir = TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(data, dib, ByteOrder.LITTLE_ENDIAN));
-            this.green = TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(data, dib + 3, ByteOrder.LITTLE_ENDIAN));
-            this.blue = TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(data, dib + 6, ByteOrder.LITTLE_ENDIAN));
-            this.red = TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(data, dib + 9, ByteOrder.LITTLE_ENDIAN));
+            this.green = TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(data, dib, ByteOrder.LITTLE_ENDIAN));
+            this.blue = Range.clip((int) (1.55 * TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(
+                    data, dib + 3, ByteOrder.LITTLE_ENDIAN))), 0, 65535);
+            this.red = Range.clip((int) (1.07 * TypeConversion.unsignedShortToInt(TypeConversion.byteArrayToShort(
+                    data, dib + 6, ByteOrder.LITTLE_ENDIAN))), 0, 65535);
 
-            // Based on AMS application note 'DN40 Lux and CCT Calculations using ams Color Sensors'.
-            // The Broadcom sensor does not provide alpha (aka Clear) directly, but it can be
-            // calculated from the IR value using the formula on page 4 of the application note:
-            //      IR = (R+G+B-C) / 2
-            this.alpha = this.red + this.green + this.blue - 2*ir;
+            this.alpha = (this.red + this.green + this.blue) / 3;
 
-            final float colorNormalizationFactor = 1.0f / parameters.colorSaturation;
+            // normalize to [0, 1]
+            this.colors.red = Range.clip(((float)this.red * this.softwareGain) / parameters.colorSaturation, 0f, 1f);
+            this.colors.green = Range.clip(((float)this.green * this.softwareGain) / parameters.colorSaturation, 0f, 1f);
+            this.colors.blue = Range.clip(((float)this.blue * this.softwareGain) / parameters.colorSaturation, 0f, 1f);
 
-            this.colors.alpha = alpha * colorNormalizationFactor;
-            this.colors.red = red * colorNormalizationFactor;
-            this.colors.green = green * colorNormalizationFactor;
-            this.colors.blue = blue * colorNormalizationFactor;
+            // apply inverse squared law of light to get readable brightness value, stored in alpha channel
+            // scale to 65535
+            float avg = (float)(this.red + this.green + this.blue) / 3;
+            this.colors.alpha = (float) (-(65535f / (Math.pow(avg, 2) + 65535)) + 1);
         }
     }
 
@@ -324,6 +340,13 @@ public abstract class BroadcomColorSensorImpl extends I2cDeviceSynchDeviceWithPa
 
     @Override
     public Manufacturer getManufacturer() { return Manufacturer.Broadcom; }
+
+    @Override
+    public void resetDeviceConfigurationForOpMode()
+    {
+        super.resetDeviceConfigurationForOpMode();
+        this.softwareGain = 1;
+    }
 
     //----------------------------------------------------------------------------------------------
     // Utility

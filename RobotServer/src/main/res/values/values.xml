@@ -42,4 +42,5 @@
     <string name="ota_result_type_ota_update_finished">Update installed successfully.</string>
     <string name="ota_result_type_verification_succeeded">Update verification succeeded. Rebooting device and installing update.&lt;br>&lt;br>
         The Control Hub will stop broadcasting its WiFi access point for about a minute, so you may need to manually re-connect in order to see if the update succeeded.</string>
+    <string name="ota_result_type_verification_succeeded_localhost">Update verification succeeded. Rebooting device and installing update.</string>
 </resources>

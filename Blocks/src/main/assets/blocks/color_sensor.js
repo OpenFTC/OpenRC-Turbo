@@ -34,6 +34,7 @@
 Blockly.Blocks['colorSensor_setProperty'] = {
   init: function() {
     var PROPERTY_CHOICES = [
+        ['Gain', 'Gain'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
     ];
@@ -49,6 +50,8 @@ Blockly.Blocks['colorSensor_setProperty'] = {
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
     var TOOLTIPS = [
+        ['Gain', 'Sets the gain of the color sensor. ' +
+            'Not all color sensors support this feature.'],
         ['I2cAddress7Bit', 'Sets the 7 bit I2C address of the color sensor. ' +
             'Not all color sensors support this feature.'],
         ['I2cAddress8Bit', 'Sets the 8 bit I2C address of the color sensor. ' +
@@ -81,6 +84,10 @@ Blockly.FtcJava['colorSensor_setProperty'] = function(block) {
       block, 'VALUE', Blockly.FtcJava.ORDER_NONE);
   var code;
   switch (property) {
+    case 'Gain':
+      Blockly.FtcJava.generateImport_('NormalizedColorSensor');
+      code = '((NormalizedColorSensor) ' + identifier + ').set' + property + '(' + value + ');\n';
+      break;
     case 'I2cAddress7Bit':
       Blockly.FtcJava.generateImport_('I2cAddr');
       code = identifier + '.setI2cAddress(I2cAddr.create7bit(' + value + '));\n';
@@ -98,6 +105,7 @@ Blockly.FtcJava['colorSensor_setProperty'] = function(block) {
 Blockly.Blocks['colorSensor_setProperty_Number'] = {
   init: function() {
     var PROPERTY_CHOICES = [
+        ['Gain', 'Gain'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
     ];
@@ -113,6 +121,8 @@ Blockly.Blocks['colorSensor_setProperty_Number'] = {
     // Assign 'this' to a variable for use in the closures below.
     var thisBlock = this;
     var TOOLTIPS = [
+        ['Gain', 'Sets the gain of the color sensor. ' +
+            'Not all color sensors support this feature.'],
         ['I2cAddress7Bit', 'Sets the 7 bit I2C address of the color sensor. ' +
             'Not all color sensors support this feature.'],
         ['I2cAddress8Bit', 'Sets the 8 bit I2C address of the color sensor. ' +
@@ -131,6 +141,8 @@ Blockly.Blocks['colorSensor_setProperty_Number'] = {
       if (inputName == 'VALUE') {
         var property = thisBlock.getFieldValue('PROP');
         switch (property) {
+          case 'Gain':
+            return 'float';
           case 'I2cAddress7Bit':
           case 'I2cAddress8Bit':
             return 'int';
@@ -158,6 +170,7 @@ Blockly.Blocks['colorSensor_getProperty'] = {
         ['Alpha', 'Alpha'],
         ['Argb', 'Argb'],
         ['Blue', 'Blue'],
+        ['Gain', 'Gain'],
         ['Green', 'Green'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
@@ -175,6 +188,8 @@ Blockly.Blocks['colorSensor_getProperty'] = {
         ['Alpha', 'Returns the alpha component of the color detected by the color sensor.'],
         ['Argb', 'Returns the color detected by the sensor, as an ARGB value.'],
         ['Blue', 'Returns the blue component of the color detected by the color sensor.'],
+        ['Gain', 'Returns the gain of the color sensor. ' +
+            'Not all color sensors support this feature.'],
         ['Green', 'Returns the green component of the color detected by the color sensor.'],
         ['I2cAddress7Bit', 'Returns the 7 bit I2C address of the color sensor. ' +
             'Not all color sensors support this feature.'],
@@ -213,6 +228,10 @@ Blockly.FtcJava['colorSensor_getProperty'] = function(block) {
     case 'Red':
       code = identifier + '.' + Blockly.FtcJava.makeFirstLetterLowerCase_(property) + '()';
       break;
+    case 'Gain':
+      Blockly.FtcJava.generateImport_('NormalizedColorSensor');
+      code = '((NormalizedColorSensor) ' + identifier + ').get' + property + '()';
+      break;
     case 'I2cAddress7Bit':
       code = identifier + '.getI2cAddress().get7Bit()';
       break;
@@ -231,6 +250,7 @@ Blockly.Blocks['colorSensor_getProperty_Number'] = {
         ['Alpha', 'Alpha'],
         ['Argb', 'Argb'],
         ['Blue', 'Blue'],
+        ['Gain', 'Gain'],
         ['Green', 'Green'],
         ['I2cAddress7Bit', 'I2cAddress7Bit'],
         ['I2cAddress8Bit', 'I2cAddress8Bit'],
@@ -248,6 +268,8 @@ Blockly.Blocks['colorSensor_getProperty_Number'] = {
         ['Alpha', 'Returns the alpha component of the color detected by the color sensor.'],
         ['Argb', 'Returns the color detected by the sensor, as an ARGB value.'],
         ['Blue', 'Returns the blue component of the color detected by the color sensor.'],
+        ['Gain', 'Returns the gain of the color sensor. ' +
+            'Not all color sensors support this feature.'],
         ['Green', 'Returns the green component of the color detected by the color sensor.'],
         ['I2cAddress7Bit', 'Returns the 7 bit I2C address of the color sensor. ' +
             'Not all color sensors support this feature.'],
@@ -275,6 +297,8 @@ Blockly.Blocks['colorSensor_getProperty_Number'] = {
         case 'I2cAddress8Bit':
         case 'Red':
           return 'int';
+        case 'Gain':
+          return 'float';
         default:
           throw 'Unexpected property ' + property + ' (colorSensor_getProperty_Number getOutputType).';
       }

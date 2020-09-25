@@ -508,7 +508,7 @@ public class ProjectsUtil {
    * HardwareItemMap}.
    */
   private static String replaceHardwareIdentifiers(String blkContent, HardwareItemMap hardwareItemMap) {
-    // The following handles the identifier that are hardcoded in the sample blocks op modes.
+    // The following handles the identifiers that are hardcoded in the sample blocks op modes.
     if (hardwareItemMap.contains(HardwareType.DC_MOTOR)) {
       List<HardwareItem> items = hardwareItemMap.getHardwareItems(HardwareType.DC_MOTOR);
       if (!items.isEmpty()) {
@@ -647,7 +647,15 @@ public class ProjectsUtil {
           jsTempBackup = new File(BLOCK_OPMODES_DIR, "backup_" + timestamp + "_" + projectName + BLOCKS_JS_EXT);
           FileUtil.copyFile(jsFile, jsTempBackup);
         }
-        FileUtil.writeFile(blkFile, blkFileContent);
+        // Break the blocks content into multiple lines so it is easier to read/diff.
+        String formattedBlkFileContent = blkFileContent
+            .replace("><", ">\n<")
+            .replace(">\n</field>", "></field>")
+            .replace("</Extra> ", "</Extra>");
+        if (!formattedBlkFileContent.endsWith("\n")) {
+          formattedBlkFileContent += "\n";
+        }
+        FileUtil.writeFile(blkFile, formattedBlkFileContent);
         FileUtil.writeFile(jsFile, jsFileContent);
         // Once we've written the new content to the files, we can delete the temporary copies of
         // the old files.

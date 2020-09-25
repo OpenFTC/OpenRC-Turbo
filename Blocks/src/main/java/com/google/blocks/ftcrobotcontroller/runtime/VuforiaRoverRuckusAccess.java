@@ -26,7 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
  */
 final class VuforiaRoverRuckusAccess extends VuforiaBaseAccess<VuforiaRoverRuckus> {
   VuforiaRoverRuckusAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "VuforiaRoverRuckus");
   }
 
   protected VuforiaRoverRuckus createVuforia() {
