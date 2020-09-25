@@ -572,9 +572,9 @@ function checkBlock(block, missingHardware) {
       warningBits |= WarningBits.RELIC_RECOVERY;
       warningText = addWarning(warningText,
           'This block is optimized for Relic Recovery (2017-2018) and will not work correctly ' +
-          'for SKYSTONE (2019-2020).\n\n' +
-          'Please replace this block with the corresponding one from the Optimized for SKYSTONE ' +
-          'toolbox category.');
+          'for other FTC games.\n\n' +
+          'Please replace this block with the corresponding one from the ' +
+          'Optimized for ' + currentGameName + ' toolbox category.');
     } else if (block.type == 'vuforiaRoverRuckus_initialize_withCameraDirection' ||
         block.type == 'vuforiaRoverRuckus_initialize_withWebcam' ||
         block.type == 'vuforiaRoverRuckus_activate' ||
@@ -591,9 +591,9 @@ function checkBlock(block, missingHardware) {
       warningBits |= WarningBits.ROVER_RUCKUS;
       warningText = addWarning(warningText,
           'This block is optimized for Rover Ruckus (2018-2019) and will not work correctly ' +
-          'for SKYSTONE (2019-2020).\n\n' +
-          'Please replace this block with the corresponding one from the Optimized for SKYSTONE ' +
-          'toolbox category.');
+          'for other FTC games.\n\n' +
+          'Please replace this block with the corresponding one from the ' +
+          'Optimized for ' + currentGameName + ' toolbox category.');
     } else if (block.type == 'misc_callJava_return' ||
         block.type == 'misc_callJava_noReturn') {
       if (!methodLookupStrings.includes(block.methodLookupString_)) {

@@ -179,6 +179,16 @@ public class HiTechnicNxtColorSensor extends I2cDeviceSynchDevice<I2cDeviceSynch
   }
 
   @Override
+  public float getGain() {
+    return 1;
+  }
+
+  @Override
+  public void setGain(float newGain) {
+
+  }
+
+  @Override
   public synchronized void enableLed(boolean enable) {
     writeCommand(enable ? Command.ACTIVE_LED : Command.PASSIVE_LED);
     this.isLightOn = enable;

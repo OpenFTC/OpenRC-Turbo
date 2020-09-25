@@ -51,6 +51,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.UserConfigur
 import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
+import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.util.TypeConversion;
 
@@ -111,11 +112,11 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     /**
      * One of two primary register windows we use for reading from the BNO055.
-     * 
-     * Given the maximum allowable size of a register window, the set of registers on 
+     *
+     * Given the maximum allowable size of a register window, the set of registers on
      * a BNO055 can be usefully divided into two windows, which we here call lowerWindow
-     * and upperWindow. 
-     * 
+     * and upperWindow.
+     *
      * When we find the need to change register windows depending on what data is being requested
      * from the sensor, we try to use these two windows so as to reduce the number of register
      * window switching that might be required as other data is read in the future.
@@ -129,7 +130,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
      * @see #lowerWindow
      */
     protected static final I2cDeviceSynch.ReadWindow upperWindow = newWindow(Register.EUL_H_LSB, Register.TEMP);
-    
+
     protected static I2cDeviceSynch.ReadWindow newWindow(Register regFirst, Register regMax)
         {
         return new I2cDeviceSynch.ReadWindow(regFirst.bVal, regMax.bVal-regFirst.bVal, readMode);
@@ -235,18 +236,13 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
         SystemStatus expectedStatus = parameters.mode.isFusionMode() ? SystemStatus.RUNNING_FUSION : SystemStatus.RUNNING_NO_FUSION;
 
-        for (int attempt=0; !isStopRequested() && attempt < 5; attempt++)
-            {
-            if (internalInitializeOnce(expectedStatus))
-                {
-                this.isInitialized = true;
-                return true;
-                }
 
-            // Hack: try again with more delay next time
-            delayScale = Math.min(3, delayScale * 1.2f);
-            log_w("retrying IMU initialization");
+        if (internalInitializeOnce(expectedStatus))
+            {
+            this.isInitialized = true;
+            return true;
             }
+
 
         log_e("IMU initialization failed");
         this.parameters = prevParameters;
@@ -268,10 +264,6 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             this.accelerationAlgorithm = parameters.accelerationIntegrationAlgorithm;
             }
 
-        // Lore: "send a throw-away command [...] just to make sure the BNO is in a good state
-        // and ready to accept commands (this seems to be necessary after a hard power down)."
-        write8(Register.PAGE_ID, 0);
-
         // Make sure we have the right device
         byte chipId = read8(Register.CHIP_ID);
         if (chipId != bCHIP_ID_VALUE)
@@ -284,17 +276,19 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
                 return false;
                 }
             }
-        
+
         // Get us into config mode, for sure
         setSensorMode(SensorMode.CONFIG);
-        
-        // Reset the system, and wait for the chip id register to switch back from its reset state 
-        // to the it's chip id state. This can take a very long time, some 650ms (Table 0-2, p13) 
+
+        // Reset the system, and wait for the chip id register to switch back from its reset state
+        // to the it's chip id state. This can take a very long time, some 650ms (Table 0-2, p13)
         // perhaps. While in the reset state the chip id (and other registers) reads as 0xFF.
         TimestampedI2cData.suppressNewHealthWarnings(true);
         try {
             elapsed.reset();
-            write8(Register.SYS_TRIGGER, 0x20);
+            write8(Register.SYS_TRIGGER, 0x20, I2cWaitControl.WRITTEN);
+            delay(400);
+            RobotLog.vv("IMU", "Now polling until IMU comes out of reset. It is normal to see I2C failures below");
             while (!isStopRequested())
                 {
                 chipId = read8(Register.CHIP_ID);
@@ -314,8 +308,10 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             TimestampedI2cData.suppressNewHealthWarnings(false);
             }
 
+        RobotLog.vv("IMU", "IMU has come out of reset. No more I2C failures should occur.");
+
         // Set to normal power mode
-        write8(Register.PWR_MODE, POWER_MODE.NORMAL.getValue());
+        write8(Register.PWR_MODE, POWER_MODE.NORMAL.getValue(), I2cWaitControl.WRITTEN);
         delayLoreExtra(10);
 
         // Make sure we're looking at register page zero, as the other registers
@@ -330,11 +326,6 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
                       (parameters.accelUnit.bVal /*<< 0*/);    // accelerometer units
         write8(Register.UNIT_SEL, unitsel);
 
-        // Use or don't use the external crystal
-        // See Section 5.5 (p100) of the BNO055 specification.
-        write8(Register.SYS_TRIGGER, parameters.useExternalCrystal ? 0x80 : 0x00);
-        delayLoreExtra(50);
-
         // Switch to page 1 so we can write some more registers
         write8(Register.PAGE_ID, 1);
 
@@ -347,37 +338,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // Switch back
         write8(Register.PAGE_ID, 0);
 
-        // Run a self test. This appears to be a necessary step in order for the
-        // sensor to be able to actually be used. That is, we've observed that absent this,
-        // the sensors do not return correct data. We wish that were documented somewhere.
-        write8(Register.SYS_TRIGGER, read8(Register.SYS_TRIGGER) | 0x01);           // SYS_TRIGGER=0x3F
-
-        // Start a timer: we only give the self-test a certain length of time to run
-        elapsed.reset();
-
-        // It's a little unclear how to conclude when the self test is complete. getSystemStatus()
-        // can report SystemStatus.SELF_TEST, and one might be lead to think that that will remain
-        // true while the self test is running, but that appears not actually to be the case, as
-        // sometimes we see SystemStatus.SELF_TEST being reported even after two full seconds. So,
-        // we fall back on to what we've always done, and just check the results of the tested
-        // sensors we actually care about.
-
-        // Per Section 3.9.2 Built In Self Test, when we manually kick off a self test,
-        // the accelerometer, gyro, and magnetometer are tested, but the microcontroller is not.
-        // So: we only look for successful results from those three.
-        final int successfulResult = 0x07;
-        final int successfulResultMask = 0x07;
-        boolean selfTestSuccessful = false;
-        while (!selfTestSuccessful && elapsed.milliseconds() < msAwaitSelfTest && !isStopRequested())
-            {
-            selfTestSuccessful = (read8(Register.SELFTEST_RESULT)&successfulResultMask) == successfulResult;    // SELFTEST_RESULT=0x36
-            }
-        if (!selfTestSuccessful)
-            {
-            int result = read8(Register.SELFTEST_RESULT);
-            log_e("self test failed: 0x%02x", result);
-            return false;
-            }
+        write8(Register.SYS_TRIGGER, 0x00);
 
         if (this.parameters.calibrationData != null)
             {
@@ -400,19 +361,8 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // Finally, enter the requested operating mode (see section 3.3).
         setSensorMode(parameters.mode);
 
-        // At this point, the chip should in fact report correctly that it's in the mode requested.
-        // See Section '4.3.58 SYS_STATUS' of the BNO055 specification. That said, we've seen issues
-        // where the first mode request somehow doesn't take, so we re-issue. We don't understand the
-        // circumstances that cause this condition (or we'd avoid them!).
+        // Make sure the status is correct before exiting
         SystemStatus status = getSystemStatus();
-        if (status != expectedStatus)
-            {
-            log_w("re-issuing IMU mode: system status=%s expected=%s", status, expectedStatus);
-            delayLore(100);
-            setSensorMode(parameters.mode);
-            status = getSystemStatus();
-            }
-
         if (status==expectedStatus)
             return true;
         else
@@ -421,17 +371,17 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             return false;
             }
         }
-    
+
     protected void setSensorMode(SensorMode mode)
-    /* The default operation mode after power-on is CONFIGMODE. When the user changes to another 
-    operation mode, the sensors which are required in that particular sensor mode are powered, 
+    /* The default operation mode after power-on is CONFIGMODE. When the user changes to another
+    operation mode, the sensors which are required in that particular sensor mode are powered,
     while the sensors whose signals are not required are set to suspend mode. */
         {
         // Remember the mode, 'cause that's easy
         this.currentMode = mode;
-        
+
         // Actually change the operation/sensor mode
-        this.write8(Register.OPR_MODE, mode.bVal & 0x0F);                           // OPR_MODE=0x3D
+        this.write8(Register.OPR_MODE, mode.bVal & 0x0F, I2cWaitControl.WRITTEN);                           // OPR_MODE=0x3D
 
         // Delay per Table 3-6 of BNO055 Data sheet (p21)
         if (mode == SensorMode.CONFIG)
@@ -660,7 +610,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         //
         // The data returned from the IMU is in the units that we initialized the IMU to return.
         // However, the IMU has a different sense of angle normalization than we do, so we explicitly
-        // normalize such that users aren't surprised by (e.g.) Z angles which always appear as negative 
+        // normalize such that users aren't surprised by (e.g.) Z angles which always appear as negative
         // (in the range (-360, 0]).
         //
         VectorData vector = getVector(VECTOR.EULER, getAngularScale());
@@ -762,7 +712,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     //------------------------------------------------------------------------------------------
     // Position and velocity management
     //------------------------------------------------------------------------------------------
-    
+
     public Acceleration getAcceleration()
         {
         synchronized (dataLock)
@@ -809,7 +759,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             this.accelerationMananger.execute(new AccelerationManager(msPollInterval));
             }
         }
-    
+
     public void stopAccelerationIntegration() // needs a different lock than 'synchronized(this)'
         {
         synchronized (this.startStopLock)
@@ -829,12 +779,12 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         {
         protected final int msPollInterval;
         protected final static long nsPerMs = ElapsedTime.MILLIS_IN_NANO;
-        
+
         AccelerationManager(int msPollInterval)
             {
             this.msPollInterval = msPollInterval;
             }
-        
+
         @Override public void run()
             {
             // Don't let inappropriate exceptions sneak out
@@ -851,7 +801,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
                         {
                         accelerationAlgorithm.update(linearAcceleration);
                         }
-                    
+
                     // Wait an appropriate interval before beginning again
                     if (msPollInterval > 0)
                         {
@@ -894,11 +844,22 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     @Override public void write8(Register reg, int data)
         {
-        this.deviceClient.write8(reg.bVal, data);
+        write8(reg, data, I2cWaitControl.ATOMIC);
         }
+
+    public void write8(Register reg, int data, I2cWaitControl waitControl)
+        {
+        this.deviceClient.write8(reg.bVal, data, waitControl);
+        }
+
     @Override public void write(Register reg, byte[] data)
         {
-        this.deviceClient.write(reg.bVal, data);
+        write(reg, data, I2cWaitControl.ATOMIC);
+        }
+
+    public void write(Register reg, byte[] data, I2cWaitControl waitControl)
+        {
+        this.deviceClient.write(reg.bVal, data, waitControl);
         }
 
     protected void writeShort(final Register reg, short value)
@@ -916,7 +877,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     //------------------------------------------------------------------------------------------
     // Internal utility
     //------------------------------------------------------------------------------------------
-    
+
     protected String getLoggingTag()
         {
         return parameters.loggingTag;
@@ -990,8 +951,8 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     /**
      * delayLore() implements a delay that only known by lore and mythology to be necessary.
-     * 
-     * @see #delay(int) 
+     *
+     * @see #delay(int)
      */
     protected void delayLore(int ms)
         {
@@ -1000,8 +961,8 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     /**
      * delay() implements delays which are known to be necessary according to the BNO055 specification
-     * 
-     * @see #delayLore(int) 
+     *
+     * @see #delayLore(int)
      */
     protected void delay(int ms)
         {
@@ -1036,7 +997,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     protected <T> T enterConfigModeFor(Func<T> lambda)
         {
         T result;
-        
+
         SensorMode modePrev = this.currentMode;
         setSensorMode(SensorMode.CONFIG);
         delayLoreExtra(25);
@@ -1052,7 +1013,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         //
         return result;
         }
-    
+
     //------------------------------------------------------------------------------------------
     // Constants
     //------------------------------------------------------------------------------------------

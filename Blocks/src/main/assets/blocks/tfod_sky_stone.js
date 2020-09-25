@@ -21,8 +21,8 @@
  */
 
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
-// createSkyStoneTfodLabelDropdown
-// SKY_STONE_TFOD_LABEL_TOOLTIPS
+// createTfodSkyStoneLabelDropdown
+// TFOD_SKY_STONE_LABEL_TOOLTIPS
 // tfodSkyStoneIdentifierForJavaScript
 // vuforiaSkyStoneIdentifierForJavaScript
 // The following are defined in vars.js:
@@ -228,11 +228,11 @@ Blockly.Blocks['tfodSkyStone_typedEnum_label'] = {
     this.appendDummyInput()
         .appendField(createNonEditableField('Label'))
         .appendField('.')
-        .appendField(createSkyStoneTfodLabelDropdown(), 'LABEL');
+        .appendField(createTfodSkyStoneLabelDropdown(), 'LABEL');
     this.setColour(getPropertyColor);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
-    var TOOLTIPS = SKY_STONE_TFOD_LABEL_TOOLTIPS;
+    var TOOLTIPS = TFOD_SKY_STONE_LABEL_TOOLTIPS;
     this.setTooltip(function() {
       var key = thisBlock.getFieldValue('LABEL');
       for (var i = 0; i < TOOLTIPS.length; i++) {

@@ -171,4 +171,22 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
         ", \"Alpha\":" + color.alpha +
         ", \"Color\":" + color.toColor() + " }";
   }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
+      methodName = "setGain")
+  public void setGain(float gain) {
+    startBlockExecution(BlockType.SETTER, ".Gain");
+    colorRangeSensor.setGain(gain);
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
+      methodName = "getGain")
+  public float getGain() {
+    startBlockExecution(BlockType.GETTER, ".Gain");
+    return colorRangeSensor.getGain();
+  }
 }

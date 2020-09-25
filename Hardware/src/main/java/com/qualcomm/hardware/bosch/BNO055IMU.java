@@ -121,7 +121,7 @@ public interface BNO055IMU
         public AngleUnit        angleUnit           = AngleUnit.RADIANS;
         /** units in which accelerations are measured. See Section 3.6.1 (p31) of the BNO055 specification */
         public AccelUnit        accelUnit           = AccelUnit.METERS_PERSEC_PERSEC;
-        /** directional convention for measureing pitch angles. See Section 3.6.1 (p31) of the BNO055 specification */
+        /** directional convention for measuring pitch angles. See Section 3.6.1 (p31) of the BNO055 specification */
         public PitchMode        pitchMode           = PitchMode.ANDROID;    // Section 3.6.2
 
         /** accelerometer range. See Section 3.5.2 (p27) and Table 3-4 (p21) of the BNO055 specification */

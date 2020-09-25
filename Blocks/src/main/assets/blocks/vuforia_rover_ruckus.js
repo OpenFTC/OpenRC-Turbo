@@ -22,8 +22,8 @@
 
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
 // vuforiaRoverRuckusIdentifierForJavaScript
-// createRoverRuckusTrackableNameDropdown
-// ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS
+// createVuforiaRoverRuckusTrackableNameDropdown
+// VUFORIA_ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS
 // The following are defined in vars.js:
 // createNonEditableField
 // functionColor
@@ -265,11 +265,11 @@ Blockly.Blocks['vuforiaRoverRuckus_typedEnum_trackableName'] = {
     this.appendDummyInput()
         .appendField(createNonEditableField('TrackableName'))
         .appendField('.')
-        .appendField(createRoverRuckusTrackableNameDropdown(), 'TRACKABLE_NAME');
+        .appendField(createVuforiaRoverRuckusTrackableNameDropdown(), 'TRACKABLE_NAME');
     this.setColour(getPropertyColor);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
-    var TOOLTIPS = ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS;
+    var TOOLTIPS = VUFORIA_ROVER_RUCKUS_TRACKABLE_NAME_TOOLTIPS;
     this.setTooltip(function() {
       var key = thisBlock.getFieldValue('TRACKABLE_NAME');
       for (var i = 0; i < TOOLTIPS.length; i++) {

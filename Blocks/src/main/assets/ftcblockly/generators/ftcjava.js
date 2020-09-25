@@ -1122,6 +1122,13 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
       rvalue = 'new ' + javaType + '()';
       needsToBeClosed = true;
       break;
+    case 'TfodCurrentGame':
+      // tfodCurrentGameIdentifierForFtcJava is defined dynamically in
+      // HardwareUtil.fetchJavaScriptForHardware().
+      identifierForFtcJava = identifier = tfodCurrentGameIdentifierForFtcJava;
+      rvalue = 'new ' + javaType + '()';
+      needsToBeClosed = true;
+      break;
     case 'TfodCustomModel':
       // tfodCustomModelIdentifierForFtcJava is defined dynamically in
       // HardwareUtil.fetchJavaScriptForHardware().
@@ -1140,6 +1147,13 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
       // tfodSkyStoneIdentifierForFtcJava is defined dynamically in
       // HardwareUtil.fetchJavaScriptForHardware().
       identifierForFtcJava = identifier = tfodSkyStoneIdentifierForFtcJava;
+      rvalue = 'new ' + javaType + '()';
+      needsToBeClosed = true;
+      break;
+    case 'VuforiaCurrentGame':
+      // vuforiaCurrentGameIdentifierForFtcJava is defined dynamically in
+      // HardwareUtil.fetchJavaScriptForHardware().
+      identifierForFtcJava = identifier = vuforiaCurrentGameIdentifierForFtcJava;
       rvalue = 'new ' + javaType + '()';
       needsToBeClosed = true;
       break;

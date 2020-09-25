@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 73
-        versionName "11.15"
+        versionCode 76
+        versionName "14.0"
 
         buildConfigField "int", "RS_TARGET_API", "28"
     }

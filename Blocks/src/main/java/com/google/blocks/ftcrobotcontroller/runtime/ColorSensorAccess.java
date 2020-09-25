@@ -198,4 +198,27 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
         ", \"Alpha\":0" +
         ", \"Color\":0 }";
   }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {AdafruitI2cColorSensor.class, HiTechnicNxtColorSensor.class, ModernRoboticsI2cColorSensor.class},
+      methodName = "setGain")
+  public void setGain(float gain) {
+    startBlockExecution(BlockType.SETTER, ".Gain");
+    if (colorSensor instanceof NormalizedColorSensor) {
+      ((NormalizedColorSensor) colorSensor).setGain(gain);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {AdafruitI2cColorSensor.class, HiTechnicNxtColorSensor.class, ModernRoboticsI2cColorSensor.class},
+      methodName = "getGain")
+  public float getGain() {
+    startBlockExecution(BlockType.GETTER, ".Gain");
+    if (colorSensor instanceof NormalizedColorSensor) {
+      return ((NormalizedColorSensor) colorSensor).getGain();
+    }
+    return 0;
+  }
 }

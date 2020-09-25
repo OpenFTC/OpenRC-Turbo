@@ -27,7 +27,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRelicRecovery;
  */
 final class VuforiaRelicRecoveryAccess extends VuforiaBaseAccess<VuforiaRelicRecovery> {
   VuforiaRelicRecoveryAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "VuforiaRelicRecovery");
   }
 
   protected VuforiaRelicRecovery createVuforia() {

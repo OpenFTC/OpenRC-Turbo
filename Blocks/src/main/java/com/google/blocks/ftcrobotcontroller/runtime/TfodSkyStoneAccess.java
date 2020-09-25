@@ -26,7 +26,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
  */
 final class TfodSkyStoneAccess extends TfodBaseAccess<TfodSkyStone> {
   TfodSkyStoneAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "TensorFlowObjectDetectionSKYSTONE");
   }
 
   protected TfodSkyStone createTfod() {

@@ -26,7 +26,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
  */
 final class TfodRoverRuckusAccess extends TfodBaseAccess<TfodRoverRuckus> {
   TfodRoverRuckusAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "TensorFlowObjectDetectionRoverRuckus");
   }
 
   protected TfodRoverRuckus createTfod() {

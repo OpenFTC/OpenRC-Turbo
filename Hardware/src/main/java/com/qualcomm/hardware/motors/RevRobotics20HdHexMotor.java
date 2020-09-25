@@ -43,8 +43,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 @MotorType(ticksPerRev=560, gearing=20, maxRPM=300, orientation=Rotation.CCW)
 @DeviceProperties(xmlTag="RevRobotics20HDHexMotor", name="@string/rev_20_hd_hex_name", builtIn = true)
 @DistributorInfo(distributor="@string/rev_distributor", model="REV-41-1301", url="http://www.revrobotics.com/rev-41-1301")
-@ExpansionHubPIDFVelocityParams(P=1.17, I=0.117, F=11.7)
-@ExpansionHubPIDFPositionParams(P=5.0)
 public interface RevRobotics20HdHexMotor
     {
     }

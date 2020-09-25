@@ -279,6 +279,7 @@ function knownTypeToClassName(type) {
     case 'Velocity':
     case 'VuforiaBase':
     case 'VuforiaBase.TrackingResults':
+    case 'VuforiaCurrentGame':
     case 'VuforiaLocalizer':
     case 'VuforiaLocalizer.CameraDirection':
     case 'VuforiaLocalizer.Parameters':
@@ -294,6 +295,7 @@ function knownTypeToClassName(type) {
       return 'org.firstinspires.ftc.robotcore.internal.system.' + type;
     case 'Recognition':
     case 'TfodBase':
+    case 'TfodCurrentGame':
     case 'TfodRoverRuckus':
     case 'TfodSkyStone':
       return 'org.firstinspires.ftc.robotcore.external.tfod.' + type;
