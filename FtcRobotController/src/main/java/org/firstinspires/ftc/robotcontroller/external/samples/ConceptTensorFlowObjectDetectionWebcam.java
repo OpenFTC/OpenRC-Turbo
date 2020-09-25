@@ -52,7 +52,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 @TeleOp(name = "Concept: TensorFlow Object Detection Webcam", group = "Concept")
 @Disabled
 public class ConceptTensorFlowObjectDetectionWebcam extends LinearOpMode {
-    private static final String TFOD_MODEL_ASSET = "/sdcard/FIRST/UltimateGoal.tflite"; //For OpenRC, loaded from internal storage to reduce APK size
+    private static final String TFOD_MODEL_ASSET = "/sdcard/FIRST/vision/UltimateGoal.tflite"; //For OpenRC, loaded from internal storage to reduce APK size
     private static final String LABEL_FIRST_ELEMENT = "Quad";
     private static final String LABEL_SECOND_ELEMENT = "Single";
 
