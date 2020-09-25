@@ -32,7 +32,7 @@ final class TfodCustomModelAccess extends TfodBaseAccess<TfodCustomModel> {
   private String[] labels;
 
   TfodCustomModelAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "TensorFlowObjectDetectionCustomModel");
   }
 
   @SuppressWarnings("unused")

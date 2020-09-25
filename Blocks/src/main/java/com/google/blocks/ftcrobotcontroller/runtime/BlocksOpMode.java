@@ -445,6 +445,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new TelemetryAccess(this, Identifier.TELEMETRY.identifierForJavaScript, telemetry));
     javascriptInterfaces.put(Identifier.TEMPERATURE.identifierForJavaScript,
         new TemperatureAccess(this, Identifier.TEMPERATURE.identifierForJavaScript));
+    javascriptInterfaces.put(Identifier.TFOD_CURRENT_GAME.identifierForJavaScript,
+        new TfodCurrentGameAccess(this, Identifier.TFOD_CURRENT_GAME.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_CUSTOM_MODEL.identifierForJavaScript,
         new TfodCustomModelAccess(this, Identifier.TFOD_CUSTOM_MODEL.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_ROVER_RUCKUS.identifierForJavaScript,
@@ -455,6 +457,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new VectorFAccess(this, Identifier.VECTOR_F.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.VELOCITY.identifierForJavaScript,
         new VelocityAccess(this, Identifier.VELOCITY.identifierForJavaScript));
+    javascriptInterfaces.put(Identifier.VUFORIA_CURRENT_GAME.identifierForJavaScript,
+        new VuforiaCurrentGameAccess(this, Identifier.VUFORIA_CURRENT_GAME.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.VUFORIA_RELIC_RECOVERY.identifierForJavaScript,
         new VuforiaRelicRecoveryAccess(this, Identifier.VUFORIA_RELIC_RECOVERY.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.VUFORIA_ROVER_RUCKUS.identifierForJavaScript,

@@ -44,4 +44,6 @@ public interface NormalizedColorSensor extends HardwareDevice
      * @return the current set of colors from the sensor
      */
     NormalizedRGBA getNormalizedColors();
+    float getGain();
+    void setGain(float newGain);
     }

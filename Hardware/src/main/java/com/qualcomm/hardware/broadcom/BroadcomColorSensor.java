@@ -36,7 +36,6 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * {@link BroadcomColorSensor} is an extension of ColorSensor that provides additional functionality
@@ -91,6 +90,12 @@ public interface BroadcomColorSensor extends ColorSensor, NormalizedColorSensor
 
         /** periodic measurement rate for the proximity sensor */
         public PSMeasurementRate proximityMeasRate = PSMeasurementRate.R100ms;
+
+        /** number of bits used for light sensing */
+        public static LSResolution lightSensorResolution = LSResolution.R16BIT;
+
+        /** periodic measurement rate for the light sensor */
+        public LSMeasurementRate lightSensorMeasRate = LSMeasurementRate.R100ms;
 
         /** when using proximity, controls the nominal proximity LED drive current */
         public LEDCurrent ledCurrent = LEDCurrent.CURRENT_125mA;
@@ -340,6 +345,42 @@ public interface BroadcomColorSensor extends ColorSensor, NormalizedColorSensor
 
         public final byte bVal;
         PSMeasurementRate(int i) { this.bVal = (byte) i; }
+    }
+
+    enum LSResolution
+    {
+        R20BIT(0x00),
+        R19BIT(0x01),
+        R18BIT(0x02), /* default value */
+        R17BIT(0x03),
+        R16BIT(0x04),
+        R13BIT(0x05),
+        RES_1(0x06),
+        RES_2(0x07);
+
+        public byte bitOr(LSResolution him) { return (byte)(this.bVal | him.bVal); }
+        public byte bitOr(byte him)   { return (byte)(this.bVal | him); }
+
+        public final byte bVal;
+        LSResolution(int i) { this.bVal = (byte) i; }
+    }
+
+    enum LSMeasurementRate
+    {
+        R25ms(0x00),
+        R50ms(0x01),
+        R100ms(0x02), /* default value */
+        R200ms(0x03),
+        R500ms(0x04),
+        R1000ms(0x05),
+        R2000ms_1(0x06),
+        R2000ms_2(0x07);
+
+        public byte bitOr(PSMeasurementRate him) { return (byte)(this.bVal | him.bVal); }
+        public byte bitOr(byte him)   { return (byte)(this.bVal | him); }
+
+        public final byte bVal;
+        LSMeasurementRate(int i) { this.bVal = (byte) i; }
     }
 
     // The 7-bit I2C address of device

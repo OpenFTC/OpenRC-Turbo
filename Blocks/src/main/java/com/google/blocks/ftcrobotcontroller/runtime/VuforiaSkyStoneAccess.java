@@ -26,7 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
  */
 final class VuforiaSkyStoneAccess extends VuforiaBaseAccess<VuforiaSkyStone> {
   VuforiaSkyStoneAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, hardwareMap);
+    super(blocksOpMode, identifier, hardwareMap, "VuforiaSKYSTONE");
   }
 
   protected VuforiaSkyStone createVuforia() {

@@ -21,6 +21,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodBase;
 
@@ -33,8 +34,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   private final HardwareMap hardwareMap;
   private T tfodBase;
 
-  TfodBaseAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
-    super(blocksOpMode, identifier, "Tfod");
+  TfodBaseAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap, String blockFirstName) {
+    super(blocksOpMode, identifier, blockFirstName);
     this.hardwareMap = hardwareMap;
   }
 
@@ -66,10 +67,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   public void initialize(VuforiaBaseAccess vuforiaBaseAccess, float minimumConfidence,
       boolean useObjectTracker, boolean enableCameraMonitoring) {
     startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
-    if (checkAndSetTfodBase() && vuforiaBase != null) {
+    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+    if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
       try {
-        tfodBase.initialize(vuforiaBase, minimumConfidence, useObjectTracker, enableCameraMonitoring);
+        tfodBase.initialize(vuforiaLocalizer, minimumConfidence, useObjectTracker, enableCameraMonitoring);
       } catch (IllegalStateException e) {
         reportWarning(e.getMessage());
       }
@@ -80,6 +81,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void activate() {
     startBlockExecution(BlockType.FUNCTION, ".activate");
+    if (tfodBase == null) {
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+      return;
+    }
     try {
       tfodBase.activate();
     } catch (IllegalStateException e) {
@@ -91,6 +96,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void deactivate() {
     startBlockExecution(BlockType.FUNCTION, ".deactivate");
+    if (tfodBase == null) {
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+      return;
+    }
     try {
       tfodBase.deactivate();
     } catch (IllegalStateException e) {
@@ -102,6 +111,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void setClippingMargins(int left, int top, int right, int bottom) {
     startBlockExecution(BlockType.FUNCTION, ".setClippingMargins");
+    if (tfodBase == null) {
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+      return;
+    }
     try {
       tfodBase.setClippingMargins(left, top, right, bottom);
     } catch (IllegalStateException e) {
@@ -113,6 +126,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void setZoom(double magnification, double aspectRatio) {
     startBlockExecution(BlockType.FUNCTION, ".setZoom");
+    if (tfodBase == null) {
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+      return;
+    }
     try {
       tfodBase.setZoom(magnification, aspectRatio);
     } catch (IllegalStateException e) {
@@ -124,6 +141,10 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public String getRecognitions() {
     startBlockExecution(BlockType.FUNCTION, ".getRecognitions");
+    if (tfodBase == null) {
+      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+      return "[]";
+    }
     try {
       return toJson(tfodBase.getRecognitions());
     } catch (IllegalStateException e) {

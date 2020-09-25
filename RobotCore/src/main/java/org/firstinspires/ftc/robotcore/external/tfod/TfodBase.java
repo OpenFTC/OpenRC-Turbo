@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.List;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -46,6 +47,10 @@ public abstract class TfodBase {
   protected TfodBase() {
   }
 
+  public void setModelFromAsset(String assetName, List<String> labels) {
+    setModelFromAsset(assetName, labels.toArray(new String[labels.size()]));
+  }
+
   public void setModelFromAsset(String assetName, String[] labels) {
     if (tfod != null) {
       throw new IllegalStateException("You may not call setModelFromAsset after Tfod.initialize!");
@@ -53,6 +58,10 @@ public abstract class TfodBase {
     this.assetName = assetName;
     this.tfliteModelFilename = null;
     this.labels = labels;
+  }
+
+  public void setModelFromFile(String tfliteModelFilename, List<String> labels) {
+    setModelFromFile(tfliteModelFilename, labels.toArray(new String[labels.size()]));
   }
 
   public void setModelFromFile(String tfliteModelFilename, String[] labels) {
@@ -69,6 +78,15 @@ public abstract class TfodBase {
    */
   public void initialize(VuforiaBase vuforiaBase, float minimumConfidence, boolean useObjectTracker,
       boolean enableCameraMonitoring) {
+    initialize(vuforiaBase.getVuforiaLocalizer(), minimumConfidence, useObjectTracker,
+        enableCameraMonitoring);
+  }
+
+  /**
+   * Initializes TensorFlow Object Detection.
+   */
+  public void initialize(VuforiaLocalizer vuforiaLocalizer, float minimumConfidence, boolean useObjectTracker,
+      boolean enableCameraMonitoring) {
     if (assetName != null && tfliteModelFilename != null) {
       throw new IllegalStateException("assetName and tfliteModelFilename are both non-null!");
     }
@@ -82,7 +100,7 @@ public abstract class TfodBase {
       parameters.tfodMonitorViewIdParent = context.getResources().getIdentifier(
           "tfodMonitorViewId", "id", context.getPackageName());
     }
-    tfod = ClassFactory.getInstance().createTFObjectDetector(parameters, vuforiaBase.getVuforiaLocalizer());
+    tfod = ClassFactory.getInstance().createTFObjectDetector(parameters, vuforiaLocalizer);
 
     if (assetName != null) {
       tfod.loadModelFromAsset(assetName, labels);

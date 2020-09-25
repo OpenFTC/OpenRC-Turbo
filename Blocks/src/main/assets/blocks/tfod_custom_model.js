@@ -20,8 +20,8 @@
  */
 
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
+// vuforiaCurrentGameIdentifierForJavaScript
 // tfodCustomModelIdentifierForJavaScript
-// vuforiaSkyStoneIdentifierForJavaScript    TODO(lizlooney): Change SkyStone to the new game name.
 // The following are defined in vars.js:
 // createNonEditableField
 // functionColor
@@ -138,11 +138,11 @@ Blockly.Blocks['tfodCustomModel_initialize'] = {
 
 Blockly.JavaScript['tfodCustomModel_initialize'] = function(block) {
   return tfod_initialize_JavaScript(block, tfodCustomModelIdentifierForJavaScript,
-      vuforiaSkyStoneIdentifierForJavaScript); // TODO(lizlooney): Change SkyStone to the new game name.
+      vuforiaCurrentGameIdentifierForJavaScript);
 };
 
 Blockly.FtcJava['tfodCustomModel_initialize'] = function(block) {
-  return tfod_initialize_FtcJava(block, 'TfodCustomModel', 'VuforiaSkyStone'); // TODO(lizlooney): Change SkyStone to the new game name.
+  return tfod_initialize_FtcJava(block, 'TfodCustomModel', 'VuforiaCurrentGame');
 };
 
 Blockly.Blocks['tfodCustomModel_activate'] = {

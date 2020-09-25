@@ -327,8 +327,8 @@ public class Gamepad extends RobocolParsableBase {
 
   private final GamepadCallback callback;
 
-  public int vid = -1;
-  public int pid = -1;
+  public int vid = -1; // for internal use only
+  public int pid = -1; // for internal use only
 
   private static Set<Integer> gameControllerDeviceIdCache = new HashSet<Integer>();
 
@@ -404,6 +404,7 @@ public class Gamepad extends RobocolParsableBase {
     joystickDeadzone = deadzone;
   }
 
+  // For internal use only
   public void setVidPid(int vid, int pid)
   {
     this.vid = vid;

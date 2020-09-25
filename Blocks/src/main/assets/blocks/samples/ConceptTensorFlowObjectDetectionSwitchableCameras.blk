@@ -20,7 +20,7 @@
 <block type="comment" id="#ul#WaXLbg~hUii+7AB_">
 <field name="COMMENT">Initialize Vuforia using SwitchableCamera</field>
 <next>
-<block type="vuforiaSkyStone_initialize_withWebcam" id="6Xzo0d*2b_I.B:]B4+5q">
+<block type="vuforiaCurrentGame_initialize_withWebcam" id="6Xzo0d*2b_I.B:]B4+5q">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="Uztu;2eL:)g_#d6}G98K">
 <field name="WEBCAM_NAME">C270</field>
@@ -34,7 +34,7 @@
 </value>
 <value name="USE_EXTENDED_TRACKING">
 <shadow type="logic_boolean" id="_XSP5JKC^8OOw%V[(HR=">
-<field name="BOOL">TRUE</field>
+<field name="BOOL">FALSE</field>
 </shadow>
 </value>
 <value name="ENABLE_CAMERA_MONITORING">
@@ -86,7 +86,7 @@
 <block type="comment" id="{f-nucs}ixJh2%x:J{bE">
 <field name="COMMENT">Set min confidence threshold to 0.7</field>
 <next>
-<block type="tfodSkyStone_initialize" id="S?6y8$gBQja5ehCJI6Pi">
+<block type="tfodCurrentGame_initialize" id="S?6y8$gBQja5ehCJI6Pi">
 <value name="MINIMUM_CONFIDENCE">
 <shadow type="math_number" id="iXlEJA=*Aq^$z~;?.MCb">
 <field name="NUM">0.7</field>
@@ -106,8 +106,33 @@
 <block type="comment" id="6]yP0{L.V#v3^DJf|2r=">
 <field name="COMMENT">Initialize TFOD before waitForStart.</field>
 <next>
-<block type="tfodSkyStone_activate" id="/B7!WNQ].FmwKj=}jsb|">
+<block type="tfodCurrentGame_activate" id="/B7!WNQ].FmwKj=}jsb|">
 <comment pinned="false" h="99" w="252">Init TFOD here so the object detection labels are visible in the Camera Stream preview window on the Driver Station.</comment>
+<next>
+<block type="comment" id="+@TZM(mo3uc]tk0n|MtT">
+<field name="COMMENT">Enable following block to zoom in on target.</field>
+<next>
+<block type="tfodCurrentGame_setZoom" id="vSb=@hTz=nXMZN-T0R7r" disabled="true">
+<value name="MAGNIFICATION">
+<shadow type="math_number" id="qKv3X|N=wOGF@rg4S`u#">
+<field name="NUM">2.5</field>
+</shadow>
+</value>
+<value name="ASPECT_RATIO">
+<block type="math_arithmetic" id="j}U1dw[).[}4|K9)U/Cx">
+<field name="OP">DIVIDE</field>
+<value name="A">
+<shadow type="math_number" id="7S(+T{qMJvIBnLR+]{9p">
+<field name="NUM">16</field>
+</shadow>
+</value>
+<value name="B">
+<shadow type="math_number" id="4CK5^:Rvun%oSK`i^n*m">
+<field name="NUM">9</field>
+</shadow>
+</value>
+</block>
+</value>
 <next>
 <block type="telemetry_addTextData_All" id="/Zm[n8^)(`(S}Ab9j!;|">
 <value name="KEY">
@@ -155,7 +180,7 @@
 <field name="VAR" id="C-j=_t;@/fsV)+=e~^La">recognitions</field>
 <comment pinned="false" h="66" w="177">Get a list of recognitions from TFOD.</comment>
 <value name="VALUE">
-<block type="tfodSkyStone_getRecognitions" id="%d}Eg`]Tl,|WPcgQ%t)3"/>
+<block type="tfodCurrentGame_getRecognitions" id="%d}Eg`]Tl,|WPcgQ%t)3"/>
 </value>
 <next>
 <block type="controls_if" id="ca@sg0@jzk|H6L@P2e^L">
@@ -281,7 +306,11 @@
 <block type="comment" id="x3Da[L*)xMh=3e7zy7*{">
 <field name="COMMENT">Deactivate TFOD.</field>
 <next>
-<block type="tfodSkyStone_deactivate" id=")#LnjM-c3n?~scY$Z!@Y"/>
+<block type="tfodCurrentGame_deactivate" id=")#LnjM-c3n?~scY$Z!@Y"/>
+</next>
+</block>
+</next>
+</block>
 </next>
 </block>
 </next>
@@ -344,7 +373,7 @@
 </block>
 </value>
 <next>
-<block type="vuforiaSkyStone_setActiveCamera" id=":~I{@Y0vdF|PW5l,z$CF">
+<block type="vuforiaCurrentGame_setActiveCamera" id=":~I{@Y0vdF|PW5l,z$CF">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="Sm!pl_P{n8}`ph+.1**3">
 <field name="WEBCAM_NAME">Webcam 1</field>
@@ -423,7 +452,7 @@
 </block>
 </value>
 <next>
-<block type="vuforiaSkyStone_setActiveCamera" id="4P%fmT=@C[@1p|e6h;jG">
+<block type="vuforiaCurrentGame_setActiveCamera" id="4P%fmT=@C[@1p|e6h;jG">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="]hfdKaK(-SCWl4bh,e6C">
 <field name="WEBCAM_NAME">Webcam 1</field>
@@ -461,7 +490,7 @@
 </block>
 </value>
 <next>
-<block type="vuforiaSkyStone_setActiveCamera" id="ps45Td39JaR:ttDqD+zf">
+<block type="vuforiaCurrentGame_setActiveCamera" id="ps45Td39JaR:ttDqD+zf">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="Ul9c.BZtCKB]mJz*ACSL">
 <field name="WEBCAM_NAME">Webcam 2</field>
@@ -763,4 +792,4 @@
 <Extra>
 <OpModeMeta flavor="TELEOP" group="" />
 <Enabled value="true" />
-</Extra> 
+</Extra>

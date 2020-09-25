@@ -21,7 +21,7 @@
 <block type="comment" id="TkA;N4Hsf2KmM0v=I6.R">
 <field name="COMMENT">The following block uses the device's back camera.</field>
 <next>
-<block type="vuforiaSkyStone_initialize_withCameraDirection" id="Wy1VYWYqC;ag4RonA9Q{">
+<block type="vuforiaCurrentGame_initialize_withCameraDirection" id="Wy1VYWYqC;ag4RonA9Q{">
 <value name="CAMERA_DIRECTION">
 <shadow type="navigation_typedEnum_cameraDirection" id="pXJI=x[Q,S!#tM!Tp)Dz">
 <field name="CAMERA_DIRECTION">BACK</field>
@@ -81,7 +81,7 @@
 <block type="comment" id="85/da`3R16Z~@4ac,}/8">
 <field name="COMMENT">The following block uses a webcam.</field>
 <next>
-<block type="vuforiaSkyStone_initialize_withWebcam" id="]~OR:C{OyWXtCwfS%:fP" disabled="true">
+<block type="vuforiaCurrentGame_initialize_withWebcam" id="]~OR:C{OyWXtCwfS%:fP" disabled="true">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="32g~KH3`b0dG7fagWdd%">
 <field name="WEBCAM_NAME">Webcam 1</field>
@@ -212,6 +212,31 @@
 </value>
 <next>
 <block type="tfodCustomModel_activate" id="~9Y*gMfDaQ{gG4u/UR7V">
+<next>
+<block type="comment" id="4STF*QQxm)}IL3p2W3er">
+<field name="COMMENT">Enable following block to zoom in on target.</field>
+<next>
+<block type="tfodCurrentGame_setZoom" id=";ZJ]=-U*#}KtN^c{*n}K" disabled="true">
+<value name="MAGNIFICATION">
+<shadow type="math_number" id="U|o7?|l{@X,7N?tnx+E.">
+<field name="NUM">2.5</field>
+</shadow>
+</value>
+<value name="ASPECT_RATIO">
+<block type="math_arithmetic" id="mdf0^71{?/M@kO30(70C">
+<field name="OP">DIVIDE</field>
+<value name="A">
+<shadow type="math_number" id="6mS-L.w#!5)aD@_hoPN.">
+<field name="NUM">16</field>
+</shadow>
+</value>
+<value name="B">
+<shadow type="math_number" id="(.+dP;ZceagGlKdWAZEj">
+<field name="NUM">9</field>
+</shadow>
+</value>
+</block>
+</value>
 <next>
 <block type="telemetry_addTextData_All" id="/Zm[n8^)(`(S}Ab9j!;|">
 <value name="KEY">
@@ -418,9 +443,13 @@
 </block>
 </next>
 </block>
+</next>
+</block>
+</next>
+</block>
 </statement>
 </block>
-<block type="procedures_defnoreturn" id="yrA.?,jSqW-)W/]41!C6" x="0" y="2018">
+<block type="procedures_defnoreturn" id="yrA.?,jSqW-)W/]41!C6" x="32" y="2070">
 <mutation>
 <arg name="i" varid="ZHu7]h(iKQ-7Q9eq/q3X"/>
 </mutation>
@@ -571,4 +600,4 @@
 <Extra>
 <OpModeMeta flavor="TELEOP" group="" />
 <Enabled value="true" />
-</Extra> 
+</Extra>

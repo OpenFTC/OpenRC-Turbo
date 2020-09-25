@@ -44,6 +44,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.I2cWaitControl;
 import com.qualcomm.robotcore.hardware.Light;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.TypeConversion;
 
@@ -76,6 +77,8 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
     //----------------------------------------------------------------------------------------------
 
     public static final String TAG = "AMSColorSensorImpl";
+
+    private float softwareGain = 1;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -137,7 +140,7 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
             // able to successfully set these values AFTER we enable, so we need to
             // do so before.
             setIntegrationTime(parameters.atime);
-            setGain(parameters.gain);
+            setHardwareGain(parameters.gain);
             setPDrive(parameters.ledDrive);
 
             if (is3782() && parameters.useProximityIfAvailable)
@@ -300,7 +303,7 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
         return this.parameters.deviceId==AMS_TMD37821_ID || this.parameters.deviceId==AMS_TMD37823_ID;
         }
 
-    protected void setGain(Gain gain)
+    protected void setHardwareGain(Gain gain)
         {
         RobotLog.vv(TAG, "setGain(%s)", gain);
         updateControl(Gain.MASK.bVal, gain.bVal);
@@ -332,6 +335,17 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
     //----------------------------------------------------------------------------------------------
     // Interfaces
     //----------------------------------------------------------------------------------------------
+    @Override
+    public float getGain()
+        {
+        return this.softwareGain;
+        }
+
+    @Override
+    public void setGain(float newGain)
+        {
+        this.softwareGain = newGain;
+        }
 
     /** In this implementation, the {@link Color} methods return 16 bit unsigned values. */
 
@@ -406,10 +420,10 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
         float colorNormalizationFactor = 1.0f / parameters.getMaximumReading();
 
         NormalizedRGBA result = new NormalizedRGBA();
-        result.alpha = alpha * colorNormalizationFactor;
-        result.red   = red   * colorNormalizationFactor;
-        result.green = green * colorNormalizationFactor;
-        result.blue  = blue  * colorNormalizationFactor;
+        result.alpha = Range.clip(alpha * this.softwareGain * colorNormalizationFactor, 0f, 1f);
+        result.red   = Range.clip(red   * this.softwareGain * colorNormalizationFactor, 0f, 1f);
+        result.green = Range.clip(green * this.softwareGain * colorNormalizationFactor, 0f, 1f);
+        result.blue  = Range.clip(blue  * this.softwareGain * colorNormalizationFactor, 0f, 1f);
         return result;
         }
 
@@ -453,6 +467,13 @@ public abstract class AMSColorSensorImpl extends I2cDeviceSynchDeviceWithParamet
     public Manufacturer getManufacturer()
         {
         return Manufacturer.AMS;
+        }
+
+    @Override
+    public void resetDeviceConfigurationForOpMode()
+        {
+        super.resetDeviceConfigurationForOpMode();
+        this.softwareGain = 1;
         }
 
     //----------------------------------------------------------------------------------------------

@@ -49,7 +49,7 @@ import static org.firstinspires.ftc.robotserver.internal.webserver.controlhubupd
  * ResultType values unique to OTA update transactions
  */
 public enum OtaResultType implements ResultType {
-    VERIFICATION_SUCCEEDED   (1, STATUS,  LOGGED,    AppUtil.getDefContext().getString(R.string.ota_result_type_verification_succeeded)),
+    VERIFICATION_SUCCEEDED   (1, STATUS,  LOGGED,    AppUtil.getDefContext().getString(R.string.ota_result_type_verification_succeeded)), // The message will be overridden for responses to the localhost
     INVALID_FILE_LOCATION    (2, ERROR,   LOGGED,    AppUtil.getDefContext().getString(R.string.ota_result_type_invalid_file_location)),
     INVALID_UPDATE_FILE      (3, ERROR,   LOGGED,    AppUtil.getDefContext().getString(R.string.ota_result_type_invalid_update_file)),
     ERROR_READING_FILE       (4, ERROR,   LOGGED,    AppUtil.getDefContext().getString(R.string.ota_result_type_error_reading_file)),
