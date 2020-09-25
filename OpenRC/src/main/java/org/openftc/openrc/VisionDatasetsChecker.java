@@ -100,18 +100,17 @@ public class VisionDatasetsChecker
                 "/sdcard/FIRST/RelicVuMark.xml",
 
                 /*
-                 * Rover Ruckus
+                 * Generic
                  */
-                "/sdcard/FIRST/RoverRuckus.dat",
-                "/sdcard/FIRST/RoverRuckus.xml",
-                "/sdcard/FIRST/RoverRuckus.tflite",
+                "/sdcard/FIRST/StoneAndChips.dat",
+                "/sdcard/FIRST/StoneAndChips.xml",
 
                 /*
-                 * SkyStone
+                 * Ultimate goal
                  */
-                "/sdcard/FIRST/Skystone.xml",
-                "/sdcard/FIRST/Skystone.dat",
-                "/sdcard/FIRST/Skystone.tflite"};
+                "/sdcard/FIRST/UltimateGoal.xml",
+                "/sdcard/FIRST/UltimateGoal.dat",
+                "/sdcard/FIRST/UltimateGoal.tflite"};
 
         for(String s : files)
         {
