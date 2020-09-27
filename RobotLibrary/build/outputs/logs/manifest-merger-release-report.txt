@@ -1,0 +1,27 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:8:1-12:12
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:8:1-12:12
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:8:1-12:12
+	package
+		ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:9:5-38
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:10:5-63
+application
+ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:11:5-19
+uses-sdk
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+		ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+		ADDED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
