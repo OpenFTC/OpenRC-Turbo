@@ -2,7 +2,6 @@ package com.technototes.library.logging.entry;
 
 import com.technototes.library.logging.Dimension;
 
-import java.awt.*;
 import java.util.function.Supplier;
 
 public class NumberEntry extends Entry<Number>{

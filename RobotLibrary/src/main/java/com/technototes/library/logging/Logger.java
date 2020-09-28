@@ -3,9 +3,7 @@ package com.technototes.library.logging;
 import com.technototes.library.logging.entry.*;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.awt.*;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
