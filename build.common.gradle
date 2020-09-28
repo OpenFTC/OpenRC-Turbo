@@ -21,6 +21,7 @@ apply plugin: 'com.android.application'
 
 android {
 
+
     compileSdkVersion 28
 
     signingConfigs {
@@ -38,9 +39,10 @@ android {
 
     defaultConfig {
         applicationId 'com.qualcomm.ftcrobotcontroller'
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 28
-        multiDexEnabled false
+        multiDexEnabled true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         /**
          * We keep the versionCode and versionName of robot controller applications in sync with
@@ -92,8 +94,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     sourceSets.main {
@@ -102,11 +104,15 @@ android {
     }
 }
 
-apply from: '../moduleFlavors.gradle'
+
 
 repositories {
+    mavenLocal()
+    maven { url = "https://dl.bintray.com/first-tech-challenge/ftcsdk/" }
+
     flatDir {
         dirs rootProject.file('libs')
     }
 }
+
 //apply from: 'build.release.gradle'

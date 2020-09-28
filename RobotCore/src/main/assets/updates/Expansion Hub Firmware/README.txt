@@ -1,1 +1,0 @@
-Always update the com.qualcomm.robotcore.util.IncludedFirmwareFileInfo class when updating this file
