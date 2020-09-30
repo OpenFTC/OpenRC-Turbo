@@ -21,6 +21,7 @@ public abstract class CommandOpMode extends LinearOpMode {
     @Override
     public final void runOpMode() throws InterruptedException {
         HardwareDevice.hardwareMap = hardwareMap;
+        logger = new Logger(telemetry, hardwareMap);
         beginInit();
         while (!isStarted()) {
             beginLoop();
