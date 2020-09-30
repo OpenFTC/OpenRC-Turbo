@@ -37,7 +37,6 @@ public class Robot extends RobotBase implements Loggable{
     public SimpleServoSubsystem blockFlipperSubsystem;
 
     public Robot(HardwareMap map, Telemetry tel) {
-        super(map, tel);
 
         hardware = new Hardware(map);
 

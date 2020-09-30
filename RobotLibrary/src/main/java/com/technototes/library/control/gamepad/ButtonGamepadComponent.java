@@ -2,6 +2,7 @@ package com.technototes.library.control.gamepad;
 
 import com.technototes.library.command.Command;
 import com.technototes.library.command.CommandScheduler;
+import com.technototes.library.command.InstantCommand;
 import com.technototes.library.control.Trigger;
 
 import java.util.function.BooleanSupplier;
@@ -89,6 +90,42 @@ public class ButtonGamepadComponent extends Trigger implements BooleanSupplier {
     @Override
     public ButtonGamepadComponent toggleWhenDeactivated(Command c) {
         CommandScheduler.getRunInstance().schedule(() -> getInverseToggle(), c);
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent whenActivated(Runnable r) {
+        whenActivated(new InstantCommand(r));
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent whenDeactivated(Runnable r) {
+        whenDeactivated(new InstantCommand(r));
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent whileActivated(Runnable r) {
+        whileActivated(new InstantCommand(r));
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent whileDeactivated(Runnable r) {
+        whileDeactivated(new InstantCommand(r));
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent toggleWhenActivated(Runnable r) {
+        toggleWhenActivated(new InstantCommand(r));
+        return this;
+    }
+
+    @Override
+    public ButtonGamepadComponent toggleWhenDeactivated(Runnable r) {
+        toggleWhenDeactivated(new InstantCommand(r));
         return this;
     }
 

@@ -2,7 +2,9 @@ package com.technototes.library.structure;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.technototes.library.command.Command;
 import com.technototes.library.command.CommandScheduler;
+import com.technototes.library.command.InstantCommand;
 import com.technototes.library.hardware.HardwareDevice;
 import com.technototes.library.logging.Logger;
 
@@ -69,4 +71,19 @@ public abstract class CommandOpMode extends LinearOpMode {
     public enum OpModeState {
         INIT, RUN, FINISHED
     }
+
+    public CommandScheduler schedule(Command c){
+        switch (opModeState){
+            case INIT:
+                return CommandScheduler.getInitInstance().schedule(c);
+            case FINISHED:
+                return CommandScheduler.getEndInstance().schedule(c);
+            default:
+                return CommandScheduler.getRunInstance().schedule(c);
+        }
+    }
+    public CommandScheduler schedule(Runnable c){
+        return schedule(new InstantCommand(c));
+    }
+
 }

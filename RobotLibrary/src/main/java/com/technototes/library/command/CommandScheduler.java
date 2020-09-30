@@ -31,12 +31,16 @@ public class CommandScheduler implements Runnable {
         return c;
     }
 
-    public void schedule(Command c) {
+    public CommandScheduler schedule(Command c) {
         scheduledCommands.put(c, c.commandState);
+        return this;
+    }
+    public CommandScheduler schedule(Runnable c) {
+        return schedule(new InstantCommand(c));
     }
 
-    public void schedule(BooleanSupplier b, Command c) {
-        schedule(new ConditionalCommand(b, c));
+    public CommandScheduler schedule(BooleanSupplier b, Command c) {
+        return schedule(new ConditionalCommand(b, c));
     }
 
     //for finalizing all commands

@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
 
 public class Logger {
@@ -24,10 +25,14 @@ public class Logger {
     }
 
     public void update() {
-        entries.forEach((s) -> {
-            //System.out.println("e");
-            telemetry.addLine(s.toString());
-        });
+        if(entries == null){
+            entries = new ArrayList<>();
+        }else {
+            entries.forEach((s) -> {
+                //System.out.println("e");
+                telemetry.addLine(s.toString());
+            });
+        }
     }
 
     public void configure(Object root) {
@@ -38,11 +43,15 @@ public class Logger {
                     configure(o);
                 } else if (field.isAnnotationPresent(Log.class) || field.isAnnotationPresent(Log.Number.class) ||
                         field.isAnnotationPresent(Log.NumberSlider.class) || field.isAnnotationPresent(Log.NumberBar.class)) {
-                    for (Method m : o.getClass().getDeclaredMethods()) {
-                        if(m.isAnnotationPresent(Log.class)) {
-                            set(field.getDeclaredAnnotations(), m, o);
-                        }
+                    if(field.getClass().isPrimitive()){
+                        set(field.getDeclaredAnnotations(), field, root);
+                    }else {
+                        for (Method m : o.getClass().getDeclaredMethods()) {
+                            if (m.isAnnotationPresent(Log.class)) {
+                                set(field.getDeclaredAnnotations(), m, o);
+                            }
 
+                        }
                     }
                 }
             } catch (IllegalAccessException e) {
@@ -54,29 +63,50 @@ public class Logger {
         }
 
     }
-
-    public void set(Annotation[] a, Method m, Object root) {
+    public void set(Annotation[] a, Method m, Object root){
+        set(a, () -> {
+            try {
+                return m.invoke(root);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+    public void set(Annotation[] a, Field m, Object root){
+        set(a, () -> {
+            try {
+                return m.get(root);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+    public void set(Annotation[] a, Supplier<?> m) {
         Entry e = null;
         for(Annotation as : a){
             if(as instanceof Log.NumberSlider){
-                e = new NumberSliderEntry(((Log.NumberSlider) as).name(), () -> (Number)invoke(m, root),
+                e = new NumberSliderEntry(((Log.NumberSlider) as).name(), (Supplier<Number>)m,
                         ((Log.NumberSlider) as).x(), ((Log.NumberSlider) as).y(), ((Log.NumberSlider) as).min(),
                         ((Log.NumberSlider) as).max(), ((Log.NumberSlider) as).scale());
                 entries.add(e);
                 return;
             } else if(as instanceof Log.NumberBar){
-                e = new NumberBarEntry(((Log.NumberBar) as).name(), () -> (Number)invoke(m, root),
+                e = new NumberBarEntry(((Log.NumberBar) as).name(), (Supplier<Number>)m,
                         ((Log.NumberBar) as).x(), ((Log.NumberBar) as).y(), ((Log.NumberBar) as).min(),
                         ((Log.NumberBar) as).max(), ((Log.NumberBar) as).scale());
                 entries.add(e);
                 return;
             } else if (as instanceof Log.Number){
-                e = new NumberEntry(((Log.Number) as).name(), () -> (Number)invoke(m, root),
+                e = new NumberEntry(((Log.Number) as).name(), (Supplier<Number>)m,
                         ((Log.Number) as).x(), ((Log.Number) as).y());
                 entries.add(e);
                 return;
             } else if (as instanceof Log){
-                e = new StringEntry(((Log) as).name(), () -> (String) invoke(m, root),
+                e = new StringEntry(((Log) as).name(), (Supplier<String>)m,
                         ((Log) as).x(), ((Log) as).y());
                 entries.add(e);
                 return;
