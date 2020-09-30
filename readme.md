@@ -11,9 +11,12 @@ TechnoLib is a FTC Library for everyone:
  The goal of TechnoLib is not only to provide versatile resources that assist in software development and strengthen code structure, but to also abstract out redundancy.
  
 ## Installation
-But if this library is so good, it much be hard to install right? wrong:
- - Add this to the repositories{} block in TeamCode/build.gradle: maven { url 'https://jitpack.io' }
- - And add this to the dependencies block in TeamCode/build.gradle: implementation 'com.github.technototes:TechnoLib:0.0.5'
+But if this library is so good, it must be hard to install right? wrong:
+ - Add this to the repositories{} block in TeamCode/build.gradle: 
+   ```maven { url 'https://jitpack.io' }```
+ - And add this to the dependencies block in TeamCode/build.gradle: 
+   ```implementation 'com.github.technototes:TechnoLib:0.1.0'```    
+   **(replace 0.1.0 with the latest release if it isnt already)**
  - Build the code and you are good to go
  
 ## Ease of Use
