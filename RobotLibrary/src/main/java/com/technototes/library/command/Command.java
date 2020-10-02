@@ -12,7 +12,7 @@ import java.util.function.BooleanSupplier;
 public class Command implements Runnable {
     public ElapsedTime commandRuntime;
     public CommandState commandState;
-    protected Set<Subsystem> subsystems = new HashSet<>();
+    public Subsystem subsystem;
 
     public Command() {
         commandState = new CommandState();
@@ -20,8 +20,8 @@ public class Command implements Runnable {
         commandRuntime.reset();
     }
 
-    public final Command addRequirements(Subsystem... requirements) {
-        subsystems.addAll(Arrays.asList(requirements));
+    public final Command addRequirements(Subsystem requirements) {
+        subsystem = requirements;
         return this;
     }
 
