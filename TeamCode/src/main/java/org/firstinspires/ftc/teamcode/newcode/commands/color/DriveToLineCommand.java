@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.newcode.commands.color;
 
 import com.technototes.library.command.Command;
 import com.technototes.library.subsystem.drivebase.MecanumDrivebaseSubsystem;
-import com.technototes.library.subsystem.drivebase.OmnidirectionalDrivebaseSubsystem;
+
 import org.firstinspires.ftc.teamcode.newcode.subsystems.ColorSensorSubsystem;
 
 public class DriveToLineCommand extends Command {
@@ -24,7 +24,7 @@ public class DriveToLineCommand extends Command {
     }
 
     @Override
-    public void end() {
+    public void end(boolean cancel) {
         drivebaseSubsystem.stop();
     }
 }

@@ -20,7 +20,7 @@ public class TestOpMode extends TeleOpCommandOpMode implements Loggable {
     public void beginInit() {
         robot = new Robot(hardwareMap, telemetry);
         oi = new OI(driverGamepad, codriverGamepad, robot);
-        //logger = new Logger(telemetry, this);
+        //  logger = new Logger(telemetry, this);
         //CommandScheduler.getRunInstance().schedule(new DriveCommand(robot.drivebaseSubsystem, driverGamepad.leftStick.x, driverGamepad.leftStick.y, driverGamepad.rightStick.x));
 
     }

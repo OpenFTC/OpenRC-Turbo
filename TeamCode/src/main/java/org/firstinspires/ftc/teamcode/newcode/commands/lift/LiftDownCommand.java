@@ -25,7 +25,7 @@ public class LiftDownCommand extends Command {
     }
 
     @Override
-    public void end() {
+    public void end(boolean cancel) {
         subsystem.setHeightValue(targetHeight);
         subsystem.lastPlacedBrickHeight = targetHeight;
     }

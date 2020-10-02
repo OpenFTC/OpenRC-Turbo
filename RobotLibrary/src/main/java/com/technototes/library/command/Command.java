@@ -37,9 +37,10 @@ public class Command implements Runnable {
         return true;
     }
 
-    public void end() {
+    public void end(boolean cancel) {
 
     }
+
 
     public final Command andThen(Command c) {
         if (c instanceof SequentialCommandGroup) {
@@ -66,7 +67,7 @@ public class Command implements Runnable {
                 commandState.state = isFinished() ? State.EXECUTED : State.INITIALIZED;
                 return;
             case EXECUTED:
-                end();
+                end(false);
                 commandState.state = State.RESET;
                 commandRuntime.reset();
                 return;

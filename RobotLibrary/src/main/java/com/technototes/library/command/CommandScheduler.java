@@ -7,8 +7,8 @@ import java.util.function.BooleanSupplier;
 
 public class CommandScheduler implements Runnable {
     private static CommandScheduler initInstance, runInstance, endInstance;
-    private Map<Command, Command.CommandState> scheduledCommands = new LinkedHashMap<>();
-
+    //private Map<Command, Command.CommandState> scheduledCommands = new LinkedHashMap<>();
+    private Map<Command, BooleanSupplier> commands = new LinkedHashMap<>();
     public static synchronized CommandScheduler getInitInstance() {
         initInstance = getSelectedInstance(initInstance);
         return initInstance;
@@ -32,23 +32,22 @@ public class CommandScheduler implements Runnable {
     }
 
     public CommandScheduler schedule(Command c) {
-        scheduledCommands.put(c, c.commandState);
-        return this;
+        return schedule(() -> true, c);
     }
     public CommandScheduler schedule(Runnable c) {
         return schedule(new InstantCommand(c));
     }
 
     public CommandScheduler schedule(BooleanSupplier b, Command c) {
-        return schedule(new ConditionalCommand(b, c));
+        commands.put(c, b);
+        return this;
     }
 
     //for finalizing all commands
     public void runLastTime() {
-        scheduledCommands.forEach((command, state) -> {
-            command.run();
+        commands.forEach((command, supplier) -> {
             if (command.commandState.state != Command.State.RESET) {
-                command.end();
+                command.end(true);
                 command.commandState.state = Command.State.RESET;
             }
         });
@@ -56,8 +55,14 @@ public class CommandScheduler implements Runnable {
 
     @Override
     public void run() {
-        scheduledCommands.forEach((command, state) -> {
-            command.run();
+        commands.forEach((command, supplier) -> {
+            if(supplier.getAsBoolean()){
+                command.run();
+            }
         });
+    }
+
+    public boolean cancel(Command c){
+        return commands.remove(c).getAsBoolean();
     }
 }
