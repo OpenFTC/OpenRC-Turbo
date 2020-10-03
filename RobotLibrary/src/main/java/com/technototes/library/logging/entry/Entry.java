@@ -6,18 +6,14 @@ import java.util.function.Supplier;
 
 public abstract class Entry<T> implements Supplier<T> {
 
-    public Dimension dimension;
+    public int x;
     public Supplier<T> supplier;
     public String name;
 
-    public Entry(String n, Supplier<T> s, Dimension d){
-        dimension = d;
+    public Entry(String n, Supplier<T> s, int index){
+        x = index;
         supplier = s;
         name = n;
-    }
-
-    public Entry(String n, Supplier<T> s, int x, int y){
-        this(n, s, new Dimension(x,y));
     }
 
     @Override

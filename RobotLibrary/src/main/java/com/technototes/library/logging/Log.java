@@ -9,8 +9,7 @@ import static java.lang.annotation.ElementType.*;
 @Target(value={FIELD, LOCAL_VARIABLE, METHOD})
 public @interface Log {
 
-    int x() default -1;
-    int y() default -1;
+    int index() default -1;
 
     String name() default "Log";
 
@@ -23,8 +22,7 @@ public @interface Log {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(value={FIELD, LOCAL_VARIABLE, METHOD})
     @interface Number{
-        int x() default -1;
-        int y() default -1;
+        int index() default -1;
 
         String name() default "Number";
     }
@@ -32,8 +30,7 @@ public @interface Log {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(value={FIELD, LOCAL_VARIABLE, METHOD})
     @interface NumberBar{
-        int x() default -1;
-        int y() default -1;
+        int index() default -1;
 
         double min() default -1;
         double max() default 1;
@@ -45,8 +42,7 @@ public @interface Log {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(value={FIELD, LOCAL_VARIABLE, METHOD})
     @interface NumberSlider{
-        int x() default -1;
-        int y() default -1;
+        int index() default -1;
 
         double min() default -1;
         double max() default 1;
@@ -55,4 +51,14 @@ public @interface Log {
         String name() default "NumberSlider";
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(value={FIELD, LOCAL_VARIABLE, METHOD})
+    @interface Boolean{
+        int index() default -1;
+
+        String valueWhenTrue() default "true";
+        String valueWhenFalse() default "false";
+
+        String name() default "Boolean";
+    }
 }

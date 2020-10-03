@@ -5,11 +5,8 @@ import com.technototes.library.logging.Dimension;
 import java.util.function.Supplier;
 
 public class NumberEntry extends Entry<Number>{
-    public NumberEntry(String n, Supplier<Number> s, int x, int y) {
-        super(n, s, x, y);
-    }
-    public NumberEntry(String n, Supplier<Number> s, Dimension d) {
-        super(n, s, d);
+    public NumberEntry(String n, Supplier<Number> s, int x) {
+        super(n, s, x);
     }
 
     @Override

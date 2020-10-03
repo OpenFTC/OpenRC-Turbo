@@ -6,14 +6,8 @@ import java.util.function.Supplier;
 
 public class NumberSliderEntry extends NumberEntry{
     public Number min, max, scale;
-    public NumberSliderEntry(String n, Supplier<Number> s, Dimension d, Number mi, Number ma, Number sc) {
-        super(n, s, d);
-        min = mi;
-        max = ma;
-        scale = sc;
-    }
-    public NumberSliderEntry(String n, Supplier<Number> s, int x, int y, Number mi, Number ma, Number sc) {
-        super(n, s, x, y);
+    public NumberSliderEntry(String n, Supplier<Number> s, int x, Number mi, Number ma, Number sc) {
+        super(n, s, x);
         min = mi;
         max = ma;
         scale = sc;

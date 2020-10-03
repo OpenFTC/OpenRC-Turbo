@@ -8,30 +8,42 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 
 public class Logger {
 
-    public ArrayList<Entry> entries;
+    public Entry[] entries;
+    public ArrayList<Entry> unindexedEntries;
     public Telemetry telemetry;
     public Object root;
+    public int total = 0, max = 0;
 
     public Logger(Telemetry tel, Object r) {
         root = r;
         telemetry = tel;
-        entries = new ArrayList<>();
+        entries = new Entry[30];
+        unindexedEntries = new ArrayList<>();
         configure(r);
+
+        mergeEntries();
+
+    }
+
+    private void mergeEntries() {
+        for(int i = 0; unindexedEntries.size() > 0; i++){
+            if(entries[i] == null) {
+                entries[i] = unindexedEntries.remove(0);
+            }
+        }
+        entries = Arrays.copyOfRange(entries, 0, Math.max(total, max+1));
+
     }
 
     public void update() {
-        if(entries == null){
-            entries = new ArrayList<>();
-        }else {
-            entries.forEach((s) -> {
-                //System.out.println("e");
-                telemetry.addLine(s.toString());
-            });
+        for(int i = 0; i < entries.length; i++){
+            telemetry.addLine((i > 9 ? i+"| " : i+" | ")+ (entries[i] == null ? "none" : entries[i].toString()));
         }
     }
 
@@ -90,25 +102,30 @@ public class Logger {
         for(Annotation as : a){
             if(as instanceof Log.NumberSlider){
                 e = new NumberSliderEntry(((Log.NumberSlider) as).name(), (Supplier<Number>)m,
-                        ((Log.NumberSlider) as).x(), ((Log.NumberSlider) as).y(), ((Log.NumberSlider) as).min(),
+                        ((Log.NumberSlider) as).index(), ((Log.NumberSlider) as).min(),
                         ((Log.NumberSlider) as).max(), ((Log.NumberSlider) as).scale());
-                entries.add(e);
+                processEntry(e);
                 return;
             } else if(as instanceof Log.NumberBar){
                 e = new NumberBarEntry(((Log.NumberBar) as).name(), (Supplier<Number>)m,
-                        ((Log.NumberBar) as).x(), ((Log.NumberBar) as).y(), ((Log.NumberBar) as).min(),
+                        ((Log.NumberBar) as).index(), ((Log.NumberBar) as).min(),
                         ((Log.NumberBar) as).max(), ((Log.NumberBar) as).scale());
-                entries.add(e);
+                processEntry(e);
                 return;
             } else if (as instanceof Log.Number){
                 e = new NumberEntry(((Log.Number) as).name(), (Supplier<Number>)m,
-                        ((Log.Number) as).x(), ((Log.Number) as).y());
-                entries.add(e);
+                        ((Log.Number) as).index());
+                processEntry(e);
                 return;
             } else if (as instanceof Log){
                 e = new StringEntry(((Log) as).name(), (Supplier<String>)m,
-                        ((Log) as).x(), ((Log) as).y());
-                entries.add(e);
+                        ((Log) as).index());
+                processEntry(e);
+                return;
+            } else if (as instanceof Log.Boolean){
+                e = new BooleanEntry(((Log.Boolean) as).name(), (Supplier<Boolean>) m, ((Log.Boolean) as).index(),
+                        ((Log.Boolean) as).valueWhenTrue(), ((Log.Boolean) as).valueWhenFalse());
+                processEntry(e);
                 return;
             }
         }
@@ -123,6 +140,20 @@ public class Logger {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private void processEntry(Entry e){
+        if(e.x != -1) {
+            if(entries[e.x] != null){
+                unindexedEntries.add(e);
+            }   else{
+                entries[e.x] = e;
+            }
+        }else{
+            unindexedEntries.add(e);
+        }
+        total++;
+        max = Math.max(max, e.x);
     }
 
 }

@@ -5,11 +5,9 @@ import com.technototes.library.logging.Dimension;
 import java.util.function.Supplier;
 
 public class NumberBarEntry extends NumberSliderEntry {
-    public NumberBarEntry(String n, Supplier<Number> s, Dimension d, Number mi, Number ma, Number sc) {
-        super(n, s, d, mi, ma, sc);
-    }
-    public NumberBarEntry(String n, Supplier<Number> s, int x, int y, Number mi, Number ma, Number sc) {
-        super(n, s, x, y, mi, ma, sc);
+
+    public NumberBarEntry(String n, Supplier<Number> s, int x, Number mi, Number ma, Number sc) {
+        super(n, s, x, mi, ma, sc);
     }
 
     @Override

@@ -26,4 +26,8 @@ public class MathUtils {
         return num < min ? min : (num > max ? max : num);
 
     }
+    public static double constrain(double min, double num, double max){
+        return num < min ? min : (num > max ? max : num);
+
+    }
 }

@@ -11,11 +11,11 @@ import com.technototes.library.hardware.Sensored;
 import com.technototes.library.hardware.sensor.encoder.Encoder;
 import com.technototes.library.hardware.sensor.encoder.MotorEncoderSensor;
 import com.technototes.library.logging.Log;
+import com.technototes.library.util.MathUtils;
 import com.technototes.library.util.PIDUtils;
 
 public class EncodedMotor<T extends DcMotor> extends Motor<T> implements Sensored, PID {
 
-    public PIDFController controller;
     public PIDCoefficients coefficients;
     public double threshold = 50;
     private Encoder encoder;
@@ -23,14 +23,12 @@ public class EncodedMotor<T extends DcMotor> extends Motor<T> implements Sensore
     public EncodedMotor(T d) {
         super(d);
         coefficients = new PIDCoefficients(0, 0, 0);
-        PIDFController controller = new PIDFController(coefficients, 0);
         encoder = new MotorEncoderSensor(d);
     }
 
     public EncodedMotor(HardwareDevice<T> m) {
         super(m.getDevice());
         coefficients = new PIDCoefficients(0, 0, 0);
-        controller = new PIDFController(coefficients);
         encoder = new MotorEncoderSensor(device);
     }
 
@@ -39,6 +37,11 @@ public class EncodedMotor<T extends DcMotor> extends Motor<T> implements Sensore
         coefficients = new PIDCoefficients(0, 0, 0);
         //controller = new PIDFController(coefficients);
         encoder = new MotorEncoderSensor(device);
+    }
+
+    public EncodedMotor setPID(double p, double i, double d){
+        coefficients = new PIDCoefficients(p, i, d);
+        return this;
     }
 
     @Override
@@ -59,12 +62,13 @@ public class EncodedMotor<T extends DcMotor> extends Motor<T> implements Sensore
 
     @Override
     public boolean setPositionPID(double val) {
-        System.out.println("1");
-        controller.setTargetPosition(val);
-        System.out.println("2");
-        setSpeed(controller.update(encoder.getSensorValue()));
-        System.out.println("3");
-        return isAtPosition(val);
+        if (!isAtPosition(val)) {
+            setSpeed(MathUtils.constrain(-0.1,(val-getSensorValue())/(coefficients.kP*10000), 0.1)*10);
+        } else {
+            setSpeed(0);
+            return true;
+        }
+        return false;
     }
 
     public boolean setPosition(double ticks) {
