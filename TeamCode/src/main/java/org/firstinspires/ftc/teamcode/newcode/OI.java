@@ -23,7 +23,6 @@ public class OI extends OIBase {
         setCodriverControls();
     }
 
-    @Override
     public void setDriverControls() {
         driverGamepad.dpad.down.toggleWhenActivated(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed((DrivebaseSubsystem.Speed.TURBO))))
                 .toggleWhenDeactivated(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DrivebaseSubsystem.Speed.NORMAL)));
@@ -36,7 +35,6 @@ public class OI extends OIBase {
                 .whenDeactivated(new InstantCommand(() -> robot.capstonePusherSubsystem.setSpeed(0)));
     }
 
-    @Override
     public void setCodriverControls() {
         driverGamepad.rtrigger.whenActivated(new InstantCommand(() -> robot.clawSubsystem.setPosition(1)));
         driverGamepad.ltrigger.whenActivated(new InstantCommand(() -> robot.clawSubsystem.setPosition(0)));

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.newcode.opmodes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.technototes.library.logging.Log;
 import com.technototes.library.logging.Loggable;
@@ -8,7 +9,7 @@ import com.technototes.library.structure.TeleOpCommandOpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.newcode.OI;
 import org.firstinspires.ftc.teamcode.newcode.Robot;
-
+@Disabled
 @TeleOp(name = "test yay poggers")
 public class TestOpMode extends TeleOpCommandOpMode implements Loggable {
 

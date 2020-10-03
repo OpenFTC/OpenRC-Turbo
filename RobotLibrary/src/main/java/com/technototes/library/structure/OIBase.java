@@ -9,8 +9,4 @@ public abstract class OIBase {
         driverGamepad = g1;
         codriverGamepad = g2;
     }
-
-    public abstract void setDriverControls();
-
-    public abstract void setCodriverControls();
 }

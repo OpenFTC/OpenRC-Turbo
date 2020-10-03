@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.simple;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.technototes.library.command.CommandScheduler;
@@ -8,7 +9,7 @@ import com.technototes.library.hardware.servo.Servo;
 import com.technototes.library.structure.TeleOpCommandOpMode;
 import com.technototes.library.subsystem.simple.SimpleServoSubsystem;
 import com.technototes.library.subsystem.simple.SimpleTankDrivebaseSubsystem;
-
+@Disabled
 @TeleOp(name = "Simple Teleop")
 public class SimpleOpMode extends TeleOpCommandOpMode{
     public SimpleTankDrivebaseSubsystem drivebaseSubsystem;

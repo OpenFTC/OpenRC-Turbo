@@ -31,7 +31,7 @@ public class ConditionalCommand extends Command {
                 commandState.state = currentChoice.isFinished() ? State.EXECUTED : State.INITIALIZED;
                 return;
             case EXECUTED:
-                currentChoice.end();
+                currentChoice.end(false);
                 commandState.state = State.RESET;
                 return;
         }
