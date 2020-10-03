@@ -18,7 +18,7 @@ public class Logger {
     public ArrayList<Entry> unindexedEntries;
     public Telemetry telemetry;
     public Object root;
-    public int total = 0, max = 0;
+    public int total = 0, max = -1;
 
     public Logger(Telemetry tel, Object r) {
         root = r;
@@ -37,7 +37,7 @@ public class Logger {
                 entries[i] = unindexedEntries.remove(0);
             }
         }
-        entries = Arrays.copyOfRange(entries, 0, Math.max(total, max+1));
+        entries = Arrays.copyOfRange(entries, 0, Math.max(total, max));
 
     }
 

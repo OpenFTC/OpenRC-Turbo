@@ -136,7 +136,7 @@ public class ButtonGamepadComponent extends Trigger implements BooleanSupplier {
 
     public boolean getToggle(){
         boolean r = false;
-        if(uponPressTogglePress()   ){
+        if(uponPressTogglePress()){
             r = togglePress;
             togglePress = !togglePress;
         }
