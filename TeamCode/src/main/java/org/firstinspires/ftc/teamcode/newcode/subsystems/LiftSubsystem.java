@@ -10,10 +10,12 @@ public class LiftSubsystem extends EncodedMotorSubsystem {
 
     public LiftSubsystem(EncodedMotor... motors) {
         super(motors);
+        setLiftPositions(0, 500, 1000, 1500, 2000, 2500, 3000);
     }
 
     public LiftSubsystem(int startingHeight, EncodedMotor... motors) {
         super(motors);
+        setLiftPositions(0, 500, 1000, 1500, 2000, 2500, 3000);
         liftHeightIndex = startingHeight;
     }
 

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.strafer;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.technototes.library.logging.Loggable;
+import com.technototes.logger.Loggable;
 import com.technototes.library.structure.RobotBase;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;

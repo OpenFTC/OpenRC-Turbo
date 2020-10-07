@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.technototes.library.hardware.Followable;
 import com.technototes.library.hardware.HardwareDevice;
 import com.technototes.library.hardware.Invertable;
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 import com.technototes.library.util.UnsupportedFeatureException;
 
 public class Motor<T extends DcMotorSimple> extends HardwareDevice<T> implements Invertable<Motor>, Followable<Motor> {

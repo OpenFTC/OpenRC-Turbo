@@ -1,22 +1,25 @@
 package com.technototes.library.hardware.sensor;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.technototes.library.logging.Log;
+import com.technototes.library.hardware.HardwareDevice;
+import com.technototes.logger.Log;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class IMU {
-    public BNO055IMU device;
     public BNO055IMU.Parameters parameters;
+    public BNO055IMU device;
     public IMU(BNO055IMU d) {
+        device = d;
         parameters = new BNO055IMU.Parameters();
         degrees();
         device.initialize(parameters);
 
     }
     public IMU(String d) {
+        device = HardwareDevice.hardwareMap.get(BNO055IMU.class, d);
         parameters = new BNO055IMU.Parameters();
         degrees();
         device.initialize(parameters);

@@ -3,8 +3,7 @@ package com.technototes.library.hardware.sensor.encoder;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.technototes.library.hardware.sensor.Sensor;
-import com.technototes.library.logging.Log;
-
+import com.technototes.logger.Log;
 import java.util.function.IntSupplier;
 
 public class MotorEncoderSensor extends Sensor<DcMotor> implements Encoder {

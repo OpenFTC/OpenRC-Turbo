@@ -6,7 +6,7 @@ import com.technototes.library.command.Command;
 import com.technototes.library.command.CommandScheduler;
 import com.technototes.library.command.InstantCommand;
 import com.technototes.library.hardware.HardwareDevice;
-import com.technototes.library.logging.Logger;
+import com.technototes.logger.Logger;
 
 public abstract class CommandOpMode extends LinearOpMode {
     public static double commandTimeAtEnd = 5;
@@ -21,8 +21,8 @@ public abstract class CommandOpMode extends LinearOpMode {
     @Override
     public final void runOpMode() throws InterruptedException {
         HardwareDevice.hardwareMap = hardwareMap;
-        logger = new Logger(telemetry, this);
         beginInit();
+        logger = new Logger(telemetry, this);
         while (!isStarted()) {
             beginLoop();
             CommandScheduler.getInitInstance().run();

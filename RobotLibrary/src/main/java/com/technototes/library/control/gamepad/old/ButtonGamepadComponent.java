@@ -1,13 +1,12 @@
-package com.technototes.library.control.gamepad;
+package com.technototes.library.control.gamepad.old;
 
 import com.technototes.library.command.Command;
 import com.technototes.library.command.CommandScheduler;
 import com.technototes.library.command.InstantCommand;
-import com.technototes.library.control.Trigger;
 
 import java.util.function.BooleanSupplier;
-
-public class ButtonGamepadComponent extends Trigger implements BooleanSupplier {
+@Deprecated
+public class ButtonGamepadComponent extends OldTrigger implements BooleanSupplier {
     protected BooleanSupplier booleanSupplier;
     protected boolean pastStatePress = false, pastStateRelease = false, pastStatetogglePress = false, pastStateToggleRelease = false, togglePress = true, toggleRelease = false;
 

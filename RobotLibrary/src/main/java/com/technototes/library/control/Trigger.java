@@ -1,31 +1,23 @@
 package com.technototes.library.control;
 
+import com.technototes.control.gamepad.GamepadButton;
 import com.technototes.library.command.Command;
 
-public abstract class Trigger {
-    public abstract Trigger whenActivated(Command c);
+public interface Trigger<T> {
+    T whenActivated(Command c);
 
-    public abstract Trigger whenDeactivated(Command c);
+    T whenDeactivated(Command c);
 
-    public abstract Trigger whileActivated(Command c);
+    T whileActivated(Command c);
 
-    public abstract Trigger whileDeactivated(Command c);
+    T whileDeactivated(Command c);
 
-    public abstract Trigger toggleWhenActivated(Command c);
+    T whenToggled(Command c);
 
-    public abstract Trigger toggleWhenDeactivated(Command c);
+    T whenInverseToggled(Command c);
 
-    public abstract Trigger whenActivated(Runnable r);
+    T whileToggled(Command c);
 
-    public abstract Trigger whenDeactivated(Runnable r);
-
-    public abstract Trigger whileActivated(Runnable r);
-
-    public abstract Trigger whileDeactivated(Runnable r);
-
-    public abstract Trigger toggleWhenActivated(Runnable r);
-
-    public abstract Trigger toggleWhenDeactivated(Runnable r);
-
+    T whileInverseToggled(Command c);
 
 }

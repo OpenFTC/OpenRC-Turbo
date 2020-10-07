@@ -1,6 +1,6 @@
 package com.technototes.library.hardware.sensor;
 
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class RangeSensor extends Sensor<com.qualcomm.robotcore.hardware.DistanceSensor> {

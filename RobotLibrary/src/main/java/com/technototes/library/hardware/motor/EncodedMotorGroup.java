@@ -2,7 +2,7 @@ package com.technototes.library.hardware.motor;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.technototes.library.hardware.HardwareDeviceGroup;
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 
 
 public class EncodedMotorGroup extends EncodedMotor<DcMotor> implements HardwareDeviceGroup<Motor> {

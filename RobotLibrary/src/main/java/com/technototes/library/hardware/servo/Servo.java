@@ -1,8 +1,8 @@
 package com.technototes.library.hardware.servo;
 
 import com.technototes.library.hardware.*;
-import com.technototes.library.logging.Log;
 import com.technototes.library.util.PIDUtils;
+import com.technototes.logger.Log;
 
 public class Servo extends HardwareDevice<com.qualcomm.robotcore.hardware.Servo> implements Sensored, Invertable<Servo>, Followable<Servo>, PID {
 

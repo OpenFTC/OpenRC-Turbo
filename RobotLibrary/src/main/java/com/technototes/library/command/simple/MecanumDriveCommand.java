@@ -1,10 +1,9 @@
 package com.technototes.library.command.simple;
 
 import com.technototes.library.command.Command;
-import com.technototes.library.control.gamepad.CommandGamepad;
+import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.hardware.sensor.IMU;
 import com.technototes.library.subsystem.drivebase.MecanumDrivebaseSubsystem;
-import com.technototes.library.subsystem.drivebase.TankDrivebaseSubsystem;
 
 import java.util.function.DoubleSupplier;
 
@@ -19,7 +18,7 @@ public class MecanumDriveCommand extends Command {
         yv = y;
         tv = t;
     }
-    public MecanumDriveCommand(MecanumDrivebaseSubsystem s, CommandGamepad.Stick s1, CommandGamepad.Stick s2){
+    public MecanumDriveCommand(MecanumDrivebaseSubsystem s, OldCommandGamepad.Stick s1, OldCommandGamepad.Stick s2){
         new MecanumDriveCommand(s, s1.x, s1.y, s2.x);
     }
     public MecanumDriveCommand setFieldCentric(DoubleSupplier d){

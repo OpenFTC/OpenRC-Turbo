@@ -1,7 +1,7 @@
 package com.technototes.library.command.simple;
 
 import com.technototes.library.command.Command;
-import com.technototes.library.control.gamepad.CommandGamepad;
+import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.subsystem.drivebase.TankDrivebaseSubsystem;
 
 import java.util.function.DoubleSupplier;
@@ -15,7 +15,7 @@ public class TankDriveCommand extends Command {
         xv = x;
         yv = y;
     }
-    public TankDriveCommand(TankDrivebaseSubsystem s, CommandGamepad.Stick st){
+    public TankDriveCommand(TankDrivebaseSubsystem s, OldCommandGamepad.Stick st){
         new TankDriveCommand(s, st.x, st.y);
     }
     @Override

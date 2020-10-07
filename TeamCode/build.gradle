@@ -35,8 +35,13 @@ android {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 dependencies {
+    implementation 'com.github.technototes:TechnoLog:0.1.0'
+    implementation 'com.github.technototes:TechnoControl:0.1.0'
+
+
     implementation project(':RobotLibrary')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation('org.ejml:ejml-simple:0.39') {

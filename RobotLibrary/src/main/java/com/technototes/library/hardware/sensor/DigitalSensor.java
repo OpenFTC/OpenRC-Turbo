@@ -1,7 +1,7 @@
 package com.technototes.library.hardware.sensor;
 
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 
 public class DigitalSensor extends Sensor<DigitalChannel> {
     public DigitalSensor(DigitalChannel d) {

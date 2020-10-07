@@ -18,8 +18,12 @@ public class MathUtils {
         return max;
     }
 
-    public static double pythag(double a, double b) {
-        return Math.sqrt(a * a + b * b);
+    public static double pythag(double... vals) {
+        double total = 0;
+        for(double d : vals){
+            total+=d*d;
+        }
+        return Math.sqrt(total);
     }
 
     public static int constrain(int min, int num, int max){

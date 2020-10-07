@@ -1,6 +1,7 @@
 package com.technototes.library.subsystem.drivebase;
 
-import com.technototes.library.control.gamepad.CommandGamepad;
+import com.technototes.control.gamepad.GamepadStick;
+import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.hardware.motor.Motor;
 
 public abstract class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> {
@@ -21,7 +22,7 @@ public abstract class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseS
     }
 
 
-    public void arcadeDrive(CommandGamepad.Stick s) {
+    public void arcadeDrive(GamepadStick s) {
         arcadeDrive(s.getXAxis(), s.getYAxis());
     }
 

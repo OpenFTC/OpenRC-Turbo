@@ -1,7 +1,7 @@
 package com.technototes.library.hardware.servo;
 
 import com.technototes.library.hardware.HardwareDeviceGroup;
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 
 public class ServoGroup extends Servo implements HardwareDeviceGroup<Servo> {
     private Servo[] followers;

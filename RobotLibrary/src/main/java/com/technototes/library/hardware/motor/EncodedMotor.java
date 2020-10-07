@@ -10,7 +10,7 @@ import com.technototes.library.hardware.PID;
 import com.technototes.library.hardware.Sensored;
 import com.technototes.library.hardware.sensor.encoder.Encoder;
 import com.technototes.library.hardware.sensor.encoder.MotorEncoderSensor;
-import com.technototes.library.logging.Log;
+import com.technototes.logger.Log;
 import com.technototes.library.util.MathUtils;
 import com.technototes.library.util.PIDUtils;
 

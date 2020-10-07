@@ -1,7 +1,7 @@
-package com.technototes.library.control.gamepad;
+package com.technototes.library.control.gamepad.old;
 
 import java.util.function.BooleanSupplier;
-
+@Deprecated
 public class ButtonBinding extends ButtonGamepadComponent {
     public BooleanSupplier[] bindings;
 

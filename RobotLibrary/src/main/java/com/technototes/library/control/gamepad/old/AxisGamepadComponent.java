@@ -1,7 +1,7 @@
-package com.technototes.library.control.gamepad;
+package com.technototes.library.control.gamepad.old;
 
 import java.util.function.DoubleSupplier;
-
+@Deprecated
 public class AxisGamepadComponent extends ButtonGamepadComponent implements DoubleSupplier {
     private DoubleSupplier doubleSupplier;
 

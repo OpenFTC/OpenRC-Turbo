@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.newcode;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.technototes.library.logging.Log;
-import com.technototes.library.logging.Loggable;
+import com.technototes.logger.Log;
+import com.technototes.logger.Loggable;
 import com.technototes.library.structure.RobotBase;
 import com.technototes.library.subsystem.simple.SimpleMecanumDrivebaseSubsystem;
 import com.technototes.library.subsystem.simple.SimpleMotorSubsystem;
@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.newcode.subsystems.ClawRotateSubsystem;
 import org.firstinspires.ftc.teamcode.newcode.subsystems.LiftSubsystem;
 
-public class Robot extends RobotBase implements Loggable{
+public class Robot extends RobotBase implements Loggable {
 
 
     public Hardware hardware;
@@ -43,7 +43,7 @@ public class Robot extends RobotBase implements Loggable{
         drivebaseSubsystem = new SimpleMecanumDrivebaseSubsystem(
                 hardware.flMotor, hardware.frMotor, hardware.rlMotor, hardware.rrMotor);
 
-        liftSubsystem = new LiftSubsystem(hardware.lLiftMotor, hardware.rLiftMotor).setLiftPositions(0, 500, 1000, 1500, 2000, 2500, 3000);
+        liftSubsystem = new LiftSubsystem(hardware.lLiftMotor, hardware.rLiftMotor);
 
         slideSubsytem = new SimpleMotorSubsystem(hardware.slide);
 
