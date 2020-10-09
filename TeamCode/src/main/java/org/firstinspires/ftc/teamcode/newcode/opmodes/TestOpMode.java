@@ -25,7 +25,7 @@ public class TestOpMode extends TeleOpCommandOpMode implements Loggable {
 
     @Override
     public void runLoop() {
-        robot.drivebaseSubsystem.joystickDrive(driverGamepad.leftStick.getYAxis(), driverGamepad.leftStick.getXAxis(), driverGamepad.rightStick.getYAxis(), robot.hardware.imu.gyroHeading());
+        robot.drivebaseSubsystem.joystickDriveWithGyro(driverGamepad.leftStick.getYAxis(), driverGamepad.leftStick.getXAxis(), driverGamepad.rightStick.getYAxis(), robot.hardware.imu.gyroHeading());
         //System.out.println(robot.hardware.gyroHeading2());
     }
 }

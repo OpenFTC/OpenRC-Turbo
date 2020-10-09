@@ -33,6 +33,6 @@ public class MecanumDriveCommand extends Command {
     }
     @Override
     public void execute() {
-        subsystem.joystickDrive(xv.getAsDouble(), yv.getAsDouble(), tv.getAsDouble(), gyro.getAsDouble());
+        subsystem.joystickDriveWithGyro(xv.getAsDouble(), yv.getAsDouble(), tv.getAsDouble(), gyro.getAsDouble());
     }
 }

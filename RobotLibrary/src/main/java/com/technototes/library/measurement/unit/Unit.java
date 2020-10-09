@@ -1,13 +1,17 @@
 package com.technototes.library.measurement.unit;
 
 public abstract class Unit<D extends Enum<D>> {
-    public Enum<D> unitType;
+    public D unitType;
     public double value;
-    public Unit(double v, Enum<D> e){
+    public Unit(double v, D e){
         unitType = e;
         value = v;
     }
     public abstract double to(D d);
+    public double to(Unit<D> d){
+        return to(d.unitType);
+    }
     public abstract double get();
+
 
 }

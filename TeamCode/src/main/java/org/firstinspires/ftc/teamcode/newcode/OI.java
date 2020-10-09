@@ -5,6 +5,8 @@ import com.technototes.library.control.gamepad.CommandGamepad;
 import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.structure.OIBase;
 import com.technototes.library.subsystem.drivebase.DrivebaseSubsystem;
+import com.technototes.subsystem.DrivebaseSubsystem.DriveSpeed;
+
 import org.firstinspires.ftc.teamcode.newcode.commands.claw.ClawRotateLeftCommand;
 import org.firstinspires.ftc.teamcode.newcode.commands.claw.ClawRotateRightCommand;
 import org.firstinspires.ftc.teamcode.newcode.commands.lift.LiftDownCommand;
@@ -23,8 +25,8 @@ public class OI extends OIBase {
     }
 
     public void setDriverControls() {
-        driverGamepad.dpad.down.whenToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed((DrivebaseSubsystem.Speed.TURBO))))
-                .whenInverseToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DrivebaseSubsystem.Speed.NORMAL)));
+        driverGamepad.dpad.down.whenToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed((DriveSpeed.TURBO))))
+                .whenInverseToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DriveSpeed.NORMAL)));
         driverGamepad.dpad.up.whenActivated(new InstantCommand(() -> robot.blockFlipperSubsystem.setPosition(0.15)))
                 .whenDeactivated(new InstantCommand(() -> robot.blockFlipperSubsystem.setPosition(0.75)));
 

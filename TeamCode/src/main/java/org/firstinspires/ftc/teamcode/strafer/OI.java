@@ -5,6 +5,7 @@ import com.technototes.library.control.gamepad.CommandGamepad;
 import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.structure.OIBase;
 import com.technototes.library.subsystem.drivebase.DrivebaseSubsystem;
+import com.technototes.subsystem.DrivebaseSubsystem.DriveSpeed;
 
 public class OI extends OIBase {
 
@@ -19,8 +20,8 @@ public class OI extends OIBase {
     public void setDriverControls() {
 //        CommandScheduler.getRunInstance().schedule(new MecanumDriveCommand(
 //           robot.drivebaseSubsystem, driverGamepad.leftStick, driverGamepad.rightStick).setFieldCentric(robot.hardware.imu).addRequirements(robot.drivebaseSubsystem));
-        driverGamepad.y.whenToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DrivebaseSubsystem.Speed.TURBO)))
-                .whenInverseToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DrivebaseSubsystem.Speed.NORMAL)));
+        driverGamepad.y.whenToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DriveSpeed.TURBO)))
+                .whenInverseToggled(new InstantCommand(() -> robot.drivebaseSubsystem.setDriveSpeed(DriveSpeed.NORMAL)));
     }
 
 }

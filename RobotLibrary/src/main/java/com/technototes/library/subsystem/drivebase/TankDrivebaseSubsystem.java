@@ -3,9 +3,10 @@ package com.technototes.library.subsystem.drivebase;
 import com.technototes.control.gamepad.GamepadStick;
 import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.hardware.motor.Motor;
+import com.technototes.subsystem.NonHolomnicDrivebaseSubsystem;
 
-public abstract class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> {
-    private Motor leftSide, rightSide;
+public class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> implements NonHolomnicDrivebaseSubsystem {
+    private T leftSide, rightSide;
 
     public TankDrivebaseSubsystem(T l, T r) {
         super(l, r);
@@ -13,21 +14,9 @@ public abstract class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseS
         rightSide = r;
     }
 
-    public void arcadeDrive(double s, double t){
-        double lp = s+t;
-        double rp = -s+t;
-        double max = Math.max(lp, rp)*s;
-        leftSide.setSpeed(lp);
-        rightSide.setSpeed(rp);
-    }
-
-
-    public void arcadeDrive(GamepadStick s) {
-        arcadeDrive(s.getXAxis(), s.getYAxis());
-    }
-
-    public void tankDrive(double l, double r) {
-        leftSide.setSpeedWithScale(l, getScale());
-        rightSide.setSpeedWithScale(-r, getScale());
+    @Override
+    public void drive(double l, double r) {
+        leftSide.setSpeed(l*getSpeed());
+        rightSide.setSpeed(r*getSpeed());
     }
 }

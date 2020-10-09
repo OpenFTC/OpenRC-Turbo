@@ -26,7 +26,7 @@ public class StraferTeleOp extends TeleOpCommandOpMode implements Loggable {
 
     @Override
     public void runLoop() {
-        robot.drivebaseSubsystem.joystickDrive(driverGamepad.leftStick.getYAxis(), driverGamepad.leftStick.getXAxis(), driverGamepad.rightStick.getYAxis(), 0);
+        robot.drivebaseSubsystem.joystickDriveWithGyro(driverGamepad.leftStick.getYAxis(), driverGamepad.leftStick.getXAxis(), driverGamepad.rightStick.getYAxis(), 0);
 
     }
 }

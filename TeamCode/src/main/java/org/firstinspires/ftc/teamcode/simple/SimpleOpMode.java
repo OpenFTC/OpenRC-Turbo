@@ -21,6 +21,7 @@ public class SimpleOpMode extends TeleOpCommandOpMode{
         gripperSubsystem = new SimpleServoSubsystem(new Servo("gripper"));
         driverGamepad.a.whenActivated(new InstantCommand(() -> gripperSubsystem.setPosition(0)));
         driverGamepad.b.whenActivated(new InstantCommand(() -> gripperSubsystem.setPosition(1)));
-        CommandScheduler.getRunInstance().schedule(() -> drivebaseSubsystem.arcadeDrive(driverGamepad.leftStick));
+        CommandScheduler.getRunInstance().schedule(() -> drivebaseSubsystem.arcadeDrive(
+                driverGamepad.leftStick.yAxis.getAsDouble(), driverGamepad.leftStick.xAxis.getAsDouble()));
     }
 }
