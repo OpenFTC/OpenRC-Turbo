@@ -9,8 +9,8 @@
     package="com.technototes.library" >
 
     <uses-sdk
-        android:minSdkVersion="19"
-        android:targetSdkVersion="26" />
+        android:minSdkVersion="24"
+        android:targetSdkVersion="28" />
 
     <application />
 

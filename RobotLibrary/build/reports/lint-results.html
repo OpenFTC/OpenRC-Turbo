@@ -173,10 +173,10 @@ document.getElementById(id).style.display = 'none';
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">Lint Report: 1 warning</span>
+      <span class="mdl-layout-title">Lint Report: 10 warnings</span>
       <div class="mdl-layout-spacer"></div>
       <nav class="mdl-navigation mdl-layout--large-screen-only">
-Check performed at Tue Aug 04 21:19:12 PDT 2020      </nav>
+Check performed at Fri Oct 09 17:49:52 PDT 2020      </nav>
     </div>
   </header>
   <div class="mdl-layout__drawer">
@@ -184,6 +184,7 @@ Check performed at Tue Aug 04 21:19:12 PDT 2020      </nav>
     <nav class="mdl-navigation">
       <a class="mdl-navigation__link" href="#overview"><i class="material-icons">dashboard</i>Overview</a>
       <a class="mdl-navigation__link" href="#OldTargetApi"><i class="material-icons warning-icon">warning</i>Target SDK attribute is not targeting latest version (1)</a>
+      <a class="mdl-navigation__link" href="#GradleDependency"><i class="material-icons warning-icon">warning</i>Obsolete Gradle Dependency (9)</a>
     </nav>
   </div>
   <main class="mdl-layout__content">
@@ -201,7 +202,10 @@ Check performed at Tue Aug 04 21:19:12 PDT 2020      </nav>
 <tr>
 <td class="countColumn">1</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
 <a href="#OldTargetApi">OldTargetApi</a>: Target SDK attribute is not targeting latest version</td></tr>
-<tr><td></td><td class="categoryColumn"><a href="#MissingIssues">Disabled Checks (33)</a>
+<tr>
+<td class="countColumn">9</td><td class="issueColumn"><i class="material-icons warning-icon">warning</i>
+<a href="#GradleDependency">GradleDependency</a>: Obsolete Gradle Dependency</td></tr>
+<tr><td></td><td class="categoryColumn"><a href="#MissingIssues">Disabled Checks (39)</a>
 </td></tr></table>
 <br/>              </div>
               <div class="mdl-card__actions mdl-card--border">
@@ -222,8 +226,8 @@ Dismiss</button>            </div>
 <span class="location"><a href="../../build.gradle">../../build.gradle</a>:10</span>: <span class="message">Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details.</span><br /><pre class="errorlines">
 <span class="lineno">  7 </span>
 <span class="lineno">  8 </span>    defaultConfig {
-<span class="lineno">  9 </span>        minSdkVersion <span class="number">19</span>
-<span class="caretline"><span class="lineno"> 10 </span>        <span class="warning">targetSdkVersion <span class="number">26</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno">  9 </span>        minSdkVersion <span class="number">24</span>
+<span class="caretline"><span class="lineno"> 10 </span>        <span class="warning">targetSdkVersion <span class="number">28</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 <span class="lineno"> 11 </span>    }
 <span class="lineno"> 12 </span>
 <span class="lineno"> 13 </span>    compileSdkVersion <span class="number">28</span></pre>
@@ -258,6 +262,127 @@ To suppress this error, use the issue id "OldTargetApi" as explained in the <a h
               <div class="mdl-card__actions mdl-card--border">
 <button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationOldTargetApiLink" onclick="reveal('explanationOldTargetApi');">
 Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="OldTargetApiCardLink" onclick="hideid('OldTargetApiCard');">
+Dismiss</button>            </div>
+            </div>
+          </section><a name="GradleDependency"></a>
+<section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp" id="GradleDependencyCard" style="display: block;">
+            <div class="mdl-card mdl-cell mdl-cell--12-col">
+  <div class="mdl-card__title">
+    <h2 class="mdl-card__title-text">Obsolete Gradle Dependency</h2>
+  </div>
+              <div class="mdl-card__supporting-text">
+<div class="issue">
+<div class="warningslist">
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:30</span>: <span class="message">A newer version of org.mockito:mockito-core than 3.5.11 is available: 3.5.13</span><br /><pre class="errorlines">
+<span class="lineno"> 27 </span>    testImplementation(platform(<span class="string">'org.junit:junit-bom:5.7.0'</span>))
+<span class="lineno"> 28 </span>    testImplementation(<span class="string">'org.junit.jupiter:junit-jupiter-api:5.7.0'</span>)
+<span class="lineno"> 29 </span>    testRuntimeOnly(<span class="string">'org.junit.jupiter:junit-jupiter-engine:5.7.0'</span>)
+<span class="caretline"><span class="lineno"> 30 </span>    <span class="warning">testImplementation(<span class="string">'org.mockito:mockito-core:3.5.11'</span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 31 </span>    testImplementation <span class="string">"org.junit.jupiter:junit-jupiter-params:5.7.0"</span>
+<span class="lineno"> 32 </span>
+<span class="lineno"> 33 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Inspection:6.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:33</span>: <span class="message">A newer version of org.firstinspires.ftc:Inspection than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 30 </span>    testImplementation(<span class="string">'org.mockito:mockito-core:3.5.11'</span>)
+<span class="lineno"> 31 </span>    testImplementation <span class="string">"org.junit.jupiter:junit-jupiter-params:5.7.0"</span>
+<span class="lineno"> 32 </span>
+<span class="caretline"><span class="lineno"> 33 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:Inspection:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 34 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Blocks:6.0'</span>
+<span class="lineno"> 35 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span>
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:34</span>: <span class="message">A newer version of org.firstinspires.ftc:Blocks than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 31 </span>    testImplementation <span class="string">"org.junit.jupiter:junit-jupiter-params:5.7.0"</span>
+<span class="lineno"> 32 </span>
+<span class="lineno"> 33 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Inspection:6.0'</span>
+<span class="caretline"><span class="lineno"> 34 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:Blocks:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 35 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span>
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span>
+<span class="lineno"> 37 </span>    compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:35</span>: <span class="message">A newer version of org.firstinspires.ftc:RobotCore than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 32 </span>
+<span class="lineno"> 33 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Inspection:6.0'</span>
+<span class="lineno"> 34 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Blocks:6.0'</span>
+<span class="caretline"><span class="lineno"> 35 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span>
+<span class="lineno"> 37 </span>    compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span>
+<span class="lineno"> 38 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Hardware:6.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:36</span>: <span class="message">A newer version of org.firstinspires.ftc:RobotServer than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 33 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Inspection:6.0'</span>
+<span class="lineno"> 34 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Blocks:6.0'</span>
+<span class="lineno"> 35 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span>
+<span class="caretline"><span class="lineno"> 36 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 37 </span>    compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span>
+<span class="lineno"> 38 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Hardware:6.0'</span>
+<span class="lineno"> 39 </span>    compileOnly <span class="string">'org.firstinspires.ftc:FtcCommon:6.0'</span></pre>
+
+<button class="mdl-button mdl-js-button mdl-button--primary" id="GradleDependencyDivLink" onclick="reveal('GradleDependencyDiv');" />+ 4 More Occurrences...</button>
+<div id="GradleDependencyDiv" style="display: none">
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:37</span>: <span class="message">A newer version of org.firstinspires.ftc:OnBotJava than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 34 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Blocks:6.0'</span>
+<span class="lineno"> 35 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span>
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span>
+<span class="caretline"><span class="lineno"> 37 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 38 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Hardware:6.0'</span>
+<span class="lineno"> 39 </span>    compileOnly <span class="string">'org.firstinspires.ftc:FtcCommon:6.0'</span>
+<span class="lineno"> 40 </span>    compileOnly <span class="string">'androidx.appcompat:appcompat:1.2.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:38</span>: <span class="message">A newer version of org.firstinspires.ftc:Hardware than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 35 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotCore:6.0'</span>
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span>
+<span class="lineno"> 37 </span>    compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span>
+<span class="caretline"><span class="lineno"> 38 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:Hardware:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 39 </span>    compileOnly <span class="string">'org.firstinspires.ftc:FtcCommon:6.0'</span>
+<span class="lineno"> 40 </span>    compileOnly <span class="string">'androidx.appcompat:appcompat:1.2.0'</span>
+</pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:39</span>: <span class="message">A newer version of org.firstinspires.ftc:FtcCommon than 6.0 is available: 6.0.1</span><br /><pre class="errorlines">
+<span class="lineno"> 36 </span>    compileOnly <span class="string">'org.firstinspires.ftc:RobotServer:6.0'</span>
+<span class="lineno"> 37 </span>    compileOnly <span class="string">'org.firstinspires.ftc:OnBotJava:6.0'</span>
+<span class="lineno"> 38 </span>    compileOnly <span class="string">'org.firstinspires.ftc:Hardware:6.0'</span>
+<span class="caretline"><span class="lineno"> 39 </span>    <span class="warning">compileOnly <span class="string">'org.firstinspires.ftc:FtcCommon:6.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 40 </span>    compileOnly <span class="string">'androidx.appcompat:appcompat:1.2.0'</span>
+<span class="lineno"> 41 </span>
+<span class="lineno"> 42 </span>    compileOnly <span class="string">'com.github.technototes:TechnoLog:0.1.0'</span></pre>
+
+<span class="location"><a href="../../build.gradle">../../build.gradle</a>:43</span>: <span class="message">A newer version of com.github.technototes:TechnoControl than 0.1.0 is available: 0.1.1</span><br /><pre class="errorlines">
+<span class="lineno"> 40 </span>    compileOnly <span class="string">'androidx.appcompat:appcompat:1.2.0'</span>
+<span class="lineno"> 41 </span>
+<span class="lineno"> 42 </span>    compileOnly <span class="string">'com.github.technototes:TechnoLog:0.1.0'</span>
+<span class="caretline"><span class="lineno"> 43 </span>    <span class="warning">compileOnly <span class="string">'com.github.technototes:TechnoControl:0.1.0'</span></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+<span class="lineno"> 44 </span>    compileOnly <span class="string">'com.github.technototes:TechnoSubsystem:0.1.0'</span>
+<span class="lineno"> 45 </span>
+<span class="lineno"> 46 </span>}
+</pre>
+
+</div>
+</div>
+<div class="metadata"><div class="explanation" id="explanationGradleDependency" style="display: none;">
+This detector looks for usages of libraries where the version you are using is not the current stable release. Using older versions is fine, and there are cases where you deliberately want to stick with an older version. However, you may simply not be aware that a more recent version is available, and that is what this lint check helps find.<br/>Note: This issue has an associated quickfix operation in Android Studio and IntelliJ IDEA.<br>
+To suppress this error, use the issue id "GradleDependency" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="chips">
+<span class="mdl-chip">
+    <span class="mdl-chip__text">GradleDependency</span>
+</span>
+<span class="mdl-chip">
+    <span class="mdl-chip__text">Correctness</span>
+</span>
+<span class="mdl-chip">
+    <span class="mdl-chip__text">Warning</span>
+</span>
+<span class="mdl-chip">
+    <span class="mdl-chip__text">Priority 4/10</span>
+</span>
+</div>
+              </div>
+              <div class="mdl-card__actions mdl-card--border">
+<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="explanationGradleDependencyLink" onclick="reveal('explanationGradleDependency');">
+Explain</button><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="GradleDependencyCardLink" onclick="hideid('GradleDependencyCard');">
 Dismiss</button>            </div>
             </div>
           </section>
@@ -354,6 +479,41 @@ An "easter egg" is code deliberately hidden in the code, both from potential use
 </div>
 </div>
 <div class="issue">
+<div class="id">ExpensiveAssertion<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+In Kotlin, assertions are not handled the same way as from the Java programming language. In particular, they're just implemented as a library call, and inside the library call the error is only thrown if assertions are enabled.<br/>
+<br/>
+This means that the arguments to the <code>assert</code> call will <b>always</b> be evaluated. If you're doing any computation in the expression being asserted, that computation will unconditionally be performed whether or not assertions are turned on. This typically turns into wasted work in release builds.<br/>
+<br/>
+This check looks for cases where the assertion condition is nontrivial, e.g. it is performing method calls or doing more work than simple comparisons on local variables or fields.<br/>
+<br/>
+You can work around this by writing your own inline assert method instead:<br/>
+
+<pre>
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+inline fun assert(condition: () -> Boolean) {
+    if (_Assertions.ENABLED &amp;&amp; !condition()) {
+        throw AssertionError()
+    }
+}
+</pre>
+<br/>
+In Android, because assertions are not enforced at runtime, instead use this:<br/>
+
+<pre>
+inline fun assert(condition: () -> Boolean) {
+    if (BuildConfig.DEBUG &amp;&amp; !condition()) {
+        throw AssertionError()
+    }
+}
+</pre>
+<br/>To suppress this error, use the issue id "ExpensiveAssertion" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
 <div class="id">FieldGetter<div class="issueSeparator"></div>
 </div>
 <div class="metadata">Disabled By: Default<br/>
@@ -377,6 +537,17 @@ To suppress this error, use the issue id "GoogleAppIndexingApiWarning" as explai
 </div>
 </div>
 <div class="issue">
+<div class="id">GoogleAppIndexingWarning<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+Adds URLs to get your app into the Google index, to get installs and traffic to your app from Google Search.<br/><div class="moreinfo">More info: <a href="https://g.co/AppIndexing/AndroidStudio">https://g.co/AppIndexing/AndroidStudio</a>
+</div>Note: This issue has an associated quickfix operation in Android Studio and IntelliJ IDEA.<br>
+To suppress this error, use the issue id "GoogleAppIndexingWarning" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
 <div class="id">IconExpectedSize<div class="issueSeparator"></div>
 </div>
 <div class="metadata">Disabled By: Default<br/>
@@ -392,6 +563,19 @@ There are predefined sizes (for each density) for launcher icons. You should fol
 <div class="metadata">Disabled By: Default<br/>
 <div class="explanation">
 Kotlin's support for SAM (single accessor method) interfaces lets you pass a lambda to the interface. This will create a new instance on the fly even though there is no explicit constructor call. If you pass one of these lambdas or method references into a method which (for example) stores or compares the object identity, unexpected results may happen.<br/>To suppress this error, use the issue id "ImplicitSamInstance" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
+<div class="id">InvalidPackage<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+This check scans through libraries looking for calls to APIs that are not included in Android.<br/>
+<br/>
+When you create Android projects, the classpath is set up such that you can only access classes in the API packages that are included in Android. However, if you add other projects to your libs/ folder, there is no guarantee that those .jar files were built with an Android specific classpath, and in particular, they could be accessing unsupported APIs such as java.applet.<br/>
+<br/>
+This check scans through library jars and looks for references to API packages that are not included in Android and flags these. This is only an error if your code calls one of the library classes which wind up referencing the unsupported package.<br/>To suppress this error, use the issue id "InvalidPackage" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
@@ -415,6 +599,16 @@ Accessor methods require a &#8216;get&#8217; prefix or for boolean-returning met
 To improve calling this code from Kotlin,<br/>
 parameter types eligible for SAM conversion should be last.<br/><div class="moreinfo">More info: <a href="https://android.github.io/kotlin-guides/interop.html#lambda-parameters-last">https://android.github.io/kotlin-guides/interop.html#lambda-parameters-last</a>
 </div>To suppress this error, use the issue id "LambdaLast" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
+<div class="id">LockedOrientationActivity<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+The <code>&lt;activity></code> element should not be locked to any orientation so that users can take advantage of the multi-window environments and larger screens on Chrome OS. To fix the issue, consider declaring the corresponding activity element with `screenOrientation="unspecified"<code>or </code>"fullSensor"` attribute.<br/><div class="moreinfo">More info: <a href="https://developer.android.com/topic/arc/window-management">https://developer.android.com/topic/arc/window-management</a>
+</div>To suppress this error, use the issue id "LockedOrientationActivity" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
@@ -448,16 +642,6 @@ This detector looks for invalid line endings with repeated carriage return chara
 <div class="explanation">
 The value of the <code>minSdkVersion</code> property is too low and can be incremented without noticeably reducing the number of supported devices.<br/>Note: This issue has an associated quickfix operation in Android Studio and IntelliJ IDEA.<br>
 To suppress this error, use the issue id "MinSdkTooLow" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="issue">
-<div class="id">MissingRegistered<div class="issueSeparator"></div>
-</div>
-<div class="metadata">Disabled By: Default<br/>
-<div class="explanation">
-If a class is referenced in the manifest or in a layout file, it must also exist in the project (or in one of the libraries included by the project. This check helps uncover typos in registration names, or attempts to rename or move classes without updating the manifest file properly.<br/><div class="moreinfo">More info: <a href="http://developer.android.com/guide/topics/manifest/manifest-intro.html">http://developer.android.com/guide/topics/manifest/manifest-intro.html</a>
-</div>To suppress this error, use the issue id "MissingRegistered" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
@@ -498,6 +682,16 @@ For example, Mockito&#8217;s <code>when</code> function requires backticks when 
 </div>
 </div>
 <div class="issue">
+<div class="id">NonResizeableActivity<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+The <code>&lt;activity></code> element should be allowed to be resized to allow users to take advantage of the multi-window environment on Chrome OS To fix the issue, consider declaring the corresponding activity element with <code>resizableActivity="true"</code> attribute.<br/><div class="moreinfo">More info: <a href="https://developer.android.com/topic/arc/window-management">https://developer.android.com/topic/arc/window-management</a>
+</div>To suppress this error, use the issue id "NonResizeableActivity" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
 <div class="id">PermissionImpliesUnsupportedChromeOsHardware<div class="issueSeparator"></div>
 </div>
 <div class="metadata">Disabled By: Default<br/>
@@ -521,17 +715,6 @@ If your activity is simply a parent class intended to be subclassed by other "re
 </div>
 </div>
 <div class="issue">
-<div class="id">RequiredSize<div class="issueSeparator"></div>
-</div>
-<div class="metadata">Disabled By: Default<br/>
-<div class="explanation">
-All views must specify an explicit <code>layout_width</code> and <code>layout_height</code> attribute. There is a runtime check for this, so if you fail to specify a size, an exception is thrown at runtime.<br/>
-<br/>
-It's possible to specify these widths via styles as well. GridLayout, as a special case, does not require you to specify a size.<br/>To suppress this error, use the issue id "RequiredSize" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
-<br/></div>
-</div>
-</div>
-<div class="issue">
 <div class="id">SelectableText<div class="issueSeparator"></div>
 </div>
 <div class="metadata">Disabled By: Default<br/>
@@ -540,6 +723,20 @@ If a <code>&lt;TextView></code> is used to display data, the user might want to 
 <br/>
 This lint check looks for TextViews which are likely to be displaying data: views whose text is set dynamically. This value will be ignored on platforms older than API 11, so it is okay to set it regardless of your <code>minSdkVersion</code>.<br/>Note: This issue has an associated quickfix operation in Android Studio and IntelliJ IDEA.<br>
 To suppress this error, use the issue id "SelectableText" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
+<div class="id">SourceLockedOrientationActivity<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+The <code>Activity</code> should not be locked to any orientation so that users<br/>
+can take advantage of the multi-window environments and larger screens<br/>
+available on Chrome OS. To fix the issue, consider calling <code>setRequestedOrientation</code><br/>
+with the <code>ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR</code> or<br/>
+<code>ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED</code> options or removing the call<br/>
+all together.<br/>To suppress this error, use the issue id "SourceLockedOrientationActivity" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
@@ -606,6 +803,18 @@ To suppress this error, use the issue id "UnpackedNativeCode" as explained in th
 </div>
 </div>
 <div class="issue">
+<div class="id">UnsupportedChromeOsCameraSystemFeature<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+You should look for the <code>FEATURE_CAMERA_ANY</code> features to include all<br/>
+possible cameras that may be on the device. Looking for <code>FEATURE_CAMERA</code><br/>
+only looks for a rear facing camera, which certain tablets or Chrome OS<br/>
+devices don't have. To fix the issue, look for <code>FEATURE_CAMERA_ANY</code> instead.<br/>To suppress this error, use the issue id "UnsupportedChromeOsCameraSystemFeature" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
 <div class="id">UnsupportedChromeOsHardware<div class="issueSeparator"></div>
 </div>
 <div class="metadata">Disabled By: Default<br/>
@@ -636,6 +845,18 @@ To suppress this error, use the issue id "UnusedIds" as explained in the <a href
 <div class="metadata">Disabled By: Default<br/>
 <div class="explanation">
 Ensures that an actions XML file is properly formed<br/>To suppress this error, use the issue id "ValidActionsXml" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
+<br/></div>
+</div>
+</div>
+<div class="issue">
+<div class="id">WeekBasedYear<div class="issueSeparator"></div>
+</div>
+<div class="metadata">Disabled By: Default<br/>
+<div class="explanation">
+The <code>DateTimeFormatter</code> pattern <code>YYYY</code> returns the <i>week</i> based year, not the era-based year. This means that 12/29/2019 will format to 2019, but 12/30/2019 will format to 2020!<br/>
+<br/>
+If you expected this to format as 2019, you should use the pattern <code>yyyy</code> instead.<br/><div class="moreinfo">More info: <a href="https://stackoverflow.com/questions/46847245/using-datetimeformatter-on-january-first-cause-an-invalid-year-value">https://stackoverflow.com/questions/46847245/using-datetimeformatter-on-january-first-cause-an-invalid-year-value</a>
+</div>To suppress this error, use the issue id "WeekBasedYear" as explained in the <a href="#SuppressInfo">Suppressing Warnings and Errors</a> section.<br/>
 <br/></div>
 </div>
 </div>
@@ -681,44 +902,48 @@ To suppress a lint warning in an XML file, add a <code>tools:ignore="id"</code> 
 <code>xmlns:tools="http://schemas.android.com/tools"</code><br/>
 <br/>
 To suppress a lint warning in a <code>build.gradle</code> file, add a section like this:<br/>
-<br/>
-android {<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;lintOptions {<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disable 'TypographyFractions','TypographyQuotes'<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
-}<br/>
+
+<pre>
+android {
+    lintOptions {
+        disable 'TypographyFractions','TypographyQuotes'
+    }
+}
+</pre>
 <br/>
 Here we specify a comma separated list of issue id's after the disable command. You can also use <code>warning</code> or <code>error</code> instead of <code>disable</code> to change the severity of issues.<br/>
 <br/>
 To suppress lint warnings with a configuration XML file, create a file named <code>lint.xml</code> and place it at the root directory of the module in which it applies.<br/>
 <br/>
 The format of the <code>lint.xml</code> file is something like the following:<br/>
-<br/>
-&lt;?xml version="1.0" encoding="UTF-8"?><br/>
-&lt;lint><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- Ignore everything in the test source set --><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;issue id="all"><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ignore path="*/test/*" /><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;/issue><br/>
-<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- Disable this given check in this project --><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;issue id="IconMissingDensityFolder" severity="ignore" /><br/>
-<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- Ignore the ObsoleteLayoutParam issue in the given files --><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;issue id="ObsoleteLayoutParam"><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ignore path="res/layout/activation.xml" /><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ignore path="res/layout-xlarge/activation.xml" /><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ignore regexp="(foo|bar).java" /><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;/issue><br/>
-<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- Ignore the UselessLeaf issue in the given file --><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;issue id="UselessLeaf"><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ignore path="res/layout/main.xml" /><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;/issue><br/>
-<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;!-- Change the severity of hardcoded strings to "error" --><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;issue id="HardcodedText" severity="error" /><br/>
-&lt;/lint><br/>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;lint>
+    &lt;!-- Ignore everything in the test source set -->
+    &lt;issue id="all">
+        &lt;ignore path="\*/test/\*" />
+    &lt;/issue>
+
+    &lt;!-- Disable this given check in this project -->
+    &lt;issue id="IconMissingDensityFolder" severity="ignore" />
+
+    &lt;!-- Ignore the ObsoleteLayoutParam issue in the given files -->
+    &lt;issue id="ObsoleteLayoutParam">
+        &lt;ignore path="res/layout/activation.xml" />
+        &lt;ignore path="res/layout-xlarge/activation.xml" />
+        &lt;ignore regexp="(foo|bar)\.java" />
+    &lt;/issue>
+
+    &lt;!-- Ignore the UselessLeaf issue in the given file -->
+    &lt;issue id="UselessLeaf">
+        &lt;ignore path="res/layout/main.xml" />
+    &lt;/issue>
+
+    &lt;!-- Change the severity of hardcoded strings to "error" -->
+    &lt;issue id="HardcodedText" severity="error" />
+&lt;/lint>
+</pre>
 <br/>
 To suppress lint checks from the command line, pass the --ignore flag with a comma separated list of ids to be suppressed, such as:<br/>
 <code>$ lint --ignore UnusedResources,UselessLeaf /my/project/path</code><br/>

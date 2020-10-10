@@ -9,12 +9,12 @@
 9    package="com.technototes.library" >
 10
 11    <uses-sdk
-12        android:minSdkVersion="19"
-12-->C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
-13        android:targetSdkVersion="26" />
-13-->C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml
+12        android:minSdkVersion="24"
+12-->C:\Users\Alex Stedman\StudioProjects\TechnoLib\RobotLibrary\src\main\AndroidManifest.xml
+13        android:targetSdkVersion="28" />
+13-->C:\Users\Alex Stedman\StudioProjects\TechnoLib\RobotLibrary\src\main\AndroidManifest.xml
 14
 15    <application />
-15-->C:\Users\Alex Stedman\StudioProjects\FtcSamples-master\RobotLibrary\src\main\AndroidManifest.xml:11:5-19
+15-->C:\Users\Alex Stedman\StudioProjects\TechnoLib\RobotLibrary\src\main\AndroidManifest.xml:10:5-20
 16
 17</manifest>

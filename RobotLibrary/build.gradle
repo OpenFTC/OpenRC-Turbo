@@ -40,7 +40,7 @@ dependencies {
     compileOnly 'androidx.appcompat:appcompat:1.2.0'
 
     compileOnly 'com.github.technototes:TechnoLog:0.1.0'
-    compileOnly 'com.github.technototes:TechnoControl:0.1.0'
+    compileOnly 'com.github.technototes:TechnoControl:0.1.1'
     compileOnly 'com.github.technototes:TechnoSubsystem:0.1.0'
 
 }
