@@ -7,6 +7,9 @@ import com.technototes.library.control.Trigger;
 import java.util.function.DoubleSupplier;
 
 public class CommandAxis extends GamepadAxis implements GamepadTrigger<CommandAxis> {
+    public CommandAxis(){
+        super();
+    }
     public CommandAxis(DoubleSupplier d){
         super(d);
     }

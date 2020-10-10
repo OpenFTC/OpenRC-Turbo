@@ -11,7 +11,9 @@ public class CommandButton extends GamepadButton implements GamepadTrigger<Comma
     public CommandButton(BooleanSupplier b) {
         super(b);
     }
-
+    public CommandButton(){
+        super();
+    }
     @Override
     public CommandButton getInstance() {
         return this;

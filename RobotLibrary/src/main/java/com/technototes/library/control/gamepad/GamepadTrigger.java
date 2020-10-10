@@ -55,4 +55,5 @@ public interface GamepadTrigger<T extends GamepadButton> extends Trigger<T> {
         CommandScheduler.getRunInstance().schedule(condition, command);
         return getInstance();
     }
+
 }

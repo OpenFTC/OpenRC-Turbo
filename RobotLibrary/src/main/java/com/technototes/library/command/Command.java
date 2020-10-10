@@ -65,7 +65,9 @@ public class Command implements Runnable {
             case INITIALIZED:
                 execute();
                 commandState.state = isFinished() ? State.EXECUTED : State.INITIALIZED;
-                return;
+                if(!isFinished()){
+                    return;
+                }
             case EXECUTED:
                 end(false);
                 commandState.state = State.RESET;

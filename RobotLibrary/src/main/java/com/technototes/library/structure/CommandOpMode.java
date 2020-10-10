@@ -5,11 +5,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.technototes.library.command.Command;
 import com.technototes.library.command.CommandScheduler;
 import com.technototes.library.command.InstantCommand;
+import com.technototes.library.control.gamepad.CommandGamepad;
 import com.technototes.library.hardware.HardwareDevice;
 import com.technototes.logger.Logger;
 
 public abstract class CommandOpMode extends LinearOpMode {
     public static double commandTimeAtEnd = 5;
+    public CommandGamepad driverGamepad;
+    public CommandGamepad codriverGamepad;
     public ElapsedTime timer = new ElapsedTime();
     public OpModeState opModeState = OpModeState.INIT;
     public Logger logger;
@@ -20,6 +23,8 @@ public abstract class CommandOpMode extends LinearOpMode {
 
     @Override
     public final void runOpMode() throws InterruptedException {
+        driverGamepad = new CommandGamepad(gamepad1);
+        codriverGamepad = new CommandGamepad(gamepad2);
         HardwareDevice.hardwareMap = hardwareMap;
         beginInit();
         logger = new Logger(telemetry, this);
@@ -37,6 +42,8 @@ public abstract class CommandOpMode extends LinearOpMode {
             CommandScheduler.getRunInstance().run();
             logger.update();
             telemetry.update();
+            driverGamepad.periodic();
+            codriverGamepad.periodic();
         }
         CommandScheduler.getRunInstance().runLastTime();
         opModeState = OpModeState.FINISHED;
