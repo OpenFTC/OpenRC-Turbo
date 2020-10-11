@@ -4,8 +4,12 @@ TechnoLib is a FTC Library for everyone:
  - WPILib inspired command structure
  - Tons of simple implementations to provide abstractions, and teach you the basics
  - Vision Processing for Ultimate Goal
- - Annotation based logging
  - And much much more
+ 
+ Technolib builds on top of 3 of my other libraries:
+ - TechnoLog (annotation logging)
+ - TechnoSubsystem (subsystem interfaces)
+ - TechnoControl (control encapsulation)
  
 **The goal of this library is stated as follows**
  The goal of TechnoLib is not only to provide versatile resources that assist in software development and strengthen code structure, but to also abstract out redundancy.
