@@ -34,4 +34,13 @@ public class MathUtils {
         return num < min ? min : (num > max ? max : num);
 
     }
+    public static boolean isPrime(int value){
+        for(int i = 2; i < value/2; i++){
+            if(value % i == 0){
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

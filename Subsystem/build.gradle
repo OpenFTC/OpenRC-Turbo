@@ -38,19 +38,12 @@ dependencies {
     compileOnly 'org.firstinspires.ftc:Hardware:6.0'
     compileOnly 'org.firstinspires.ftc:FtcCommon:6.0'
     compileOnly 'androidx.appcompat:appcompat:1.2.0'
-
-    compileOnly project(':Control')
-    compileOnly project(':Logger')
-    compileOnly project(':Subsystem')
-
-
 }
 
 repositories {
     flatDir {
         dirs '../libs'
     }
-    maven { url 'https://jitpack.io' }
 }
 
 apply from: 'build.release.gradle'
