@@ -2,11 +2,17 @@ package com.technototes.logger.entry;
 
 import java.util.function.Supplier;
 
+/** The root class for logging entries
+ * @author Alex Stedman
+ *
+ * @param <T> The type of value being stored by the entry
+ */
 public abstract class Entry<T> implements Supplier<T> {
 
-    public int x;
-    public Supplier<T> supplier;
-    public String name;
+    protected int x;
+    protected Supplier<T> supplier;
+
+    protected String name;
 
     public Entry(String n, Supplier<T> s, int index){
         x = index;
@@ -23,4 +29,12 @@ public abstract class Entry<T> implements Supplier<T> {
     public String toString() {
         return name+": ["+get()+"]";
     }
+
+    public String getName() {
+        return name;
+    }
+    public int getIndex() {
+        return x;
+    }
+
 }

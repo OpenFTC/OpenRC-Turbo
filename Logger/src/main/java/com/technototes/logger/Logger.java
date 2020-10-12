@@ -17,15 +17,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-
+/** The class to manage logging
+ * @author Alex Stedman
+ */
 public class Logger {
 
-    public Entry[] entries;
-    public ArrayList<Entry> unindexedEntries;
-    public Telemetry telemetry;
-    public Object root;
-    public int total = 0, max = -1;
+    private Entry[] entries;
+    private ArrayList<Entry> unindexedEntries;
+    private Telemetry telemetry;
+    private Object root;
+    private int total = 0, max = -1;
 
+    /** Instantiate the logger
+     *
+     * @param tel The Telemetry object the robot uses
+     * @param r The Object of the OpMode (pass "this" as this parameter)
+     */
     public Logger(Telemetry tel, Object r) {
         root = r;
         telemetry = tel;
@@ -53,7 +60,7 @@ public class Logger {
         }
     }
 
-    public void configure(Object root) {
+    private void configure(Object root) {
         for (Field field : root.getClass().getDeclaredFields()) {
             try {
                 Object o = field.get(root);
@@ -81,7 +88,7 @@ public class Logger {
         }
 
     }
-    public void set(Annotation[] a, Method m, Object root){
+    private void set(Annotation[] a, Method m, Object root){
         set(a, () -> {
             try {
                 return m.invoke(root);
@@ -93,7 +100,7 @@ public class Logger {
             return null;
         });
     }
-    public void set(Annotation[] a, Field m, Object root){
+    private void set(Annotation[] a, Field m, Object root){
         set(a, () -> {
             try {
                 return m.get(root);
@@ -103,7 +110,7 @@ public class Logger {
             return null;
         });
     }
-    public void set(Annotation[] a, Supplier<?> m) {
+    private void set(Annotation[] a, Supplier<?> m) {
         Entry e = null;
         for(Annotation as : a){
             if(as instanceof Log.NumberSlider){
@@ -149,17 +156,24 @@ public class Logger {
     }
 
     private void processEntry(Entry e){
-        if(e.x != -1) {
-            if(entries[e.x] != null){
+        if(e.getIndex() != -1) {
+            if(entries[e.getIndex()] != null){
                 unindexedEntries.add(e);
             }   else{
-                entries[e.x] = e;
+                entries[e.getIndex()] = e;
             }
         }else{
             unindexedEntries.add(e);
         }
         total++;
-        max = Math.max(max, e.x);
+        max = Math.max(max, e.getIndex());
     }
 
+    /** Get an array of all logger entries
+     *
+     * @return The array
+     */
+    public Entry[] getEntries() {
+        return entries;
+    }
 }

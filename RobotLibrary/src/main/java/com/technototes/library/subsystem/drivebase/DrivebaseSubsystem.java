@@ -23,7 +23,6 @@ public abstract class DrivebaseSubsystem<T extends Motor> extends Subsystem<T> i
         return gyroSupplier.getAsDouble();
     }
 
-    @Override
     public void setDriveSpeed(DriveSpeed ds) {
         driveSpeed = ds;
     }
