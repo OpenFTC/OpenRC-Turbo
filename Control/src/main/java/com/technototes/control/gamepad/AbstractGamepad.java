@@ -12,19 +12,31 @@ public abstract class AbstractGamepad<T extends GamepadButton, U extends Gamepad
     //normal gamepad
     private Gamepad gamepad;
     //buttons
+    /** The button objects
+     *
+     */
     public T a, b, x, y, start, back, leftBumper, rightBumper,
             dpadUp, dpadDown, dpadLeft, dpadRight, leftStickButton, rightStickButton;
     //axis
+    /** The axis objects
+     *
+     */
     public U leftTrigger, rightTrigger, leftStickX, leftStickY, rightStickX, rightStickY;
     //sticks
+    /** The stick objects
+     *
+     */
     public GamepadStick<U, T> leftStick, rightStick;
     //dpad
+    /** The dpad object
+     *
+     */
     public GamepadDpad<T> dpad;
     //periodics to run
     private Periodic[] periodics;
 
-    public Class<T> buttonClass;
-    public Class<U> axisClass;
+    private Class<T> buttonClass;
+    private Class<U> axisClass;
 
     /** Creates a gamepad with these parameters
      *
@@ -52,7 +64,7 @@ public abstract class AbstractGamepad<T extends GamepadButton, U extends Gamepad
     }
 
     //to actually instantiate the objects
-    public void setComponents(Gamepad g) throws InstantiationException, IllegalAccessException {
+    private void setComponents(Gamepad g) throws InstantiationException, IllegalAccessException {
 
         //buttons
         a = buttonClass.newInstance();
@@ -110,10 +122,16 @@ public abstract class AbstractGamepad<T extends GamepadButton, U extends Gamepad
     }
 
     //enums
+
+    /** Button enum for all buttons on gamepad
+     *
+     */
     public enum Button{
         A, B, X, Y, START, BACK, LEFT_BUMPER, RIGHT_BUMPER, LEFT_STICK_BUTTON, RIGHT_STICK_BUTTON;
     }
-
+    /** Axis enum for all axis on gamepad
+     *
+     */
     public enum Axis{
         LEFT_STICK_X, LEFT_STICK_Y, RIGHT_STICK_X, RIGHT_STICK_Y, LEFT_TRIGGER, RIGHT_TRIGGER;
     }
@@ -227,6 +245,10 @@ public abstract class AbstractGamepad<T extends GamepadButton, U extends Gamepad
         }
     }
 
+    /** Returns the encapsulated gamepad
+     *
+     * @return The gamepad
+     */
     public Gamepad getGamepad(){
         return gamepad;
     }

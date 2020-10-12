@@ -8,7 +8,13 @@ import com.technototes.control.Periodic;
  * @param <U> The class for the gamepad buttons
  */
 public class GamepadStick<T extends GamepadAxis, U extends GamepadButton> implements Stick {
+    /** The objects for the stick axis
+     *
+     */
     public T xAxis, yAxis;
+    /** The objects for the stick button
+     *
+     */
     public U stickButton;
 
     /** Make a gamepad stick
@@ -29,18 +35,12 @@ public class GamepadStick<T extends GamepadAxis, U extends GamepadButton> implem
         yAxis.periodic();
         stickButton.periodic();
     }
-    /** Return x axis double
-     *
-     * @return The double
-     */
+
     @Override
     public double getXAxis() {
         return xAxis.getAsDouble();
     }
-    /** Return y axis double
-     *
-     * @return The double
-     */
+
     @Override
     public double getYAxis() {
         return yAxis.getAsDouble();

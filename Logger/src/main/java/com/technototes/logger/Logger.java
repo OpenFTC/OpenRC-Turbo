@@ -54,6 +54,9 @@ public class Logger {
 
     }
 
+    /** Update the logged items in temeletry
+     *
+     */
     public void update() {
         for(int i = 0; i < entries.length; i++){
             telemetry.addLine((i > 9 ? i+"| " : i+" | ")+ (entries[i] == null ? "" : entries[i].toString()));

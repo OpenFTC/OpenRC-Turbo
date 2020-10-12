@@ -32,7 +32,14 @@ public interface DrivebaseSubsystem extends SpeedSubsystem {
         return max;
     }
 
-    DriveSpeed getDriveSpeed();
+    /** Returns the Drivespeed
+     *
+     * @return The Drivespeed
+     */
+    @Deprecated
+    default DriveSpeed getDriveSpeed(){
+        return DriveSpeed.NORMAL;
+    }
 
     /** Return DriveSpeed as a double (again, dont use built in speeds, override this method)
      *

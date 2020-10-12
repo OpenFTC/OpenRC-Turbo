@@ -1,6 +1,16 @@
 package com.technototes.subsystem;
 
-public interface SlideSubsystem extends SpeedSubsystem{
+/** Interface for slide subsystems
+ * @author Alex Stedman
+ */
+public interface SlideSubsystem extends PositionalSubsystem{
+    /** Extend the slide
+     *
+     */
     void extend();
+
+    /** Retract the slide
+     *
+     */
     void retract();
 }

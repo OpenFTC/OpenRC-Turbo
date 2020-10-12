@@ -5,6 +5,9 @@ package com.technototes.control.gamepad;
  * @param <T> The gamepad button class
  */
 public class GamepadDpad<T extends GamepadButton> implements Stick {
+    /** The objects for the dpad buttons
+     *
+     */
     public T up, down, left, right;
 
     /** Create dpad with 4 buttons

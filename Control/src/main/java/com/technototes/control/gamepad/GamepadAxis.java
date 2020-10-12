@@ -2,23 +2,25 @@ package com.technototes.control.gamepad;
 
 import com.technototes.control.Periodic;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 /** The class to extend custom gamepad axis from
  * @author Alex Stedman
  */
 public class GamepadAxis extends GamepadButton implements DoubleSupplier, Periodic {
-    public static final double defaultTriggerThreshold = 0.5;
-    public double triggerThreshold;
-    public DoubleSupplier doubleSupplier;
+    /** The default trigger threshold
+     *
+     */
+    public static final double DEFAULT_TRIGGER_THRESHOLD = 0.5;
+    private double triggerThreshold;
+    protected DoubleSupplier doubleSupplier;
 
     /** Make a GamepadAxis with the supplier
      *
      * @param d The supplier to make the axis around
      */
     public GamepadAxis(DoubleSupplier d){
-        new GamepadAxis(d, defaultTriggerThreshold);
+        new GamepadAxis(d, DEFAULT_TRIGGER_THRESHOLD);
     }
     /** Make a GamepadAxis with the supplier and the threshold for the stick to behave as a button
      *
@@ -31,8 +33,8 @@ public class GamepadAxis extends GamepadButton implements DoubleSupplier, Period
         triggerThreshold = t;
     }
 
-    public GamepadAxis(){
-        triggerThreshold = defaultTriggerThreshold;
+    protected GamepadAxis(){
+        triggerThreshold = DEFAULT_TRIGGER_THRESHOLD;
     }
 
     /** Set the supplier for the axis
@@ -55,8 +57,11 @@ public class GamepadAxis extends GamepadButton implements DoubleSupplier, Period
         return doubleSupplier.getAsDouble();
     }
 
-    @Override
-    public void periodic() {
-        super.periodic();
+    /** Gets the trigger threshold
+     *
+     * @return The threshold
+     */
+    public double getTriggerThreshold() {
+        return triggerThreshold;
     }
 }

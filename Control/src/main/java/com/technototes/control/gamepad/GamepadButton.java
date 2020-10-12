@@ -9,10 +9,11 @@ import java.util.function.BooleanSupplier;
  */
 public class GamepadButton implements BooleanSupplier, Periodic {
     private BooleanSupplier booleanSupplier;
-    public boolean pressed = false;
-    public boolean toggle = false;
-    public boolean recentAction = false;
-    public boolean pastState = false;
+
+    private boolean pressed = false;
+    private boolean toggle = false;
+    private boolean recentAction = false;
+    private boolean pastState = false;
 
     /** Create button with boolean supplier
      *
@@ -21,7 +22,7 @@ public class GamepadButton implements BooleanSupplier, Periodic {
     public GamepadButton(BooleanSupplier b){
         booleanSupplier = b;
     }
-    public GamepadButton(){
+    protected GamepadButton(){
         booleanSupplier = () -> false;
     }
     /** Set the boolean supplier for the button
@@ -39,7 +40,7 @@ public class GamepadButton implements BooleanSupplier, Periodic {
         periodic(booleanSupplier.getAsBoolean());
     }
 
-    public void periodic(boolean currentState){
+    private void periodic(boolean currentState){
         recentAction = pastState != currentState;
         pastState = currentState;
         pressed = currentState;
