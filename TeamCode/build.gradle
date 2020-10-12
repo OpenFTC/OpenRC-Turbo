@@ -38,13 +38,12 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    compileOnly 'com.github.technototes:TechnoLog:0.1.0'
-    compileOnly 'com.github.technototes:TechnoControl:0.1.1'
-    compileOnly 'com.github.technototes:TechnoSubsystem:0.1.0'
-
 
 
     implementation project(':RobotLibrary')
+    implementation project(':Control')
+    implementation project(':Logger')
+    implementation project(':Subsystem')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation('org.ejml:ejml-simple:0.39') {
         exclude group: 'org.ejml', module: 'ejml-all'

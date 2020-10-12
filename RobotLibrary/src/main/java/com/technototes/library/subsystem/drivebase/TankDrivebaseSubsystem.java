@@ -1,11 +1,9 @@
 package com.technototes.library.subsystem.drivebase;
 
-import com.technototes.control.gamepad.GamepadStick;
-import com.technototes.library.control.gamepad.old.OldCommandGamepad;
 import com.technototes.library.hardware.motor.Motor;
-import com.technototes.subsystem.NonHolomnicDrivebaseSubsystem;
+import com.technototes.subsystem.NonHolomonicDrivebaseSubsystem;
 
-public class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> implements NonHolomnicDrivebaseSubsystem {
+public class TankDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> implements NonHolomonicDrivebaseSubsystem {
     private T leftSide, rightSide;
 
     public TankDrivebaseSubsystem(T l, T r) {

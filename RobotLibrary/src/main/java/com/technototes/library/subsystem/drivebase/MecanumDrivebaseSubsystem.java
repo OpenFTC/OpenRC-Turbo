@@ -1,13 +1,11 @@
 package com.technototes.library.subsystem.drivebase;
 
-import com.qualcomm.robotcore.util.Range;
 import com.technototes.library.hardware.motor.Motor;
-import com.technototes.subsystem.HolomnicDrivebaseSubsystem;
-import com.technototes.library.util.MathUtils;
+import com.technototes.subsystem.HolomonicDrivebaseSubsystem;
 
 import java.util.function.DoubleSupplier;
 
-public class MecanumDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> implements HolomnicDrivebaseSubsystem {
+public class MecanumDrivebaseSubsystem<T extends Motor> extends DrivebaseSubsystem<T> implements HolomonicDrivebaseSubsystem {
     public T flMotor, frMotor, rlMotor, rrMotor;
 
     public MecanumDrivebaseSubsystem(T... d) {

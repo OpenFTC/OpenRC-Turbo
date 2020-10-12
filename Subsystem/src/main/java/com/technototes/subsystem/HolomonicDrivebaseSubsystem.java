@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.Range;
 /** An interface to extend holomnic drivebases from
  * @author Alex Stedman
  */
-public interface HolomnicDrivebaseSubsystem extends DrivebaseSubsystem {
+public interface HolomonicDrivebaseSubsystem extends DrivebaseSubsystem {
 
     /** Basic joystick drive function
      *

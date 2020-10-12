@@ -17,7 +17,7 @@ public interface SpeedSubsystem {
     double getSpeed();
 
     /** Stops the subsystem
-     * 
+     *
      */
     default void stop(){
         setSpeed(0);

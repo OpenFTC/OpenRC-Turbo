@@ -2,12 +2,12 @@ package com.technototes.library.subsystem.drivebase;
 
 import com.technototes.library.hardware.motor.EncodedMotor;
 import com.technototes.library.hardware.motor.Motor;
-import com.technototes.subsystem.HolomnicDrivebaseSubsystem;
+import com.technototes.subsystem.HolomonicDrivebaseSubsystem;
 
 import java.util.function.DoubleSupplier;
 //dont use incomplete
 @Deprecated
-public class SwerveDrivebaseSubsystem<T extends Motor, U extends EncodedMotor> extends DrivebaseSubsystem<T> implements HolomnicDrivebaseSubsystem {
+public class SwerveDrivebaseSubsystem<T extends Motor, U extends EncodedMotor> extends DrivebaseSubsystem<T> implements HolomonicDrivebaseSubsystem {
     public U steer1, steer2, steer3, steer4;
     //int numMod
     public SwerveDrivebaseSubsystem(T[] d, U[] s) {

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.util.Range;
 /** An interface for non holomnic drivebases(Tank for example)
  * @author Alex Stedman
  */
-public interface NonHolomnicDrivebaseSubsystem extends DrivebaseSubsystem {
+public interface NonHolomonicDrivebaseSubsystem extends DrivebaseSubsystem {
     /** Basic robot joystick drive function
      *
      * @param y The stick y value
