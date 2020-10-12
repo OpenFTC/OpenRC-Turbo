@@ -19,7 +19,7 @@ But if this library is so good, it must be hard to install right? wrong:
  - Add this to the repositories{} block in TeamCode/build.gradle: 
    ```maven { url 'https://jitpack.io' }```
  - And add this to the dependencies block in TeamCode/build.gradle: 
-   ```implementation 'com.github.technototes:TechnoLib:0.1.0'```    
+   ```implementation 'com.github.technototes:TechnoLib:0.3.0'```    
    **(replace 0.1.0 with the latest release if it isnt already)**
  - Build the code and you are good to go
  
@@ -30,10 +30,8 @@ Nope, in fact its easier than without the library
  - Plenty of simple things to make your life easier
  - Test implementation so you can see how to make this work
  - ETC.
+## Documentation
+Documentation can be found [Here](https://technototes.github.io/TechnoLib)
  
 **BEST OF LUCK KIDDOS**
 
-## CHANGELOG
-
-**VERSION 0.1.0**
- - First version out, best of luck
