@@ -30,10 +30,8 @@ Nope, in fact its easier than without the library
  - Plenty of simple things to make your life easier
  - Test implementation so you can see how to make this work
  - ETC.
+## Documentation
+Documentation can be found [Here](https://technototes.github.io/TechnoLib)
  
 **BEST OF LUCK KIDDOS**
 
-## CHANGELOG
-
-**VERSION 0.1.0**
- - First version out, best of luck
