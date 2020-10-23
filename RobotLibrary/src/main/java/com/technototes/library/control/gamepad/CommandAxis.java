@@ -6,15 +6,29 @@ import com.technototes.library.control.Trigger;
 
 import java.util.function.DoubleSupplier;
 
+/** Class for command axis for the gamepad
+ * @author Alex Stedman
+ */
 public class CommandAxis extends GamepadAxis implements GamepadTrigger<CommandAxis> {
-    public CommandAxis(){
+    protected CommandAxis(){
         super();
     }
-    public CommandAxis(DoubleSupplier d){
-        super(d);
+
+    /** Make a command axis
+     *
+     * @param supplier The axis supplier
+     */
+    public CommandAxis(DoubleSupplier supplier){
+        super(supplier);
     }
-    public CommandAxis(DoubleSupplier d, double t){
-        super(d, t);
+
+    /** Make a command axis
+     *
+     * @param supplier The axis supplier
+     * @param threshold The threshold to trigger to make the axis behave as a button
+     */
+    public CommandAxis(DoubleSupplier supplier, double threshold){
+        super(supplier, threshold);
     }
 
     @Override

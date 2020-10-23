@@ -1,54 +1,82 @@
 package com.technototes.library.hardware.servo;
 
 import com.technototes.library.hardware.*;
-import com.technototes.library.util.PIDUtils;
 import com.technototes.logger.Log;
 
-public class Servo extends HardwareDevice<com.qualcomm.robotcore.hardware.Servo> implements Sensored, Invertable<Servo>, Followable<Servo>, PID {
+/** Class for servos
+ * @author Alex Stedman
+ */
+public class Servo extends HardwareDevice<com.qualcomm.robotcore.hardware.Servo> implements Sensored, Invertable<Servo>, Followable<Servo> {
 
-    public double pid_p, pid_i, pid_d;
+    //public double pid_p, pid_i, pid_d;
 
-    public Servo(HardwareDevice<com.qualcomm.robotcore.hardware.Servo> d) {
-        super(d);
+    /** Create servo object
+     *
+     * @param device The servo
+     */
+    public Servo(com.qualcomm.robotcore.hardware.Servo device) {
+        super(device);
     }
 
-    public Servo(com.qualcomm.robotcore.hardware.Servo d) {
-        super(d);
+    /** Create servo object
+     *
+     * @param deviceName The device name in hardware map
+     */
+    public Servo(String deviceName) {
+        super(deviceName);
     }
 
-    public Servo(String s) {
-        super(s);
-    }
-
-
-    public Servo setStartingPosition(double pos) {
-        device.setPosition(pos);
+    /** Set position for the servo and return this
+     *
+     * @param position The servo position
+     * @return this
+     */
+    public Servo setStartingPosition(double position) {
+        setPosition(position);
         return this;
     }
 
     @Override
     public boolean getInverted() {
-        return device.getDirection() == com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
+        return getDevice().getDirection() == com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD;
     }
 
     @Override
-    public Servo setInverted(boolean val) {
-        device.setDirection(val ? com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD : com.qualcomm.robotcore.hardware.Servo.Direction.REVERSE);
+    public Servo setInverted(boolean invert) {
+        getDevice().setDirection(invert ? com.qualcomm.robotcore.hardware.Servo.Direction.FORWARD : com.qualcomm.robotcore.hardware.Servo.Direction.REVERSE);
         return this;
     }
 
-    public void setPosition(double val) {
-        device.setPosition(val);
+    /** Set servo position
+     *
+     * @param position The position to set the servo to
+     */
+    public void setPosition(double position) {
+        getDevice().setPosition(position);
     }
 
     @Log
     @Override
     public double getSensorValue() {
-        return device.getPosition();
+        return getDevice().getPosition();
     }
 
+    /** Get servo position
+     *
+     * @return The servo position
+     */
+    public double getPosition(){
+        return getSensorValue();
+    }
+
+    /** Set servo range
+     *
+     * @param min The minimum of the range
+     * @param max The maximum of the range
+     * @return this
+     */
     public Servo setRange(double min, double max) {
-        device.scaleRange(min, max);
+        getDevice().scaleRange(min, max);
         return this;
     }
 
@@ -57,21 +85,17 @@ public class Servo extends HardwareDevice<com.qualcomm.robotcore.hardware.Servo>
         return new ServoGroup(this, d);
     }
 
-    @Override
-    public void setPIDValues(double p, double i, double d) {
-        pid_p = p;
-        pid_i = i;
-        pid_d = d;
-    }
+//    @Override
+//    public void setPIDValues(double p, double i, double d) {
+//        pid_p = p;
+//        pid_i = i;
+//        pid_d = d;
+//    }
 
-    @Override
-    public boolean setPositionPID(double val) {
-        device.setPosition(PIDUtils.calculatePIDDouble(pid_p, pid_i, pid_d, device.getPosition(), val));
-        return isAtPosition(val);
-    }
-
-    public boolean isAtPosition(double ticks) {
-        return ticks - getSensorValue() > 0;
-    }
+//    @Override
+//    public boolean setPositionPID(double val) {
+//        device.setPosition(PIDUtils.calculatePIDDouble(pid_p, pid_i, pid_d, device.getPosition(), val));
+//        return isAtPosition(val);
+//    }
 
 }

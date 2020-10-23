@@ -9,7 +9,13 @@ import com.technototes.library.control.gamepad.CommandGamepad;
 import com.technototes.library.hardware.HardwareDevice;
 import com.technototes.logger.Logger;
 
+/** Class for command based op modes
+ * @author Alex Stedman
+ */
 public abstract class CommandOpMode extends LinearOpMode {
+    /** Time to run commands on endInstance at end of match
+     *
+     */
     public static double commandTimeAtEnd = 5;
     public CommandGamepad driverGamepad;
     public CommandGamepad codriverGamepad;

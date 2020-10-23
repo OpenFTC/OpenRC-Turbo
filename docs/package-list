@@ -1,4 +1,15 @@
 com.technototes.control
 com.technototes.control.gamepad
+com.technototes.library
+com.technototes.library.command
+com.technototes.library.command.simple
+com.technototes.library.control
+com.technototes.library.control.gamepad
+com.technototes.library.hardware
+com.technototes.library.hardware.motor
+com.technototes.library.hardware.sensor
+com.technototes.library.hardware.sensor.encoder
+com.technototes.library.hardware.servo
+com.technototes.library.util
 com.technototes.logger
 com.technototes.subsystem

@@ -10,10 +10,9 @@ import com.technototes.library.hardware.sensor.IMU;
 import com.technototes.library.hardware.sensor.RangeSensor;
 import com.technototes.library.hardware.servo.Servo;
 import com.technototes.logger.Log;
-import com.technototes.library.structure.HardwareBase;
 import com.technototes.logger.Loggable;
 
-public class Hardware extends HardwareBase implements Loggable {
+public class Hardware implements Loggable {
 
     public HardwareMap hardwareMap;
 

@@ -3,12 +3,10 @@ package org.firstinspires.ftc.teamcode.strafer;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.technototes.library.hardware.motor.Motor;
-import com.technototes.library.hardware.sensor.IMU;
 import com.technototes.logger.Log;
 import com.technototes.logger.Loggable;
-import com.technototes.library.structure.HardwareBase;
 
-public class Hardware extends HardwareBase implements Loggable {
+public class Hardware implements Loggable {
     //drive motors
     @Log.Number(name = "flmotor")
     public Motor<DcMotor> flMotor;

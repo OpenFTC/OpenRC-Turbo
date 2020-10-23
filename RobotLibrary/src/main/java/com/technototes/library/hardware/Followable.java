@@ -1,5 +1,14 @@
 package com.technototes.library.hardware;
 
+/** Simple interface for devices that can follow eachother
+ * @author Alex Stedman
+ * @param <T> The device class
+ */
 public interface Followable<T extends HardwareDevice> {
-    T follow(T d);
+    /** Follow function
+     *
+     * @param device The device to follow
+     * @return The interfaced Device
+     */
+    T follow(T device);
 }

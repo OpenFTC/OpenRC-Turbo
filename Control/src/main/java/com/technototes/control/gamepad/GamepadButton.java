@@ -104,12 +104,11 @@ public class GamepadButton implements BooleanSupplier, Periodic {
         return !toggle;
     }
 
-    /** Returns the button state as boolean (is the exact same as isActivated())
-     *
+    /** Same as isJustActivated()
      * @return The above condition
      */
     @Override
     public boolean getAsBoolean() {
-        return isActivated();
+        return isJustActivated();
     }
 }

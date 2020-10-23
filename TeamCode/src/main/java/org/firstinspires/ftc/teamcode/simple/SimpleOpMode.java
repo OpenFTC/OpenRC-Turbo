@@ -7,12 +7,12 @@ import com.technototes.library.command.CommandScheduler;
 import com.technototes.library.command.InstantCommand;
 import com.technototes.library.hardware.motor.Motor;
 import com.technototes.library.hardware.servo.Servo;
-import com.technototes.library.structure.TeleOpCommandOpMode;
+import com.technototes.library.structure.CommandOpMode;
 import com.technototes.library.subsystem.simple.SimpleServoSubsystem;
 import com.technototes.library.subsystem.simple.SimpleTankDrivebaseSubsystem;
 @Disabled
 @TeleOp(name = "Simple Teleop")
-public class SimpleOpMode extends TeleOpCommandOpMode{
+public class SimpleOpMode extends CommandOpMode {
     public SimpleTankDrivebaseSubsystem drivebaseSubsystem;
     public SimpleServoSubsystem gripperSubsystem;
     @Override

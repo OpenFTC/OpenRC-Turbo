@@ -4,14 +4,21 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.technototes.library.hardware.HardwareDeviceGroup;
 import com.technototes.logger.Log;
 
-
+/** Class for encoded motor groups
+ * @author Alex Stedman
+ */
 public class EncodedMotorGroup extends EncodedMotor<DcMotor> implements HardwareDeviceGroup<Motor> {
     private Motor[] followers;
 
-    public EncodedMotorGroup(EncodedMotor leader, Motor... f) {
-        super(leader);
-        followers = f;
-        for (Motor s : f) {
+    /** Create an encoded motor group
+     *
+     * @param leader The Lead motor
+     * @param followers The following motors
+     */
+    public EncodedMotorGroup(EncodedMotor<DcMotor> leader, Motor... followers) {
+        super(leader.getDevice());
+        this.followers = followers;
+        for (Motor s : followers) {
             s.follow(leader);
         }
     }
@@ -30,9 +37,9 @@ public class EncodedMotorGroup extends EncodedMotor<DcMotor> implements Hardware
         }
         return m;
     }
-    @Override
     @Log
-    public double getSpeed() {
-        return super.getSpeed();
+    @Override
+    public double getSensorValue() {
+        return super.getSensorValue();
     }
 }

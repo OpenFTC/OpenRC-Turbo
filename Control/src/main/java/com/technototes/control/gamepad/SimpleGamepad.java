@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 /** A simple class that implements AbstractGamepad
  * @author Alex Stedman
  */
-public class SimpleGamepad extends AbstractGamepad<GamepadButton, GamepadAxis> {
+public final class SimpleGamepad extends AbstractGamepad<GamepadButton, GamepadAxis> {
     /** Create a SimpleGamepad object
      *
      * @param g The normal gamepad
