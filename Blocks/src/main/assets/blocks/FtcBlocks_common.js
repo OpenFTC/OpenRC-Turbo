@@ -21,6 +21,7 @@
  */
 
 function initializeFtcBlocks() {
+  Blockly.prompt = parent.showPrompt; // https://blockly-demo.appspot.com/static/demos/custom-dialogs/index.html
   fetchJavaScriptForHardware(function(jsHardware, errorMessage) {
     if (jsHardware) {
       var newScript = document.createElement('script');
@@ -30,6 +31,7 @@ function initializeFtcBlocks() {
 
       initializeBlockly();
       initializeToolbox();
+      initializeAutoTransitionSelect();
 
       setTimeout(function() {
         initializeBlocks();
@@ -38,6 +40,23 @@ function initializeFtcBlocks() {
       alert(errorMessage);
     }
   });
+}
+
+function initializeAutoTransitionSelect() {
+  // AUTO_TRANSITION_OPTIONS is generated dynamically in HardwareUtil.fetchJavaScriptForHardware().
+  var autoTransitionSelect = document.getElementById('project_autoTransition');
+  // First add a blank option.
+  const option = document.createElement('option');
+  option.value = '';
+  option.text = '';
+  autoTransitionSelect.add(option);
+  // Then add the generated options, which are the names of the TeleOp op modes.
+  for (var i = 0; i < AUTO_TRANSITION_OPTIONS.length; i++) {
+    const option = document.createElement('option');
+    option.value = AUTO_TRANSITION_OPTIONS[i];
+    option.text = AUTO_TRANSITION_OPTIONS[i];
+    autoTransitionSelect.add(option);
+  }
 }
 
 function initializeBlocks() {
@@ -131,7 +150,8 @@ function projectEnabledChanged() {
 }
 
 /**
- * Saves the workspace blocks (including OpMode flavor, group, enable) and generated javascript.
+ * Saves the workspace blocks (including OpMode flavor, group, autoTransition, enable) and
+ * generated javascript.
  * Called from Save button onclick.
  */
 function saveButtonClicked() {
@@ -186,7 +206,9 @@ function saveProjectNow(opt_success_callback) {
       var flavorSelect = document.getElementById('project_flavor');
       var flavor = flavorSelect.options[flavorSelect.selectedIndex].value;
       var group = document.getElementById('project_group').value;
-      var blkFileContent = blocksContent + formatExtraXml(flavor, group, projectEnabled);
+      var autoTransitionSelect = document.getElementById('project_autoTransition');
+      var autoTransition = autoTransitionSelect.options[autoTransitionSelect.selectedIndex].value;
+      var blkFileContent = blocksContent + formatExtraXml(flavor, group, autoTransition, projectEnabled);
       saveProject(currentProjectName, blkFileContent, jsFileContent,
           function(success, errorMessage) {
         if (success) {
@@ -421,7 +443,26 @@ function loadBlocks(blkFileContent, opt_blocksLoaded_callback) {
     }
   }
   document.getElementById('project_group').value = extra['group'];
+  var foundAutoTransition = false;
+  if (extra['autoTransition']) {
+    var autoTransitionSelect = document.getElementById('project_autoTransition');
+    for (var i = 0; i < autoTransitionSelect.options.length; i++) {
+      if (autoTransitionSelect.options[i].value == extra['autoTransition']) {
+        foundAutoTransition = true;
+        autoTransitionSelect.selectedIndex = i;
+        break;
+      }
+    }
+  } else {
+    foundAutoTransition = true;
+  }
+  setAutoTransitionDisplay();
   document.getElementById('project_enabled').checked = extra['enabled'];
+
+  if (!foundAutoTransition) {
+    alert('The Op Mode named "' + extra['autoTransition'] + '" was previously chosen as the ' +
+        'Preselect TeleOp. There is currently no TeleOp Op Mode with that name.');
+  }
 
   loadBlocksIntoWorkspace(blocksContent, opt_blocksLoaded_callback);
   checkDownloadImageFeature();
@@ -906,10 +947,26 @@ function isExternal(url) {
 }
 
 function projectFlavorChanged() {
+  isDirty = true;
+  setAutoTransitionDisplay();
   showJava();
 }
 
+function setAutoTransitionDisplay() {
+  var flavorSelect = document.getElementById('project_flavor');
+  var flavor = flavorSelect.options[flavorSelect.selectedIndex].value;
+  var display = (flavor == 'AUTONOMOUS') ? 'inline-block' : 'none';
+  document.getElementById('project_autoTransition_label').style.display = display;
+  document.getElementById('project_autoTransition').style.display = display;
+}
+
 function projectGroupChanged() {
+  isDirty = true;
+  showJava();
+}
+
+function projectAutoTransitionChanged() {
+  isDirty = true;
   showJava();
 }
 

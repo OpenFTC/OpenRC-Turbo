@@ -91,6 +91,18 @@ public interface CameraFrame
      */
     int getImageSize();
 
+    /*
+     * Returns a byte array with the raw image data
+     */
+    byte[] getImageData();
+
+    /**
+     * Copies the raw image data into the byte array
+     * supplied as the parameter. Supplied array must
+     * be >= size reported by {@link #getImageSize()}
+     */
+    byte[] getImageData(byte[] buf);
+
     /**
      * Returns access to the data of the image. This will be {@link #getImageSize()} in length.
      */

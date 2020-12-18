@@ -123,10 +123,10 @@ function escapeHtml(text) {
   return out;
 }
 
-function formatExtraXml(flavor, group, enabled) {
+function formatExtraXml(flavor, group, autoTransition, enabled) {
   return '<?xml version=\'1.0\' encoding=\'UTF-8\' standalone=\'yes\' ?>' +
       '<Extra>' +
-      '<OpModeMeta flavor="' + flavor + '" group="' + group + '" />' +
+      '<OpModeMeta flavor="' + flavor + '" group="' + group + '" autoTransition="' + autoTransition + '" />' +
       '<Enabled value="' + enabled + '" />' +
       '</Extra> ';
 }
@@ -135,6 +135,7 @@ function parseExtraXml(blkFileContent) {
   var extra = Object.create(null);
   extra['flavor'] = 'TELEOP';
   extra['group'] = '';
+  extra['autoTransition'] = '';
   extra['enabled'] = true;
 
   // The blocks content is up to and including the first </xml>.
@@ -144,11 +145,12 @@ function parseExtraXml(blkFileContent) {
   var extraXml = blkFileContent.substring(i + 6); // 6 is length of </xml>
   if (extraXml.length > 0) {
     var parser = new DOMParser();
-    var xmlDoc = parser.parseFromString(extraXml, 'text/xml');
+    var xmlDoc = parser.parseFromString(extraXml.trim(), 'text/xml');
     var opModeMetaElements = xmlDoc.getElementsByTagName('OpModeMeta');
     if (opModeMetaElements.length >= 1) {
       extra['flavor'] = opModeMetaElements[0].getAttribute('flavor');
       extra['group'] = opModeMetaElements[0].getAttribute('group');
+      extra['autoTransition'] = opModeMetaElements[0].getAttribute('autoTransition');
     }
     var enabledElements = xmlDoc.getElementsByTagName('Enabled');
     if (enabledElements.length >= 1) {

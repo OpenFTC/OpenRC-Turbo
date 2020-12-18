@@ -121,6 +121,16 @@ public class UvcApiCameraFrame extends DestructOnFinalize/*no parent*/ implement
         return getRequest().getSize();
         }
 
+    @Override public byte[] getImageData()
+        {
+        return uvcFrame.getImageData();
+        }
+
+    @Override public byte[] getImageData(byte[] buf)
+        {
+        return uvcFrame.getImageData(buf);
+        }
+
     @Override public int getImageSize()
         {
         return uvcFrame.getImageSize();

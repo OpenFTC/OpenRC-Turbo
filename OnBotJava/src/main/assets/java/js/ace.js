@@ -12326,10 +12326,17 @@ define("ace/commands/default_commands",["require","exports","module","ace/lib/la
         name: "gotoline",
         bindKey: bindKey("Ctrl-L", "Command-L"),
         exec: function(editor, line) {
-            if (typeof line !== "number")
-                line = parseInt(prompt("Enter line number:"), 10);
-            if (!isNaN(line)) {
-                editor.gotoLine(line);
+            if (typeof line !== "number") {
+                parent.showPrompt("Enter line number:", "", function(response) {
+                    line = parseInt(response, 10);
+                    if (!isNaN(line)) {
+                        editor.gotoLine(line);
+                    }
+                });
+            } else {
+                if (!isNaN(line)) {
+                    editor.gotoLine(line);
+                }
             }
         },
         readOnly: true

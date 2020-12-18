@@ -64,4 +64,13 @@ public @interface Autonomous
      * @return the group into which the annotated OpMode is to be categorized
      */
     String group() default "";
+
+    /**
+     * The name of the TeleOp OpMode you'd like to have automagically preselected
+     * on the Driver Station when selecting this Autonomous OpMode. If empty, then
+     * nothing will be automagically preselected.
+     *
+     * @return see above
+     */
+    String preselectTeleOp() default "";
     }

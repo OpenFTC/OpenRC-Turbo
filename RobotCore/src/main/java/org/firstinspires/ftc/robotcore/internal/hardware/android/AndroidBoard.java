@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
+import com.qualcomm.robotcore.util.Intents;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -140,7 +141,7 @@ public abstract class AndroidBoard {
     public abstract boolean supportsBulkNetworkSettings();
 
     /**
-     * Returns whether or not the AP service supports {@link com.qualcomm.robotcore.util.Intents.ACTION_FTC_AP_GET_CURRENT_CHANNEL_INFO}
+     * Returns whether or not the AP service supports {@link Intents#ACTION_FTC_AP_GET_CURRENT_CHANNEL_INFO}
      */
     public abstract boolean supportsGetChannelInfoIntent();
 
@@ -160,6 +161,12 @@ public abstract class AndroidBoard {
      * Returns whether or not the board's OS has ControlHubUpdater baked into its OS
      */
     public abstract boolean hasControlHubUpdater();
+
+    /**
+     * Returns whether or not the Control Hub OS has a watchdog for the RC app that looks for
+     * {@link Intents#ACTION_FTC_NOTIFY_RC_ALIVE} broadcasts
+     */
+    public abstract boolean hasRcAppWatchdog();
 
     /**
      * Logs some basic info about the active Android board.

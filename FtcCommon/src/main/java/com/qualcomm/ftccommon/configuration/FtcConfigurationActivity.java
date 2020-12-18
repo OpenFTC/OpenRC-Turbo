@@ -342,12 +342,35 @@ public class FtcConfigurationActivity extends EditActivity implements RecvLoopRu
     configurationUtility.resetNameUniquifiers();
     for(Map.Entry<SerialNumber, DeviceManager.UsbDeviceType> entry : scannedDevices.entrySet()) {
       final SerialNumber serialNumber = entry.getKey();
+      final DeviceManager.UsbDeviceType deviceType = entry.getValue();
+
+      @SuppressWarnings("rawtypes")
       ControllerConfiguration controllerConfiguration = null;
+
       if (carryOver(serialNumber, existingControllers)) {
-        RobotLog.vv(TAG, "carrying over %s", serialNumber);
-        controllerConfiguration = existingControllers.get(serialNumber);
+        // For Lynx USB devices, we want to perform discovery, and then carry over individual modules, rather than the whole portal.
+        if (deviceType == DeviceManager.UsbDeviceType.LYNX_USB_DEVICE) {
+          RobotLog.vv(TAG, "Performing Lynx discovery");
+          controllerConfiguration = configurationUtility.buildNewControllerConfiguration(serialNumber, deviceType, usbScanManager.getLynxModuleMetaListSupplier(serialNumber));
+          LynxUsbDeviceConfiguration lynxUsbConfiguration = (LynxUsbDeviceConfiguration) controllerConfiguration;
+          List<LynxModuleConfiguration> discoveredModules = new ArrayList<>(lynxUsbConfiguration.getModules()); // Gives us a list that we won't be editing, so that we can safely iterate over it
+          for (LynxModuleConfiguration discoveredModule: discoveredModules) {
+            for (LynxModuleConfiguration existingModule: ((LynxUsbDeviceConfiguration) existingControllers.get(serialNumber)).getModules()) {
+              if (discoveredModule.getModuleAddress() == existingModule.getModuleAddress()) {
+                RobotLog.vv(TAG, "carrying over %s", existingModule.getModuleSerialNumber());
+                existingModule.setIsParent(discoveredModule.isParent()); // Preserve parent state from discovery
+                lynxUsbConfiguration.getModules().remove(discoveredModule);
+                lynxUsbConfiguration.getModules().add(existingModule);
+              }
+            }
+          }
+        } else {
+          RobotLog.vv(TAG, "carrying over %s", serialNumber);
+          controllerConfiguration = existingControllers.get(serialNumber);
+        }
+
       } else {
-        controllerConfiguration = configurationUtility.buildNewControllerConfiguration(serialNumber, entry.getValue(), usbScanManager.getLynxModuleMetaListSupplier(serialNumber));
+        controllerConfiguration = configurationUtility.buildNewControllerConfiguration(serialNumber, deviceType, usbScanManager.getLynxModuleMetaListSupplier(serialNumber));
       }
       if (controllerConfiguration != null) {
         controllerConfiguration.setKnownToBeAttached(true);

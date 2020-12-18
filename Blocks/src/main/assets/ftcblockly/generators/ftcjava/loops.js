@@ -43,7 +43,7 @@ Blockly.FtcJava['controls_repeat_ext'] = function(block) {
         Blockly.FtcJava.ORDER_ASSIGNMENT) || '0';
   }
   var branch = Blockly.FtcJava.statementToCode(block, 'DO');
-  branch = Blockly.FtcJava.addLoopTrap(branch, block.id);
+  branch = Blockly.FtcJava.addLoopTrap(branch, block);
   var code = '';
   var loopVar = Blockly.FtcJava.variableDB_.getDistinctName(
       'count', Blockly.Variables.NAME_TYPE);
@@ -70,7 +70,7 @@ Blockly.FtcJava['controls_whileUntil'] = function(block) {
       until ? Blockly.FtcJava.ORDER_LOGICAL_NOT :
       Blockly.FtcJava.ORDER_NONE) || 'false';
   var branch = Blockly.FtcJava.statementToCode(block, 'DO');
-  branch = Blockly.FtcJava.addLoopTrap(branch, block.id);
+  branch = Blockly.FtcJava.addLoopTrap(branch, block);
   if (until) {
     argument0 = '!' + argument0;
   }
@@ -88,7 +88,7 @@ Blockly.FtcJava['controls_for'] = function(block) {
   var increment = Blockly.FtcJava.valueToCode(block, 'BY',
       Blockly.FtcJava.ORDER_ASSIGNMENT) || '1';
   var branch = Blockly.FtcJava.statementToCode(block, 'DO');
-  branch = Blockly.FtcJava.addLoopTrap(branch, block.id);
+  branch = Blockly.FtcJava.addLoopTrap(branch, block);
   var code;
   if (Blockly.isNumber(argument0) && Blockly.isNumber(argument1) &&
       Blockly.isNumber(increment)) {
@@ -147,10 +147,10 @@ Blockly.FtcJava['controls_forEach'] = function(block) {
   var variable0 = Blockly.FtcJava.variableDB_.getName(
       block.getFieldValue('VAR'), Blockly.Variables.NAME_TYPE);
   var variable0Type = '';
-  var listCode = Blockly.FtcJava.valueToCode(block, 'LIST',
+  var argument0 = Blockly.FtcJava.valueToCode(block, 'LIST',
       Blockly.FtcJava.ORDER_ASSIGNMENT);
   var listType;
-  if (listCode) {
+  if (argument0) {
     listType = Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('LIST'));
     var matches = listType.match(/^List<(.*)>$/);
     if (matches) {
@@ -159,27 +159,28 @@ Blockly.FtcJava['controls_forEach'] = function(block) {
   } else {
     Blockly.FtcJava.generateImport_('Collections');
     Blockly.FtcJava.generateImport_('List');
-    listCode = 'Collections.emptyList()';
+    argument0 = 'Collections.emptyList()';
     listType = 'List';
     variable0Type = 'Object';
   }
   var branch = Blockly.FtcJava.statementToCode(block, 'DO');
-  branch = Blockly.FtcJava.addLoopTrap(branch, block.id);
+  branch = Blockly.FtcJava.addLoopTrap(branch, block);
   var code = '';
   // Cache non-trivial values to variables to prevent repeated look-ups.
-  var listVar;
-  if (listCode.match(/^\w+$/)) {
-    listVar = listCode;
-  } else {
+  var listVar = argument0;
+  if (!argument0.match(/^\w+$/)) {
     listVar = Blockly.FtcJava.variableDB_.getDistinctName(
         variable0 + '_list', Blockly.Variables.NAME_TYPE);
-    code += listType + ' ' + listVar + ' = ' + listCode + ';\n';
+    code += listType + ' ' + listVar + ' = ' + argument0 + ';\n';
   }
+  var itemVar = Blockly.FtcJava.variableDB_.getDistinctName(
+      variable0 + '_item', Blockly.Variables.NAME_TYPE);
+  branch = Blockly.FtcJava.INDENT + variable0 + ' = ' + itemVar + ';\n' + branch;
   if (!variable0Type) {
     code += '// TODO: Enter the type for variable named ' + variable0 + '\n';
     variable0Type = 'UNKNOWN_TYPE';
   }
-  code += 'for (' + variable0Type + ' ' + variable0 + ' : ' + listVar + ') {\n' + branch + '}\n';
+  code += 'for (' + variable0Type + ' ' + itemVar + ' : ' + listVar + ') {\n' + branch + '}\n';
   return code;
 };
 

@@ -91,6 +91,10 @@ public class FakeAndroidBoard extends AndroidBoard {
         return false;
     }
 
+    @Override public boolean hasRcAppWatchdog() {
+        return false;
+    }
+
     @Override public WifiDataRate getWifiApBeaconRate() {
         return WifiDataRate.UNKNOWN;
     }

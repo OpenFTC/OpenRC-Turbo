@@ -34,6 +34,7 @@
 package org.firstinspires.ftc.robotcore.internal.opmode;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * {@link OpModeMeta} provides information about an OpMode.
@@ -45,6 +46,7 @@ public class OpModeMeta
     //----------------------------------------------------------------------------------------------
 
     public enum Flavor { AUTONOMOUS, TELEOP }
+    public enum Source { ANDROID_STUDIO, BLOCKLY, ONBOTJAVA}
 
     // arbitrary, but unlikely to be used by users. Sorts early
     public static final String DefaultGroup = "$$$$$$$";
@@ -53,44 +55,19 @@ public class OpModeMeta
     // State
     //----------------------------------------------------------------------------------------------
 
-    public final @NonNull Flavor flavor;
-    public final @NonNull String group;
-    public final @NonNull String name;
+    public final @NonNull  Flavor flavor;
+    public final @NonNull  String group;
+    public final @NonNull  String name;
+    public final @Nullable String autoTransition;
+    public final @Nullable Source source;
 
-    //----------------------------------------------------------------------------------------------
-    // Construction
-    //----------------------------------------------------------------------------------------------
-
-    public OpModeMeta()
+    private OpModeMeta(Flavor flavor, String group, String name, String autoTransition, Source source)
         {
-        this("");
-        }
-    public OpModeMeta(@NonNull String name)
-        {
-        this(name, Flavor.TELEOP);
-        }
-    public OpModeMeta(@NonNull String name, @NonNull Flavor flavor)
-        {
-        this(name, flavor, DefaultGroup);
-        }
-    public OpModeMeta(@NonNull Flavor flavor, @NonNull String group)
-        {
-        this("", flavor, group);
-        }
-    public OpModeMeta(@NonNull String name, @NonNull Flavor flavor, @NonNull String group)
-        {
-        this.name = name;
         this.flavor = flavor;
         this.group = group;
-        }
-
-    public static OpModeMeta forName(@NonNull String name, @NonNull OpModeMeta base)
-        {
-        return new OpModeMeta(name, base.flavor, base.group);
-        }
-    public static OpModeMeta forGroup(@NonNull String group, @NonNull OpModeMeta base)
-        {
-        return new OpModeMeta(base.name, base.flavor, group);
+        this.name = name;
+        this.autoTransition = autoTransition;
+        this.source = source;
         }
 
     //----------------------------------------------------------------------------------------------
@@ -121,5 +98,68 @@ public class OpModeMeta
     @Override public int hashCode()
         {
         return this.name.hashCode();
+        }
+
+    //----------------------------------------------------------------------------------------------
+    // Builder
+    //----------------------------------------------------------------------------------------------
+    public static class Builder
+        {
+        public @NonNull  Flavor flavor = Flavor.TELEOP;
+        public @NonNull  String group = DefaultGroup;
+        public @NonNull  String name = "";
+        public @Nullable String autoTransition = null;
+        public @Nullable Source source = null;
+
+        public Builder (){};
+
+        public Builder(OpModeMeta existing)
+            {
+            this.flavor = existing.flavor;
+            this.group = existing.group;
+            this.name = existing.name;
+            this.autoTransition = existing.autoTransition;
+            this.source = existing.source;
+            }
+
+        public Builder setFlavor(Flavor flavor)
+            {
+            this.flavor = flavor;
+            return this;
+            }
+
+        public Builder setGroup(String group)
+            {
+            this.group = group;
+            return this;
+            }
+
+        public Builder setName(String name)
+            {
+            this.name = name;
+            return this;
+            }
+
+        public Builder setTransitionTarget(String autoTransition)
+            {
+            this.autoTransition = autoTransition;
+            return this;
+            }
+
+        public Builder setSource(Source source)
+            {
+            this.source = source;
+            return this;
+            }
+
+        public OpModeMeta build()
+            {
+            return new OpModeMeta(flavor, group, name, autoTransition, source);
+            }
+
+        public static Builder wrap(OpModeMeta existing)
+            {
+            return new Builder(existing);
+            }
         }
     }

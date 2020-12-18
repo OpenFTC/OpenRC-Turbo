@@ -71,6 +71,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TfodCurrentGame;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
 import org.firstinspires.ftc.robotcore.internal.opmode.BlocksClassFilter;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
+import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
@@ -176,6 +178,20 @@ public class HardwareUtil {
         .replaceAll("\\> +\\<", "><");
     // The toolbox is added at the end, because it makes it easier to troubleshoot problems with
     // this code.
+
+    Set<String> teleOpNames = new TreeSet<>();
+    RegisteredOpModes registeredOpModes = RegisteredOpModes.getInstance();
+    registeredOpModes.waitOpModesRegistered();
+    for (OpModeMeta opModeMeta : registeredOpModes.getOpModes()) {
+      if (opModeMeta.flavor == OpModeMeta.Flavor.TELEOP) {
+        teleOpNames.add(opModeMeta.name);
+      }
+    }
+    jsHardware.append("var AUTO_TRANSITION_OPTIONS = [\n");
+    for (String teleOpName : teleOpNames) {
+      jsHardware.append("  '").append(teleOpName).append("',\n");
+    }
+    jsHardware.append("];\n\n");
 
     jsHardware
         .append("var currentGameName = '" + CURRENT_GAME_NAME + "';\n")

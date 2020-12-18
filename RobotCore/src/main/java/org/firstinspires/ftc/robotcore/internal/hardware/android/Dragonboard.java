@@ -119,6 +119,10 @@ public class Dragonboard extends AndroidBoard {
         return false;
     }
 
+    @Override public boolean hasRcAppWatchdog() {
+        return false;
+    }
+
     // Private methods
 
     private static File findSerialDevTty()

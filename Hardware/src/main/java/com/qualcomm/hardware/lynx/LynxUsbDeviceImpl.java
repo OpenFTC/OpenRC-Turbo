@@ -440,7 +440,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     //----------------------------------------------------------------------------------------------
     // Operations
     //----------------------------------------------------------------------------------------------
-    
+
     protected Collection<LynxModule> getKnownModules()
         {
         synchronized (this.knownModules)
@@ -560,7 +560,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
                 {
                 // If we don't full add, then we don't add at all
                 RobotLog.logExceptionHeader(TAG, e, "addConfiguredModule() module#=%d", module.getModuleAddress());
-                RobotLog.ee(TAG, "Unable to communicate with REV Hub #%d at robot startup. A Robot Restart will be required to use this hub.");
+                RobotLog.ee(TAG, "Unable to communicate with REV Hub #%d at robot startup. A Robot Restart will be required to use this hub.", module.getModuleAddress());
                 module.close();
                 synchronized (this.knownModules)
                     {

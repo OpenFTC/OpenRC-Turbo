@@ -48,7 +48,6 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -58,6 +57,8 @@ import android.os.ResultReceiver;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.os.SystemClock;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.EditText;
@@ -238,6 +239,7 @@ public class AppUtil
 
         usbFileSystemRoot = null;
         getUsbFileSystemRoot();
+        AppAliveNotifier.getInstance().onAppStartup();
         }
 
     //----------------------------------------------------------------------------------------------
@@ -633,13 +635,13 @@ public class AppUtil
         // that's long enough for us to get out of the way in the first place.
         int msRestartDelay = 1500;
         AlarmManager alarmManager = (AlarmManager) rootActivity.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + msRestartDelay, pendingIntent);
+        alarmManager.setExact(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + msRestartDelay, pendingIntent);
         System.exit(exitCode);
         }
 
     public void exitApplication(int resultCode)
         {
-        RobotLog.vv(TAG, "exitApplication(%d)", resultCode);
+        RobotLog.vv(TAG, new RuntimeException(), "exitApplication(%d) was called. Printing stacktrace.", resultCode);
         System.exit(resultCode);
         }
 

@@ -144,6 +144,11 @@
         Group:&nbsp;<input type="text" id="project_group" class="not_bold" oninput="projectGroupChanged()">
         &nbsp;
         <input type="checkbox" id="project_enabled" class="project_row_checkbox" onclick="projectEnabledChanged()">&nbsp;Enabled
+        &nbsp;
+        &nbsp;
+        <span id="project_autoTransition_label" style="display: none;">Preselect TeleOp:</span>
+        <select id="project_autoTransition" class="not_bold" style="width: 150px; display: none;" onchange="projectAutoTransitionChanged()">
+        </select>
       </td>
       <td align="right">
         <input type="checkbox" id="show_java" class="project_row_checkbox" onclick="showJavaChanged()">&nbsp;Show Java&nbsp;&nbsp;

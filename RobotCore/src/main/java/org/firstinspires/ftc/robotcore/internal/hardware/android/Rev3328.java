@@ -45,7 +45,8 @@ public class Rev3328 extends AndroidBoard {
     private static final String TAG = "Rev3328";
     private static final int OS_1_1_0_VERSION_NUM = 3;
     private static final int OS_1_1_1_VERSION_NUM = 4;
-    private static final int OS_1_1_2_VERSION_NUM = 5;
+    private static final int OS_1_1_2_BETA_VERSION_NUM = 5;
+    private static final int OS_1_1_2_VERSION_NUM = 6;
 
     // Don't allow instantiation outside of our package
     protected Rev3328() {}
@@ -142,19 +143,23 @@ public class Rev3328 extends AndroidBoard {
     }
 
     @Override public boolean supports5GhzAutoSelection() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean supportsBulkNetworkSettings() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean supportsGetChannelInfoIntent() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean hasControlHubUpdater() {
         return true;
+    }
+
+    @Override public boolean hasRcAppWatchdog() {
+        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
     }
 
     private enum RealtekWifiDataRate {

@@ -79,4 +79,7 @@ public interface ExposureControl extends CameraControl
     boolean setExposure(long duration, TimeUnit durationUnit);
 
     boolean isExposureSupported();
+
+    boolean getAePriority();
+    boolean setAePriority(boolean priority);
     }

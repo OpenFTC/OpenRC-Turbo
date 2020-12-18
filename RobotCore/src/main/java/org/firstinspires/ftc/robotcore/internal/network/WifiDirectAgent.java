@@ -33,21 +33,17 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.network;
 
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
-import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.provider.Settings;
 
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.ClassUtil;
@@ -442,8 +438,12 @@ import java.util.List;
 
         protected void dump(WifiP2pGroup info)
             {
-            Assert.assertNotNull(info);
-            RobotLog.vv(TAG, "WifiP2pGroup: %s", (info.toString().replace("\n ", ", ")));
+            String infoString = "none";
+            if (info != null)
+                {
+                infoString = info.toString().replace("\n ", ", ");
+                }
+            RobotLog.vv(TAG, "WifiP2pGroup: %s", infoString);
             }
         }
 

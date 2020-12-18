@@ -99,8 +99,12 @@ public class FetchJavaScriptSettings implements WebHandler {
                 "		if (typeof name === 'undefined' || typeof val === 'undefined') throw new Error('put doesn\\' work with name or val undefined');\n" +
                 "		if (settings.get(name) === null) { console.warn(name + \" is not a valid setting\"); return; }\n" +
                 "		dict[name] = typeof val === 'function' ? val() : val;\n" +
-                        "		return $.post(settings._settingsUrl, 'settings=' + window.JSON.stringify(dict));\n" +
+                "		return this;\n" +
                 "   }\n" +
+                "\n" +
+                "    settings.commit = function(name, val) {\n" +
+                "        return $.post(settings._settingsUrl, 'settings=' + window.JSON.stringify(dict));\n" +
+                "    }\n" +
                 "\n" +
                 "   env.urls = JSON.parse(settings._urls)" +
                 "})(window, jQuery, \n" +

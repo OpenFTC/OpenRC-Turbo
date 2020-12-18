@@ -45,8 +45,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
  * {@link FtcRobotControllerWatchdogService} is a simple sticky service that we use to detect
- * a crash of the robot controller process and auto-restart the robot controller activity when
- * that happens.
+ * when Android has killed the robot controller process and auto-restart the robot controller
+ * activity when that happens.
  */
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerWatchdogService extends Service
@@ -148,7 +148,7 @@ public class FtcRobotControllerWatchdogService extends Service
         }
 
     /**
-     * On restart after crash, intent is always null; when the RC activity starts us, it's never null
+     * On restart after the app was killed by the system, intent is always null; when the RC activity starts us, it's never null
      */
     @Override public int onStartCommand(Intent intent, int flags, int startId)
         {

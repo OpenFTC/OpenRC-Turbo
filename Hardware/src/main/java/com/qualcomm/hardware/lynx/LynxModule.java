@@ -835,7 +835,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     void sendLEDPatternSteps(Collection<Step> steps)
         {
-        RobotLog.vv(TAG, "sendLEDPatternSteps(): #steps=%d", steps.size());
+        RobotLog.vv(TAG, "sendLEDPatternSteps(): steps=%s", steps);
 
         // Hack: in the current (as of 2016.12.12) version of the firmware, if you send an LED pattern
         // as the first message when coming back from KA time out, it will be overwritten. As a work
@@ -932,7 +932,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             if (lynxModule.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS)
                 {
                 // The embedded module has a special, hidden address, so we should just show a constant green
-                steps.add(new Step(Color.GREEN, 25, TimeUnit.SECONDS));
+                steps.add(new Step(Color.GREEN, 1, TimeUnit.SECONDS));
                 return steps;
                 }
             // We set the LED to be a solid green, interrupted occasionally by a brief off duration.
