@@ -48,17 +48,18 @@
                 templates: [{name: 'None', value: 'none'}],
                 valid: true,
                 newFolder: function () {
-                    var location = prompt('Enter the new folder name', env.tools.selectedLocation($scope.newFile.file.location));
-                    if (location === null) return;
-                    $scope.newFile.file.location = location;
-                    if (location.lastIndexOf('/') !== location.length - 1) location += '/';
-                    if (location.indexOf('/') === 0) location = location.substr(1);
-                    var fileNewUri = env.urls.URI_FILE_NEW + '?' + env.urls.REQUEST_KEY_FILE + '=' + '/src/' + location;
-                    var dataString = env.urls.REQUEST_KEY_NEW + '=1';
-                    $.post(fileNewUri, dataString).fail(function () {
-                        window.alert("Could not create new folder!");
+                    parent.showPrompt('Enter the new folder name', env.tools.selectedLocation($scope.newFile.file.location), function(location) {
+                        if (location === null) return;
+                        $scope.newFile.file.location = location;
+                        if (location.lastIndexOf('/') !== location.length - 1) location += '/';
+                        if (location.indexOf('/') === 0) location = location.substr(1);
+                        var fileNewUri = env.urls.URI_FILE_NEW + '?' + env.urls.REQUEST_KEY_FILE + '=' + '/src/' + location;
+                        var dataString = env.urls.REQUEST_KEY_NEW + '=1';
+                        $.post(fileNewUri, dataString).fail(function () {
+                            window.alert("Could not create new folder!");
+                        });
+                        $scope.newFile.regenerateLocationPicker();
                     });
-                    $scope.newFile.regenerateLocationPicker();
                 },
                 regenerateLocationPicker: function () {
                     env.setup.projectView(function () {
@@ -954,23 +955,24 @@
                     $('#settings-button').tooltip('hide');
                     $('#settings-modal').modal('show');
                     $('#settings-okay').one('click', function () {
-                        var settingRequests = [
-                            env.settings.put('autocompleteEnabled', $scope.settings.autocompleteEnabled),
-                            env.settings.put('autocompleteForceEnabled', $scope.settings.autocompleteForceEnabled),
-                            env.settings.put('autoImportEnabled', $scope.settings.autoImportEnabled),
-                            env.settings.put('defaultPackage', $scope.settings.defaultPackage),
-                            env.settings.put('font', $scope.settings.font),
-                            env.settings.put('fontSize', $scope.settings.fontSize),
-                            env.settings.put('keybinding', $scope.settings.keybinding),
-                            env.settings.put('invisibleChars', $scope.settings.invisibleChars),
-                            env.settings.put('printMargin', $scope.settings.printMargin),
-                            env.settings.put('softWrap', $scope.settings.softWrap),
-                            env.settings.put('spacesToTab', $scope.settings.spacesToTab),
-                            env.settings.put('theme', $scope.settings.theme),
-                            env.settings.put('whitespace', $scope.settings.whitespace)
-                        ];
+                        var settingRequest =
+                            env.settings
+                                .put('autocompleteEnabled', $scope.settings.autocompleteEnabled)
+                                .put('autocompleteForceEnabled', $scope.settings.autocompleteForceEnabled)
+                                .put('autoImportEnabled', $scope.settings.autoImportEnabled)
+                                .put('defaultPackage', $scope.settings.defaultPackage)
+                                .put('font', $scope.settings.font)
+                                .put('fontSize', $scope.settings.fontSize)
+                                .put('keybinding', $scope.settings.keybinding)
+                                .put('invisibleChars', $scope.settings.invisibleChars)
+                                .put('printMargin', $scope.settings.printMargin)
+                                .put('softWrap', $scope.settings.softWrap)
+                                .put('spacesToTab', $scope.settings.spacesToTab)
+                                .put('theme', $scope.settings.theme)
+                                .put('whitespace', $scope.settings.whitespace)
+                                .commit();
 
-                        $.when.apply(this, settingRequests).then(function () {
+                        settingRequest.then(function () {
                             $('#settings-modal').modal('hide');
                             window.location.reload(true);
                         });
@@ -998,15 +1000,25 @@
                         });
                     });
                     $('#settings-advanced-factory-reset').one('click', function () {
-                        if (confirm('Are you ABSOLUTELY sure that you want to do this?') &&
-                            prompt("Type in 'Yes I want to' (without quotes, case-sensitive) if you wish to proceed") === 'Yes I want to') {
-                            $.get(env.urls.URI_ADMIN_RESET_ONBOTJAVA, function (data) {
-                                $.get(env.urls.URI_ADMIN_RESET_ONBOTJAVA + '?' + env.urls.REQUEST_KEY_ID + '=' + data).done(function() {
-                                    alert('Reset finished!');
-                                    window.location = env.urls.URI_JAVA_EDITOR;
-                                });
-                            }).fail(function () {
-                               alert('Failed to completely reset OnBotJava, please see controller logs as manual intervention is likely required');
+                        if (confirm('Are you ABSOLUTELY sure that you want to do this?')) {
+                            parent.showPrompt("Type in 'Yes I want to' (without quotes, case-sensitive) if you wish to proceed", "", function(response) {
+                                if (response === 'Yes I want to') {
+                                    $.get(env.urls.URI_ADMIN_RESET_ONBOTJAVA, function (data) {
+                                        $.get(env.urls.URI_ADMIN_RESET_ONBOTJAVA + '?' + env.urls.REQUEST_KEY_ID + '=' + data).done(function() {
+                                            alert('Reset finished!');
+                                            window.location = env.urls.URI_JAVA_EDITOR;
+                                        })
+                                        .fail(function () {
+                                            console.log("The second RESET_ONBOTJAVA GET request may have failed, and manual intervention may be necessary");
+                                            // TODO: Figure out why this function always executes, and un-comment the alert
+                                            // alert('Failed to completely reset OnBotJava, please see controller logs as manual intervention is likely required');
+                                        });
+                                    }).fail(function () {
+                                        alert('Failed to completely reset OnBotJava, please see controller logs as manual intervention is likely required');
+                                    });
+                                } else {
+                                    alert('Incorrect input, cancelling reset');
+                                }
                             });
                         }
                     });

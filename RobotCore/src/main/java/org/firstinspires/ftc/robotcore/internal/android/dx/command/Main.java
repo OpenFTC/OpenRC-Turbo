@@ -17,6 +17,7 @@
 package org.firstinspires.ftc.robotcore.internal.android.dx.command;
 
 import org.firstinspires.ftc.robotcore.internal.android.dx.Version;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
  * Main class for dx. It recognizes enough options to be able to dispatch
@@ -130,7 +131,7 @@ public class Main {
         } catch (RuntimeException ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL EXCEPTION:");
             ex.printStackTrace();
-            System.exit(2);
+            AppUtil.getInstance().exitApplication(2);
         } catch (Throwable ex) {
             System.err.println("\nUNEXPECTED TOP-LEVEL ERROR:");
             ex.printStackTrace();
@@ -142,7 +143,7 @@ public class Main {
                         "(This program is known to be incompatible " +
                         "with recent releases of GCJ.)");
             }
-            System.exit(3);
+            AppUtil.getInstance().exitApplication(3);
         }
 
         if (!gotCmd) {
@@ -152,7 +153,7 @@ public class Main {
 
         if (showUsage) {
             usage();
-            System.exit(1);
+            AppUtil.getInstance().exitApplication(1);
         }
     }
 
@@ -161,7 +162,7 @@ public class Main {
      */
     private static void version() {
         System.err.println("dx version " + Version.VERSION);
-        System.exit(0);
+        AppUtil.getInstance().exitApplication(0);
     }
 
     /**

@@ -780,10 +780,10 @@ public class RobotLog {
   }
 
   public static void logBuildConfig(Class buildConfig) {
-    String moduleName  = getStringStatic(buildConfig, "APPLICATION_ID");
+    String packageName  = getStringStatic(buildConfig, "LIBRARY_PACKAGE_NAME");
     int versionCode    = getIntStatic(buildConfig, "VERSION_CODE");
     String versionName = getStringStatic(buildConfig, "VERSION_NAME");
-    RobotLog.v("BuildConfig: versionCode=%d versionName=%s module=%s", versionCode, versionName, moduleName);
+    RobotLog.v("BuildConfig: versionCode=%d versionName=%s packageName=%s", versionCode, versionName, packageName);
   }
 
 

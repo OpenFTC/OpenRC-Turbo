@@ -215,6 +215,7 @@
 <script type="text/javascript" src="/js/rc_config.js"></script>
 <script type="text/javascript" src="/js/util.js"></script>
 <script type="text/javascript">
+    'use strict';
 
     var appUpdateRequiresReboot = false;
     var mostRecentUploadIdentifier;
@@ -396,7 +397,7 @@
                         } else {
                             alert("Firmware update completed successfully")
                         }
-                        refreshRcInfo();
+                        refreshRCInfo();
                     } else {
                         var deviceString;
                         if (module.serialNumber === "(embedded)") {
@@ -780,7 +781,7 @@
         }
     });
 
-    onDownloadLogsClicked = function() {
+    var onDownloadLogsClicked = function() {
         loadJsonObject(URI_LIST_LOG_FILES, function (logFileList) {
             if (logFileList) {
                 var i = 0;
@@ -805,7 +806,7 @@
         });
     }
 
-    downloadFile = function(fileName) {
+    var downloadFile = function(fileName) {
         console.log("downloadFile(" + fileName + ")");
         var url = URI_DOWNLOAD_FILE + "?" + PARAM_NAME + "=" + encodeURIComponent(fileName);
         var anchor = document.createElement("A");
@@ -818,7 +819,5 @@
     }
 
 </script>
-    <script type="text/javascript" src="/js/util.js"></script>
-
 </body>
 </html>

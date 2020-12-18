@@ -55,7 +55,6 @@ import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.robot.RobotStatus;
 import com.qualcomm.robotcore.util.Device;
-import com.qualcomm.robotcore.util.Intents;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.util.WebServer;
@@ -63,13 +62,13 @@ import com.qualcomm.robotcore.wifi.NetworkConnection;
 import com.qualcomm.robotcore.wifi.NetworkConnectionFactory;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
-import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.DragonboardIndicatorLED;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
 import org.firstinspires.ftc.robotcore.internal.network.PreferenceRemoterRC;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
+import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 import org.firstinspires.ftc.robotserver.internal.webserver.CoreRobotWebServer;
 
@@ -190,6 +189,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
 
     void awaitUSB() throws InterruptedException {
       updateRobotStatus(RobotStatus.SCANNING_USB);
+      AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
       /*
        * Give android a chance to finish scanning for USB devices before
        * we create our robot object.
@@ -202,6 +202,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
        * TODO: should be reviewed
        */
        Thread.sleep(USB_WAIT);
+       AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
     }
 
     void initializeEventLoopAndRobot() throws RobotCoreException {
@@ -455,7 +456,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
 
   public synchronized void setupRobot(EventLoop eventLoop, EventLoop idleEventLoop, @Nullable Runnable runOnComplete) {
 
-    /* 
+    /*
      * (Possibly out-of-date comment:)
      * There is a bug in the Android activity life cycle with regards to apps
      * launched via USB. To work around this bug we will only honor this

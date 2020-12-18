@@ -31,10 +31,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.robotcore.wifi;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -45,9 +47,11 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
+import android.os.Build;
 import android.os.Looper;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -58,6 +62,7 @@ import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory
 import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 import java.net.InetAddress;
@@ -141,7 +146,9 @@ public class WifiDirectAssistant extends NetworkConnection {
 
     @Override
     public void onConnectionInfoAvailable(final WifiP2pInfo info) {
-
+      if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+        throw new RuntimeException("We do NOT have permission to access fine location");
+      }
       wifiP2pManager.requestGroupInfo(wifiP2pChannel, groupInfoListener);
       synchronized (groupOwnerLock) {
         groupOwnerAddress = info.groupOwnerAddress;
@@ -217,6 +224,9 @@ public class WifiDirectAssistant extends NetworkConnection {
 
       } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
         RobotLog.dd(TAG, "broadcast: peers changed");
+        if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+          throw new RuntimeException("We do NOT have permission to access fine location");
+        }
         wifiP2pManager.requestPeers(wifiP2pChannel, peerListListener);
 
       } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
@@ -254,7 +264,7 @@ public class WifiDirectAssistant extends NetworkConnection {
 
       } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
         RobotLog.dd(TAG, "broadcast: this device changed");
-        onWifiP2pThisDeviceChanged((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
+        updateLocalDeviceInfo((WifiP2pDevice) intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE));
 
       } else {
         RobotLog.dd(TAG, "broadcast: %s", action);
@@ -300,6 +310,25 @@ public class WifiDirectAssistant extends NetworkConnection {
       RobotLog.vv(TAG, "Enabling Wifi Direct Assistant");
       if (receiver == null) receiver = new WifiP2pBroadcastReceiver();
       context.registerReceiver(receiver, intentFilter);
+
+      // In Android versions prior to 10, WIFI_P2P_THIS_DEVICE_CHANGED_ACTION and
+      // WIFI_P2P_CONNECTION_CHANGED_ACTION were sticky broadcasts, so re-registering the broadcast
+      // receiver was enough to guarantee that we would be updated with the current name. In
+      // Android 10+, we have to explicitly request the latest information the first time
+      // (any changes after that will still be broadcast)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+          throw new RuntimeException("We do NOT have permission to access fine location");
+        }
+        wifiP2pManager.requestDeviceInfo(wifiP2pChannel, new WifiP2pManager.DeviceInfoListener() {
+          @Override
+          public void onDeviceInfoAvailable(@Nullable WifiP2pDevice wifiP2pDevice) {
+            if (wifiP2pDevice != null) {
+              updateLocalDeviceInfo(wifiP2pDevice);
+            }
+          }
+        });
+      }
     }
 
     WifiDirectAgent.getInstance().doListen();
@@ -480,6 +509,9 @@ public class WifiDirectAssistant extends NetworkConnection {
    * Discover Wifi Direct peers
    */
   public void discoverPeers() {
+    if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+      throw new RuntimeException("We do NOT have permission to access fine location");
+    }
     wifiP2pManager.discoverPeers(wifiP2pChannel, new WifiP2pManager.ActionListener() {
 
       @Override
@@ -492,7 +524,7 @@ public class WifiDirectAssistant extends NetworkConnection {
       public void onFailure(int reason) {
         String reasonStr = failureReasonToString(reason);
         failureReason = reason;
-        RobotLog.w("Wifi Direct failure while trying to discover peers - reason: " + reasonStr);
+        RobotLog.ww(TAG, "Wifi Direct failure while trying to discover peers - reason: " + reasonStr);
         sendEvent(NetworkEvent.ERROR);
       }
     });
@@ -515,6 +547,9 @@ public class WifiDirectAssistant extends NetworkConnection {
    * received.
    */
   public void createGroup() {
+    if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+      throw new RuntimeException("We do NOT have permission to access fine location");
+    }
     wifiP2pManager.createGroup(wifiP2pChannel, new WifiP2pManager.ActionListener() {
 
       @Override
@@ -531,7 +566,7 @@ public class WifiDirectAssistant extends NetworkConnection {
         } else {
           String reasonStr = failureReasonToString(reason);
           failureReason = reason;
-          RobotLog.w("Wifi Direct failure while trying to create group - reason: " + reasonStr);
+          RobotLog.ww(TAG, "Wifi Direct failure while trying to create group - reason: " + reasonStr);
           synchronized (connectStatusLock) {
             connectStatus = ConnectStatus.ERROR;
           }
@@ -569,6 +604,9 @@ public class WifiDirectAssistant extends NetworkConnection {
     config.wps.setup = WpsInfo.PBC;
     config.groupOwnerIntent = 1;
 
+    if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+      throw new RuntimeException("We do NOT have permission to access fine location");
+    }
     wifiP2pManager.connect(wifiP2pChannel, config, new WifiP2pManager.ActionListener() {
 
       @Override
@@ -587,7 +625,7 @@ public class WifiDirectAssistant extends NetworkConnection {
     });
   }
 
-  private void onWifiP2pThisDeviceChanged(WifiP2pDevice wifiP2pDevice) {
+  private void updateLocalDeviceInfo(WifiP2pDevice wifiP2pDevice) {
     deviceName = wifiP2pDevice.deviceName;
     deviceMacAddress = wifiP2pDevice.deviceAddress;
     RobotLog.vv(TAG, "device information: " + deviceName + " " + deviceMacAddress);

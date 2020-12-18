@@ -79,6 +79,7 @@ public class ProjectsUtil {
   private static final String XML_TAG_OP_MODE_META = "OpModeMeta";
   private static final String XML_ATTRIBUTE_FLAVOR = "flavor";
   private static final String XML_ATTRIBUTE_GROUP = "group";
+  private static final String XML_ATTRIBUTE_AUTO_TRANSITION = "autoTransition";
   private static final String XML_TAG_ENABLED = "Enabled";
   private static final String XML_ATTRIBUTE_VALUE = "value";
   private static final String BLOCKS_SAMPLES_PATH = "blocks/samples";
@@ -762,7 +763,7 @@ public class ProjectsUtil {
 
         // Regenerate the extra xml with the enable argument.
         final String newBlkFileContent = blocksContent +
-            formatExtraXml(opModeMeta.flavor, opModeMeta.group, enable);
+            formatExtraXml(opModeMeta.flavor, opModeMeta.group, opModeMeta.autoTransition, enable);
         File blkTempBackup = null;
         if (blkFile.exists()) {
           // Before writing the new content to the file, make a temporary copy of the old file,
@@ -896,7 +897,7 @@ public class ProjectsUtil {
   /**
    * Formats the extra XML.
    */
-  private static String formatExtraXml(OpModeMeta.Flavor flavor, String group, boolean enabled)
+  private static String formatExtraXml(OpModeMeta.Flavor flavor, String group, String autoTransition, boolean enabled)
       throws IOException {
     XmlSerializer serializer = Xml.newSerializer();
     StringWriter writer = new StringWriter();
@@ -906,6 +907,9 @@ public class ProjectsUtil {
     serializer.startTag("", XML_TAG_OP_MODE_META);
     serializer.attribute("", XML_ATTRIBUTE_FLAVOR, flavor.toString());
     serializer.attribute("", XML_ATTRIBUTE_GROUP, group);
+    if (autoTransition != null) {
+      serializer.attribute("", XML_ATTRIBUTE_AUTO_TRANSITION, autoTransition);
+    }
     serializer.endTag("", XML_TAG_OP_MODE_META);
     serializer.startTag("", XML_TAG_ENABLED);
     serializer.attribute("", XML_ATTRIBUTE_VALUE, Boolean.toString(enabled));
@@ -916,12 +920,13 @@ public class ProjectsUtil {
   }
 
   /**
-   * Creates an {@link OpModeMeta} instance with the given name, extracting the flavor and group
-   * from the given extraXml.
+   * Creates an {@link OpModeMeta} instance with the given name, extracting the flavor, group, and
+   * autoTransition from the given extraXml.
    */
   private static OpModeMeta createOpModeMeta(String projectName, String extraXml) {
     OpModeMeta.Flavor flavor = DEFAULT_FLAVOR;
     String group = "";
+    String autoTransition = null;
 
     try {
       XmlPullParser parser = Xml.newPullParser();
@@ -939,6 +944,10 @@ public class ProjectsUtil {
                 if (!value.isEmpty() && !value.equals(OpModeMeta.DefaultGroup)) {
                   group = value;
                 }
+              } else if (name.equals(XML_ATTRIBUTE_AUTO_TRANSITION)) {
+                if (!value.isEmpty()) {
+                  autoTransition = value;
+                }
               }
             }
           }
@@ -949,8 +958,15 @@ public class ProjectsUtil {
       RobotLog.e("ProjectsUtil.createOpmodeMeta(\"" + projectName + "\", ...) - failed to parse xml.");
       RobotLog.logStackTrace(e);
     }
-
-    return new OpModeMeta(projectName, flavor, group);
+    OpModeMeta.Builder builder = new OpModeMeta.Builder()
+        .setName(projectName)
+        .setFlavor(flavor)
+        .setGroup(group)
+        .setSource(OpModeMeta.Source.BLOCKLY);
+    if (autoTransition != null) {
+      builder.setTransitionTarget(autoTransition);
+    }
+    return builder.build();
   }
 
   private static boolean isProjectEnabled(String projectName) throws IOException {

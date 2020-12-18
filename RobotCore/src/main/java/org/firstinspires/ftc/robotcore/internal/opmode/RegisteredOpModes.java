@@ -382,7 +382,7 @@ public class RegisteredOpModes implements OpModeManager
      */
     public void register(String name, Class opMode)
         {
-        register(new OpModeMeta(name), opMode);
+        register(new OpModeMeta.Builder().setName(name).build(), opMode);
         }
 
     public void register(final OpModeMeta meta, final Class opMode)
@@ -415,7 +415,7 @@ public class RegisteredOpModes implements OpModeManager
      */
     public void register(String name, OpMode opMode)
         {
-        register(new OpModeMeta(name), opMode);
+        register(new OpModeMeta.Builder().setName(name).build(), opMode);
         }
 
     public void register(final OpModeMeta meta, final OpMode opModeInstance)

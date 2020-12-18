@@ -44,6 +44,7 @@ import org.firstinspires.ftc.robotcore.internal.android.dx.rop.annotation.Annota
 import org.firstinspires.ftc.robotcore.internal.android.dx.rop.annotation.AnnotationsList;
 import org.firstinspires.ftc.robotcore.internal.android.dx.rop.cst.CstNat;
 import org.firstinspires.ftc.robotcore.internal.android.dx.rop.cst.CstString;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -243,7 +244,7 @@ public class Main {
 
         int result = run(arguments);
         if (result != 0) {
-            System.exit(result);
+            AppUtil.getInstance().exitApplication(result);
         }
     }
 

@@ -34,7 +34,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.util;
 
 import android.annotation.SuppressLint;
-import android.os.Build;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Process;
@@ -42,6 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.LongSparseArray;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
@@ -722,7 +722,7 @@ public class ThreadPool
             Thread.yield();
             }
 
-        System.exit(-1);
+            AppUtil.getInstance().exitApplication(-1);
         }
 
     /**

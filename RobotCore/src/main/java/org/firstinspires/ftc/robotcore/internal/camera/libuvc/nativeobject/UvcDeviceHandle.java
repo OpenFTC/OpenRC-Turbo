@@ -44,6 +44,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureSes
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraException;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.CameraControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzControl;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraImpl;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraState;
 import org.firstinspires.ftc.robotcore.internal.camera.RefCountedCamera;
@@ -52,6 +53,8 @@ import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiCameraCa
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiCaptureSession;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiExposureControl;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiFocusControl;
+import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiPtzControl;
+import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiGainControl;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.constants.UvcAutoExposureMode;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.constants.UvcFrameFormat;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
@@ -204,6 +207,8 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
         {
         cameraControls.add(new UvcApiFocusControl(this));
         cameraControls.add(new UvcApiExposureControl(this));
+        cameraControls.add(new UvcApiPtzControl(this));
+        cameraControls.add(new UvcApiGainControl(this));
         }
 
     @Override public @Nullable <T extends CameraControl> T getControl(Class<T> controlType)
@@ -344,6 +349,128 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
         synchronized (lock)
             {
             return nativeIsExposureSupported(pointer);
+            }
+        }
+    public PtzControl.PanTiltHolder getPanTiltAbsolute()
+        {
+        synchronized (lock)
+            {
+            PtzControl.PanTiltHolder holder = new PtzControl.PanTiltHolder();
+
+            long panTiltSandwich = nativeGetPanTiltAbsolute(pointer);
+
+            holder.pan = (int) ((panTiltSandwich) >> 32);
+            holder.tilt = (int) (panTiltSandwich);
+
+            return holder;
+            }
+        }
+    public PtzControl.PanTiltHolder getPanTiltAbsoluteMin()
+        {
+        synchronized (lock)
+            {
+            PtzControl.PanTiltHolder holder = new PtzControl.PanTiltHolder();
+
+            long panTiltSandwich = nativeGetPanTiltAbsoluteMin(pointer);
+
+            holder.pan = (int) ((panTiltSandwich) >> 32);
+            holder.tilt = (int) (panTiltSandwich);
+
+            return holder;
+            }
+        }
+    public PtzControl.PanTiltHolder getPanTiltAbsoluteMax()
+        {
+        synchronized (lock)
+            {
+            PtzControl.PanTiltHolder holder = new PtzControl.PanTiltHolder();
+
+            long panTiltSandwich = nativeGetPanTiltAbsoluteMax(pointer);
+
+            holder.pan = (int) ((panTiltSandwich) >> 32);
+            holder.tilt = (int) (panTiltSandwich);
+
+            return holder;
+            }
+        }
+    public boolean setPanTiltAbsolute(PtzControl.PanTiltHolder panTiltHolder)
+        {
+        synchronized (lock)
+            {
+            return nativeSetPanTiltAbsolute(pointer, panTiltHolder.pan, panTiltHolder.tilt);
+            }
+        }
+    public boolean setZoomAbsolute(int zoom)
+        {
+        synchronized (lock)
+            {
+            return nativeSetZoomAbsolute(pointer, zoom);
+            }
+        }
+    public int getZoomAbsolute()
+        {
+        synchronized (lock)
+            {
+            return nativeGetZoomAbsolute(pointer);
+            }
+        }
+    public int getZoomAbsoluteMin()
+        {
+        synchronized (lock)
+            {
+            return nativeGetZoomAbsoluteMin(pointer);
+            }
+        }
+    public int getZoomAbsoluteMax()
+        {
+        synchronized (lock)
+            {
+            return nativeGetZoomAbsoluteMax(pointer);
+            }
+        }
+
+    //----------------------------------------------------------------------------------------------
+
+    public int getMinGain()
+        {
+        synchronized (lock)
+            {
+            return nativeGetMinGain(pointer);
+            }
+        }
+    public int getMaxGain()
+        {
+        synchronized (lock)
+            {
+            return nativeGetMaxGain(pointer);
+            }
+        }
+    public int getGain()
+        {
+        synchronized (lock)
+            {
+            return nativeGetGain(pointer);
+            }
+        }
+    public boolean setGain(int gain)
+        {
+        synchronized (lock)
+            {
+            return nativeSetGain(pointer, gain);
+            }
+        }
+    public boolean setAePriority(boolean val)
+        {
+        synchronized (lock)
+            {
+            return nativeSetAePriority(pointer, val);
+            }
+        }
+    public boolean getAePriority()
+        {
+        synchronized (lock)
+            {
+            return nativeGetAePriority(pointer);
             }
         }
 
@@ -572,4 +699,20 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
     protected native static long nativeGetMaxExposure(long pointer);
     protected native static long nativeGetExposure(long pointer);
     protected native static boolean nativeSetExposure(long pointer, long exposure);
+    protected native static boolean nativeGetAePriority(long pointer);
+    protected native static boolean nativeSetAePriority(long pointer, boolean val);
+
+    protected native static boolean nativeSetPanTiltAbsolute(long pointer, int pan, int tilt);
+    protected native static long nativeGetPanTiltAbsolute(long pointer);
+    protected native static long nativeGetPanTiltAbsoluteMax(long pointer);
+    protected native static long nativeGetPanTiltAbsoluteMin(long pointer);
+    protected native static boolean nativeSetZoomAbsolute(long pointer, int zoom);
+    protected native static int nativeGetZoomAbsolute(long pointer);
+    protected native static int nativeGetZoomAbsoluteMin(long pointer);
+    protected native static int nativeGetZoomAbsoluteMax(long pointer);
+
+    protected native static int nativeGetMaxGain(long pointer);
+    protected native static int nativeGetMinGain(long pointer);
+    protected native static int nativeGetGain(long pointer);
+    protected native static boolean nativeSetGain(long pointer, int gain);
     }

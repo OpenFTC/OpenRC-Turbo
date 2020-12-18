@@ -34,8 +34,10 @@ package com.qualcomm.robotcore.hardware;
 
 import android.graphics.Color;
 import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -177,6 +179,11 @@ public interface Blinker
         public void setDuration(long duration, TimeUnit unit)
             {
             this.msDuration = (int)unit.toMillis(duration);
+            }
+
+        @Override @NonNull public String toString()
+            {
+            return String.format(Locale.US, "Step(color=%d, msDuration=%d)", color, msDuration);
             }
         }
     }

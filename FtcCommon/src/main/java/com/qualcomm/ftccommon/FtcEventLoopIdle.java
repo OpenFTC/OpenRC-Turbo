@@ -46,9 +46,10 @@ public class FtcEventLoopIdle extends FtcEventLoopBase
             }
         }
 
-    @Override public void loop() throws RobotCoreException, InterruptedException
+    @Override public void loop()
         {
         try {
+            super.loop();
             checkForChangedOpModes();
             }
         catch (Exception e)

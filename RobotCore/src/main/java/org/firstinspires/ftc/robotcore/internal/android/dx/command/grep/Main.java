@@ -17,6 +17,8 @@
 package org.firstinspires.ftc.robotcore.internal.android.dx.command.grep;
 
 import org.firstinspires.ftc.robotcore.internal.android.dex.Dex;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,6 +31,6 @@ public final class Main {
 
         Dex dex = new Dex(new File(dexFile));
         int count = new Grep(dex, Pattern.compile(pattern), new PrintWriter(System.out)).grep();
-        System.exit((count > 0) ? 0 : 1);
+        AppUtil.getInstance().exitApplication((count > 0) ? 0 : 1);
     }
 }
