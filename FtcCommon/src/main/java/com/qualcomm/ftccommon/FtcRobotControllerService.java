@@ -68,6 +68,7 @@ import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
 import org.firstinspires.ftc.robotcore.internal.network.PreferenceRemoterRC;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
+import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 import org.firstinspires.ftc.robotserver.internal.webserver.CoreRobotWebServer;
 
@@ -188,6 +189,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
 
     void awaitUSB() throws InterruptedException {
       updateRobotStatus(RobotStatus.SCANNING_USB);
+      AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
       /*
        * Give android a chance to finish scanning for USB devices before
        * we create our robot object.
@@ -200,6 +202,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
        * TODO: should be reviewed
        */
        Thread.sleep(USB_WAIT);
+       AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
     }
 
     void initializeEventLoopAndRobot() throws RobotCoreException {
@@ -453,7 +456,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
 
   public synchronized void setupRobot(EventLoop eventLoop, EventLoop idleEventLoop, @Nullable Runnable runOnComplete) {
 
-    /* 
+    /*
      * (Possibly out-of-date comment:)
      * There is a bug in the Android activity life cycle with regards to apps
      * launched via USB. To work around this bug we will only honor this

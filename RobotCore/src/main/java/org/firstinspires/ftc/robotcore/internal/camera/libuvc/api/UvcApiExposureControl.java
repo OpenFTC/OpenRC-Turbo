@@ -174,6 +174,28 @@ public class UvcApiExposureControl implements ExposureControl
             });
         }
 
+    @Override public boolean getAePriority()
+        {
+        return tracer.traceResult("getAePriority()", new Supplier<Boolean>()
+            {
+            @Override public Boolean get()
+                {
+                return uvcDeviceHandle.getAePriority();
+                }
+            });
+        }
+
+    @Override public boolean setAePriority(final boolean priority)
+        {
+        return tracer.trace("setAePriority()", new Supplier<Boolean>()
+            {
+            @Override public Boolean get()
+                {
+                return uvcDeviceHandle.setAePriority(priority);
+                }
+            });
+        }
+
     protected void setCachedExposureNs(long cachedExposureNs)
         {
         this.cachedExposureNs = cachedExposureNs;

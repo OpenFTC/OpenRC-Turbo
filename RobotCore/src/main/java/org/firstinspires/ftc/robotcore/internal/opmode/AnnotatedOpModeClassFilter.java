@@ -133,14 +133,25 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             for (OpModeMetaAndClass opModeMetaAndClass : newOpModes)
                 {
                 String name = getOpModeName(opModeMetaAndClass);
+                OpModeMeta.Source source = OnBotJavaDeterminer.isOnBotJava(opModeMetaAndClass.clazz) ? OpModeMeta.Source.ONBOTJAVA : OpModeMeta.Source.ANDROID_STUDIO;
                 try
                     {
-                    this.registeredOpModes.register(OpModeMeta.forName(name, opModeMetaAndClass.meta), opModeMetaAndClass.clazz);
+                    this.registeredOpModes.register(
+                            OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                                .setName(name)
+                                .setSource(source)
+                                .build(),
+                            opModeMetaAndClass.clazz);
                     }
                 catch (DuplicateNameException e)
                     {
                     name = resolveDuplicateName(opModeMetaAndClass);
-                    this.registeredOpModes.register(OpModeMeta.forName(name, opModeMetaAndClass.meta), opModeMetaAndClass.clazz);
+                    this.registeredOpModes.register(
+                            OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                                .setName(name)
+                                .setSource(source)
+                                .build(),
+                            opModeMetaAndClass.clazz);
                     }
                 }
             for (OpModeMetaAndClass opModeMetaAndClass : knownOpModes)
@@ -150,12 +161,12 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
                     String name = getOpModeName(opModeMetaAndClass);
                     try
                         {
-                        this.registeredOpModes.register(OpModeMeta.forName(name, opModeMetaAndClass.meta), opModeMetaAndClass.clazz);
+                        this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ANDROID_STUDIO).build(), opModeMetaAndClass.clazz);
                         }
                     catch (DuplicateNameException e)
                         {
                         name = resolveDuplicateName(opModeMetaAndClass);
-                        this.registeredOpModes.register(OpModeMeta.forName(name, opModeMetaAndClass.meta), opModeMetaAndClass.clazz);
+                        this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ANDROID_STUDIO).build(), opModeMetaAndClass.clazz);
                         }
                     }
                 }
@@ -189,7 +200,7 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             for (OpModeMetaAndClass opModeMetaAndClass : newOpModes)
                 {
                 String name = getOpModeName(opModeMetaAndClass);
-                this.registeredOpModes.register(OpModeMeta.forName(name, opModeMetaAndClass.meta), opModeMetaAndClass.clazz);
+                this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ONBOTJAVA).build(), opModeMetaAndClass.clazz);
                 }
             }
         finally
@@ -422,7 +433,7 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             {
             if (checkOpModeClassConstraints(clazz, name))
                 {
-                addUserNamedOpMode((Class<OpMode>)clazz, new OpModeMeta(name));
+                addUserNamedOpMode((Class<OpMode>)clazz, new OpModeMeta.Builder().setName(name).build());
                 }
             }
 
@@ -454,23 +465,31 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
         {
         if (clazz.isAnnotationPresent(TeleOp.class))
             {
-            Annotation annotation = clazz.getAnnotation(TeleOp.class);
-            String groupName = ((TeleOp) annotation).group();
-            return addOpModeWithGroupName(clazz, OpModeMeta.Flavor.TELEOP, groupName);
+            TeleOp annotation = clazz.getAnnotation(TeleOp.class);
+            String groupName = annotation.group();
+            return addOpModeWithGroupName(clazz, OpModeMeta.Flavor.TELEOP, groupName, null);
             }
         else if (clazz.isAnnotationPresent(Autonomous.class))
             {
-            Annotation annotation = clazz.getAnnotation(Autonomous.class);
-            String groupName = ((Autonomous) annotation).group();
-            return addOpModeWithGroupName(clazz, OpModeMeta.Flavor.AUTONOMOUS, groupName);
+            Autonomous annotation = clazz.getAnnotation(Autonomous.class);
+            String groupName = annotation.group();
+
+            String preselectTarget = null;
+
+            if(!annotation.preselectTeleOp().isEmpty())
+                {
+                preselectTarget = annotation.preselectTeleOp();
+                }
+
+            return addOpModeWithGroupName(clazz, OpModeMeta.Flavor.AUTONOMOUS, groupName, preselectTarget);
             }
         else
             return false;
         }
 
-    private boolean addOpModeWithGroupName(Class<OpMode> clazz, OpModeMeta.Flavor flavor, String groupName)
+    private boolean addOpModeWithGroupName(Class<OpMode> clazz, OpModeMeta.Flavor flavor, String groupName, String autoTransition)
         {
-        OpModeMetaAndClass meta = new OpModeMetaAndClass(new OpModeMeta(flavor, groupName), clazz);
+        OpModeMetaAndClass meta = new OpModeMetaAndClass(new OpModeMeta.Builder().setFlavor(flavor).setGroup(groupName).setTransitionTarget(autoTransition).build(), clazz);
         if (groupName.equals(""))
             return addToOpModeGroup(defaultOpModeGroupName, meta);
         else
@@ -490,7 +509,7 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
     private boolean addToOpModeGroup(String groupName, OpModeMetaAndClass opModeMetaAndClass)
         {
         Class<OpMode> clazz = opModeMetaAndClass.clazz;
-        opModeMetaAndClass = new OpModeMetaAndClass(OpModeMeta.forGroup(groupName, opModeMetaAndClass.meta), clazz);
+        opModeMetaAndClass = new OpModeMetaAndClass(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setGroup(groupName).build(), clazz);
 
         // Have we seen this class before? Don't add if we've already got it placed elsewhere
         if (!isKnown(clazz))

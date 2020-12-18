@@ -589,6 +589,7 @@ public final class BlocksOpMode extends LinearOpMode {
   }
 
   private void loadScript() throws IOException {
+    RobotLog.i(getLogPrefix() + "loadScript - WebView user agent is \"" + webView.getSettings().getUserAgentString() + "\"");
     nameOfOpModeLoadedIntoWebView.set(project);
     HardwareItemMap hardwareItemMap = HardwareItemMap.newHardwareItemMap(hardwareMap);
 

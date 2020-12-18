@@ -45,8 +45,10 @@ public final class Intents {
     public static final String ACTION_FTC_WIFI_FACTORY_RESET = INTENT_PREFIX + "action.FTC_FACTORY_RESET";
     public static final String ACTION_FTC_AP_GET_CURRENT_CHANNEL_INFO = INTENT_PREFIX + "action.FTC_AP_GET_CURRENT_CHANNEL_INFO";
     public static final String ACTION_FTC_AP_NOTIFY_BAND_CHANGE = "org.firstinspires.ftc.intent.action.FTC_AP_NOTIFY_BAND_CHANGE";
+    public static final String ACTION_FTC_NOTIFY_RC_ALIVE = "org.firstinspires.ftc.intent.action.FTC_NOTIFY_RC_ALIVE";
 
     public static final String EXTRA_AP_PREF = INTENT_PREFIX + "extra.EXTRA_AP_PREF";
+    public static final String EXTRA_RC_ALIVE_NOTIFICATION_TIMEOUT_SECONDS = "org.firstinspires.ftc.intent.extra.EXTRA_RC_ALIVE_NOTIFICATION_TIMEOUT_SECONDS";
 
     /**
      * Extras that can be sent with the FTC_AP_SETTINGS_CHANGE action

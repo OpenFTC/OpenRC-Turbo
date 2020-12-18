@@ -41,6 +41,8 @@ import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.GlobalWarningSource;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.wifi.NetworkConnection;
+import com.qualcomm.robotcore.wifi.WifiDirectAssistant;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
@@ -48,6 +50,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 /**
  * {@link PreferenceRemoterRC} has the responsibility of monitoring certain preference settings
@@ -126,8 +130,7 @@ public class PreferenceRemoterRC extends PreferenceRemoter
             }
         else if (pair.getPrefName().equals(context.getString(R.string.pref_ds_supports_5_ghz)))
             {
-            Boolean dsSupports5Ghz = (Boolean) pair.getValue();
-            warningSource.checkForUnnecessary2_4GhzUsage(dsSupports5Ghz);
+            warningSource.dsSupports5Ghz = (Boolean) pair.getValue();
             }
         else
             {
@@ -183,8 +186,8 @@ public class PreferenceRemoterRC extends PreferenceRemoter
         private final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(AppUtil.getDefContext());
         private final ElapsedTime timeSinceLastChannelCheck = new ElapsedTime(0);
         private volatile boolean currentlyUsing2_4Ghz_cache;
+        private volatile boolean dsSupports5Ghz = false;
         private volatile String mismatchedAppVersionsWarning;
-        private volatile String unnecessary2_4GhzUsageWarning;
 
         public WarningSource()
             {
@@ -201,9 +204,11 @@ public class PreferenceRemoterRC extends PreferenceRemoter
                 }
             if (sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_2_4_ghz_band), true))
                 {
-                // Verify that the user is _still_ using 2.4 GHz
-                if (currentlyUsing2_4Ghz()) activeWarnings.add(unnecessary2_4GhzUsageWarning);
-                else unnecessary2_4GhzUsageWarning = null;
+                String unnecessary2_4GhzUsageWarning = getUnnecessary2_4GhzUsageWarningOrNull();
+                if (unnecessary2_4GhzUsageWarning != null)
+                    {
+                    activeWarnings.add(unnecessary2_4GhzUsageWarning);
+                    }
                 }
             return RobotLog.combineGlobalWarnings(activeWarnings);
             }
@@ -211,12 +216,12 @@ public class PreferenceRemoterRC extends PreferenceRemoter
         @Override public void clearGlobalWarning()
             {
             mismatchedAppVersionsWarning = null;
-            unnecessary2_4GhzUsageWarning = null;
             }
 
         @Override public void onPeerDisconnected()
             {
             clearGlobalWarning();
+            dsSupports5Ghz = false;
             }
 
         public void checkForMismatchedAppVersions(int dsVersionCode)
@@ -245,17 +250,26 @@ public class PreferenceRemoterRC extends PreferenceRemoter
             catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); } // shouldn't happen
             }
 
-        public void checkForUnnecessary2_4GhzUsage(boolean dsSupports5Ghz)
+        public @Nullable String getUnnecessary2_4GhzUsageWarningOrNull()
             {
             boolean rcSupports5Ghz = WifiUtil.is5GHzAvailable();
             if (dsSupports5Ghz && rcSupports5Ghz && currentlyUsing2_4Ghz())
                 {
-                unnecessary2_4GhzUsageWarning = context.getString(R.string.warning2_4GhzUnnecessaryUsage);
+                NetworkConnection currentConnection = NetworkConnectionHandler.getInstance().getNetworkConnection();
+                boolean usingWifiDirect = currentConnection instanceof WifiDirectAssistant;
+
+                if (usingWifiDirect && ApChannelManagerFactory.getInstance().getCurrentChannel() == ApChannel.AUTO_2_4_GHZ)
+                    {
+                    // When using WiFi Direct, it's possible that AUTO 2.4 GHz mode could actually be broadcasting on 5 GHz.
+                    // We unfortunately don't have a way to tell, so instead we just display a different warning.
+                    return context.getString(R.string.warning2_4GhzUnnecessaryUsageWiFiDirectAuto);
+                    }
+                else
+                    {
+                    return context.getString(R.string.warning2_4GhzUnnecessaryUsage);
+                    }
                 }
-            else
-                {
-                unnecessary2_4GhzUsageWarning = null;
-                }
+            return null;
             }
 
         private boolean currentlyUsing2_4Ghz()

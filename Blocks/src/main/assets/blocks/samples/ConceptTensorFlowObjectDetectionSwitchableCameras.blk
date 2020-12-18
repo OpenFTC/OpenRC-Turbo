@@ -112,7 +112,7 @@
 <block type="comment" id="+@TZM(mo3uc]tk0n|MtT">
 <field name="COMMENT">Enable following block to zoom in on target.</field>
 <next>
-<block type="tfodCurrentGame_setZoom" id="vSb=@hTz=nXMZN-T0R7r" disabled="true">
+<block type="tfodCurrentGame_setZoom" id="vSb=@hTz=nXMZN-T0R7r">
 <value name="MAGNIFICATION">
 <shadow type="math_number" id="qKv3X|N=wOGF@rg4S`u#">
 <field name="NUM">2.5</field>

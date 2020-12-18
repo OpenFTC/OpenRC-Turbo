@@ -63,14 +63,11 @@ package com.qualcomm.ftccommon;
 
 import android.app.Activity;
 import android.hardware.usb.UsbDevice;
-import android.os.Build;
 import androidx.annotation.Nullable;
 
-import com.qualcomm.ftccommon.configuration.FtcConfigurationActivity;
 import com.qualcomm.ftccommon.configuration.RobotConfigFile;
 import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
 import com.qualcomm.ftccommon.configuration.RobotConfigMap;
-import com.qualcomm.ftccommon.configuration.USBScanManager;
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.lynx.LynxModuleWarningManager;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
@@ -80,8 +77,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.LynxModuleMetaList;
-import com.qualcomm.robotcore.hardware.ScannedDevices;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
@@ -91,7 +86,6 @@ import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
-import com.qualcomm.robotcore.util.ThreadPool;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerInternal;
@@ -112,10 +106,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Main event loop to control the robot
- * <p>
- * Modify this class with your own code, or create your own event loop by
- * implementing EventLoop.
+ * Main event loop that controls the robot
  */
 @SuppressWarnings("WeakerAccess")
 public class FtcEventLoop extends FtcEventLoopBase {
@@ -220,8 +211,8 @@ public class FtcEventLoop extends FtcEventLoopBase {
    * Caller synchronizes: called on EventLoopRunnable.run() thread.
    */
   @Override
-  public void loop() throws RobotCoreException {
-
+  public void loop() {
+    super.loop();
     // Atomically capture the OpMode to stop, if any
     OpMode opModeToStop = opModeStopRequested.getAndSet(null);
     if (opModeToStop != null) {

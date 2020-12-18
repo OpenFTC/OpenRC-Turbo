@@ -76,6 +76,7 @@ public class CachingExposureControl implements ExposureControl, DelegatingCamera
     protected boolean isExposureSupported = false;
     protected Map<Mode, Boolean> supportedModes = new HashMap<>();
     protected boolean limitsInitialized = false;
+    protected boolean aePriority = true;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -119,6 +120,14 @@ public class CachingExposureControl implements ExposureControl, DelegatingCamera
                 return false;
                 }
             @Override public boolean isExposureSupported()
+                {
+                return false;
+                }
+            @Override public boolean getAePriority()
+                {
+                return false;
+                }
+            @Override public boolean setAePriority(boolean priority)
                 {
                 return false;
                 }
@@ -186,6 +195,7 @@ public class CachingExposureControl implements ExposureControl, DelegatingCamera
                 delegatedExposureControl.setExposure(nsExposure, TimeUnit.NANOSECONDS);
                 }
             }
+        delegatedExposureControl.setAePriority(aePriority);
         }
 
     protected void read()
@@ -240,7 +250,24 @@ public class CachingExposureControl implements ExposureControl, DelegatingCamera
         return isExposureSupported;
         }
 
-    //----------------------------------------------------------------------------------------------
+    @Override public boolean getAePriority()
+        {
+        synchronized (lock)
+            {
+            return delegatedExposureControl.getAePriority();
+            }
+        }
+
+    @Override public boolean setAePriority(boolean priority)
+        {
+        synchronized (lock)
+            {
+            aePriority = priority;
+            return delegatedExposureControl.setAePriority(priority);
+            }
+        }
+
+        //----------------------------------------------------------------------------------------------
     
     @Override public Mode getMode()
         {

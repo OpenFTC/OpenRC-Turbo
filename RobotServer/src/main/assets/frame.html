@@ -14,6 +14,7 @@
     <script src="js/es6-shim.js"></script>
     <script src="/js/websocket-core.js"></script>
     <script>
+    'use strict';
     // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
     function getParameterByName(name, url) {
         if (!url) url = window.location.href;
@@ -59,6 +60,65 @@
         document.title = theIframe.contentWindow.document.title;
     }
 
+    let promptCallback;
+
+    // Function that the current iframe can call to display a prompt, instead of using the native prompt() function
+    // The native prompt dialog is ugly and not supported by Electron, which means it doesn't work in the REV Hardware Client.
+    var showPrompt = function(message, defaultValue, callback) {
+        const promptModal = $('#promptModal');
+        promptModal.off();
+
+        const finishShowingPrompt = function() {
+            promptModal.off();
+            promptModal.on('hide.bs.modal', function (e) {
+                console.log("Modal hidden");
+                if (promptCallback) {
+                    promptCallback(null);
+                    promptCallback = null;
+                }
+            });
+
+            console.log("Setting promptCallback");
+            promptCallback = callback;
+            document.getElementById('promptMessage').textContent = message;
+            if (!defaultValue) {
+                defaultValue = "";
+            }
+            document.getElementById('promptResponse').value = '';
+            document.getElementById('promptResponse').placeholder = defaultValue;
+            console.log("Showing modal");
+            promptModal.modal('show').on('shown.bs.modal', function() {
+                console.log("Focusing promptResponse");
+                document.getElementById('promptResponse').focus();
+            });
+        }
+
+        if (promptCallback) {
+            promptCallback(null);
+            promptCallback = null;
+            console.log("Hiding existing modal");
+            promptModal.modal('hide').on('hidden.bs.modal', finishShowingPrompt);
+        } else {
+            finishShowingPrompt();
+        }
+
+    };
+
+    function onPromptOk() {
+        console.log("onPromptOk");
+        if (promptCallback) {
+            const responseField = document.getElementById('promptResponse');
+            let response = responseField.value;
+            if (response === '') {
+                response = responseField.placeholder;
+            }
+            promptCallback(response);
+            promptCallback = null;
+            const promptModal = $('#promptModal');
+            promptModal.off();
+            promptModal.modal('hide');
+        }
+    }
 
     </script>
 </head>
@@ -112,7 +172,31 @@
     <iframe id="theIFrame" class="theiframe" onload="iframeChanged()"></iframe>
 </div>
 
+<div class="modal fade" id="promptModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body" style="padding-bottom: 5px; text-align: center;">
+                <b><span id="promptMessage"></span></b>
+                <p><p>
+                <input type="text" class="form-control" id="promptResponse">
+            </div>
+            <div class="modal-footer" style="border-style: none; text-align: right; padding: 0 15px 15px 0;">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="onPromptOk()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
+    // If the user presses enter in the prompt text input, pretend like they pressed the OK button
+    document.getElementById("promptResponse").addEventListener("keyup", function (event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+            onPromptOk();
+        }
+    });
+
     //----------------------------------------------------------------------------------------------
     // Globals
     //----------------------------------------------------------------------------------------------

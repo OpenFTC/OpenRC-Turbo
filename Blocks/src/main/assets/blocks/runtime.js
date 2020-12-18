@@ -68,14 +68,25 @@ function telemetrySpeak(data, languageCode, countryCode) {
 }
 
 function callJava(miscIdentifierForJavaScript, returnType, accessMethod, convertReturnValue,
-    methodLookupString, ...rest) {
-  var newRest = Array.prototype.slice.call(rest);
+    methodLookupString) {
+  // According to
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+  // Javascript rest parameters (the ... parameter) is not available until Chrome 47.
+  // The Dragonboard's WebView is based on Chrome 44, so we can't use rest parameters.
+  // Get the extra parameters the old-fashioned way.
+  var numNamedArgs = callJava.length;
+  var extraParameters = [];
+  for (var i = numNamedArgs; i < arguments.length; i++) {
+    extraParameters[i - numNamedArgs] = arguments[i]
+  }
+
+  var newRest = Array.prototype.slice.call(extraParameters);
   for (var i = 0; i < newRest.length; i++) {
     if (typeof newRest[i] == 'number') {
       newRest[i] = String(newRest[i]);
     }
   }
-  var newArgs = Array.prototype.slice.call(rest);
+  var newArgs = Array.prototype.slice.call(extraParameters);
   newArgs.unshift(methodLookupString, JSON.stringify(newRest))
   while (newArgs.length < 23) {
     newArgs.push(null);

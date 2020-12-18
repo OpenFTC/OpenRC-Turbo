@@ -68,8 +68,11 @@ public class OnBotJavaStandardFileManager extends OnBotJavaDelegatingStandardFil
         try {
             // classpath includes all the robot controller libraries, and anything
             // the user has put there too, for that matter.
+            // NB: we now ALSO make the classpath include JARs in the JAR dir, so
+            // as to avoid needing to duplicate them in the lib dir
             List<File> classPath = new ArrayList<File>();
             classPath.addAll(AppUtil.getInstance().filesIn(OnBotJavaManager.libDir, ".jar"));
+            classPath.addAll(AppUtil.getInstance().filesIn(OnBotJavaManager.jarDir, ".jar"));
 
             List<File> platformClassPath = new ArrayList<>();
             for (String libName : OnBotJavaManager.platformClassPathLibs)

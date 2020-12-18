@@ -371,11 +371,11 @@
             .ace-${env.editorTheme} .ace_gutter {
                 background: ${themeColors.primary_1};
             }
-            
+
             #open-files .file-tab.active-tab {
                 background: ${themeColors.primary_1}
             }
-            
+
             #left-pane, #file-tree .node-file-tree, #left-pane-handle, #build-log-handle {
                 background-color: ${themeColors.primary_3};
             }
@@ -747,41 +747,42 @@
                                 name: 'Rename', callback: function () {
                                     const selectedNode = fetchNodeFromTreeViewDom(this);
                                     var folder = selectedNode.folder;
-                                    var newFileName = prompt('Enter a new filename', (folder ? selectedNode.parentFile : '') + selectedNode.file);
-                                    if (folder) {
-                                        if (newFileName === selectedNode.parentFile + selectedNode.file) return;
-                                    } else {
-                                        if (newFileName === selectedNode.file) return;
-                                    }
-                                    var to = folder ? newFileName : selectedNode.parentFile + newFileName;
-                                    if (folder) to += '/';
-                                    env.tools.copyFiles({
-                                        silent: true,
-                                        callback: function (failed) {
-                                            if (failed) {
-                                                alert('Failed to rename file "' + selectedNode.file + '"!');
-                                            } else {
-                                                $file.treeview('selectNode', selectedNode);
-                                                env.tools.delete({
-                                                    silent: true, callback: function (opDeletedSelf) {
-                                                        if (opDeletedSelf) {
-                                                            if (to.indexOf('/') !== 0) to = '/' + to;
-                                                            var newCurrentFileName = to;
-                                                            if (selectedNode.folder) { // check if we renamed a folder
-                                                                newCurrentFileName = env.documentId.substr(
-                                                                    ('/' + selectedNode.parentFile + selectedNode.file).length + 1);
-                                                                newCurrentFileName = to + newCurrentFileName;
+                                    parent.showPrompt('Enter a new filename', (folder ? selectedNode.parentFile : '') + selectedNode.file, function(newFileName) {
+                                        if (folder) {
+                                            if (newFileName === selectedNode.parentFile + selectedNode.file) return;
+                                        } else {
+                                            if (newFileName === selectedNode.file) return;
+                                        }
+                                        var to = folder ? newFileName : selectedNode.parentFile + newFileName;
+                                        if (folder) to += '/';
+                                        env.tools.copyFiles({
+                                            silent: true,
+                                            callback: function (failed) {
+                                                if (failed) {
+                                                    alert('Failed to rename file "' + selectedNode.file + '"!');
+                                                } else {
+                                                    $file.treeview('selectNode', selectedNode);
+                                                    env.tools.delete({
+                                                        silent: true, callback: function (opDeletedSelf) {
+                                                            if (opDeletedSelf) {
+                                                                if (to.indexOf('/') !== 0) to = '/' + to;
+                                                                var newCurrentFileName = to;
+                                                                if (selectedNode.folder) { // check if we renamed a folder
+                                                                    newCurrentFileName = env.documentId.substr(
+                                                                        ('/' + selectedNode.parentFile + selectedNode.file).length + 1);
+                                                                    newCurrentFileName = to + newCurrentFileName;
+                                                                }
+                                                                window.location = env.javaUrlRoot + '/editor.html?' + newCurrentFileName;
                                                             }
-                                                            window.location = env.javaUrlRoot + '/editor.html?' + newCurrentFileName;
-                                                        }
 
-                                                        env.setup.projectView();
-                                                    }
-                                                });
-                                            }
-                                        },
-                                        nodes: [selectedNode],
-                                        to: to
+                                                            env.setup.projectView();
+                                                        }
+                                                    });
+                                                }
+                                            },
+                                            nodes: [selectedNode],
+                                            to: to
+                                        });
                                     });
                                 },
                                 disabled: requireSingleNodeSelected

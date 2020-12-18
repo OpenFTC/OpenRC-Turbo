@@ -173,14 +173,22 @@ Blockly.FtcJava.init = function(workspace) {
         if (otherBlock.getRootBlock() == procedureBlock) {
           blocksInProcedure.push(otherBlock);
           if (otherBlock.type == 'variables_get') {
-            var index = Blockly.FtcJava.getArgumentIndex_(otherBlock.getFieldValue('VAR'), procedureBlock);
-            if (index != -1) {
-              argumentGetterBlocks[index].push(otherBlock);
+            var varField = otherBlock.getField('VAR');
+            if (varField) {
+              var rawVariableName = varField.getText();
+              var index = Blockly.FtcJava.getArgumentIndex_(rawVariableName, procedureBlock);
+              if (index != -1) {
+                argumentGetterBlocks[index].push(otherBlock);
+              }
             }
           } else if (otherBlock.type == 'variables_set') {
-            var index = Blockly.FtcJava.getArgumentIndex_(otherBlock.getFieldValue('VAR'), procedureBlock);
-            if (index != -1) {
-              argumentSetterBlocks[index].push(otherBlock);
+            var varField = otherBlock.getField('VAR');
+            if (varField) {
+              var rawVariableName = varField.getText();
+              var index = Blockly.FtcJava.getArgumentIndex_(rawVariableName, procedureBlock);
+              if (index != -1) {
+                argumentSetterBlocks[index].push(otherBlock);
+              }
             }
           }
         }
@@ -619,11 +627,21 @@ Blockly.FtcJava.getExpectedType_ = function(block, connection) {
       if (input.connection == connection) {
         var functionName = Blockly.FtcJava.getFunctionName_(block);
         var procedureBlock = Blockly.FtcJava.procedureDefBlocks_[functionName];
-        var index = Blockly.FtcJava.getArgumentIndex_(input.name, procedureBlock);
-        if (index != -1) {
-          var argumentType = Blockly.FtcJava.procedureArgumentTypes_[functionName][index];
-          if (argumentType != '') {
-            return argumentType;
+        var rawVariableName = '';
+        for (var iField = 0, field; field = input.fieldRow[iField]; iField++) {
+          var fieldText = field.getText();
+          if (fieldText) {
+            rawVariableName = fieldText;
+            break;
+          }
+        }
+        if (rawVariableName) {
+          var index = Blockly.FtcJava.getArgumentIndex_(rawVariableName, procedureBlock);
+          if (index != -1) {
+            var argumentType = Blockly.FtcJava.procedureArgumentTypes_[functionName][index];
+            if (argumentType != '') {
+              return argumentType;
+            }
           }
         }
       }
@@ -1019,14 +1037,23 @@ Blockly.FtcJava.getClassAnnotationsForFtcJava_ = function() {
   }
   annotations += 'name = "' + Blockly.FtcJava.getOpModeNameForFtcJava_() + '"';
 
-  var group;
   var groupTextInput = document.getElementById('project_group');
   if (groupTextInput) {
-    group = groupTextInput.value;
-  } else {
-    group = '';
+    var group = groupTextInput.value;
+    if (group) {
+      annotations += ', group = "' + group + '"';
+    }
   }
-  annotations += ', group = "' + group + '")\n';
+  if (flavor == 'AUTONOMOUS') {
+    var autoTransitionSelect = document.getElementById('project_autoTransition');
+    if (autoTransitionSelect) {
+      var autoTransition = autoTransitionSelect.options[autoTransitionSelect.selectedIndex].value;
+      if (autoTransition) {
+        annotations += ', preselectTeleOp = "' + autoTransition + '"';
+      }
+    }
+  }
+  annotations += ')\n';
 
   var enabledCheckbox = document.getElementById('project_enabled');
   if (enabledCheckbox && !enabledCheckbox.checked) {

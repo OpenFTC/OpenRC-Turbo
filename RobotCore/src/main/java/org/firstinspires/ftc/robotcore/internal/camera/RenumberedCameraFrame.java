@@ -121,6 +121,16 @@ public class RenumberedCameraFrame extends RefCounted implements CameraFrame, Ca
         return innerFrame.getImageSize();
         }
 
+    @Override public byte[] getImageData()
+        {
+        return innerFrame.getImageData();
+        }
+
+    @Override public byte[] getImageData(byte[] buf)
+        {
+        return innerFrame.getImageData(buf);
+        }
+
     @Override public long getImageBuffer()
         {
         return innerFrame.getImageBuffer();

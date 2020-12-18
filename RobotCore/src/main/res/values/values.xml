@@ -67,6 +67,11 @@
     <attr format="color" name="backgroundMediumMedium"/>
     <attr format="color" name="backgroundVeryDark"/>
     <attr format="color" name="backgroundVeryVeryDark"/>
+    <attr format="color" name="colorAlmostDark"/>
+    <attr format="color" name="colorMedium"/>
+    <attr format="color" name="colorMediumLight"/>
+    <attr format="color" name="colorMediumMedium"/>
+    <attr format="color" name="colorVeryVeryDark"/>
     <attr format="color" name="feedbackBackground"/>
     <attr format="color" name="feedbackBorder"/>
     <attr format="reference" name="feedbackShape"/>
@@ -326,10 +331,10 @@
     Vuforia and Tensorflow features.  Regardless of whether or not your OpMode uses these features, you must allow
     this permission. It is not possible to run the application without this permission.  You must allow all permissions.</string>
     <string name="permRcReadExternalStorageExplain">The Robot Controller must be able to access external storage
-    for the Blocks and OnBot Java developement environments and robot logging.  It is not possible to run the
+    for the Blocks and OnBot Java development environments and robot logging.  It is not possible to run the
     application without this permission.  You must allow all permissions.</string>
     <string name="permRcWriteExternalStorageExplain">The Robot Controller must be able to access external storage
-    for the Blocks and OnBot Java developement environments and robot logging.  It is not possible to run the
+    for the Blocks and OnBot Java development environments and robot logging.  It is not possible to run the
     application without this permission.  You must allow all permissions.</string>
     <string name="permReadPhoneState">The SDK uses this to access the device serial number.  This may be used
     for diagnostic purposes.  FIRST does not store the serial number off device or use it in any other fashion.
@@ -498,7 +503,8 @@
     <string name="usb_vid_name_logitech">Logitech</string>
     <string name="usb_vid_name_microsoft">Microsoft</string>
     <string name="usb_vid_name_qualcomm">Qualcomm</string>
-    <string name="warning2_4GhzUnnecessaryUsage">You are using the 2.4 GHz WiFi band when both the Robot Controller and Driver Station support 5 GHz. You should consider changing to a 5 GHz WiFi channel</string>
+    <string name="warning2_4GhzUnnecessaryUsage">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a 5 GHz WiFi channel</string>
+    <string name="warning2_4GhzUnnecessaryUsageWiFiDirectAuto">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a specific 5 GHz WiFi channel (auto may select a 2.4 GHz channel)</string>
     <string name="warningMismatchedAppVersions">The Robot Controller and Driver Station app versions do not match. You should consider updating the %s app</string>
     <string name="warningProblemCommunicatingWithUSBDevice">problem communicating with %s</string>
     <string name="warningTtsFailedToInitialize">Text-to-speech failed to initialize</string>
@@ -531,6 +537,12 @@
         <item name="textVeryDark">@color/very_dark_blue</item>
         <item name="textVeryVeryDark">@color/very_very_dark_blue</item>
 
+        <item name="colorMedium">@color/medium_blue</item>
+        <item name="colorMediumMedium">@color/medium_medium_blue</item>
+        <item name="colorMediumLight">@color/medium_light_blue</item>
+        <item name="colorAlmostDark">@color/almost_dark_blue</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_blue</item>
+
         <item name="backgroundLight">@color/light_blue</item>
         <item name="backgroundMediumLight">@color/medium_light_blue</item>
         <item name="backgroundMedium">@color/medium_blue</item>
@@ -553,6 +565,12 @@
         <item name="textMediumDark">@color/medium_dark_green</item>
         <item name="textVeryDark">@color/very_dark_green</item>
         <item name="textVeryVeryDark">@color/very_very_dark_green</item>
+
+        <item name="colorMedium">@color/medium_green</item>
+        <item name="colorMediumMedium">@color/medium_medium_green</item>
+        <item name="colorMediumLight">@color/medium_light_green</item>
+        <item name="colorAlmostDark">@color/almost_dark_green</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_green</item>
 
         <item name="backgroundLight">@color/light_green</item>
         <item name="backgroundMediumLight">@color/medium_light_green</item>
@@ -577,6 +595,12 @@
         <item name="textVeryDark">@color/very_dark_orange</item>
         <item name="textVeryVeryDark">@color/very_very_dark_orange</item>
 
+        <item name="colorMedium">@color/medium_orange</item>
+        <item name="colorMediumMedium">@color/medium_medium_orange</item>
+        <item name="colorMediumLight">@color/medium_light_orange</item>
+        <item name="colorAlmostDark">@color/almost_dark_orange</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_orange</item>
+
         <item name="backgroundLight">@color/light_orange</item>
         <item name="backgroundMediumLight">@color/medium_light_orange</item>
         <item name="backgroundMedium">@color/medium_orange</item>
@@ -599,6 +623,12 @@
         <item name="textMediumDark">@color/medium_dark_purple</item>
         <item name="textVeryDark">@color/very_dark_purple</item>
         <item name="textVeryVeryDark">@color/very_very_dark_purple</item>
+
+        <item name="colorMedium">@color/medium_purple</item>
+        <item name="colorMediumMedium">@color/medium_medium_purple</item>
+        <item name="colorMediumLight">@color/medium_light_purple</item>
+        <item name="colorAlmostDark">@color/almost_dark_purple</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_purple</item>
 
         <item name="backgroundLight">@color/light_purple</item>
         <item name="backgroundMediumLight">@color/medium_light_purple</item>
@@ -623,6 +653,12 @@
         <item name="textVeryDark">@color/very_dark_red</item>
         <item name="textVeryVeryDark">@color/very_very_dark_red</item>
 
+        <item name="colorMedium">@color/medium_red</item>
+        <item name="colorMediumMedium">@color/medium_medium_red</item>
+        <item name="colorMediumLight">@color/medium_light_red</item>
+        <item name="colorAlmostDark">@color/almost_dark_red</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_red</item>
+
         <item name="backgroundLight">@color/light_red</item>
         <item name="backgroundMediumLight">@color/medium_light_red</item>
         <item name="backgroundMedium">@color/medium_red</item>
@@ -645,6 +681,12 @@
         <item name="textMediumDark">@color/medium_dark_teal</item>
         <item name="textVeryDark">@color/very_dark_teal</item>
         <item name="textVeryVeryDark">@color/very_very_dark_teal</item>
+
+        <item name="colorMedium">@color/medium_teal</item>
+        <item name="colorMediumMedium">@color/medium_medium_teal</item>
+        <item name="colorMediumLight">@color/medium_light_teal</item>
+        <item name="colorAlmostDark">@color/almost_dark_teal</item>
+        <item name="colorVeryVeryDark">@color/very_very_dark_teal</item>
 
         <item name="backgroundLight">@color/light_teal</item>
         <item name="backgroundMediumLight">@color/medium_light_teal</item>

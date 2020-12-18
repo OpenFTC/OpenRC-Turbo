@@ -120,6 +120,8 @@ public class UsbResiliantWebcam extends DelegatingCamera implements RefCountedCa
         {
         delegatingCameraControls.add(new CachingFocusControl());
         delegatingCameraControls.add(new CachingExposureControl());
+        delegatingCameraControls.add(new CachingPtzControl());
+        delegatingCameraControls.add(new CachingGainControl());
         }
 
     //----------------------------------------------------------------------------------------------

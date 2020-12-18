@@ -106,13 +106,11 @@ import com.qualcomm.robotcore.hardware.USBAccessibleLynxModule;
 import com.qualcomm.robotcore.hardware.VisuallyIdentifiableHardwareDevice;
 import com.qualcomm.robotcore.hardware.ScannedDevices;
 import com.qualcomm.ftccommon.configuration.USBScanManager;
-import com.qualcomm.hardware.HardwareDeviceManager;
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
 import com.qualcomm.hardware.lynx.LynxUsbDeviceImpl;
-import com.qualcomm.hardware.lynx.LynxUsbUtil;
 import com.qualcomm.robotcore.eventloop.EventLoop;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
@@ -126,7 +124,6 @@ import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ConfigurationTypeManager;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
-import com.qualcomm.robotcore.hardware.usb.RobotUsbManager;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -151,6 +148,7 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaBuildLocker;
 import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.firstinspires.ftc.robotcore.internal.stellaris.FlashLoaderManager;
 import org.firstinspires.ftc.robotcore.internal.stellaris.FlashLoaderProtocolException;
+import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
@@ -176,8 +174,9 @@ import java.util.regex.Pattern;
 @SuppressWarnings("WeakerAccess")
 public abstract class FtcEventLoopBase implements EventLoop
     {
-    // TODO(Noah): Look into making FtcEventLoopBase available before the Robot first starts up.
-    //             This would allow many commands (including injected commands) to succeed much earlier.
+    // TODO(Noah): Look into making FtcEventLoopIdle (and therefore FtcEventLoopBase) available
+    //             before the Robot first starts up. This would allow many commands (including
+    //             injected commands) to succeed much earlier.
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
@@ -436,7 +435,7 @@ public abstract class FtcEventLoopBase implements EventLoop
 
         if (registeredOpModes.getBlocksOpModesChanged())
             {
-            registeredOpModes.clearBlocksOpModesChanged(); // clear first so we err on side of registerring too often rather than too infrequently
+            registeredOpModes.clearBlocksOpModesChanged(); // clear first so we err on side of registering too often rather than too infrequently
             registeredOpModes.registerInstanceOpModes();
             sendUIState();
             }
@@ -445,6 +444,12 @@ public abstract class FtcEventLoopBase implements EventLoop
     @Override @CallSuper
     public void init(EventLoopManager eventLoopManager) throws RobotCoreException, InterruptedException
         {
+        }
+
+    @Override @CallSuper
+    public void loop()
+        {
+        AppAliveNotifier.getInstance().onEventLoopIteration();
         }
 
     protected void handleCommandRestartRobot()

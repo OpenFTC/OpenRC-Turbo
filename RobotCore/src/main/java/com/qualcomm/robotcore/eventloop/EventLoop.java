@@ -71,15 +71,14 @@ public interface EventLoop {
    *
    * Threading: called on the EventLoopRunnable.run() thread.
    *
-   * @throws RobotCoreException if a RobotCoreException is thrown, it will be handled
-   *         by the event loop manager. The manager may decide to either stop processing
-   *         this iteration of the loop, or it may decide to shut down the robot.
+   * If an Exception is thrown, it will be handled by the event loop manager. The manager may decide
+   * to either stop processing this iteration of the loop, or it may decide to shut down the robot.
    */
-  void loop() throws RobotCoreException, InterruptedException;
+  void loop();
 
   /**
    * Update's the user portion of the driver station screen with the contents of the telemetry object
-   * here provided if a sufficiently long duration has passed since the last update. 
+   * here provided if a sufficiently long duration has passed since the last update.
    * @param telemetry the telemetry object to send
    * @param sInterval the required minimum interval. NaN indicates that a system default interval should be used.
    */
