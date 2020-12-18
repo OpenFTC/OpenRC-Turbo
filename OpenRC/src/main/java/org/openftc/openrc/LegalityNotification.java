@@ -30,8 +30,12 @@ import android.text.Html;
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.util.Util;
 
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -39,10 +43,85 @@ public class LegalityNotification
 {
     private static boolean alreadyShownWarningThisSession = false;
 
+    private static Runnable onPeerConnectedRunnable;
+
+    static
+    {
+        if(LynxConstants.isRevControlHub())
+        {
+            NetworkConnectionHandler.getInstance().registerPeerStatusCallback(new PeerStatusCallback()
+            {
+                @Override
+                public void onPeerConnected()
+                {
+                    if(onPeerConnectedRunnable != null)
+                    {
+                        onPeerConnectedRunnable.run();
+                    }
+                }
+
+                @Override
+                public void onPeerDisconnected()
+                {
+
+                }
+            });
+        }
+    }
+
+    private static void chLegality()
+    {
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
+                AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "Competition Legality", "In its default configuration, OpenRC is illegal for competition use. Make sure to switch to the stock build variant before going to competition!");
+                Utils.setLegalityAcknowledgementStatus(true);
+            }
+        }).start();
+    }
+
     @OpModeRegistrar
     public static void showLegalityNotification(Context context, AnnotatedOpModeManager manager)
     {
-        if(LynxConstants.isRevControlHub() || Utils.hasAcknowledgedLegalityStatus() || alreadyShownWarningThisSession)
+        if(LynxConstants.isRevControlHub())
+        {
+            if(Utils.hasAcknowledgedLegalityStatus())
+            {
+                return;
+            }
+            else
+            {
+                //If robocol isn't linked yet, register the dialog for later
+                if(!NetworkConnectionHandler.getInstance().isPeerConnected())
+                {
+                    onPeerConnectedRunnable = new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            chLegality();
+                        }
+                    };
+                }
+                else
+                {
+                    chLegality();
+                }
+
+                return;
+            }
+        }
+        else if(Utils.hasAcknowledgedLegalityStatus() || alreadyShownWarningThisSession)
         {
             return;
         }
