@@ -147,8 +147,280 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDevi
     }
 
 //--------------------------------------------------------------------------------------------------
+// PTZ controls
+//--------------------------------------------------------------------------------------------------
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetZoomAbsolute(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer, jint zoom)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    bool success = false;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_set_zoom_abs(ptrUvcDeviceHandle, zoom);
+
+        if (result == UVC_SUCCESS)
+            {
+            success = true;
+            }
+        else
+            {
+            LOGE("Failed to set zoom to %d : error %d", zoom, static_cast<int>(result));
+            }
+
+        }
+    return jboolean(success ? JNI_TRUE : JNI_FALSE);
+    }
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetZoomAbsolute(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_zoom_abs(ptrUvcDeviceHandle, &ret, UVC_GET_CUR);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get zoom : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetZoomAbsoluteMin(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_zoom_abs(ptrUvcDeviceHandle, &ret, UVC_GET_MIN);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get min zoom : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetZoomAbsoluteMax(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_zoom_abs(ptrUvcDeviceHandle, &ret, UVC_GET_MAX);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get max zoom : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetPanTiltAbsolute(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer, jint pan, jint tilt)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    bool success = false;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_set_pantilt_abs(ptrUvcDeviceHandle, pan, tilt);
+
+        if (result == UVC_SUCCESS)
+            {
+            success = true;
+            }
+        else
+            {
+            LOGE("Failed to set pan/tilt to %d/%d : error %d", pan, tilt, static_cast<int>(result));
+            }
+
+        }
+    return jboolean(success ? JNI_TRUE : JNI_FALSE);
+    }
+
+JNIEXPORT jlong JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetPanTiltAbsolute(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint64_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        int32_t pan;
+        int32_t tilt;
+
+        uvc_error_t result = uvc_get_pantilt_abs(ptrUvcDeviceHandle, &pan, &tilt, UVC_GET_CUR);
+
+        if (result == UVC_SUCCESS)
+            {
+            ret |= (uint32_t)pan; //dunno why cast to unsigned is needed, but it is
+            ret <<= 32;
+            ret |= (uint32_t)tilt; //dunno why cast to unsigned is needed, but it is
+            }
+        else
+            {
+            LOGE("Failed to get pan/tilt : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+JNIEXPORT jlong JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetPanTiltAbsoluteMax(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint64_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        int32_t pan;
+        int32_t tilt;
+
+        uvc_error_t result = uvc_get_pantilt_abs(ptrUvcDeviceHandle, &pan, &tilt, UVC_GET_MAX);
+
+        if (result == UVC_SUCCESS)
+            {
+            ret |= (uint32_t)pan; //dunno why cast to unsigned is needed, but it is
+            ret <<= 32;
+            ret |= (uint32_t)tilt; //dunno why cast to unsigned is needed, but it is
+            }
+        else
+            {
+            LOGE("Failed to get max pan/tilt : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+JNIEXPORT jlong JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetPanTiltAbsoluteMin(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint64_t ret = 0;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        int32_t pan;
+        int32_t tilt;
+
+        uvc_error_t result = uvc_get_pantilt_abs(ptrUvcDeviceHandle, &pan, &tilt, UVC_GET_MIN);
+
+        if (result == UVC_SUCCESS)
+            {
+            ret |= (uint32_t)pan; //dunno why cast to unsigned is needed, but it is
+            ret <<= 32;
+            ret |= (uint32_t)tilt; //dunno why cast to unsigned is needed, but it is
+            }
+        else
+            {
+            LOGE("Failed to get min pan/tilt : error %d", static_cast<int>(result));
+            }
+        }
+
+    return ret;
+    }
+
+//--------------------------------------------------------------------------------------------------
 // Exposure controls
 //--------------------------------------------------------------------------------------------------
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetAePriority(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer, jboolean aePriority)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+    bool success = false;
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uint8_t value = (uint8_t) aePriority;
+
+        uvc_error_t result = uvc_set_ae_priority(ptrUvcDeviceHandle, value);
+
+        if (result == UVC_SUCCESS)
+            {
+            success = true;
+            }
+        else
+            {
+            LOGE("Failed to set ae priority to %d : error %d", value, static_cast<int>(result));
+            }
+        }
+    return jboolean(success ? JNI_TRUE : JNI_FALSE);
+    }
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetAePriority(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
+    {
+    FTC_TRACE_VERBOSE();
+
+    bool val = false;
+
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    if (ptrUvcDeviceHandle)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+        uvc_error_t result = uvc_get_ae_priority(ptrUvcDeviceHandle, reinterpret_cast<uint8_t*>(&val), UVC_GET_CUR);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get ae priority value : error %d(%s)", static_cast<int>(result), uvcErrorName(result));
+            }
+        }
+
+    return static_cast<jboolean>(val);
+    }
 
 enum class ExtendedExposureMode : int32_t   // logically extends ExtendedExposureMode
 {
@@ -444,7 +716,104 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDevi
     return jboolean(success ? JNI_TRUE : JNI_FALSE);
     }
 
+//--------------------------------------------------------------------------------------------------
+// Gain Controls
+//--------------------------------------------------------------------------------------------------
 
+/*
+ * Get min gain
+ */
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetMinGain(JNIEnv *env, jclass type, jlong pointer)
+    {
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+    uint16_t gain = 0;
+    if (ptrUvcDeviceHandle != NULL)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_gain(ptrUvcDeviceHandle, &gain, UVC_GET_MIN);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get min gain : error %d", static_cast<int>(result));
+            }
+        }
+    return gain;
+    }
+
+/*
+ * Get max gain
+ */
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetMaxGain(JNIEnv *env, jclass type, jlong pointer)
+    {
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+    uint16_t gain = 0;
+    if (ptrUvcDeviceHandle != NULL)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_gain(ptrUvcDeviceHandle, &gain, UVC_GET_MAX);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get max gain : error %d", static_cast<int>(result));
+            }
+        }
+    return gain;
+    }
+
+/*
+ * Get current gain
+ */
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetGain(JNIEnv *env, jclass type, jlong pointer)
+    {
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+    uint16_t gain = 0;
+    if (ptrUvcDeviceHandle != NULL)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_gain(ptrUvcDeviceHandle, &gain, UVC_GET_CUR);
+
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get current gain : error %d", static_cast<int>(result));
+            }
+        }
+    return gain;
+    }
+
+/*
+ * Set gain
+ */
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetGain(JNIEnv *env, jclass type, jlong pointer, jint gain)
+    {
+    FTC_TRACE_VERBOSE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+    bool success = false;
+    if (ptrUvcDeviceHandle != NULL)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+        uvc_error_t result = uvc_set_gain(ptrUvcDeviceHandle, static_cast<uint16_t>(gain));
+
+        if (result == UVC_SUCCESS)
+            {
+            success = true;
+            }
+        else
+            {
+            LOGE("Failed to set gain : error %d", static_cast<int>(result));
+            }
+        }
+    return static_cast<jboolean>(success);
+    }
 
 
 //--------------------------------------------------------------------------------------------------

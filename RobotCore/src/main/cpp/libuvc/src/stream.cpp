@@ -422,6 +422,47 @@ uvc_get_stream_ctrl_format_size(uvc_device_handle* devh, /*out*/ uvc_stream_ctrl
                                 done = true;
                                 }
                             }
+
+                        // If after going though all the available frame rates, we find none that match,
+                        // we choose the closest supported frame rate instead of failing hard. This has
+                        // proven to be necessary due to some cameras reporting, for instance, an interval
+                        // for 15FPS of 666667*100ns, but after rounding to 15FPS and conversion back to
+                        // nanoseconds and a cast to integer, ends up as 666666*100ns, which would cause
+                        // a fault, even though it's only 100ns different.
+                        if (!done)
+                            {
+                            int32_t fpsConvertedTo100NsInterval = (1.0f/fps)*1e7;
+                            int32_t distance = 0;
+                            uint32_t chosen = UINT32_MAX;
+
+                            for (int i = 0; pFrame->rgIntervals[i]; i++)
+                                {
+                                int32_t nextDistance = abs((int32_t)pFrame->rgIntervals[i] - fpsConvertedTo100NsInterval);
+                                if (chosen == UINT32_MAX || nextDistance < distance)
+                                    {
+                                    chosen = pFrame->rgIntervals[i];
+                                    distance = nextDistance;
+                                    }
+                                }
+
+                            // Paranoia
+                            if (chosen != UINT32_MAX)
+                                {
+                                LOGE("Camera does not support requested frame rate of %dFPS (interval %d*100ns) at resolution [%dx%d] format %d; choosing closest supported interval (%d*100ns)",
+                                        fps, fpsConvertedTo100NsInterval, width, height, (int)cf, chosen);
+
+                                /* get the max values -- we need the interface number to be able to do this */
+                                pCtrl->bInterfaceNumber = pStream->bInterfaceNumber;
+                                uvc_query_stream_ctrl(devh, pCtrl, FLAVOR_PROBE, UVC_GET_MAX);
+
+                                pCtrl->bmHint = (1 << 0); /* don't negotiate frame interval */
+                                pCtrl->bFormatIndex = pFormat->bFormatIndex;
+                                pCtrl->bFrameIndex = pFrame->bFrameIndex;
+                                pCtrl->dwFrameInterval = chosen;
+
+                                done = true;
+                                }
+                            }
                         }
                     else
                         {
@@ -1549,3 +1590,5 @@ void uvc_stream_close(uvc_stream_handle *strmh)
     delete (strmh);
     UVC_EXIT_VOID();
     }
+
+
