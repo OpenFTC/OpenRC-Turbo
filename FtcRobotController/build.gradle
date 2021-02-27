@@ -43,27 +43,39 @@ dependencies {
     extremeTurboApi project(':OpenRC')
     extremeTurboApi project(':RobotServer')
 
-    stockApi 'org.firstinspires.ftc:Inspection:6.2.1'
-    stockApi 'org.firstinspires.ftc:Blocks:6.2.1'
-    stockApi 'org.firstinspires.ftc:RobotCore:6.2.1'
-    stockApi 'org.firstinspires.ftc:RobotServer:6.2.1'
-    stockApi 'org.firstinspires.ftc:OnBotJava:6.2.1'
-    stockApi 'org.firstinspires.ftc:Hardware:6.2.1'
-    stockApi 'org.firstinspires.ftc:FtcCommon:6.2.1'
-    stockApi 'androidx.appcompat:appcompat:1.2.0'
-
     /*
-     * Things needed regardless of turbo/extremeTurbo/stock
-     * that are normally pulled in by modules but must be
-     * pulled in here for stock
+     * After the migration of the official libs to maven central,
+     * robotcore now has a transitive dependency on the FTC TFOD
+     * lib, which has a transitive dependency on the actual TFOD
+     * lib, which has a transitive dependency on appcompat-v7.
+     *
+     * Because all the other libs (e.g. Inspection) depend on RobotCore,
+     * they in turn all end up having a transitive dependency on the
+     * appcompat-v7 package too. So, we have to specifically exclude
+     * it from *every* single FTC lib. Sigh.
      */
-    stockApi ('org.firstinspires.ftc:tfod:1.0.2') {
+    stockApi ('org.firstinspires.ftc:Inspection:6.2.1') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.tensorflow:tensorflow-lite:1.10.0') {
+    stockApi ('org.firstinspires.ftc:Blocks:6.2.1') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-
+    stockApi ('org.firstinspires.ftc:RobotCore:6.2.1') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi ('org.firstinspires.ftc:RobotServer:6.2.1') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi ('org.firstinspires.ftc:OnBotJava:6.2.1') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi ('org.firstinspires.ftc:Hardware:6.2.1') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi ('org.firstinspires.ftc:FtcCommon:6.2.1') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi 'androidx.appcompat:appcompat:1.2.0'
     /*
      * External
      */
