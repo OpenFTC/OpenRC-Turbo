@@ -43,13 +43,13 @@ dependencies {
     extremeTurboApi project(':OpenRC')
     extremeTurboApi project(':RobotServer')
 
-    stockApi 'org.firstinspires.ftc:Inspection:6.1.1'
-    stockApi 'org.firstinspires.ftc:Blocks:6.1.1'
-    stockApi 'org.firstinspires.ftc:RobotCore:6.1.1'
-    stockApi 'org.firstinspires.ftc:RobotServer:6.1.1'
-    stockApi 'org.firstinspires.ftc:OnBotJava:6.1.1'
-    stockApi 'org.firstinspires.ftc:Hardware:6.1.1'
-    stockApi 'org.firstinspires.ftc:FtcCommon:6.1.1'
+    stockApi 'org.firstinspires.ftc:Inspection:6.2.1'
+    stockApi 'org.firstinspires.ftc:Blocks:6.2.1'
+    stockApi 'org.firstinspires.ftc:RobotCore:6.2.1'
+    stockApi 'org.firstinspires.ftc:RobotServer:6.2.1'
+    stockApi 'org.firstinspires.ftc:OnBotJava:6.2.1'
+    stockApi 'org.firstinspires.ftc:Hardware:6.2.1'
+    stockApi 'org.firstinspires.ftc:FtcCommon:6.2.1'
     stockApi 'androidx.appcompat:appcompat:1.2.0'
 
     /*
@@ -57,8 +57,12 @@ dependencies {
      * that are normally pulled in by modules but must be
      * pulled in here for stock
      */
-    stockApi 'org.openftc:tfod-google-ftcsdk-repackaged:5.0' //Specific version of TFOD core library used by FTC SDK
-    stockApi 'org.openftc:tfod-ftc-repackaged:5.0' //FTC specific addons to core TFOD lib
+    stockApi ('org.firstinspires.ftc:tfod:1.0.2') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    stockApi ('org.tensorflow:tensorflow-lite:1.10.0') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
 
     /*
      * External
