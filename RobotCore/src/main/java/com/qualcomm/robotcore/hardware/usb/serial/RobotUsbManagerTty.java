@@ -118,9 +118,9 @@ public class RobotUsbManagerTty implements RobotUsbManager
                     try { deviceTTY.setBaudRate(LynxConstants.SERIAL_MODULE_BAUD_RATE); } catch (RobotUsbException e) {/*ignored*/}
                     return deviceTTY;
                     }
-                throw new RobotCoreException(TAG, "%s is already open: unable to open second time", serialNumber);
+                throw new RobotCoreException("%s is already open: unable to open second time", serialNumber);
                 }
-            throw new RobotCoreException(TAG, "%s not found", serialNumber);
+            throw new RobotCoreException("TTY for %s not found", serialNumber);
             }
         }
     }

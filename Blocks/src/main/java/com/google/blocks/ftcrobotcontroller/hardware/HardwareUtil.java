@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+
 import com.google.blocks.ftcrobotcontroller.util.AvailableTtsLocalesProvider;
 import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
@@ -81,6 +82,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
  * @author lizlooney@google.com (Liz Looney)
  */
 public class HardwareUtil {
+  private static final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+
   private static final String DC_MOTOR_EX_CATEGORY_NAME = "Extended";
   private static final String DC_MOTOR_DUAL_CATEGORY_NAME = "Dual";
   private static final String GAMEPAD_CATEGORY_NAME = "Gamepad"; // see toolbox/gamepad.xml
@@ -189,14 +192,14 @@ public class HardwareUtil {
     }
     jsHardware.append("var AUTO_TRANSITION_OPTIONS = [\n");
     for (String teleOpName : teleOpNames) {
-      jsHardware.append("  '").append(teleOpName).append("',\n");
+      jsHardware.append("  '").append(escapeSingleQuotes(teleOpName)).append("',\n");
     }
     jsHardware.append("];\n\n");
 
     jsHardware
-        .append("var currentGameName = '" + CURRENT_GAME_NAME + "';\n")
-        .append("var tfodCurrentGameBlocksFirstName = '" + TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME + "';\n")
-        .append("var vuforiaCurrentGameBlocksFirstName = '" + VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME + "';\n")
+        .append("var currentGameName = '").append(escapeSingleQuotes(CURRENT_GAME_NAME)).append("';\n")
+        .append("var tfodCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
+        .append("var vuforiaCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
         .append("\n");
 
     jsHardware
@@ -890,11 +893,14 @@ public class HardwareUtil {
         xmlToolbox.append("<category name=\"").append(userVisibleClassName).append("\">\n");
         Set<Method> methods = entry.getValue();
         for (Method method : methods) {
+          ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
+          if (exportToBlocks == null) {
+            continue;
+          }
           String returnType = method.getReturnType().getName();
           String blockType = returnType.equals("void") ? "misc_callJava_noReturn" : "misc_callJava_return";
           String methodName = method.getName();
           Class[] parameterTypes = method.getParameterTypes();
-          ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
           String comment = exportToBlocks.comment();
           String tooltip = exportToBlocks.tooltip();
           String[] parameterLabels = getParameterLabels(method);
@@ -974,7 +980,12 @@ public class HardwareUtil {
 
   public static String[] getParameterLabels(Method method) {
     ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
-    String[] parameterLabels = exportToBlocks.parameterLabels();
+    String[] parameterLabels;
+    if (exportToBlocks != null) {
+      parameterLabels = exportToBlocks.parameterLabels();
+    } else {
+      parameterLabels = new String[0];
+    }
     int length = method.getParameterTypes().length;
     if (parameterLabels.length != length) {
       parameterLabels = new String[length];
@@ -1177,7 +1188,6 @@ public class HardwareUtil {
   private static void addAndroidCategoriesToToolbox(
       StringBuilder xmlToolbox, AssetManager assetManager)
       throws IOException {
-    SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
     boolean hasAccelerometer = !sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
     boolean hasGyroscope = !sensorManager.getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty();
     boolean hasMagneticField = !sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD).isEmpty();

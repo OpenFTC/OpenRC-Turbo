@@ -21,7 +21,6 @@
  */
 
 function initializeFtcBlocks() {
-  Blockly.prompt = parent.showPrompt; // https://blockly-demo.appspot.com/static/demos/custom-dialogs/index.html
   fetchJavaScriptForHardware(function(jsHardware, errorMessage) {
     if (jsHardware) {
       var newScript = document.createElement('script');

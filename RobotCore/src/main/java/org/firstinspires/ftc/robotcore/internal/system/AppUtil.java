@@ -130,7 +130,7 @@ public class AppUtil
     /** Where to place logs */
     public static final File LOG_FOLDER = ROOT_FOLDER;
     public static final File MATCH_LOG_FOLDER = new File(FIRST_FOLDER + "/matchlogs/");
-    public static final int MAX_MATCH_LOGS_TO_KEEP = 5;
+    public static final int MAX_MATCH_LOGS_TO_KEEP = 9;
 
     /** Dirctory in which .xml robot configurations should live */
     public static final File CONFIG_FILES_DIR = FIRST_FOLDER;
@@ -207,6 +207,8 @@ public class AppUtil
     private @Nullable String    usbFileSystemRoot; // never transitions from non-null to null
     private final WeakReferenceSet<UsbFileSystemRootListener> usbfsListeners = new WeakReferenceSet<>();
     private @Nullable WebSocketManager webSocketManager;
+    @SuppressWarnings("ConstantConditions")
+    private UsbManager usbManager;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -224,6 +226,7 @@ public class AppUtil
 
     protected void initialize(@NonNull Application application)
         {
+        usbManager = (UsbManager) application.getSystemService(Context.USB_SERVICE);
         lifeCycleMonitor = new LifeCycleMonitor();
         rootActivity     = null;
         currentActivity  = null;
@@ -507,7 +510,6 @@ public class AppUtil
             {
             synchronized (usbfsRootLock)
                 {
-                UsbManager usbManager = (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
                 for (String usbDeviceName : usbManager.getDeviceList().keySet())
                     {
                     String path = usbFileSystemRootFromDeviceName(usbDeviceName);
@@ -967,7 +969,6 @@ public class AppUtil
             Assert.assertFalse(CallbackLooper.isLooperThread());
 
             // First check to see if we've already got permission
-            final UsbManager usbManager = (UsbManager) modalContext.getSystemService(Context.USB_SERVICE);
             if (usbManager.hasPermission(usbDevice))
                 {
                 RobotLog.dd(tag, "permission already available for %s", usbDevice.getDeviceName());

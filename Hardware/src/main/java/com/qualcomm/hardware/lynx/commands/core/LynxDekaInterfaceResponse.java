@@ -57,7 +57,7 @@ public abstract class LynxDekaInterfaceResponse extends LynxInterfaceResponse
     @Override
     public LynxInterface getInterface()
         {
-        return LynxDekaInterfaceCommand.theInterface;
+        return module.getInterface(LynxDekaInterfaceCommand.dekaInterfaceName);
         }
 
     }

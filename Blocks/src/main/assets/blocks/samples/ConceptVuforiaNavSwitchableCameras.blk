@@ -281,7 +281,7 @@
 </value>
 <value name="CAMERA_LOCATION_ON_ROBOT_X_ANGLE">
 <shadow type="math_number" id="PwPq+;Rv(AGqd^.q,G)Q">
-<field name="NUM">0</field>
+<field name="NUM">90</field>
 </shadow>
 </value>
 <value name="CAMERA_LOCATION_ON_ROBOT_Y_ANGLE">
@@ -291,7 +291,7 @@
 </value>
 <value name="CAMERA_LOCATION_ON_ROBOT_Z_ANGLE">
 <shadow type="math_number" id="RvVb,^Y29HRH5=e9ZmEU">
-<field name="NUM">0</field>
+<field name="NUM">90</field>
 </shadow>
 </value>
 <value name="USE_COMPETITION_FIELD_TARGET_LOCATIONS">

@@ -159,7 +159,6 @@
     <string name="launch_wifi_settings">Wifi Settings...</string>
     <string name="legacy_controller_name">Enter the name for this legacy module here</string>
     <string name="load_menu_item">Load Configuration File</string>
-    <string name="lynxFirmwareUpdateAlreadyInProgress">another firmware update is already in progress</string>
     <string name="lynxFirmwareUpdateReadme">Place any downloaded REV Hub firmware updates you wish to install in this folder. You can then install those updates using the Advanced Settings menu on the Driver Station or Robot Controller.</string>
     <string name="lynx_address_format_module_address">Current address: %d</string>
     <string name="lynx_address_format_new_module_address">New address: %d</string>

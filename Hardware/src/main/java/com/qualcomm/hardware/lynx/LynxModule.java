@@ -118,7 +118,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@link LynxModule} represents the connection between the host and a particular
- * Lynx controller module. Multiple Lynx controller modules may be chained together over RS485
+ * Lynx controller module. Multiple Lynx controller modules may be chained together over RS-485
  * and share a common USB connection.
  *
  * @see LynxUsbDeviceImpl
@@ -327,7 +327,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public String toString()
         {
-        return Misc.formatForUser("LynxModule(mod#=%d)", this.moduleAddress);
+        return Misc.formatForUser("LynxModule(mod#=%d, serial=%s)", this.moduleAddress, getSerialNumber());
         }
 
     @Override public void close()
@@ -972,7 +972,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         // Note that, in doing so, we also need to make sure we ping the parent first
         // before we ping any children; that is the responsibility of our caller.
         pingInitialContact();
-        queryInterface(LynxDekaInterfaceCommand.theInterface);
+        queryInterface(LynxDekaInterfaceCommand.createDekaInterface());
         startFtdiResetWatchdog();
         if (isUserModule())
             {
@@ -1070,7 +1070,6 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         synchronized (this.interfacesQueried)
             {
             LynxQueryInterfaceCommand queryInterfaceCommand = new LynxQueryInterfaceCommand(this, theInterface.getInterfaceName());
-            this.interfacesQueried.put(theInterface.getInterfaceName(), theInterface);
             try {
                 // Query the module
                 LynxQueryInterfaceResponse response = queryInterfaceCommand.sendReceive();
@@ -1125,37 +1124,42 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
                     iCommand++;
                     }
 
+                this.interfacesQueried.put(theInterface.getInterfaceName(), theInterface);
                 supported = true;
                 }
             catch (LynxNackException e)
                 {
-                // The interface is not supported. Leave the nack in the command so that
-                // getInterfaceBaseCommandNumber will find it later.
                 RobotLog.vv(TAG, "mod#=%d queryInterface(): interface %s is not supported", getModuleAddress(), theInterface.getInterfaceName());
+                // Mark this interface as not supported, and add it to the map
+                theInterface.setWasNacked(true);
+                this.interfacesQueried.put(theInterface.getInterfaceName(), theInterface);
                 }
             catch (RuntimeException e)
                 {
                 RobotLog.ee(TAG, e, "exception during queryInterface(%s)", theInterface.getInterfaceName());
+                RobotLog.setGlobalErrorMsg("REV Hub interface query failed");
                 }
             }
         return supported;
         }
 
-    /** Returns the first command number to use for the given interface. Throws if not supported */
-    public int getInterfaceBaseCommandNumber(String interfaceName)
+    /** Returns null if the interface has not been queried or is not supported */
+    @Override
+    public LynxInterface getInterface(String interfaceName)
         {
         synchronized (this.interfacesQueried)
             {
             LynxInterface anInterface = this.interfacesQueried.get(interfaceName);
             if (anInterface == null)
-                return LynxInterface.ERRONEOUS_COMMAND_NUMBER;  // we never queried. why? shutdown?
-
-            if (!anInterface.wasNacked())
                 {
-                return anInterface.getBaseCommandNumber();
+                RobotLog.ee(TAG, "interface \"%s\" has not been successfully queried for %s", interfaceName, this);
                 }
-            else
-                throw new IllegalArgumentException(String.format("interface \"%s\" not supported", interfaceName));
+            else if (anInterface.wasNacked())
+                {
+                RobotLog.ee(TAG, "interface \"%s\" not supported on %s", interfaceName, this);
+                }
+
+            return anInterface;
             }
         }
 
@@ -1754,7 +1758,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         int msgnumCur = command.getMessageNumber();
 
         // Serialize this guy and remember it
-        LynxDatagram datagram = new LynxDatagram(command); // throws LynxUnsupportedCommandNumberException
+        LynxDatagram datagram = new LynxDatagram(command); // throws LynxUnsupportedCommandException
         command.setSerialization(datagram);
 
         // Remember this guy as someone who needs acknowledgement

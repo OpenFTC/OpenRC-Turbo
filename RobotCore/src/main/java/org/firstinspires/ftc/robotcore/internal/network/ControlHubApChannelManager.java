@@ -3,8 +3,6 @@ package org.firstinspires.ftc.robotcore.internal.network;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
@@ -24,7 +22,7 @@ public final class ControlHubApChannelManager implements ApChannelManager
 {
     private final static String TAG = "ControlHubApChannelManager";
     private final static boolean DEBUG = false;
-    private final static ApChannel FACTORY_DEFAULT_AP_CHANNEL = ApChannel.AUTO_5_GHZ;
+    private final static ApChannel FACTORY_DEFAULT_AP_CHANNEL = ApChannel.AUTO_2_4_GHZ;
 
     private final ChannelResultReceiver channelResultReceiver = new ChannelResultReceiver();
     private final Context context = AppUtil.getDefContext();
@@ -51,11 +49,9 @@ public final class ControlHubApChannelManager implements ApChannelManager
 
     /**
      * Returns the current AP channel.
-     *
-     * Do not call this on the main thread, as that is where we receive the channel from the AP service.
      */
     @Override
-    public ApChannel getCurrentChannel()
+    public synchronized ApChannel getCurrentChannel()
     {
         if (AndroidBoard.getInstance().supportsGetChannelInfoIntent()) {
             if (DEBUG) RobotLog.vv(TAG, "Sending broadcast to get current channel");
@@ -63,7 +59,7 @@ public final class ControlHubApChannelManager implements ApChannelManager
             getCurrentChannelInfoIntent.putExtra(Intents.EXTRA_RESULT_RECEIVER, AppUtil.wrapResultReceiverForIpc(channelResultReceiver));
             AppUtil.getDefContext().sendBroadcast(getCurrentChannelInfoIntent);
             try {
-                return channelResultReceiver.awaitResult(1, TimeUnit.SECONDS);
+                return channelResultReceiver.awaitResult(45, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 RobotLog.ee(TAG, "Thread interrupted while getting current channel from AP service");
                 Thread.currentThread().interrupt();
@@ -127,7 +123,7 @@ public final class ControlHubApChannelManager implements ApChannelManager
 
         public ChannelResultReceiver()
         {
-            super(3, TAG, new Handler(Looper.getMainLooper()));
+            super(3, TAG, CallbackLooper.getDefault().getHandler());
         }
 
         @Override

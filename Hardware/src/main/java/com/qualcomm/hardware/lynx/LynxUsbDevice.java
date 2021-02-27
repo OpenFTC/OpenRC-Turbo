@@ -46,6 +46,10 @@ import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
 import com.qualcomm.robotcore.util.GlobalWarningSource;
 
+import org.firstinspires.ftc.robotcore.external.Consumer;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
+
 /**
  * The working interface to Lynx USB Devices. Separating out the interface like this allows
  * us to create delegators where we need to.
@@ -78,7 +82,9 @@ public interface LynxUsbDevice extends RobotUsbModule, GlobalWarningSource, Robo
 
     void transmit(LynxMessage message) throws InterruptedException;
 
-    boolean setControlHubModuleAddressIfNecessary() throws InterruptedException, RobotCoreException;
+    boolean setupControlHubEmbeddedModule() throws InterruptedException, RobotCoreException;
 
     LynxUsbDeviceImpl getDelegationTarget();
+
+    RobotCoreCommandList.LynxFirmwareUpdateResp updateFirmware(RobotCoreCommandList.FWImage image, String requestId, Consumer<ProgressParameters> progressConsumer);
     }

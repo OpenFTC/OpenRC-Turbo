@@ -236,6 +236,8 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
         boolean tryScannable = true;
         if (!scannableSerialNumber.equals(serialNumber)) { // already did that check
           if (hardwareMap.get(Object.class, scannableSerialNumber) != null || hardwareMapExtra.get(Object.class, scannableSerialNumber) != null) {
+            // TODO(Noah): I don't know why this is considered as an error. This is the exact scenario that indicates that we should do a scan, right?
+            //             I believe not setting tryScannable to false would fix issue #1203
             RobotLog.ee(TAG, "internal error: %s absent but scannable %s present", serialNumber, scannableSerialNumber);
             tryScannable = false;
           }

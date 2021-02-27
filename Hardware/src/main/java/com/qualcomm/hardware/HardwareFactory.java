@@ -540,15 +540,6 @@ public class HardwareFactory {
     map.i2cDeviceSynch.put(devConf.getName(), i2cDeviceSynch);
   }
 
-  private void mapUserI2cDevice(HardwareMap map, DeviceManager deviceMgr, I2cController i2cController, DeviceConfiguration devConf) {
-    if (!devConf.isEnabled()) return;
-    I2cDeviceConfigurationType userType = (I2cDeviceConfigurationType)devConf.getConfigurationType();
-    HardwareDevice hardwareDevice = deviceMgr.createUserI2cDevice(i2cController, devConf.getI2cChannel(), userType, devConf.getName());
-    if (hardwareDevice != null) {
-      addUserDeviceToMap(map, devConf, hardwareDevice);
-    }
-  }
-
   private void addUserDeviceToMap(HardwareMap map, DeviceConfiguration deviceConf, HardwareDevice deviceInstance) {
     map.put(deviceConf.getName(), deviceInstance);
 
@@ -566,13 +557,21 @@ public class HardwareFactory {
     }
   }
 
+  private void mapUserI2cDevice(HardwareMap map, DeviceManager deviceMgr, I2cController i2cController, DeviceConfiguration devConf) {
+    if (!devConf.isEnabled()) return;
+    I2cDeviceConfigurationType userType = (I2cDeviceConfigurationType)devConf.getConfigurationType();
+    HardwareDevice hardwareDevice = deviceMgr.createUserI2cDevice(i2cController, devConf.getI2cChannel(), userType, devConf.getName());
+    if (hardwareDevice != null) {
+      addUserDeviceToMap(map, devConf, hardwareDevice);
+    }
+  }
+
   private void mapUserI2cDevice(HardwareMap map, DeviceManager deviceMgr, LynxModule lynxModule, DeviceConfiguration devConf) {
     if (!devConf.isEnabled()) return;
     I2cDeviceConfigurationType userType = (I2cDeviceConfigurationType)devConf.getConfigurationType();
     HardwareDevice hardwareDevice = deviceMgr.createUserI2cDevice(lynxModule, devConf.getI2cChannel(), userType, devConf.getName());
     if (hardwareDevice != null) {
-      // User-defined types don't live in a type-specific mapping, only in the overall one
-      map.put(devConf.getName(), hardwareDevice);
+      addUserDeviceToMap(map, devConf, hardwareDevice);
     }
   }
 

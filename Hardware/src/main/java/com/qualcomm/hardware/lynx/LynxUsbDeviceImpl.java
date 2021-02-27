@@ -52,6 +52,7 @@ import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
 import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbDeviceFtdi;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.IncludedFirmwareFileInfo;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -59,11 +60,15 @@ import com.qualcomm.robotcore.util.TypeConversion;
 import com.qualcomm.robotcore.util.Util;
 import com.qualcomm.robotcore.util.WeakReferenceSet;
 
+import org.firstinspires.ftc.robotcore.external.Consumer;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.hardware.TimeWindow;
 import org.firstinspires.ftc.robotcore.internal.hardware.usb.ArmableUsbDevice;
+import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 import org.firstinspires.ftc.robotcore.internal.usb.exception.RobotUsbDeviceClosedException;
 import org.firstinspires.ftc.robotcore.internal.usb.exception.RobotUsbException;
 import org.firstinspires.ftc.robotcore.internal.usb.exception.RobotUsbFTDIException;
@@ -116,6 +121,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     protected       boolean                                 isEngaged;
     protected       boolean                                 wasPollingWhenEngaged;
     protected final Object                                  engageLock = new Object();  // must hold to access isEngaged
+    protected final LynxFirmwareUpdater                     lynxFirmwareUpdater = new LynxFirmwareUpdater(this);
 
     // The lynx hw schematic puts the reset and prog lines on particular pins, CBUS0 and CBUS1 respectively
     protected final static int cbusNReset           = 0x01;
@@ -641,16 +647,18 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
         }
 
     /**
-     * Checks if the Control Hub has a module with an address of {@link LynxConstants#CH_EMBEDDED_MODULE_ADDRESS},
-     * and sets the Control Hub's embedded parent module address to such if necessary.
+     * Verifies that we can communicate with the Control Hub's embedded module, and that its address
+     * is set to {@link LynxConstants#CH_EMBEDDED_MODULE_ADDRESS}. If we can't communicate with it,
+     * an attempt will be made to flash new firmware to it. If its address is incorrect, it will be
+     * set to the correct value.
      *
      * @return true if the Control Hub's embedded parent module address was changed
      */
-    @Override public boolean setControlHubModuleAddressIfNecessary() throws InterruptedException, RobotCoreException
+    @Override public boolean setupControlHubEmbeddedModule() throws InterruptedException, RobotCoreException
         {
         if (!getSerialNumber().isEmbedded())
             {
-            RobotLog.ww(TAG, "assertControlHubParentModuleAddress() called on non-embedded USB device");
+            RobotLog.ww(TAG, "setupControlHubEmbeddedModule() called on non-embedded USB device");
             return false;
             }
 
@@ -687,9 +695,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
                 syntheticEmbeddedModule.close();
                 removeConfiguredModule(syntheticEmbeddedModule);
                 }
-            RobotLog.ww(TAG, "Unable to find embedded Control Hub module at address %d. Attempting to find module and change address.", LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
-            setControlHubModuleAddress();
-            return true;
+            return handleEmbeddedModuleNotFoundAtExpectedAddress();
             }
         finally
             {
@@ -701,19 +707,60 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
             }
         }
 
-    private void setControlHubModuleAddress() throws InterruptedException, RobotCoreException
+    /**
+     * @return true if the Control Hub's embedded parent module address was changed
+     */
+    private boolean handleEmbeddedModuleNotFoundAtExpectedAddress() throws RobotCoreException, InterruptedException
         {
-        LynxModuleMetaList discoveredModules = discoverModules();
-        LynxModuleMeta discoveredParentModule = discoveredModules.getParent();
+        RobotLog.ww(TAG, "Unable to find embedded Control Hub module at address %d. Attempting to resolve automatically.", LynxConstants.CH_EMBEDDED_MODULE_ADDRESS);
+        LynxModuleMeta discoveredParentModule = discoverModules().getParent();
         if (discoveredParentModule == null)
             {
-            throw new RobotCoreException("Unable to communicate with internal Expansion Hub");
+            RobotLog.ee(TAG, "Unable to communicate with internal Expansion Hub. Attempting to re-flash firmware.");
+            autoReflashControlHubFirmware();
+            discoveredParentModule = discoverModules().getParent();
+            if (discoveredParentModule == null)
+                {
+                // We still can't see the embedded module
+                RobotLog.setGlobalErrorMsg(AppUtil.getDefContext().getString(R.string.controlHubNotAbleToCommunicateWithInternalHub));
+                // The module address was not changed, so we return false;
+                return false;
+                }
+            else
+                {
+                RobotLog.ii(TAG, "Successfully un-bricked the Control Hub's embedded module");
+                if (discoveredParentModule.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS)
+                    {
+                    RobotLog.ii(TAG, "The embedded module already has the correct address");
+                    return false;
+                    }
+                }
             }
+
+        setControlHubModuleAddress(discoveredParentModule);
+        return true;
+        }
+
+    private void autoReflashControlHubFirmware()
+        {
+        updateFirmware(IncludedFirmwareFileInfo.FW_IMAGE, "autoFirmwareUpdate", new Consumer<ProgressParameters>()
+            {
+            @Override public void accept(ProgressParameters value)
+                {
+                // Make sure that the CH OS watchdog doesn't trip while we're in the middle of the firmware update
+                AppAliveNotifier.getInstance().onEventLoopIteration();
+                }
+            });
+        resetDevice(robotUsbDevice);
+        }
+
+    private void setControlHubModuleAddress(LynxModuleMeta discoveredParentModule) throws InterruptedException, RobotCoreException
+        {
         int oldParentModuleAddress = discoveredParentModule.getModuleAddress();
         RobotLog.vv(TAG, "Found embedded module at address %d", oldParentModuleAddress);
         // It should be safe to assume that this method only gets called on initial startup, before
         // any other LynxModule instances have been created. After all, after this method runs,
-        // setControlHubModuleAddressIfNecessary() will successfully ping the internal module and
+        // setupControlHubEmbeddedModule() will successfully ping the internal module and
         // quickly exit, instead of calling us.
 
         // Therefore, we assume that no one else is communicating with this module, and make a brand new instance
@@ -1139,7 +1186,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
      */
     public static void resetDevice(RobotUsbDevice robotUsbDevice)
         {
-        RobotLog.vv(LynxModule.TAG, "resetDevice() serial=%s", robotUsbDevice.getSerialNumber());
+        RobotLog.vv(TAG, "resetDevice() serial=%s", robotUsbDevice.getSerialNumber());
 
         int msDelay = msCbusWiggle;
         try {
@@ -1188,113 +1235,9 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
             }
         }
 
-    /**
-     * If we are a USB-attached Lynx, then cause us to enter firmware update mode
-     */
-    public static boolean enterFirmwareUpdateModeUSB(RobotUsbDevice robotUsbDevice)
+    @Override
+    public RobotCoreCommandList.LynxFirmwareUpdateResp updateFirmware(final RobotCoreCommandList.FWImage image, String requestId, Consumer<ProgressParameters> progressConsumer)
         {
-        RobotLog.vv(LynxModule.TAG, "enterFirmwareUpdateModeUSB() serial=%s", robotUsbDevice.getSerialNumber());
-
-        if (!LynxConstants.isEmbeddedSerialNumber(robotUsbDevice.getSerialNumber()))
-            {
-            RobotUsbDeviceFtdi deviceFtdi = accessCBus(robotUsbDevice);
-            if (deviceFtdi != null)
-                {
-                try {
-                    int msDelay = msCbusWiggle;
-
-                    // Initialize with both lines deasserted
-                    deviceFtdi.cbus_setup(cbusMask, cbusNeitherAsserted);
-                    Thread.sleep(msDelay);
-
-                    // Assert nProg
-                    deviceFtdi.cbus_write(cbusProgAsserted);
-                    Thread.sleep(msDelay);
-
-                    // Assert nProg and nReset
-                    deviceFtdi.cbus_write(cbusBothAsserted);
-                    Thread.sleep(msDelay);
-
-                    // Deassert nReset
-                    deviceFtdi.cbus_write(cbusProgAsserted);
-                    Thread.sleep(msDelay);
-
-                    // Deassert nProg
-                    deviceFtdi.cbus_write(cbusNeitherAsserted);
-                    Thread.sleep(msResetRecovery);
-
-                    return true;
-                    }
-                catch (InterruptedException|RobotUsbException e)
-                    {
-                    exceptionHandler.handleException(e);
-                    }
-                }
-            else
-                {
-                RobotLog.ee(TAG, "enterFirmwareUpdateModeUSB() can't access FTDI device");
-                }
-            }
-        else
-            {
-            RobotLog.ee(TAG, "enterFirmwareUpdateModeUSB() issued on Control Hub's embedded Expansion Hub");
-            }
-
-        return false;
-        }
-
-    /**
-     * If we are a Control Hub, then this causes the combo-Lynx to enter firmware update * mode.
-     * We will be updating the firmware using the 'serial' connection, not the USB connection. So
-     * after this function exits, the Android board must be asserting its presence.
-     */
-    public static boolean enterFirmwareUpdateModeControlHub()
-        {
-        RobotLog.vv(LynxModule.TAG, "enterFirmwareUpdateModeControlHub()");
-
-        if (LynxConstants.isRevControlHub())
-            {
-            try {
-                int msDelay = msCbusWiggle;
-
-                boolean prevState = AndroidBoard.getInstance().getAndroidBoardIsPresentPin().getState();
-                RobotLog.vv(LynxModule.TAG, "fw update embedded usb device: isPresent: was=%s", prevState);
-
-                // Assert Dragonboard presence to ensure we can manipulate the programming and reset lines
-                if (!prevState)
-                    {
-                    AndroidBoard.getInstance().getAndroidBoardIsPresentPin().setState(true);
-                    Thread.sleep(msDelay);
-                    }
-
-                // Assert programming
-                AndroidBoard.getInstance().getProgrammingPin().setState(true);
-                Thread.sleep(msDelay);
-
-                // Assert reset
-                AndroidBoard.getInstance().getLynxModuleResetPin().setState(true);
-                Thread.sleep(msDelay);
-
-                // Deassert reset
-                AndroidBoard.getInstance().getLynxModuleResetPin().setState(false);
-                Thread.sleep(msDelay);
-
-                // Deassert programming
-                AndroidBoard.getInstance().getProgrammingPin().setState(false);
-                Thread.sleep(msDelay);
-
-                return true;
-                }
-            catch (InterruptedException e)
-                {
-                Thread.currentThread().interrupt();
-                }
-            }
-        else
-            {
-            RobotLog.ee(TAG, "enterFirmwareUpdateModeControlHub() issued on non-Control Hub");
-            }
-
-        return false;
+        return lynxFirmwareUpdater.updateFirmware(image, requestId, progressConsumer);
         }
     }

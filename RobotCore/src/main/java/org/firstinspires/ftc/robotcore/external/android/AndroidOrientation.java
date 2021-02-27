@@ -29,12 +29,19 @@ import android.view.WindowManager;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import androidx.annotation.NonNull;
+
 /**
  * A class that provides access to the Android sensors for Orientation.
  *
  * @author lizlooney@google.com (Liz Looney)
  */
 public class AndroidOrientation implements SensorEventListener {
+  @SuppressWarnings("ConstantConditions")
+  @NonNull private final WindowManager windowManager = (WindowManager) AppUtil.getDefContext().getSystemService(Context.WINDOW_SERVICE);
+  @SuppressWarnings("ConstantConditions")
+  @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+
   private volatile boolean listening;
   private volatile long timestampAcceleration;
   private volatile long timestampMagneticField;
@@ -80,8 +87,7 @@ public class AndroidOrientation implements SensorEventListener {
 
       // Adjust pitch and roll for phone rotation (e.g., landscape vs portrait).
       Activity activity = AppUtil.getInstance().getRootActivity();
-      int rotation = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE))
-          .getDefaultDisplay().getRotation();
+      int rotation = windowManager.getDefaultDisplay().getRotation();
       if (rotation == Surface.ROTATION_90) {
         // Phone is turned 90 degrees counter-clockwise.
         double temp = -pitch;
@@ -261,8 +267,6 @@ public class AndroidOrientation implements SensorEventListener {
    * Returns true if the Android device has the sensors required for orientation.
    */
   public boolean isAvailable() {
-    Activity activity = AppUtil.getInstance().getRootActivity();
-    SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
     return !sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty()
         && !sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD).isEmpty();
   }
@@ -272,8 +276,6 @@ public class AndroidOrientation implements SensorEventListener {
    */
   public void startListening() {
     if (!listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
       sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
       Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -287,8 +289,6 @@ public class AndroidOrientation implements SensorEventListener {
    */
   public void stopListening() {
     if (listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       sensorManager.unregisterListener(this);
       listening = false;
       timestampAcceleration = 0;

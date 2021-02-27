@@ -691,9 +691,9 @@ public class RobotLog {
       Arrays.sort(files, new Comparator<File>() {
         public int compare(File f1, File f2) {
           /*
-           * Reverse sorting on purpose.
+           * Sort oldest to newest
            */
-          return Long.compare(f2.lastModified(), f1.lastModified());
+          return Long.compare(f1.lastModified(), f2.lastModified());
         }
       });
 
@@ -701,7 +701,7 @@ public class RobotLog {
        * There should never be more than one extra log, but just to be paranoid...
        */
       for (int i = 0; i < files.length - AppUtil.MAX_MATCH_LOGS_TO_KEEP; i++) {
-        RobotLog.ii(TAG, "Pruning old logs deleting " + files[i].getName());
+        RobotLog.ii(TAG, "Pruning old match logs: deleting " + files[i].getName());
         files[i].delete();
       }
     }

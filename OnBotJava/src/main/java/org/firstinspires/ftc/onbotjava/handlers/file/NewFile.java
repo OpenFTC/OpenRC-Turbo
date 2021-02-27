@@ -188,11 +188,11 @@ public class NewFile implements WebHandler {
 
                 String typeName = typeClass.getSimpleName();
 
-                if (OnBotJavaWebInterfaceManager.instance().editorSettings().get(EditorSettings.Setting.WHITESPACE).equals("tab")) {
+                if (OnBotJavaWebInterfaceManager.instance().editorSettings().whitespaceSetting.get().equals("tab")) {
                     rcHardwareFieldsBuilder.append('\t');
                     rcHardwareSetupBuilder.append("\t\t");
                 } else {
-                    for (int i = 0; i < (Integer) OnBotJavaWebInterfaceManager.instance().editorSettings().get(EditorSettings.Setting.SPACES_TO_TAB); i++) {
+                    for (int i = 0; i < OnBotJavaWebInterfaceManager.instance().editorSettings().spacesToTabSetting.get(); i++) {
                         rcHardwareFieldsBuilder.append(' ');
                         // two spaces since hardware setup is two indents deep
                         rcHardwareSetupBuilder.append("  ");
