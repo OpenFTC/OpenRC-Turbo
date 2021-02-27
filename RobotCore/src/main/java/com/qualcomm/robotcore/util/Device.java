@@ -35,6 +35,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
@@ -60,6 +61,8 @@ public final class Device {
   public final static String MODEL_E4 = "Moto E (4)";
 
   @Nullable private static String cachedSerialNumberOrUnknown;
+  @SuppressWarnings("ConstantConditions")
+  @NonNull private static final UiModeManager uiManager = (UiModeManager) AppUtil.getDefContext().getSystemService(Context.UI_MODE_SERVICE);
 
   public static boolean isMotorola() {
     return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA);
@@ -74,7 +77,6 @@ public final class Device {
   }
 
   public static boolean deviceHasBackButton() {
-    UiModeManager uiManager = (UiModeManager) AppUtil.getDefContext().getSystemService(Context.UI_MODE_SERVICE);
     return uiManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_NORMAL;
   }
 

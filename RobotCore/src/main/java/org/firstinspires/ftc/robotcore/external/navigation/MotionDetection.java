@@ -45,6 +45,8 @@ import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
+
 /**
  * A class that will notify listeners when a phone is in motion.
  */
@@ -57,6 +59,8 @@ public class MotionDetection implements SensorEventListener {
     private final static boolean DEBUG = false;
     private final static String TAG = "MotionDetection";
 
+    @SuppressWarnings("ConstantConditions")
+    @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
     private final double DEFAULT_DETECTION_THRESHOLD = 2.0;
     private final int DEFAULT_RATE_LIMIT_SECONDS = 1;
     private double detectionThreshold;
@@ -144,8 +148,6 @@ public class MotionDetection implements SensorEventListener {
      */
     public boolean isAvailable()
     {
-        Activity activity = AppUtil.getInstance().getRootActivity();
-        SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
         return !sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
     }
 
@@ -155,8 +157,6 @@ public class MotionDetection implements SensorEventListener {
     public void startListening()
     {
         if (!listening) {
-            Activity activity = AppUtil.getInstance().getRootActivity();
-            SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
             Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
             listening = true;
@@ -169,8 +169,6 @@ public class MotionDetection implements SensorEventListener {
     public void stopListening()
     {
         if (listening) {
-            Activity activity = AppUtil.getInstance().getRootActivity();
-            SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
             sensorManager.unregisterListener(this);
             listening = false;
         }

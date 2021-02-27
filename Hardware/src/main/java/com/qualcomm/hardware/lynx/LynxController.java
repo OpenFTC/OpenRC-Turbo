@@ -36,6 +36,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
+import com.qualcomm.hardware.lynx.commands.LynxInterface;
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Engagable;
@@ -494,9 +495,9 @@ public abstract class LynxController extends LynxCommExceptionHandler implements
             }
 
         @Override
-        public int getInterfaceBaseCommandNumber(String interfaceName)
+        public LynxInterface getInterface(String interfaceName)
             {
-            return LynxController.this.module.getInterfaceBaseCommandNumber(interfaceName);
+            return LynxController.this.module.getInterface(interfaceName);
             }
 
         @Override

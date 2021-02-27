@@ -80,6 +80,7 @@ public class UvcContext extends NativeObject
     public String getTag() { return TAG; }
     public static boolean DEBUG_RS = false; // test what we'll ship, even in DEBUG app builds
     protected static final AtomicInteger instanceCounter = new AtomicInteger(0);
+    protected static final UsbManager usbManager = (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
 
     protected final int instanceNumber = instanceCounter.getAndIncrement();
     protected final Lock renderscriptAccessLock = new ReentrantLock();
@@ -348,7 +349,6 @@ public class UvcContext extends NativeObject
             {
             final ArrayList<UvcDevice> result = new ArrayList<>();
 
-            final UsbManager usbManager = (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
             for (final UsbDevice usbDevice : usbManager.getDeviceList().values())
                 {
                 try {

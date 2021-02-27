@@ -35,7 +35,6 @@ package com.qualcomm.robotcore.wifi;
 import android.content.Context;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -52,13 +51,11 @@ public abstract class AccessPointAssistant extends NetworkConnection {
     private static final String TAG = "AccessPointAssistant";
     private static final String DEFAULT_TETHERING_IP_ADDR = "192.168.43.1";
 
-    protected final WifiManager wifiManager;
     protected boolean doContinuousScans;
 
     public AccessPointAssistant(Context context)
     {
         super(context);
-        wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         this.doContinuousScans = false;
 
         /*

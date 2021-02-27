@@ -243,6 +243,7 @@
     <string name="connection_owner_password_default">password</string>
     <string name="continuous_servo_description">a continuous rotation servo</string>
     <string name="controlHubDisplayName">Control Hub</string>
+    <string name="controlHubNotAbleToCommunicateWithInternalHub">The Control Hub is not able to communicate with its internal Expansion Hub</string>
     <string name="control_hub_module_name">Control Hub</string>
     <string name="control_hub_usb_device_name">Control Hub Portal</string>
     <string name="counted_camera_name">Webcam %d</string>
@@ -274,6 +275,8 @@
     <string name="lynxAnalogInputControllerDisplayName">Expansion Hub Analog Input Controller</string>
     <string name="lynxDcMotorControllerDisplayName">Expansion Hub DC Motor Controller</string>
     <string name="lynxDigitalChannelControllerDisplayName">Expansion Hub Digital Channel Controller</string>
+    <string name="lynxFirmwareFileEmpty">the firmware update file is empty</string>
+    <string name="lynxFirmwareUpdateAlreadyInProgress">another firmware update is already in progress</string>
     <string name="lynxI2cDeviceSynchDisplayName">Expansion Hub I2C Device</string>
     <string name="lynxPwmOutputControllerDisplayName">Expansion Hub Pwm Controller</string>
     <string name="lynxServoControllerDisplayName">Expansion Hub Servo Controller</string>

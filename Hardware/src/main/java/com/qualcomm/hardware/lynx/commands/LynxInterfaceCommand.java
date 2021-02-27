@@ -58,25 +58,13 @@ public abstract class LynxInterfaceCommand<RESPONSE extends LynxMessage> extends
 
     public abstract LynxInterface getInterface();
 
-    public int getInterfaceCommandIndex()
-        {
-        if (null == this.getInterface())
-            return LynxInterface.ERRONEOUS_INDEX;   // should never happen in working system, but might if pretending
-
-        return getInterface().getCommandIndex(this.getClass());
-        }
-
-    public int getBaseCommandNumber()
-        {
-        if (null == this.getInterface())
-            return LynxInterface.ERRONEOUS_COMMAND_NUMBER;   // should never happen in working system, but might if pretending
-
-        return this.module.getInterfaceBaseCommandNumber(this.getInterface().getInterfaceName());
-        }
-
     @Override
     public int getCommandNumber()
         {
-        return getBaseCommandNumber() + getInterfaceCommandIndex();
+        LynxInterface theInterface = this.getInterface();
+        if (null == theInterface)
+            return LynxInterface.ERRONEOUS_COMMAND_NUMBER;   // should never happen in working system, but might if pretending
+
+        return theInterface.getBaseCommandNumber() + theInterface.getCommandIndex(this.getClass());
         }
     }

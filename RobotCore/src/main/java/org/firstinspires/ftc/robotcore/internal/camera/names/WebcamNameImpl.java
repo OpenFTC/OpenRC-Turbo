@@ -87,6 +87,7 @@ public class WebcamNameImpl extends CameraNameImplBase implements WebcamNameInte
     //----------------------------------------------------------------------------------------------
 
     public static final String TAG = "WebcamNameImpl";
+    protected static final UsbManager usbManager = (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
     protected final Tracer tracer = Tracer.create(TAG, TRACE);
 
     protected static Semaphore requestPermissionSemaphore = new Semaphore(1);
@@ -344,12 +345,12 @@ public class WebcamNameImpl extends CameraNameImplBase implements WebcamNameInte
 
     protected static UsbManager getUsbManager()
         {
-        return (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
+        return usbManager;
         }
 
     protected @Nullable UsbDevice getUsbDevice()
         {
-        return getUsbManager().getDeviceList().get(getUsbDeviceNameIfAttached());
+        return usbManager.getDeviceList().get(getUsbDeviceNameIfAttached());
         }
 
     @Override public String getDeviceName()

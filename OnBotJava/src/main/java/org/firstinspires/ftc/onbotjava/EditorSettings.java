@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 David Sargent
+ * Copyright (c) 2018-2021 David Sargent, REV Robotics
  *
  * All rights reserved.
  *
@@ -34,141 +34,231 @@
 package org.firstinspires.ftc.onbotjava;
 
 import android.content.SharedPreferences;
-import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("rawtypes")
 public class EditorSettings {
-    private final Map<String, Object> settings;
-    private final Map<String, Setting> nameToSettingMap;
+    public final Setting<Boolean> autocompleteEnabledSetting = new Setting<>("autocompleteEnabled", Boolean.class, true);
+    public final Setting<Boolean> autocompleteForceEnabledSetting = new Setting<>("autocompleteForceEnabled", Boolean.class, false);
+    public final Setting<Boolean> autoImportEnabledSetting = new Setting<>("autoImportEnabled", Boolean.class, true);
+    public final Setting<String> defaultPackageSetting = new Setting<>("defaultPackage", String.class, "org.firstinspires.ftc.teamcode");
+    public final Setting<String> fontSetting = new Setting<>("font", String.class, "Source Code Pro");
+    public final Setting<Integer> fontSizeSetting = new Setting<>("fontSize", Integer.class, 16);
+    public final Setting<String> keybindingSetting = new Setting<>("keybinding", String.class, "OnBotJava");
+    public final Setting<Boolean> showPrintMarginSetting = new Setting<>("printMargin", Boolean.class, true);
+    public final Setting<Boolean> showInvisibleCharsSetting = new Setting<>("invisibleChars", Boolean.class, false);
+    public final Setting<Boolean> softWrapSetting = new Setting<>("softWrap", Boolean.class, false);
+    public final Setting<Integer> spacesToTabSetting = new Setting<>("spacesToTab", Integer.class, 4);
+    public final Setting<String> themeSetting = new Setting<>("theme", String.class, "chrome");
+    public final Setting<String> whitespaceSetting = new Setting<>("whitespace", String.class, "space");
+    public final Setting<List> autocompletePackagesSetting = new Setting<List>("autocompletePackages", List.class, OnBotJavaWebInterfaceManager.packagesToAutocomplete());
+
+    private final Map<String, Setting<?>> settings;
 
     private EditorSettings() {
-        settings = new HashMap<>();
-        settings.put(Setting.FONT.name, "Source Code Pro");
-        settings.put(Setting.THEME.name, "chrome");
-        settings.put(Setting.FONT_SIZE.name, 16);
-        settings.put(Setting.WHITESPACE.name, "space");
-        settings.put(Setting.SPACES_TO_TAB.name, 4);
-        settings.put(Setting.DEFAULT_PACKAGE.name, "org.firstinspires.ftc.teamcode");
-        settings.put(Setting.AUTOCOMPLETE_ENABLED.name, true);
-        settings.put(Setting.AUTOCOMPLETE_FORCE_ENABLE.name, false);
-        settings.put(Setting.AUTOIMPORT_ENABLED.name, true);
-        settings.put(Setting.KEYBINDING.name, "OnBotJava");
-        settings.put(Setting.SHOW_PRINT_MARGIN.name, true);
-        settings.put(Setting.SHOW_INVISIBLE_CHARS.name, false);
-        settings.put(Setting.SOFT_WRAP.name, false);
-        settings.put(Setting.AUTOCOMPLETE_PACKAGES.name, OnBotJavaWebInterfaceManager.packagesToAutocomplete());
-
-        nameToSettingMap = new HashMap<>();
-        for (Setting setting : Setting.values()) {
-            nameToSettingMap.put(setting.name, setting);
-        }
+        HashMap<String, Setting<?>> settings = new HashMap<>();
+        settings.put(autocompleteEnabledSetting.name, autocompleteEnabledSetting);
+        settings.put(autocompleteForceEnabledSetting.name, autocompleteForceEnabledSetting);
+        settings.put(autoImportEnabledSetting.name, autoImportEnabledSetting);
+        settings.put(defaultPackageSetting.name, defaultPackageSetting);
+        settings.put(fontSetting.name, fontSetting);
+        settings.put(fontSizeSetting.name, fontSizeSetting);
+        settings.put(keybindingSetting.name, keybindingSetting);
+        settings.put(showPrintMarginSetting.name, showPrintMarginSetting);
+        settings.put(showInvisibleCharsSetting.name, showInvisibleCharsSetting);
+        settings.put(softWrapSetting.name, softWrapSetting);
+        settings.put(spacesToTabSetting.name, spacesToTabSetting);
+        settings.put(themeSetting.name, themeSetting);
+        settings.put(whitespaceSetting.name, whitespaceSetting);
+        settings.put(autocompletePackagesSetting.name, autocompletePackagesSetting);
+        this.settings = Collections.unmodifiableMap(settings);
     }
 
-    @SuppressWarnings("unchecked")
-    private EditorSettings(Map<String, Object> map) {
-        settings = (Map<String, Object>) map;
-        nameToSettingMap = new HashMap<>();
-        for (Setting setting : Setting.values()) {
-            nameToSettingMap.put(setting.name, setting);
+    private EditorSettings(Map<String, Object> settingValuesMap) {
+        // Populate the settings map with the default values
+        this();
+
+        // Replace the default values with the corresponding values from the provided map
+        for (Map.Entry<String, Object> settingValueEntry: settingValuesMap.entrySet()) {
+            Setting<?> setting = settings.get(settingValueEntry.getKey());
+            setting.setWithUnknownType(settingValueEntry.getValue()); // performs type checking & conversion at runtime
         }
     }
 
     EditorSettings(SharedPreferences preferences) {
+        // Populate the settings map with the default values
         this();
+
+        // Synchronize with SharedPreferences
         final SharedPreferences.Editor edit = preferences.edit();
         final Map<String, ?> prefMap = preferences.getAll();
         for (String key : settings.keySet()) {
             if (prefMap.containsKey(key)) {
-                Object settingValue = nameToSettingMap.get(key).fromString(prefMap.get(key));
-                settings.put(key, settingValue);
+                Setting setting = settings.get(key);
+                setting.setWithUnknownType(prefMap.get(key));
             } else {
-                updateValue(edit, key);
+                persistValue(edit, key);
             }
         }
         edit.apply();
     }
 
-    private static EditorSettings parse(String json) {
-        Type type = new TypeToken<Map<String, Object>>() {
-        }.getType();
+    private static EditorSettings fromJson(String json) {
+        Type type = new TypeToken<Map<String, Object>>() {}.getType();
+        //noinspection unchecked
         return new EditorSettings((Map<String, Object>) OnBotJavaWebInterfaceManager.instance().gson().fromJson(json, type));
     }
 
-    private void updateValue(SharedPreferences.Editor edit, String key) {
-        Object obj = settings.get(key);
+    private void persistValue(SharedPreferences.Editor edit, String key) {
+        Object obj = settings.get(key).get();
         if (obj instanceof Integer) {
             edit.putInt(key, (Integer) obj);
         } else if (obj instanceof String) {
             edit.putString(key, (String) obj);
         } else if (obj instanceof Boolean) {
             edit.putBoolean(key, (Boolean) obj);
+        } else if (obj instanceof Float) {
+            edit.putFloat(key, (Float) obj);
+        } else if (obj instanceof Double) {
+            edit.putFloat(key, ((Double) obj).floatValue());
         } else {
             edit.putString(key, SimpleGson.getInstance().toJson(obj));
         }
     }
 
-    public void parseAndUpdate(String json) {
-        EditorSettings newEditorSettings = parse(json);
+    public void updateFromJson(String json) {
+        EditorSettings newEditorSettings = fromJson(json);
         update(newEditorSettings, OnBotJavaWebInterfaceManager.instance().sharedPrefs());
     }
 
-    public enum Setting {
-        AUTOCOMPLETE_ENABLED("autocompleteEnabled"),
-        AUTOCOMPLETE_FORCE_ENABLE("autocompleteForceEnabled"),
-        AUTOCOMPLETE_PACKAGES("autocompletePackages") {
-            @NonNull
-            @Override
-            public Object fromString(@NonNull Object serialization) {
+    // Marked final so that we don't have to worry about registering subtypes with Gson
+    public static final class Setting<T> {
+        final String name;
+        final Class<T> type;
+        private T value;
+
+        private Setting(String name, Class<T> type, T defaultValue) {
+            this.name = name;
+            this.type = type;
+            this.value = defaultValue;
+        }
+
+        public T get() {
+            return value;
+        }
+
+        public final void set(T value) {
+            setWithUnknownType(value);
+        }
+
+        // For use when type erasure renders set() unusable
+        public void setWithUnknownType(Object value) {
+            try {
+                this.value = safelyConvertFromObject(value, this.type);
+            } catch (RuntimeException e) {
+                RobotLog.ee(EditorSettings.class.getName(), e, "Setting %s not updated.", this.name);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> T safelyConvertFromObject(Object value, Class<T> type) {
+            // If the object already has the desired type, we're golden
+            if (type.isInstance(value)) {
+                return (T) value;
+            }
+
+            Exception gsonException = null;
+            // If the object is a string, it may be encoded as JSON
+            if (value instanceof String) {
+                Class gsonTargetType = type;
+
+                // Gson will also convert a string containing a number into an Integer or a Double.
+                // This is extremely useful, because in the past, values that started out as
+                // integers would end up persisted to SharedPreferences as a string, because the
+                // Javascript frontend would include .0 at the end of the number.
+                //
+                // However, it's important not to tell Gson to expect an Integer, because that would
+                // cause Gson to throw an exception if the number after the decimal point was not 0.
+                // Considering that it's possible for the user to manually input any number
+                // (including ones with nonzero fractional components) into the settings interface,
+                // that could be problematic.
+                //
+                // To work around this, if the type of this Setting is Integer, we tell Gson to look
+                // for a Double value, and then replace the value parameter with the result, instead
+                // of returning it. Then, the next section of code will convert the Double to an
+                // Integer.
+                boolean convertingToInt = (type == Integer.class);
+                if (convertingToInt) { gsonTargetType = Double.class; }
+
                 try {
-                    return SimpleGson.getInstance().fromJson((String) serialization, List.class);
-                } catch (Exception ex) {
-                    RobotLog.ee(EditorSettings.class.getName(), "autocomplete packages is corrupt");
-                    return OnBotJavaWebInterfaceManager.packagesToAutocomplete();
+                    Object gsonResult = SimpleGson.getInstance().fromJson((String) value, gsonTargetType);
+                    if (convertingToInt) {
+                        value = gsonResult;
+                    } else {
+                        return (T) gsonResult;
+                    }
+                } catch (JsonSyntaxException e) {
+                    gsonException = e;
                 }
             }
-        },
-        AUTOIMPORT_ENABLED("autoImportEnabled"),
-        DEFAULT_PACKAGE("defaultPackage"),
-        FONT("font"),
-        FONT_SIZE("fontSize"),
-        KEYBINDING("keybinding"),
-        SHOW_PRINT_MARGIN("printMargin"),
-        SHOW_INVISIBLE_CHARS("invisibleChars"),
-        SOFT_WRAP("softWrap"),
-        SPACES_TO_TAB("spacesToTab"),
-        THEME("theme"),
-        WHITESPACE("whitespace");
 
-        final String name;
+            // The Javascript frontend always sends numbers with a decimal place, even if that is .0
+            // Therefore, if we want to store an Integer, we must make sure to cleanly convert
+            // Doubles and Floats as well.
+            // This part must come after the part where we use Gson (see above comment).
+            if (type == Integer.class && value instanceof Double) {
+                int intValue = ((Double) value).intValue();
+                return (T) Integer.valueOf(intValue);
+            }
+            if (type == Integer.class && value instanceof Float) {
+                int intValue = ((Float) value).intValue();
+                return (T) Integer.valueOf(((Float) value).intValue());
+            }
 
-        Setting(String name) {
-            this.name = name;
-        }
+            // We also should handle converting between Doubles and Floats
+            if (type == Double.class && value instanceof Float) {
+                double doubleValue = ((Float) value).doubleValue();
+                return (T) Double.valueOf(doubleValue);
+            }
+            if (type == Float.class && value instanceof Double) {
+                float floatValue = ((Double) value).floatValue();
+                return (T) Float.valueOf(floatValue);
+            }
 
-        @NonNull
-        Object fromString(@NonNull Object serialization) {
-            return serialization;
+            throw new IllegalArgumentException(String.format("Unable to convert %s to %s.", value.getClass().getSimpleName(), type.getSimpleName()), gsonException);
         }
     }
 
-    private void update(EditorSettings settings, SharedPreferences preferences) {
-        update(settings.settings, preferences);
-    }
-
-    private void update(Map<String, Object> updatedMap, SharedPreferences preferences) {
+    /**
+     * @param newSettings The new settings to apply
+     * @param preferences a SharedPreferences instance, where the new settings will be persisted
+     */
+    @SuppressWarnings({"unchecked"})
+    private void update(EditorSettings newSettings, SharedPreferences preferences) {
         final SharedPreferences.Editor editor = preferences.edit();
-        for (String key : updatedMap.keySet()) {
-            settings.put(key, updatedMap.get(key));
-            updateValue(editor, key);
+        for (Map.Entry<String, Setting<?>> newEntry : newSettings.settings.entrySet()) {
+            String key = newEntry.getKey();
+            Object newValue = newEntry.getValue().get();
+            Setting existingSetting = this.settings.get(key);
+            existingSetting.set(newValue);
+            persistValue(editor, key);
         }
         editor.apply();
     }
@@ -182,17 +272,38 @@ public class EditorSettings {
         edit.apply();
     }
 
-    public Object get(Setting key) {
-        return settings.get(key.name);
-    }
-
     public void resetToDefaults() {
         SharedPreferences preferences = OnBotJavaWebInterfaceManager.instance().sharedPrefs();
-        update(new EditorSettings().settings, preferences);
+        update(new EditorSettings(), preferences);
         trim(preferences);
     }
 
     public String toJSON() {
-        return SimpleGson.getInstance().toJson(this.settings);
+        return settingsSerializer.toJson(this.settings);
     }
+
+    private static class SettingTypeAdapter extends TypeAdapter<Setting> {
+
+        @Override public void write(JsonWriter jsonWriter, Setting setting) throws IOException {
+            if (setting == null) {
+                jsonWriter.nullValue();
+                return;
+            }
+            handleSetting(setting, jsonWriter);
+        }
+
+        private <T> void handleSetting(Setting<T> setting, JsonWriter jsonWriter) throws IOException {
+            T value = setting.get();
+            TypeAdapter<T> valueTypeAdapter = settingsSerializer.getAdapter(setting.type);
+            valueTypeAdapter.write(jsonWriter, value);
+        }
+
+        @Override public Setting read(JsonReader jsonReader) throws IOException {
+            throw new IllegalStateException("The settingsSerializer only supports serializing a Settings instance, not deserializing one.");
+        }
+    }
+
+    private static final Gson settingsSerializer = new GsonBuilder()
+            .registerTypeAdapter(Setting.class, new SettingTypeAdapter())
+            .create();
 }

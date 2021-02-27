@@ -35,12 +35,12 @@ package com.qualcomm.hardware.lynx;
 import androidx.annotation.NonNull;
 
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
+import com.qualcomm.hardware.lynx.commands.LynxInterface;
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Engagable;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.RobotCoreLynxModule;
-import com.qualcomm.robotcore.util.SerialNumber;
 
 /**
  * LynxModuleIntf is an interface to LynxModule so as to allow for an alternate
@@ -61,5 +61,5 @@ public interface LynxModuleIntf extends RobotCoreLynxModule, HardwareDevice, Eng
     void noteDatagramReceived();
     void noteNotResponding();
     boolean isNotResponding();
-    int getInterfaceBaseCommandNumber(String interfaceName);
+    LynxInterface getInterface(String interfaceName);
     }

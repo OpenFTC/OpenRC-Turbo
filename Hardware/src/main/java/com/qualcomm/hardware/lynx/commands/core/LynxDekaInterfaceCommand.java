@@ -46,10 +46,12 @@ public abstract class LynxDekaInterfaceCommand<RESPONSE extends LynxMessage> ext
     // State
     //----------------------------------------------------------------------------------------------
 
-    public static final String theInterfaceName = "DEKA";
+    public static final String dekaInterfaceName = "DEKA";
 
-    public static LynxInterface theInterface
-            = new LynxInterface(theInterfaceName,
+    public static LynxInterface createDekaInterface()
+        {
+        //noinspection unchecked
+        return new LynxInterface(dekaInterfaceName,
                 LynxGetBulkInputDataCommand.class,      // 0
                 LynxSetSingleDIOOutputCommand.class,    // 1
                 LynxSetAllDIOOutputsCommand.class,      // 2
@@ -104,7 +106,8 @@ public abstract class LynxDekaInterfaceCommand<RESPONSE extends LynxMessage> ext
                 LynxSetMotorPIDFControlLoopCoefficientsCommand.class,   // 51 SetMotorPIDFControlLoopCoefficients
                 LynxI2cWriteReadMultipleBytesCommand.class,             // 52 I2cWriteReadMultipleBytes
                 LynxGetMotorPIDFControlLoopCoefficientsCommand.class    // 53 GetMotorPIDFControlLoopCoefficients
-            );
+        );
+        }
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -122,6 +125,6 @@ public abstract class LynxDekaInterfaceCommand<RESPONSE extends LynxMessage> ext
     @Override
     public LynxInterface getInterface()
         {
-        return theInterface;
+        return module.getInterface(dekaInterfaceName);
         }
     }
