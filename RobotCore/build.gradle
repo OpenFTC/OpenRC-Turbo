@@ -15,7 +15,7 @@ android {
         buildConfigField "int", "RS_TARGET_API", "28"
 
         externalNativeBuild {
-            ndkBuild {
+            cmake {
                 cppFlags "-Wno-invalid-offsetof" // all our uses of offsetof() are in fact ok. disable overzealous warning
             }
         }
@@ -30,7 +30,7 @@ android {
                 abiFilters "armeabi-v7a"
             }
             externalNativeBuild {
-                ndkBuild {
+                cmake {
                 }
             }
         }
@@ -39,7 +39,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
             externalNativeBuild {
-                ndkBuild {
+                cmake {
                 }
             }
         }
@@ -47,12 +47,12 @@ android {
 
     // Encapsulates your external native build configurations.
     externalNativeBuild {
-        ndkBuild {
-            path "Android.mk"
+        cmake {
+            path "CMakeLists.txt"
         }
     }
 
-    ndkVersion '21.0.6113669'
+    ndkVersion '21.3.6528147'
 
 }
 
