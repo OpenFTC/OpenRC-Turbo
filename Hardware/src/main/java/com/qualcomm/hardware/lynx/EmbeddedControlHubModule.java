@@ -62,12 +62,13 @@ public class EmbeddedControlHubModule
 
     public static void set(LynxModule lynxModule)
         {
+        RobotLog.vv(TAG, "setting embedded module");
         embeddedLynxModule = lynxModule;
         }
 
     public static void clear()
         {
-            RobotLog.vv(TAG, "clearing module");
+            RobotLog.vv(TAG, "clearing embedded module");
             embeddedLynxModule = null;
         }
     }

@@ -26,12 +26,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import androidx.annotation.NonNull;
+
 /**
  * A class that provides access to the Android Accelerometer.
  *
  * @author lizlooney@google.com (Liz Looney)
  */
 public class AndroidAccelerometer implements SensorEventListener {
+  @SuppressWarnings("ConstantConditions")
+  @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+
   private volatile boolean listening;
   private volatile long timestamp;
   private volatile float x; // Acceleration minus Gx on the x-axis, in SI units (m/s^2).
@@ -116,8 +121,6 @@ public class AndroidAccelerometer implements SensorEventListener {
    * Returns true if the Android device has a accelerometer.
    */
   public boolean isAvailable() {
-    Activity activity = AppUtil.getInstance().getRootActivity();
-    SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
     return !sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
   }
 
@@ -126,8 +129,6 @@ public class AndroidAccelerometer implements SensorEventListener {
    */
   public void startListening() {
     if (!listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
       sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
       listening = true;
@@ -139,8 +140,6 @@ public class AndroidAccelerometer implements SensorEventListener {
    */
   public void stopListening() {
     if (listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       sensorManager.unregisterListener(this);
       listening = false;
       timestamp = 0;

@@ -38,8 +38,6 @@ import com.qualcomm.robotcore.util.SerialNumber;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * {@link RobotUsbManagerCombining} merges together result from zero or more other managers
@@ -114,7 +112,7 @@ public class RobotUsbManagerCombining implements RobotUsbManager
                 }
             catch (RobotCoreException e)
                 {
-                // ignore: we'll throw below at the end if needed
+                RobotLog.vv(TAG, e.getMessage());
                 }
             }
         if (result == null)

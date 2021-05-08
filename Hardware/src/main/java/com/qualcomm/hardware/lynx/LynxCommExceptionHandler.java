@@ -78,7 +78,7 @@ public class LynxCommExceptionHandler
         boolean commandIsSupported = true;
         if (e instanceof InterruptedException)
             handleSpecificException((InterruptedException)e);
-        if (e instanceof OpModeManagerImpl.ForceStopException) //Rethrow
+        else if (e instanceof OpModeManagerImpl.ForceStopException) //Rethrow
             {
             throw (OpModeManagerImpl.ForceStopException)e;
             }

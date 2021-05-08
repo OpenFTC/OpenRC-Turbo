@@ -58,7 +58,7 @@ public class Settings implements WebHandler {
         } else if (NanoHTTPD.Method.POST.equals(session.getMethod())) {
             final Map<String, List<String>> parameters = session.getParameters();
             if (parameters.containsKey("settings")) {
-                OnBotJavaWebInterfaceManager.instance().editorSettings().parseAndUpdate(parameters.get("settings").get(0));
+                OnBotJavaWebInterfaceManager.instance().editorSettings().updateFromJson(parameters.get("settings").get(0));
                 return StandardResponses.successfulRequest();
             }
 

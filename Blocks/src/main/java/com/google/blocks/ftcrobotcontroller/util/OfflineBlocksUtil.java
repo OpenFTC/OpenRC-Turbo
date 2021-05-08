@@ -53,6 +53,7 @@ public class OfflineBlocksUtil {
     Set<String> assetsToInclude = new HashSet<>();
 
     assetsToInclude.add("js/split.min.js");
+    assetsToInclude.add("js/split.min.js.map");
 
     assetsToInclude.add("blocks/images.css");
     for (String blocksImagesFile : assetManager.list("blocks/images")) {

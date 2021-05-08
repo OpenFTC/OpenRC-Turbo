@@ -44,7 +44,10 @@ import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import org.firstinspires.ftc.robotcore.external.Consumer;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
+import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 
 /**
  * This delegation class simply forwards calls on, with the single exception that it turns
@@ -202,10 +205,16 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         delegate.transmit(message);
         }
 
-    @Override public boolean setControlHubModuleAddressIfNecessary() throws RobotCoreException, InterruptedException
+    @Override public boolean setupControlHubEmbeddedModule() throws RobotCoreException, InterruptedException
         {
         assertOpen();
-        return delegate.setControlHubModuleAddressIfNecessary();
+        return delegate.setupControlHubEmbeddedModule();
+        }
+
+    @Override
+    public RobotCoreCommandList.LynxFirmwareUpdateResp updateFirmware(RobotCoreCommandList.FWImage image, String requestId, Consumer<ProgressParameters> progressConsumer)
+        {
+        return delegate.updateFirmware(image, requestId, progressConsumer);
         }
 
     //----------------------------------------------------------------------------------------------

@@ -30,6 +30,7 @@
 
 package com.qualcomm.robotcore.wifi;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -79,6 +80,9 @@ public abstract class NetworkConnection {
   protected NetworkEvent lastEvent = null;
   protected NetworkConnectionCallback callback = null;
   protected final Object callbackLock = new Object();
+  @SuppressLint("WifiManagerLeak")
+  protected final WifiManager wifiManager = (WifiManager) AppUtil.getDefContext().getSystemService(Context.WIFI_SERVICE);
+
   protected Context context;
 
   public NetworkConnection(Context context) {
@@ -148,7 +152,6 @@ public abstract class NetworkConnection {
   }
 
   public int getWifiChannel() {
-    WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     WifiInfo info = wifiManager.getConnectionInfo();
     int freq;
     freq = info.getFrequency();

@@ -184,7 +184,7 @@ public class FtcEventLoop extends FtcEventLoopBase {
     LynxUsbDevice temporaryEmbeddedLynxUsb = null;
     try {
       if (LynxConstants.isRevControlHub()) {
-        temporaryEmbeddedLynxUsb = ensureControlHubAddressIsSetCorrectly();
+        temporaryEmbeddedLynxUsb = ensureEmbeddedControlHubModuleIsSetUp();
       }
 
       HardwareMap hardwareMap = ftcEventLoopHandler.getHardwareMap();
@@ -253,8 +253,6 @@ public class FtcEventLoop extends FtcEventLoopBase {
 
     opModeManager.stopActiveOpMode();
     opModeManager.teardown();
-
-    ftcEventLoopHandler.close();
 
     RobotLog.ii(TAG, "======= TEARDOWN COMPLETE =======");
   }
@@ -487,14 +485,14 @@ public class FtcEventLoop extends FtcEventLoopBase {
    * We return it instead of closing it ourselves to avoid performing the expensive arming process
    * more than necessary.
    *
-   * If we actually changed the address, we'll close it ourselves and return null instead.
-   * This is because we _want_ the module to be reset as a part of the arming process in this case,
-   * as the module should be reset after an address change.
+   * If this method changes the Control Hub's embedded module's address, we'll close the LynxUsbDevice
+   * ourselves and return null instead. This is because we _want_ the module to be reset as a part
+   * of the arming process in this case, as the module should be reset after an address change.
    */
-  private @Nullable LynxUsbDevice ensureControlHubAddressIsSetCorrectly() throws RobotCoreException, InterruptedException {
-    RobotLog.vv(TAG, "Ensuring that the Control Hub address is set correctly");
+  private @Nullable LynxUsbDevice ensureEmbeddedControlHubModuleIsSetUp() throws RobotCoreException, InterruptedException {
+    RobotLog.vv(TAG, "Ensuring that the embedded Control Hub module is set up correctly");
     LynxUsbDevice embeddedLynxUsb = (LynxUsbDevice) startUsbScanMangerIfNecessary().getDeviceManager().createLynxUsbDevice(SerialNumber.createEmbedded(), null);
-    boolean justChangedControlHubAddress = embeddedLynxUsb.setControlHubModuleAddressIfNecessary();
+    boolean justChangedControlHubAddress = embeddedLynxUsb.setupControlHubEmbeddedModule();
     if (justChangedControlHubAddress) {
       updateEditableConfigFilesWithNewControlHubAddress();
       embeddedLynxUsb.close();

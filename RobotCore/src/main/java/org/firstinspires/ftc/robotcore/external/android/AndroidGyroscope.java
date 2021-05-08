@@ -26,12 +26,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
+import androidx.annotation.NonNull;
+
 /**
  * A class that provides access to the Android Gyroscope.
  *
  * @author lizlooney@google.com (Liz Looney)
  */
 public class AndroidGyroscope implements SensorEventListener {
+  @SuppressWarnings("ConstantConditions")
+  @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+
   private volatile boolean listening;
   private volatile long timestamp;
   private volatile float x; // angular speed around the x-axis, in radians/second
@@ -116,8 +121,6 @@ public class AndroidGyroscope implements SensorEventListener {
    * Returns true if the Android device has a gyroscope.
    */
   public boolean isAvailable() {
-    Activity activity = AppUtil.getInstance().getRootActivity();
-    SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
     return !sensorManager.getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty();
   }
 
@@ -126,8 +129,6 @@ public class AndroidGyroscope implements SensorEventListener {
    */
   public void startListening() {
     if (!listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       Sensor gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
       sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
       listening = true;
@@ -139,8 +140,6 @@ public class AndroidGyroscope implements SensorEventListener {
    */
   public void stopListening() {
     if (listening) {
-      Activity activity = AppUtil.getInstance().getRootActivity();
-      SensorManager sensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
       sensorManager.unregisterListener(this);
       listening = false;
       timestamp = 0;

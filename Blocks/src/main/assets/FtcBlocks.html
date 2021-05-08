@@ -239,6 +239,7 @@
   // sheets for us. Otherwise, blocklyArea appears incorrectly sized. So, simply, we wait.
   less.pageLoadFinished.then(function() {
     loadBlocklyScripts(function() {
+      Blockly.prompt = parent.showPrompt; // https://blockly-demo.appspot.com/static/demos/custom-dialogs/index.html
       initializeFtcBlocks();
     });
   });

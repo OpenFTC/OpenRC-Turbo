@@ -52,7 +52,7 @@
 </value>
 <value name="PHONE_LOCATION_ON_ROBOT_Y_ANGLE">
 <shadow type="math_number" id="Cn%ph!]n{E!.*F]fcDUH">
-<field name="NUM">0</field>
+<field name="NUM">-90</field>
 </shadow>
 </value>
 <value name="PHONE_LOCATION_ON_ROBOT_Z_ANGLE">

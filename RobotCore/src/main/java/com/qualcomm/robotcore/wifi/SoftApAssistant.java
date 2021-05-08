@@ -64,7 +64,6 @@ public class SoftApAssistant extends NetworkConnection {
 
   private final List<ScanResult> scanResults = new ArrayList<ScanResult>();
 
-  private final WifiManager wifiManager;
   private Context context = null;
 
   private static IntentFilter intentFilter;
@@ -96,7 +95,6 @@ public class SoftApAssistant extends NetworkConnection {
 
   private SoftApAssistant(Context context) {
     super(context);
-    wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
   }
 
   public List<ScanResult> getScanResults() {

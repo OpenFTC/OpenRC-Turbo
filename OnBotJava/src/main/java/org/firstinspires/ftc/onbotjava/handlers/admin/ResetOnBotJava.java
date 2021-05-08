@@ -78,7 +78,7 @@ public class ResetOnBotJava implements WebHandler {
             if (handshakeId != INVALID_ID && handshakeId == possibleHandshakeId) {
                 try {
                     if (resetOnBotJava()) {
-                        return StandardResponses.successfulJsonRequest("done");
+                        return StandardResponses.successfulRequest("done");
                     } else {
                         return StandardResponses.serverError("user intervention required");
                     }

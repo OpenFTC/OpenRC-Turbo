@@ -56,12 +56,17 @@ import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import androidx.annotation.NonNull;
+
 /*
  * A collection of useful wifi related utilities.
  */
 public class WifiUtil {
 
     private static final String NO_AP = "None";
+    @SuppressWarnings("ConstantConditions")
+    @NonNull private static final WifiManager wifiManager = (WifiManager)AppUtil.getDefContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    private static Boolean deviceSupports5Ghz = null;
     private static boolean showingLocationServicesDlg = false;
 
     public static boolean isAirplaneModeOn()
@@ -76,18 +81,16 @@ public class WifiUtil {
 
     public static boolean isWifiEnabled()
     {
-        WifiManager mgr = getWifiManager();
-        int state = mgr.getWifiState();
+        int state = wifiManager.getWifiState();
         RobotLog.i("state = " + state);
-        return getWifiManager().isWifiEnabled();
+        return wifiManager.isWifiEnabled();
     }
 
     public static boolean isWifiApEnabled()
     {
-        WifiManager wifiMgr = getWifiManager();
         try {
-            Method isEnabled = wifiMgr.getClass().getMethod("isWifiApEnabled");
-            return (Boolean)isEnabled.invoke(wifiMgr);
+            Method isEnabled = wifiManager.getClass().getMethod("isWifiApEnabled");
+            return (Boolean)isEnabled.invoke(wifiManager);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             RobotLog.e("Could not invoke isWifiApEnabled " + e.toString());
         }
@@ -105,8 +108,7 @@ public class WifiUtil {
             return false;
         }
 
-        WifiManager m = getWifiManager();
-        SupplicantState s = m.getConnectionInfo().getSupplicantState();
+        SupplicantState s = wifiManager.getConnectionInfo().getSupplicantState();
         NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
 
         return (state == NetworkInfo.DetailedState.CONNECTED ||
@@ -154,7 +156,7 @@ public class WifiUtil {
         if (!isWifiConnected()) {
             return NO_AP;
         } else {
-            WifiInfo wifiInfo = getWifiManager().getConnectionInfo();
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             return wifiInfo.getSSID().replace("\"", "");
         }
     }
@@ -166,16 +168,13 @@ public class WifiUtil {
      */
     public static boolean is5GHzAvailable()
     {
-        if (Device.isRevControlHub()) {
-            return AndroidBoard.getInstance().supports5GhzAp();
-        } else {
-            WifiManager wifiManager = getWifiManager();
-            return wifiManager.is5GHzBandSupported();
+        if (deviceSupports5Ghz == null) {
+            if (Device.isRevControlHub()) {
+                deviceSupports5Ghz = AndroidBoard.getInstance().supports5GhzAp();
+            } else {
+                deviceSupports5Ghz = wifiManager.is5GHzBandSupported();
+            }
         }
-    }
-
-    protected static WifiManager getWifiManager()
-    {
-        return (WifiManager)AppUtil.getDefContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        return deviceSupports5Ghz;
     }
 }
