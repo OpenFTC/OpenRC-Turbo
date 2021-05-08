@@ -28,7 +28,11 @@ dependencies {
      */
     api fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
     api 'com.google.code.gson:gson:2.8.0'
-    api 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
-    api 'org.openftc:tfod-ftc-repackaged:5.0'
+    api ('org.firstinspires.ftc:tfod:1.0.2') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
+    api ('org.tensorflow:tensorflow-lite:1.10.0') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
     api 'androidx.appcompat:appcompat:1.2.0'
 }
