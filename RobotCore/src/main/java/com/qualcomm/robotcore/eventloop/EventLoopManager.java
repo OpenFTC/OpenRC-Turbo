@@ -50,6 +50,7 @@ import com.qualcomm.robotcore.util.*;
 import com.qualcomm.robotcore.wifi.NetworkConnection;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
+import java.util.TimeZone;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
@@ -96,6 +97,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
   private static final  boolean DEBUG = false;
   private static final  int HEARTBEAT_WAIT_DELAY = 500; // in milliseconds
   private static final  int MAX_COMMAND_CACHE = 8;
+  private static final  long WALL_TIME_DELTA = 1000; // in milliseconds
 
   // We use strings that are unlikely to inadvertently collide with user-specified telemetry keys
   public static final   String SYSTEM_NONE_KEY          = "$System$None$";
@@ -666,9 +668,16 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
       boolean theirSanity = appUtil.isSaneWalkClockTime(theirMillis);
       if (theirSanity) {
         receivedTimeFromCurrentPeer = true;
-        RobotLog.vv(TAG, "Setting authoritative wall clock based on connected DS.");
-        appUtil.setWallClockTime(theirMillis);
-        appUtil.setTimeZone(currentHeartbeat.getTimeZoneId());
+        long deltaMillis = Math.abs(tReceived - theirMillis);
+        String theirTZ = currentHeartbeat.getTimeZoneId();
+        String localTZ = TimeZone.getDefault().getID();
+        RobotLog.i("DS time: " + theirMillis + " " + theirTZ);
+        RobotLog.i("RC time: " + tReceived + " " + localTZ + " diff=" + deltaMillis);
+        if (deltaMillis > WALL_TIME_DELTA || !theirTZ.equals(localTZ)) {
+          RobotLog.vv(TAG, "Setting authoritative wall clock based on connected DS.");
+          appUtil.setWallClockTime(theirMillis);
+          appUtil.setTimeZone(currentHeartbeat.getTimeZoneId());
+        }
       }
     }
 
