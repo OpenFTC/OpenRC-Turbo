@@ -112,7 +112,7 @@ tfod.loadModelFromFile("/sdcard/FIRST/vision/DatasetName.tflite");
 
 ### 6.2A
 
-Released on 27 February 2020
+Released on 27 February 2021
 
  - Updates to SDK v6.2
 
