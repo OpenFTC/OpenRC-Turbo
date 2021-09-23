@@ -352,7 +352,7 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
                 // This module is not currently responding. Quickly pretend we got a nack, so we don't
                 // hold up other commands from being sent. If a response does come, it will be
                 // discarded, but the module will immediately be marked as responsive again.
-                if (this.module instanceof LynxModule)
+                if (this.module instanceof LynxModule && this.module.isOpen())
                     {
                     LynxModuleWarningManager.getInstance().reportModuleUnresponsive((LynxModule) this.module);
                     }
@@ -367,11 +367,11 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
             if (nsRemaining <= 0)
                 {
                 // Timed out. Pretend we got a nack.
-                RobotLog.e("timeout: abandoning waiting %dms for %s: cmd=%s mod=%d msg#=%d", msWaitInterval, message, this.getClass().getSimpleName(), this.getModuleAddress(), this.getMessageNumber());
-                RobotLog.e("Marking module #%d as unresponsive until we receive some data back", this.getModuleAddress());
                 this.onNackReceived(new LynxNack(this.module, nackCode));
-                if (this.module instanceof LynxModule)
+                if (this.module instanceof LynxModule && this.module.isOpen())
                     {
+                    RobotLog.ee(LynxModule.TAG, "timeout: abandoning waiting %dms for %s: cmd=%s mod=%d msg#=%d", msWaitInterval, message, this.getClass().getSimpleName(), this.getModuleAddress(), this.getMessageNumber());
+                    RobotLog.ee(LynxModule.TAG, "Marking module #%d as unresponsive until we receive some data back", this.getModuleAddress());
                     LynxModuleWarningManager.getInstance().reportModuleUnresponsive((LynxModule) this.module);
                     }
                 this.module.noteNotResponding();

@@ -34,6 +34,7 @@
                 android:layout_below="@id/choiceSpinner"
                 android:hint="@string/input_name_hint"
                 android:inputType="text"
+                android:imeOptions="actionDone|flagNoExtractUi"
                 android:maxLength="200">
             </EditText>
 

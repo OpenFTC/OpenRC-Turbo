@@ -48,10 +48,13 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LightSensor;
+import com.qualcomm.robotcore.hardware.RobotCoreLynxController;
+import com.qualcomm.robotcore.hardware.RobotCoreLynxModule;
 import com.qualcomm.robotcore.hardware.RobotCoreLynxUsbDevice;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
+import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -60,9 +63,12 @@ import com.qualcomm.robotcore.util.WeakReferenceSet;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.firstinspires.ftc.robotcore.internal.ui.GamepadUser;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -216,6 +222,13 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     return hardwareMap;
   }
 
+  public RobotState getRobotState() {
+    if (eventLoopManager != null) {
+      return eventLoopManager.state;
+    }
+    return RobotState.UNKNOWN;
+  }
+
   //------------------------------------------------------------------------------------------------
   // OpMode management
   //------------------------------------------------------------------------------------------------
@@ -295,7 +308,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     // Apply a state transition if one is pending
     OpModeStateTransition transition = nextOpModeState.getAndSet(null);
     if (transition != null)
-      transition.apply();
+      transition.apply(); // Sets up the transition to happen later in this method (runActiveOpMode)
 
     activeOpMode.time = activeOpMode.getRuntime();
     activeOpMode.gamepad1 = gamepads[0];
@@ -306,6 +319,18 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
     if (gamepadResetNeeded) {
       activeOpMode.gamepad1.reset();
       activeOpMode.gamepad2.reset();
+
+      // So basically the only reason that this exists is so that rumble effects will work
+      // if no stick or button has been touched on the gamepad yet. The thing is, sending
+      // a rumble effect relies on the 'user' field of the gamepad having been set, but that
+      // was just nuked in the reset above. And since the Driver Station doesn't transmit gamepads
+      // when they are idle, the 'user' field will stay unset until the user touches the gamepad.
+      // Hence, any rumble commands would be sent with an uninitialized user, and thus would not
+      // work. And we can't just make the DS retransmit the gamepads when it issues a start OpMode
+      // command, either: since we're using UDP we have no guarantee of command delivery order.
+      // So instead we just have this little workaround...
+      activeOpMode.gamepad1.setUserForRumble(GamepadUser.ONE.id);
+      activeOpMode.gamepad2.setUserForRumble(GamepadUser.TWO.id);
       gamepadResetNeeded = false;
     }
 
@@ -377,8 +402,20 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
 
   // resets the hardware to the state expected at the start of an opmode
   protected void resetHardwareForOpMode() {
-    for (HardwareDevice device : this.hardwareMap) {
+    // First reset all instances of LynxModule and LynxController, so that all HardwareDevice
+    // classes that use a LynxController subclass get the final say
+    Set<HardwareDevice> devicesToBeResetFirst = new HashSet<>();
+    devicesToBeResetFirst.addAll(hardwareMap.getAll(RobotCoreLynxModule.class));
+    devicesToBeResetFirst.addAll(hardwareMap.getAll(RobotCoreLynxController.class));
+
+    for (HardwareDevice device: devicesToBeResetFirst) {
       device.resetDeviceConfigurationForOpMode();
+    }
+
+    for (HardwareDevice device: hardwareMap) {
+      if (!devicesToBeResetFirst.contains(device)) {
+        device.resetDeviceConfigurationForOpMode();
+      }
     }
   }
 

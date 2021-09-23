@@ -42,6 +42,7 @@ public interface ClassFilter {
      */
     void filterAllClassesStart();
     void filterOnBotJavaClassesStart();
+    void filterExternalLibrariesClassesStart();
 
     /**
      * Don't call me, I'll call you.
@@ -50,10 +51,12 @@ public interface ClassFilter {
      */
     void filterClass(Class clazz);
     void filterOnBotJavaClass(Class clazz);
+    void filterExternalLibrariesClass(Class clazz);
 
     /**
      * Called when a filtering cycle is complete
      */
     void filterAllClassesComplete();
     void filterOnBotJavaClassesComplete();
+    void filterExternalLibrariesClassesComplete();
 }

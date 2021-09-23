@@ -35,12 +35,14 @@ package org.firstinspires.ftc.onbotjava.handlers.file;
 
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
+import org.firstinspires.ftc.onbotjava.ExternalLibraries;
 import org.firstinspires.ftc.onbotjava.JavaSourceFile;
 import org.firstinspires.ftc.onbotjava.OnBotJavaManager;
 import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
 import org.firstinspires.ftc.onbotjava.RegisterWebHandler;
 import org.firstinspires.ftc.onbotjava.StandardResponses;
 import org.firstinspires.ftc.robotserver.internal.webserver.RobotControllerWebHandlers;
+import org.firstinspires.ftc.robotserver.internal.webserver.RobotWebHandlerManager;
 
 import java.io.File;
 
@@ -51,9 +53,19 @@ import static org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils.PATH_SEPA
 
 @RegisterWebHandler(uri = OnBotJavaProgrammingMode.URI_FILE_UPLOAD, usesParamGenerator = false)
 public class UploadFiles extends RobotControllerWebHandlers.FileUpload {
+    private static final String TAG = UploadFiles.class.getSimpleName();
 
     @Override public NanoHTTPD.Response hook(File uploadedFile) {
-        return StandardResponses.successfulJsonRequest(uploadedFile.getName());
+        if (uploadedFile.getParentFile().equals(OnBotJavaManager.extLibDir)) {
+          if (OnBotJavaManager.ALLOW_EXTERNAL_LIBRARIES) {
+            return ExternalLibraries.getInstance().onUpload(uploadedFile);
+          } else {
+            // For Marshmallow, we don't allow external libraries.
+            uploadedFile.delete();
+            return RobotWebHandlerManager.clientBadRequestError(TAG, "Using external libraries requires Android 7.0 or above.");
+          }
+        }
+        return StandardResponses.successfulRequest(uploadedFile.getName());
     }
 
     @Override public File provideDestinationDirectory(String fileName, File tempFile) {
@@ -68,8 +80,8 @@ public class UploadFiles extends RobotControllerWebHandlers.FileUpload {
                 String folder = packageName.replaceAll("\\.", PATH_SEPARATOR);
                 destDirectory = new File(destDirectory, folder);
             }
-        } else if (fileName.endsWith(".jar")) {
-            destDirectory = OnBotJavaManager.jarDir;
+        } else if (ExternalLibraries.getInstance().isExternalLibrariesFile(fileName)) {
+            destDirectory = OnBotJavaManager.extLibDir;
         } else {
             destDirectory = OnBotJavaManager.srcDir;
         }

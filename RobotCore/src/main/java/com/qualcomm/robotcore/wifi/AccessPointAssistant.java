@@ -36,27 +36,19 @@ import android.content.Context;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 
-import com.qualcomm.robotcore.util.RobotLog;
-import com.qualcomm.robotcore.util.ThreadPool;
-
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public abstract class AccessPointAssistant extends NetworkConnection {
 
     private static final String TAG = "AccessPointAssistant";
     private static final String DEFAULT_TETHERING_IP_ADDR = "192.168.43.1";
 
-    protected boolean doContinuousScans;
-
     public AccessPointAssistant(Context context)
     {
         super(context);
-        this.doContinuousScans = false;
 
         /*
          * Undo the damage caused by auto-starting the WifiDirectAgent and not being able to stop it because
@@ -78,7 +70,7 @@ public abstract class AccessPointAssistant extends NetworkConnection {
      * getConnectionOwnerAddress
      *
      * Returns the default IP address for tethering.  Note that this is different than
-     * the default IP address for WiFi Direct
+     * the default IP address for Wi-Fi Direct
      */
     @Override
     public InetAddress getConnectionOwnerAddress()
@@ -174,48 +166,6 @@ public abstract class AccessPointAssistant extends NetworkConnection {
             default:
                 return ConnectStatus.NOT_CONNECTED;
         }
-    }
-
-    /**
-     *  discoverPotentialConnections
-     *
-     *  On disconnect from an already connected access point, start continuous scanning for access points.
-     *  The scan results will be used to attempt to find the last known access point and automatically reconnect.
-     *  We spend the cycles for continuous scanning as presumably we want to reconnect as quickly as possible.
-     *  A typical scenario is pulling the power supply on a control hub that's broadcasting the ssid.
-     *
-     *  Proactive reconnects mitigate the captive portal problem wherein the underlying OS won't reconnect to
-     *  an access point that it's determined has no upstream internet connectivity.
-     *
-     *  Note that this has a detrimental effect on battery life if left in this state for extended (hours and hours)
-     *  periods of time.
-     */
-    @Override
-    public void discoverPotentialConnections()
-    {
-        /*
-         * If we come around here too quickly after detecting a disconnect, then a scan can
-         * potentially still return the now non-existant ssid.  Wait a short period to let whatever
-         * latent state there is floating around clear.
-         */
-        ScheduledFuture<?> scanFuture = ThreadPool.getDefaultScheduler().schedule(new Runnable() {
-            @Override public void run() {
-                RobotLog.ii(TAG, "Future scan now...");
-                wifiManager.startScan();
-                doContinuousScans = true;
-            }
-        }, 1000, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * cancelPotentialConnections
-     *
-     * Stop the continuous scanning.
-     */
-    @Override
-    public void cancelPotentialConnections()
-    {
-        doContinuousScans = false;
     }
 
     protected abstract String getIpAddress();

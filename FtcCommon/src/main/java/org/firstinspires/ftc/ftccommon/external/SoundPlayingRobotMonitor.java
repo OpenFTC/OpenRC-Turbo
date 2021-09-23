@@ -68,7 +68,7 @@ public class SoundPlayingRobotMonitor implements RobotStateMonitor
     protected NetworkStatus networkStatus  = NetworkStatus.UNKNOWN;
     protected PeerStatus    peerStatus     = PeerStatus.UNKNOWN;
     protected String        errorMessage   = null;
-    protected String        warningMessage = null;
+    protected String        warningMessageString = null;
     protected Sound         lastSoundPlayed = Sound.None;
     protected AtomicInteger runningsInFlight = new AtomicInteger(0);
 
@@ -234,14 +234,17 @@ public class SoundPlayingRobotMonitor implements RobotStateMonitor
         this.errorMessage = errorMessage;
         }
 
-    @Override public synchronized void updateWarningMessage(@Nullable String warningMessage)
+    @Override public synchronized void updateWarningMessage(@Nullable RobotLog.GlobalWarningMessage warningMessage)
         {
-        if (warningMessage != null && !warningMessage.equals(this.warningMessage))
+        if (warningMessage != null && !warningMessage.message.equals(this.warningMessageString))
             {
             if (DEBUG) RobotLog.vv(SoundPlayer.TAG, "updateWarningMessage()");
-            playWarning();
+            if (warningMessage.deservesWarningSound)
+                {
+                playWarning();
+                }
             }
-        this.warningMessage = warningMessage;
+        this.warningMessageString = warningMessage == null ? null : warningMessage.message;
         }
 
     protected void playSound(Sound sound,@RawRes final int resourceId)

@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import com.qualcomm.ftccommon.UpdateUI;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.robot.RobotStatus;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.network.NetworkStatus;
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
@@ -102,5 +103,5 @@ public interface RobotStateMonitor
      *
      * @param warningMessage the warning message being reported, or null if the warning is being cleared.
      */
-    void updateWarningMessage(@Nullable String warningMessage);
+    void updateWarningMessage(@Nullable RobotLog.GlobalWarningMessage warningMessage);
     }

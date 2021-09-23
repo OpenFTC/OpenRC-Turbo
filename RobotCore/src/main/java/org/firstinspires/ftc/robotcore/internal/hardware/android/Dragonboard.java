@@ -112,7 +112,7 @@ public class Dragonboard extends AndroidBoard {
     }
 
     @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
-        RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on a Dragonboard");
+        RobotLog.ww(TAG, "Unable to set the Wi-Fi AP beacon rate on a Dragonboard");
     }
 
     @Override public boolean hasControlHubUpdater() {

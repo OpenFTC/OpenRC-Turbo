@@ -133,7 +133,19 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             for (OpModeMetaAndClass opModeMetaAndClass : newOpModes)
                 {
                 String name = getOpModeName(opModeMetaAndClass);
-                OpModeMeta.Source source = OnBotJavaDeterminer.isOnBotJava(opModeMetaAndClass.clazz) ? OpModeMeta.Source.ONBOTJAVA : OpModeMeta.Source.ANDROID_STUDIO;
+                OpModeMeta.Source source;
+                if (OnBotJavaDeterminer.isOnBotJava(opModeMetaAndClass.clazz))
+                    {
+                    source = OpModeMeta.Source.ONBOTJAVA;
+                    }
+                else if (OnBotJavaDeterminer.isExternalLibraries(opModeMetaAndClass.clazz))
+                    {
+                    source = OpModeMeta.Source.EXTERNAL_LIBRARY;
+                    }
+                else
+                    {
+                    source = OpModeMeta.Source.ANDROID_STUDIO;
+                    }
                 try
                     {
                     this.registeredOpModes.register(
@@ -161,12 +173,22 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
                     String name = getOpModeName(opModeMetaAndClass);
                     try
                         {
-                        this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ANDROID_STUDIO).build(), opModeMetaAndClass.clazz);
+                        this.registeredOpModes.register(
+                                OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                                    .setName(name)
+                                    .setSource(OpModeMeta.Source.ANDROID_STUDIO)
+                                    .build(),
+                                opModeMetaAndClass.clazz);
                         }
                     catch (DuplicateNameException e)
                         {
                         name = resolveDuplicateName(opModeMetaAndClass);
-                        this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ANDROID_STUDIO).build(), opModeMetaAndClass.clazz);
+                        this.registeredOpModes.register(
+                                OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                                    .setName(name)
+                                    .setSource(OpModeMeta.Source.ANDROID_STUDIO)
+                                    .build(),
+                                opModeMetaAndClass.clazz);
                         }
                     }
                 }
@@ -200,7 +222,49 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             for (OpModeMetaAndClass opModeMetaAndClass : newOpModes)
                 {
                 String name = getOpModeName(opModeMetaAndClass);
-                this.registeredOpModes.register(OpModeMeta.Builder.wrap(opModeMetaAndClass.meta).setName(name).setSource(OpModeMeta.Source.ONBOTJAVA).build(), opModeMetaAndClass.clazz);
+                this.registeredOpModes.register(
+                        OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                            .setName(name)
+                            .setSource(OpModeMeta.Source.ONBOTJAVA)
+                            .build(),
+                        opModeMetaAndClass.clazz);
+                }
+            }
+        finally
+            {
+            this.registeredOpModes = null;
+            }
+        }
+
+    public void registerExternalLibrariesClasses(RegisteredOpModes registeredOpModes)
+        {
+        this.registeredOpModes = registeredOpModes;
+        try {
+            this.callOpModeRegistrarMethods(new Predicate<Class>()
+                {
+                @Override public boolean test(Class clazz)
+                    {
+                    return OnBotJavaDeterminer.isExternalLibraries(clazz);
+                    }
+                });
+
+            for (Class<OpMode> clazz : filteredAnnotatedOpModeClasses)
+                {
+                if (OnBotJavaDeterminer.isExternalLibraries(clazz))
+                    {
+                    addAnnotatedOpMode(clazz);
+                    }
+                }
+
+            for (OpModeMetaAndClass opModeMetaAndClass : newOpModes)
+                {
+                String name = getOpModeName(opModeMetaAndClass);
+                this.registeredOpModes.register(
+                        OpModeMeta.Builder.wrap(opModeMetaAndClass.meta)
+                            .setName(name)
+                            .setSource(OpModeMeta.Source.EXTERNAL_LIBRARY)
+                            .build(),
+                        opModeMetaAndClass.clazz);
                 }
             }
         finally
@@ -304,6 +368,11 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
         filterClass(clazz);
         }
 
+    @Override public void filterExternalLibrariesClass(Class clazz)
+        {
+        filterClass(clazz);
+        }
+
     @Override public void filterAllClassesStart()
         {
         newOpModes.clear();
@@ -353,6 +422,45 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
             }
         }
 
+    @Override public void filterExternalLibrariesClassesStart()
+        {
+        newOpModes.clear();
+
+        // NB: n-squared implementations, but n is small
+
+        for (OpModeMetaAndClass opModeMetaAndClass : new ArrayList<>(classNameOverrides.values()))
+            {
+            if (opModeMetaAndClass.isExternalLibraries())
+                {
+                classNameOverrides.remove(opModeMetaAndClass.clazz);
+                }
+            }
+
+        for (OpModeMetaAndClass opModeMetaAndClass : new ArrayList<>(knownOpModes))
+            {
+            if (opModeMetaAndClass.isExternalLibraries())
+                {
+                knownOpModes.remove(opModeMetaAndClass);
+                }
+            }
+
+        for (Class<OpMode> clazz : new ArrayList<>(filteredAnnotatedOpModeClasses))
+            {
+            if (OnBotJavaDeterminer.isExternalLibraries(clazz))
+                {
+                filteredAnnotatedOpModeClasses.remove(clazz);
+                }
+            }
+
+        for (Method method : new ArrayList<>(registrarMethods))
+            {
+            if (OnBotJavaDeterminer.isExternalLibraries(method.getDeclaringClass()))
+                {
+                registrarMethods.remove(method);
+                }
+            }
+        }
+
     @Override public void filterAllClassesComplete()
         {
         // Nothing to do
@@ -361,6 +469,11 @@ public class AnnotatedOpModeClassFilter implements ClassFilter
     @Override public void filterOnBotJavaClassesComplete()
         {
         // Nothing to do
+        }
+
+    @Override public void filterExternalLibrariesClassesComplete()
+        {
+        // Nothing to do.
         }
 
     /*

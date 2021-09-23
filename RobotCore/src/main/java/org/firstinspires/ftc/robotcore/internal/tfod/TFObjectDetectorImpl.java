@@ -36,6 +36,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
@@ -43,11 +45,11 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraNam
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.tensorflow.lite.Interpreter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,6 +57,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Class to convert object detection and tracking system into a simple interface.
@@ -71,12 +74,11 @@ import java.util.List;
  * @author Vasu Agrawal
  * @author lizlooney@google.com (Liz Looney)
  */
-public class TFObjectDetectorImpl implements TFObjectDetector {
+public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNotifier.Notifications {
 
   private static final String TAG = "TFObjectDetector";
 
   private final AppUtil appUtil = AppUtil.getInstance();
-  private final List<Interpreter> interpreters = new ArrayList<>();
   private final List<String> labels = new ArrayList<>();
 
   private final ClippingMargins clippingMargins = new ClippingMargins();
@@ -86,9 +88,9 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
   private TfodParameters params;
   private VuforiaLocalizer vuforiaLocalizer;
 
-  private Rate rate;
+  private final Rate rate;
   private final int rotation;
-  private FrameGenerator frameGenerator;
+  private final FrameGenerator frameGenerator;
 
   private ViewGroup imageViewParent;
   private ImageView imageView;
@@ -108,6 +110,10 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
   private final Object bitmapFrameLock = new Object();
   private Continuation<? extends Consumer<Bitmap>> bitmapContinuation;
 
+  private OpModeManagerImpl opModeManager;
+  private final AtomicBoolean shutdownDone = new AtomicBoolean();
+
+
   public TFObjectDetectorImpl(Parameters parameters, VuforiaLocalizer vuforiaLocalizer) {
 
     this.params = makeTfodParameters(parameters);
@@ -118,6 +124,11 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
     Activity activity = (parameters.activity != null)
         ? parameters.activity
         : appUtil.getRootActivity();
+
+    opModeManager = OpModeManagerImpl.getOpModeManagerOfActivity(activity);
+    if (opModeManager != null) {
+      opModeManager.registerListener(this);
+    }
 
     rotation = getRotation(activity, vuforiaLocalizer.getCameraName());
     frameGenerator = new VuforiaFrameGenerator(vuforiaLocalizer, rotation, clippingMargins);
@@ -153,6 +164,7 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
 
   private static TfodParameters makeTfodParameters(Parameters parameters) {
     return new TfodParameters.Builder(parameters.isModelQuantized, parameters.inputSize)
+        .tensorFlow2(parameters.isModelTensorFlow2)
         .trackerDisable(!parameters.useObjectTracker)
         // Additional configuration requested in
         // https://github.com/FIRST-Tech-Challenge/SkyStone/issues/210.
@@ -266,20 +278,10 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
       this.labels.add(label);
     }
 
-    // Create the interpreters.
-    for (int i = 0; i < params.numExecutorThreads; i++) {
-      interpreters.add(new Interpreter(modelData, params.numInterpreterThreads));
-    }
-
     // Create a TfodFrameManager, which handles feeding tasks to the executor. Each task consists
-    // of processing a single camera frame, passing it through the model (via the interpreter),
-    // and returning a list of recognitions.
-    frameManager = new TfodFrameManager(
-        frameGenerator,
-        interpreters,
-        this.labels,
-        params,
-        zoom,
+    // of processing a single camera frame, passing it through the model, and returning a list of
+    // recognitions.
+    frameManager = newTfodFrameManager(modelData,
         new AnnotatedFrameCallback() {
           @Override
           public void onResult(AnnotatedYuvRgbFrame receivedAnnotatedFrame) {
@@ -298,12 +300,19 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
     frameManagerThread.start();
   }
 
+  private TfodFrameManager newTfodFrameManager(
+      MappedByteBuffer modelData, AnnotatedFrameCallback tfodCallback) {
+    return params.isModelTensorFlow2
+        ? new TfodFrameManager2(frameGenerator, modelData, labels, params, zoom, tfodCallback)
+        : new TfodFrameManager1(frameGenerator, modelData, labels, params, zoom, tfodCallback);
+  }
+
   private void updateImageView(final AnnotatedYuvRgbFrame receivedAnnotatedFrame) {
     final Bitmap bitmap = receivedAnnotatedFrame.getFrame().getCopiedBitmap();
     Canvas canvas = new Canvas(bitmap);
     if (frameManager != null) {
       // Draw recognitions onto the screen.
-      frameManager.drawDebug(canvas);
+      frameManager.draw(canvas);
     }
 
     synchronized (bitmapFrameLock) {
@@ -496,6 +505,10 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
    */
   @Override
   public void shutdown() {
+    if (shutdownDone.getAndSet(true)) {
+      return;
+    }
+
     Thread currentThread = Thread.currentThread();
     boolean interrupted = currentThread.interrupted();
 
@@ -523,6 +536,25 @@ public class TFObjectDetectorImpl implements TFObjectDetector {
 
     if (interrupted) {
       currentThread.interrupt();
+    }
+  }
+
+  //  OpModeManagerNotifier.Notifications
+  @Override
+  public void onOpModePreInit(OpMode opMode) {
+  }
+
+  @Override
+  public void onOpModePreStart(OpMode opMode) {
+  }
+
+  @Override
+  public void onOpModePostStop(OpMode opMode) {
+    shutdown();
+
+    if (opModeManager != null) {
+      opModeManager.unregisterListener(this);
+      opModeManager = null;
     }
   }
 }

@@ -52,10 +52,12 @@ public class NetworkSetupRunnable implements Runnable
                 }
 
                 // start the new event loops
-                recvLoopService = ThreadPool.newFixedThreadPool(2, "ReceiveLoopService");
+                recvLoopService = ThreadPool.newFixedThreadPool(3, "ReceiveLoopService");
                 recvLoopRunnable = new RecvLoopRunnable(recvLoopCallback, socket, lastRecvPacket);
+                RecvLoopRunnable.PacketProcessor packetProcessor = recvLoopRunnable.new PacketProcessor();
                 RecvLoopRunnable.CommandProcessor commandProcessor = recvLoopRunnable.new CommandProcessor();
                 NetworkConnectionHandler.getInstance().setRecvLoopRunnable(recvLoopRunnable);
+                recvLoopService.execute(packetProcessor);
                 recvLoopService.execute(commandProcessor);
                 recvLoopService.execute(recvLoopRunnable);
 
@@ -77,7 +79,7 @@ public class NetworkSetupRunnable implements Runnable
     public RobocolDatagramSocket getSocket() {
         return socket;
     }
-    
+
     public void injectReceivedCommand(Command cmd) {
         RecvLoopRunnable recvLoopRunnable = this.recvLoopRunnable;
         if (recvLoopRunnable != null) {

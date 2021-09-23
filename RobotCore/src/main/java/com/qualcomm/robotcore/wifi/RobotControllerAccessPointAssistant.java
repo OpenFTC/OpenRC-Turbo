@@ -112,7 +112,7 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     private void handleWifiStateChange(Intent intent)
     {
         int state = intent.getIntExtra("wifi_state", 0);
-        RobotLog.ii(TAG, "Wifi state change:, wifiApState: " + state);
+        RobotLog.ii(TAG, "Wi-Fi state change:, wifiApState: " + state);
         if (state == WIFI_AP_STATE_DISABLED) {
             connectStatus = ConnectStatus.NOT_CONNECTED;
             sendEvent(NetworkEvent.DISCONNECTED);
@@ -176,7 +176,7 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     /**
      * enable
      *
-     * On the control hub, connected just means wifi is enabled and it's broadcasting a ssid.
+     * On the control hub, connected just means Wi-Fi is enabled and it's broadcasting a ssid.
      * As a tethered device, it's automatically connected to the access point.  Don't confuse
      * with "connected" to a driver station.
      */
@@ -206,7 +206,7 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     /**
      * disable
      *
-     * Stop listening for wifi state changes.
+     * Stop listening for Wi-Fi state changes.
      */
     @Override
     public void disable()
@@ -253,16 +253,16 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     /**
      * getConnectStatus
      *
-     * Returns "connected" if wifi is enabled on the control hub.
+     * Returns "connected" if Wi-Fi is enabled on the control hub.
      */
     @Override
     public ConnectStatus getConnectStatus()
     {
         if (isWifiApEnabled() == true) {
-            RobotLog.ii(TAG, "Wifi AP is enabled");
+            RobotLog.ii(TAG, "Wi-Fi AP is enabled");
             return ConnectStatus.CONNECTED;
         } else {
-            RobotLog.ii(TAG, "Wifi AP is not enabled");
+            RobotLog.ii(TAG, "Wi-Fi AP is not enabled");
             return ConnectStatus.NOT_CONNECTED;
         }
     }
@@ -290,13 +290,14 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     /**
      * detectWifiReset
      *
-     * Sends a WiFi factory reset intent if the Control Hub's button is being held down
+     * Sends a Wi-Fi factory reset intent if the Control Hub's button is being held down
      */
     @Override
-    public void detectWifiReset() {
+    public void detectWifiReset()
+    {
         RobotLog.dd(TAG, "detectWifiReset button=%b", AndroidBoard.getInstance().getUserButtonPin().getState());
         if (LynxConstants.isRevControlHub() && AndroidBoard.getInstance().getUserButtonPin().getState()) {
-            RobotLog.ii(TAG, "Wifi settings reset requested through the Control Hub button");
+            RobotLog.ii(TAG, "Wi-Fi settings reset requested through the Control Hub button");
             Intent wifiResetIntent = new Intent(Intents.ACTION_FTC_WIFI_FACTORY_RESET);
             context.sendBroadcast(wifiResetIntent);
         }
@@ -307,7 +308,8 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
      *
      * Returns the ssid of the access point we are currently broadcasting.
      */
-    @Override public String getConnectionOwnerName() {
+    @Override public String getConnectionOwnerName()
+    {
         return nameManager.getDeviceName();
     }
 
@@ -325,7 +327,8 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
     }
 
     @Override
-    public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) throws InvalidNetworkSettingException {
+    public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel) throws InvalidNetworkSettingException
+    {
         boolean sendSettingsIndividually = !AndroidBoard.getInstance().supportsBulkNetworkSettings();
         RobotLog.dd(TAG, "setNetworkProperties(deviceName=%s, password=%s, ApChannel=%s) sendSettingsIndividually=%b", deviceName, password, channel, sendSettingsIndividually);
 
@@ -350,5 +353,15 @@ public class RobotControllerAccessPointAssistant extends AccessPointAssistant {
             RobotLog.dd(TAG, "Sending bulk settings broadcast intent");
             AppUtil.getDefContext().sendBroadcast(bulkSettingsIntent);
         }
+    }
+
+    @Override public void discoverPotentialConnections()
+    {
+        // no-op, the Driver Station is responsible for discovery
+    }
+
+    @Override public void cancelPotentialConnections()
+    {
+        // no-op, the Driver Station is responsible for discovery
     }
 }

@@ -108,11 +108,10 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFram
     return result;
     }
 
-JNIEXPORT jobject JNICALL
+JNIEXPORT void JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFrame_nativeCopyImageData(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer, jbyteArray byteArray, jint cbByteArray)
     {
     FTC_TRACE_VERBOSE();
-    jobject result = NULL;
     uvc_frame* pFrame = (uvc_frame*) pointer;
     if (pFrame && byteArray)
         {
@@ -137,7 +136,6 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFram
         }
     else
         invalidArgs();
-    return result;
     }
 
 JNIEXPORT JNI_NATIVE_POINTER JNICALL
@@ -168,11 +166,10 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFram
     return result;
     }
 
-JNIEXPORT JNI_NATIVE_POINTER JNICALL
+JNIEXPORT void JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFrame_nativeFreeFrame(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
     {
     FTC_TRACE_VERBOSE();
-    JNI_NATIVE_POINTER result = JNI_NATIVE_POINTER_NULL;
     uvc_frame* pFrame = (uvc_frame*) pointer;
     if (pFrame)
         {
@@ -181,6 +178,5 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFram
         }
     else
         invalidArgs();
-    return result;
     }
 

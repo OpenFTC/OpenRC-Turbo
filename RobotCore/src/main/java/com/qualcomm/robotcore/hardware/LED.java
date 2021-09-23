@@ -40,8 +40,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 @DeviceProperties(name = "@string/configTypeLED", xmlTag = "Led", builtIn = true, description = "@string/led_description")
 public class LED implements HardwareDevice, SwitchableLight {
 
-  private DigitalChannelController controller = null;
-  private int physicalPort = -1;
+  private final DigitalChannelController controller;
+  private final int physicalPort;
 
   /***
    * Constructor
@@ -51,16 +51,16 @@ public class LED implements HardwareDevice, SwitchableLight {
   public LED(DigitalChannelController controller, int physicalPort) {
     this.controller = controller;
     this.physicalPort = physicalPort;
-
-    controller.setDigitalChannelMode(physicalPort, DigitalChannel.Mode.OUTPUT);
   }
 
   /**
    * A method to turn on or turn off the LED
-   * @param set - true turns it on, false turns it off.
+   * @param enableLed - true turns it on, false turns it off.
    */
-  public void enable(boolean set) {
-    controller.setDigitalChannelState(physicalPort, set);
+  public void enable(boolean enableLed) {
+    // For the REV Hubs, it is recommended to wire LEDs so that pulling them low turns them on
+    boolean desiredDigitalChannelState = !enableLed;
+    controller.setDigitalChannelState(physicalPort, desiredDigitalChannelState);
   }
 
   @Override public boolean isLightOn() {
@@ -92,6 +92,7 @@ public class LED implements HardwareDevice, SwitchableLight {
 
   @Override
   public void resetDeviceConfigurationForOpMode() {
+    controller.setDigitalChannelMode(physicalPort, DigitalChannel.Mode.OUTPUT);
   }
 
   @Override

@@ -237,7 +237,7 @@ public class USBScanManager
                         RobotCoreLynxUsbDevice lynxUsbDevice = null;
                         try {
                             lynxUsbDevice = deviceManager.createLynxUsbDevice(serialNumber, null);
-                            localResult = lynxUsbDevice.discoverModules();
+                            localResult = lynxUsbDevice.discoverModules(true);
                             }
                         finally
                             {

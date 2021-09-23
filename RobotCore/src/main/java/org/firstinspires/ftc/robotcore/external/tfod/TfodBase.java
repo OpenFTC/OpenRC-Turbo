@@ -37,11 +37,17 @@ public abstract class TfodBase {
   private String assetName;
   private String tfliteModelFilename;
   private String[] labels;
+  private boolean isModelTensorFlow2;
 
   private TFObjectDetector tfod;
 
   protected TfodBase(String assetName, String[] labels) {
     this.setModelFromAsset(assetName, labels);
+  }
+
+  protected TfodBase(String assetName, String[] labels, boolean isModelTensorFlow2) {
+    this.setModelFromAsset(assetName, labels);
+    this.isModelTensorFlow2 = isModelTensorFlow2;
   }
 
   protected TfodBase() {
@@ -78,8 +84,13 @@ public abstract class TfodBase {
    */
   public void initialize(VuforiaBase vuforiaBase, float minimumConfidence, boolean useObjectTracker,
       boolean enableCameraMonitoring) {
-    initialize(vuforiaBase.getVuforiaLocalizer(), minimumConfidence, useObjectTracker,
-        enableCameraMonitoring);
+    if (assetName != null && tfliteModelFilename != null) {
+      throw new IllegalStateException("assetName and tfliteModelFilename are both non-null!");
+    }
+
+    TFObjectDetector.Parameters parameters = TfodBase.makeParameters(minimumConfidence, useObjectTracker, enableCameraMonitoring);
+    parameters.isModelTensorFlow2 = this.isModelTensorFlow2;
+    initializeWithParameters(vuforiaBase.getVuforiaLocalizer(), parameters);
   }
 
   /**
@@ -91,15 +102,57 @@ public abstract class TfodBase {
       throw new IllegalStateException("assetName and tfliteModelFilename are both non-null!");
     }
 
-    TFObjectDetector.Parameters parameters = new TFObjectDetector.Parameters();
-    parameters.minimumConfidence = minimumConfidence;
-    parameters.minResultConfidence = minimumConfidence;
-    parameters.useObjectTracker = useObjectTracker;
-    if (enableCameraMonitoring) {
-      Context context = AppUtil.getInstance().getRootActivity();
-      parameters.tfodMonitorViewIdParent = context.getResources().getIdentifier(
-          "tfodMonitorViewId", "id", context.getPackageName());
+    TFObjectDetector.Parameters parameters = TfodBase.makeParameters(minimumConfidence, useObjectTracker, enableCameraMonitoring);
+    parameters.isModelTensorFlow2 = this.isModelTensorFlow2;
+    initializeWithParameters(vuforiaLocalizer, parameters);
+  }
+
+  /**
+   * Initializes TensorFlow Object Detection.
+   * For blocks, this is only used for custom models.
+   */
+  public void initializeWithIsModelTensorFlow2(VuforiaBase vuforiaBase, float minimumConfidence,
+      boolean useObjectTracker, boolean enableCameraMonitoring, boolean isModelTensorFlow2) {
+    if (assetName != null && tfliteModelFilename != null) {
+      throw new IllegalStateException("assetName and tfliteModelFilename are both non-null!");
     }
+
+    TFObjectDetector.Parameters parameters = TfodBase.makeParameters(minimumConfidence, useObjectTracker, enableCameraMonitoring);
+    parameters.isModelTensorFlow2 = isModelTensorFlow2;
+    initializeWithParameters(vuforiaBase.getVuforiaLocalizer(), parameters);
+  }
+
+  /**
+   * Initializes TensorFlow Object Detection with all parameters.
+   * For blocks, this is only used for custom models.
+   */
+  public void initializeWithAllArgs(VuforiaBase vuforiaBase,
+      float minimumConfidence, boolean useObjectTracker, boolean enableCameraMonitoring,
+      boolean isModelTensorFlow2, boolean isModelQuantized, int inputSize,
+      int numInterpreterThreads, int numExecutorThreads,
+      int maxNumDetections, int timingBufferSize, double maxFrameRate,
+      float trackerMaxOverlap, float trackerMinSize,
+      float trackerMarginalCorrelation, float trackerMinCorrelation) {
+    TFObjectDetector.Parameters parameters = TfodBase.makeParameters(minimumConfidence, useObjectTracker, enableCameraMonitoring);
+    parameters.isModelTensorFlow2 = isModelTensorFlow2;
+    parameters.isModelQuantized = isModelQuantized;
+    parameters.inputSize = inputSize;
+    parameters.numInterpreterThreads = numInterpreterThreads;
+    parameters.numExecutorThreads = numExecutorThreads;
+    parameters.maxNumDetections = maxNumDetections;
+    parameters.timingBufferSize = timingBufferSize;
+    parameters.maxFrameRate = maxFrameRate;
+    parameters.trackerMaxOverlap = trackerMaxOverlap;
+    parameters.trackerMinSize = trackerMinSize;
+    parameters.trackerMarginalCorrelation = trackerMarginalCorrelation;
+    parameters.trackerMinCorrelation = trackerMinCorrelation;
+    initializeWithParameters(vuforiaBase.getVuforiaLocalizer(), parameters);
+  }
+
+  /**
+   * Initializes TensorFlow Object Detection.
+   */
+  public void initializeWithParameters(VuforiaLocalizer vuforiaLocalizer, TFObjectDetector.Parameters parameters) {
     tfod = ClassFactory.getInstance().createTFObjectDetector(parameters, vuforiaLocalizer);
 
     if (assetName != null) {
@@ -114,6 +167,20 @@ public abstract class TfodBase {
       }
       tfod.loadModelFromFile(filename, labels);
     }
+  }
+
+  public static TFObjectDetector.Parameters makeParameters(float minimumConfidence, boolean useObjectTracker,
+      boolean enableCameraMonitoring) {
+    TFObjectDetector.Parameters parameters = new TFObjectDetector.Parameters();
+    parameters.minimumConfidence = minimumConfidence;
+    parameters.minResultConfidence = minimumConfidence;
+    parameters.useObjectTracker = useObjectTracker;
+    if (enableCameraMonitoring) {
+      Context context = AppUtil.getInstance().getRootActivity();
+      parameters.tfodMonitorViewIdParent = context.getResources().getIdentifier(
+          "tfodMonitorViewId", "id", context.getPackageName());
+    }
+    return parameters;
   }
 
   /**

@@ -54,4 +54,9 @@ public class OpModeMetaAndClass
         {
         return OnBotJavaDeterminer.isOnBotJava(clazz);
         }
+
+    public boolean isExternalLibraries()
+        {
+        return OnBotJavaDeterminer.isExternalLibraries(clazz);
+        }
     }

@@ -32,7 +32,7 @@
     <string name="common_result_type_file_does_not_exist">The specified file does not exist.</string>
     <string name="common_result_type_no_update_file">No update file provided.</string>
     <string name="common_result_type_performing_startup_operations">The device has not finished startup operations.</string>
-    <string name="manage_page_no_network">Unavailable. Is WiFi on?</string>
+    <string name="manage_page_no_network">Unavailable. Is Wi-Fi on?</string>
     <string name="ota_result_type_device_not_supported">This update file does not support this device.</string>
     <string name="ota_result_type_downgrade_not_authorized">This update file is older than the currently running operating system.\nAre you sure you want to install it?</string>
     <string name="ota_result_type_error_reading_file">Error reading the uploaded update file. Please try again.</string>
@@ -41,6 +41,6 @@
     <string name="ota_result_type_invalid_update_file">Invalid update file.</string>
     <string name="ota_result_type_ota_update_finished">Update installed successfully.</string>
     <string name="ota_result_type_verification_succeeded">Update verification succeeded. Rebooting device and installing update.&lt;br>&lt;br>
-        The Control Hub will stop broadcasting its WiFi access point for about a minute, so you may need to manually re-connect in order to see if the update succeeded.</string>
+        The Control Hub will stop broadcasting its Wi-Fi access point for about a minute, so you may need to manually re-connect in order to see if the update succeeded.</string>
     <string name="ota_result_type_verification_succeeded_localhost">Update verification succeeded. Rebooting device and installing update.</string>
 </resources>

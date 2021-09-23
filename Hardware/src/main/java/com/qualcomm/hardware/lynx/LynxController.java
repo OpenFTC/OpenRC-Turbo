@@ -40,9 +40,9 @@ import com.qualcomm.hardware.lynx.commands.LynxInterface;
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Engagable;
-import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareDeviceHealth;
 import com.qualcomm.robotcore.hardware.HardwareDeviceHealthImpl;
+import com.qualcomm.robotcore.hardware.RobotCoreLynxController;
 import com.qualcomm.robotcore.hardware.usb.RobotArmingStateNotifier;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -55,7 +55,7 @@ import java.util.concurrent.Callable;
  * Created by bob on 2016-03-07.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class LynxController extends LynxCommExceptionHandler implements Engagable, HardwareDevice, HardwareDeviceHealth, RobotArmingStateNotifier.Callback, RobotArmingStateNotifier
+public abstract class LynxController extends LynxCommExceptionHandler implements RobotCoreLynxController, Engagable, HardwareDeviceHealth, RobotArmingStateNotifier.Callback, RobotArmingStateNotifier
     {
     //----------------------------------------------------------------------------------------------
     // State
@@ -512,6 +512,12 @@ public abstract class LynxController extends LynxCommExceptionHandler implements
             }
 
         @Override public boolean isCommandSupported(Class<? extends LynxCommand> command)
+            {
+            return false;
+            }
+
+        @Override
+        public boolean isOpen()
             {
             return false;
             }

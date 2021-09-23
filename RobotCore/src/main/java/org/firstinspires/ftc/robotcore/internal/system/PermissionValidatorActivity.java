@@ -60,9 +60,12 @@ import java.util.List;
  */
 public abstract class PermissionValidatorActivity extends Activity {
 
-    public final static String PERMS_VALID_KEY = "org.firstinspires.ftc.robotcore.PERMS_VALID_KEY";
+    public static final String PERMS_VALID_KEY = "org.firstinspires.ftc.robotcore.PERMS_VALID_KEY";
 
-    private final String TAG = "PermissionValidatorActivity";
+    private static final String TAG = "PermissionValidatorActivity";
+    private static final String LIFECYCLE_TAG = "Lifecycle ";
+    private final String instanceId;
+
     private PermissionValidator permissionValidator;
     private TextView permDenied;
     private TextView instructions;
@@ -76,6 +79,11 @@ public abstract class PermissionValidatorActivity extends Activity {
 
     protected abstract Class onStartApplication();
     public abstract String mapPermissionToExplanation(String permisssion);
+
+    public PermissionValidatorActivity() {
+        super();
+        instanceId = Integer.toHexString(System.identityHashCode(this));
+    }
 
     private class PermissionListenerImpl implements PermissionListener {
 
@@ -160,7 +168,7 @@ public abstract class PermissionValidatorActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        RobotLog.ii(TAG, "onCreate");
+        RobotLog.ii(TAG, LIFECYCLE_TAG + "onCreate" + " : " + instanceId);
 
         setContentView(R.layout.activity_permissions_validator);
 
@@ -174,7 +182,7 @@ public abstract class PermissionValidatorActivity extends Activity {
     protected void onStart()
     {
         super.onStart();
-        RobotLog.ii(TAG, "onStart");
+        RobotLog.ii(TAG, LIFECYCLE_TAG + "onStart" + " : " + instanceId);
 
         permissionValidator = new PermissionValidator(this, new PermissionListenerImpl());
         enforcePermissions();
@@ -184,6 +192,13 @@ public abstract class PermissionValidatorActivity extends Activity {
     protected void onResume()
     {
         super.onResume();
-        RobotLog.ii(TAG, "onResume");
+        RobotLog.ii(TAG, LIFECYCLE_TAG + "onResume" + " : " + instanceId);
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        RobotLog.ii(TAG, LIFECYCLE_TAG + "onDestroy" + " : " + instanceId);
     }
 }

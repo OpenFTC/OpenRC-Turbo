@@ -39,7 +39,7 @@ public class Version {
   /**
    * BUILD_VERSION for library
    */
-  public static final String LIBRARY_VERSION = "21.02.18";
+  public static final String LIBRARY_VERSION = "21.09.15";
 
   public static String getLibraryVersion() {
     return LIBRARY_VERSION;

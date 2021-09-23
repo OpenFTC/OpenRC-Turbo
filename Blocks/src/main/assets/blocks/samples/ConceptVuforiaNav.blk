@@ -42,6 +42,18 @@
 <next>
 <block type="vuforiaCurrentGame_activate" id="1P`RMhpPHX25nYUmVd4r">
 <next>
+<block type="telemetry_addTextData_All" id="4o76$W+8JERyfS*5ahUM">
+<value name="KEY">
+<shadow type="text" id="re)8oKLs@L]O/H)BSNwK">
+<field name="TEXT">DS preview on/off</field>
+</shadow>
+</value>
+<value name="TEXT">
+<shadow type="text" id="QUg*!0k-bw0lGuSpE3pu">
+<field name="TEXT">3 dots, Camera Stream</field>
+</shadow>
+</value>
+<next>
 <block type="telemetry_addTextData_All" id="-X[+{_wuOEMuW`#3T*Ei">
 <value name="KEY">
 <shadow type="text" id="KtBev%HW.82IJ$k,R[d$">
@@ -79,7 +91,7 @@
 <field name="COMMENT">(Note we only process first visible target).</field>
 <next>
 <block type="controls_if" id="?z[AWydC?Ypi|8W~IL(E">
-<mutation elseif="4" else="1"/>
+<mutation elseif="3" else="1"/>
 <value name="IF0">
 <block type="procedures_callreturn" id="ZCr0Hub{+C-?NNX){ete">
 <mutation name="isTargetVisible">
@@ -87,7 +99,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="I^C(6*4wS[c!C~=qU5^I">
-<field name="TRACKABLE_NAME">Red Alliance Target</field>
+<field name="TRACKABLE_NAME">Blue Storage</field>
 </block>
 </value>
 </block>
@@ -104,7 +116,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="kGly,#j?1@;!pX^@n_lV">
-<field name="TRACKABLE_NAME">Blue Alliance Target</field>
+<field name="TRACKABLE_NAME">Blue Alliance Wall</field>
 </block>
 </value>
 </block>
@@ -121,7 +133,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="z+i+S6WP`l+Ku1!]815o">
-<field name="TRACKABLE_NAME">Front Wall Target</field>
+<field name="TRACKABLE_NAME">Red Storage</field>
 </block>
 </value>
 </block>
@@ -138,30 +150,13 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="@zukx]XD6dmQj8hc!{f=">
-<field name="TRACKABLE_NAME">Red Tower Goal Target</field>
+<field name="TRACKABLE_NAME">Red Alliance Wall</field>
 </block>
 </value>
 </block>
 </value>
 <statement name="DO3">
 <block type="procedures_callnoreturn" id=":P1`F3E?Bb`e2d)0k3i[">
-<mutation name="processTarget"/>
-</block>
-</statement>
-<value name="IF4">
-<block type="procedures_callreturn" id="u{`x#15!ExxbiNL-eMjZ">
-<mutation name="isTargetVisible">
-<arg name="trackableName"/>
-</mutation>
-<value name="ARG0">
-<block type="vuforiaCurrentGame_typedEnum_trackableName" id="*{Fl~/tAYX3/|L}`M=Gn">
-<field name="TRACKABLE_NAME">Blue Tower Goal Target</field>
-</block>
-</value>
-</block>
-</value>
-<statement name="DO4">
-<block type="procedures_callnoreturn" id="i}{)pf^i{LA)8fE[[L?@">
 <mutation name="processTarget"/>
 </block>
 </statement>
@@ -223,6 +218,8 @@
 </block>
 </next>
 </block>
+</next>
+</block>
 </statement>
 </block>
 <block type="procedures_defnoreturn" id="[(GpkWXZgWK4B(,r2hB1" x="0" y="1183">
@@ -235,7 +232,7 @@
 <block type="comment" id="1Nsg;]^g]iC[_+jTe*7$">
 <field name="COMMENT">Assumes landscape orientation</field>
 <next>
-<block type="vuforiaCurrentGame_initialize_withCameraDirection" id="1MwVS(W(2Y3/R.9XCP}T">
+<block type="vuforiaCurrentGame_initialize_withCameraDirection_2" id="1MwVS(W(2Y3/R.9XCP}T">
 <value name="CAMERA_DIRECTION">
 <shadow type="navigation_typedEnum_cameraDirection" id="0*`.kO(~2OI*h=!gasO]">
 <field name="CAMERA_DIRECTION">BACK</field>
@@ -256,32 +253,37 @@
 <field name="CAMERA_MONITOR_FEEDBACK">AXES</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_DX">
+<value name="DX">
 <shadow type="math_number" id="6D^9xcP4GaNVY6=dNeqf">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_DY">
+<value name="DY">
 <shadow type="math_number" id="FC=%(?iHdU5V4C@J,cZN">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_DZ">
+<value name="DZ">
 <shadow type="math_number" id="coz0bd,K5dd^~?Hof;(p">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_X_ANGLE">
+<value name="AXES_ORDER">
+<shadow type="navigation_typedEnum_axesOrder" id="K8jWG:)SaZ?-YT@w(WSz">
+<field name="AXES_ORDER">XYZ</field>
+</shadow>
+</value>
+<value name="FIRST_ANGLE">
 <shadow type="math_number" id="8gC]T3!EbK^;bR^F$$~g">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_Y_ANGLE">
+<value name="SECOND_ANGLE">
 <shadow type="math_number" id="y*,cyt=~+y^+z3u-ibWM">
 <field name="NUM">-90</field>
 </shadow>
 </value>
-<value name="PHONE_LOCATION_ON_ROBOT_Z_ANGLE">
+<value name="THIRD_ANGLE">
 <shadow type="math_number" id="+w-_5)EBWxeJ8}Ng=z`s">
 <field name="NUM">0</field>
 </shadow>
@@ -313,8 +315,8 @@
 <value name="VALUE">
 <block type="vuforiaCurrentGame_track" id="4jZQVo^K@])BLe3f~lUi">
 <value name="TRACKABLE_NAME">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="vuforiaCurrentGame_typedEnum_trackableName" id="rg.#y[B/+7C=n6YeRc__">
-<field name="TRACKABLE_NAME">blueRearBridge</field>
+<shadow type="vuforiaCurrentGame_typedEnum_trackableName" id="rg.#y[B/+7C=n6YeRc__">
+<field name="TRACKABLE_NAME">Blue Storage</field>
 </shadow>
 <block type="variables_get" id="#iCxj]yw%~i6|giT1)gf">
 <field name="VAR" id="Q3J-AM0*4@;V}.Qq#{4:">trackableName</field>
@@ -384,7 +386,7 @@
 </shadow>
 </value>
 <value name="TEXT">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="+cNM6lxmY-U:hCKv9hww">
+<shadow type="text" id="+cNM6lxmY-U:hCKv9hww">
 <field name="TEXT">text</field>
 </shadow>
 <block type="text_join" id="%%A8if3K;T=XwljtQ.)T">
@@ -416,7 +418,7 @@
 <value name="NUMBER">
 <block type="misc_roundDecimal" id="Ji|suZVk!CVu[qTnm;YP">
 <value name="NUMBER">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
+<shadow type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
 <field name="NUM">3.14159265</field>
 </shadow>
 <block type="procedures_callreturn" id="ii_-]6Q?djjGbdkQ$%%U">
@@ -458,7 +460,7 @@
 <value name="NUMBER">
 <block type="misc_roundDecimal" id="de0qxeEu|SAMb1KA;?Ap">
 <value name="NUMBER">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
+<shadow type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
 <field name="NUM">3.14159265</field>
 </shadow>
 <block type="procedures_callreturn" id="*h%`SUTY9+=$iGeDhcz:">
@@ -500,7 +502,7 @@
 <value name="NUMBER">
 <block type="misc_roundDecimal" id="yEecPQK{3D:~Tsqp+2fF">
 <value name="NUMBER">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
+<shadow type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
 <field name="NUM">3.14159265</field>
 </shadow>
 <block type="procedures_callreturn" id="I|M;]U?#Z~2_l2-zCCc:">
@@ -542,7 +544,7 @@
 <value name="NUMBER">
 <block type="misc_roundDecimal" id="Hb]p0GvSqX^3mDk(__Wz">
 <value name="NUMBER">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
+<shadow type="math_number" id="D]{88[Jx2MQFPR/L@QV7">
 <field name="NUM">3.14159265</field>
 </shadow>
 <block type="vuforiaTrackingResults_getProperty_Number" id=")YV-!nFEqr|N3R$7%F_p">
@@ -607,7 +609,7 @@
 <block type="math_arithmetic" id="tXW[(.uBZ6Eg6ELp5#@s">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id=":3;dO2^un_oSWtaNDGnI">
+<shadow type="math_number" id=":3;dO2^un_oSWtaNDGnI">
 <field name="NUM">1</field>
 </shadow>
 <block type="variables_get" id="rdF=lbNGq{mH45k|2.+Y">
@@ -645,7 +647,7 @@
 <block type="math_arithmetic" id="[z|7a=#Sa{+bRy#(Rv7g">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id=":3;dO2^un_oSWtaNDGnI">
+<shadow type="math_number" id=":3;dO2^un_oSWtaNDGnI">
 <field name="NUM">1</field>
 </shadow>
 <block type="variables_get" id="qKd|8N)3`M.JkQ?G@.T7">
@@ -683,7 +685,7 @@
 <block type="math_arithmetic" id="MFH65avKr,B`e$Kbn%dy">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id=":3;dO2^un_oSWtaNDGnI">
+<shadow type="math_number" id=":3;dO2^un_oSWtaNDGnI">
 <field name="NUM">1</field>
 </shadow>
 <block type="variables_get" id="o@b2/8n)Z32{/#CQ$MLO">
@@ -721,13 +723,13 @@
 <block type="math_arithmetic" id="3=}w!zfQi()nRcCHO?)A">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="B4E.Ac=eBh1w7D%H=p5f">
+<shadow type="math_number" id="B4E.Ac=eBh1w7D%H=p5f">
 <field name="NUM">1</field>
 </shadow>
 <block type="math_arithmetic" id="cbqkU;sc$1+`ve$kWPpb">
 <field name="OP">DIVIDE</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id=":3;dO2^un_oSWtaNDGnI">
+<shadow type="math_number" id=":3;dO2^un_oSWtaNDGnI">
 <field name="NUM">1</field>
 </shadow>
 <block type="variables_get" id="NcQ_6Ec*!Nj1TQ*R8Bn9">
@@ -773,6 +775,6 @@
 </xml>
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <Extra>
-<OpModeMeta flavor="TELEOP" group="" />
+<OpModeMeta flavor="TELEOP" group="" autoTransition="" />
 <Enabled value="true" />
 </Extra>

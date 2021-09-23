@@ -30,9 +30,9 @@ import com.qualcomm.robotcore.hardware.configuration.MotorControllerConfiguratio
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ServoControllerConfiguration;
 import com.qualcomm.robotcore.util.RobotLog;
-
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.xmlpull.v1.XmlPullParser;
-
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,6 +58,14 @@ public class HardwareItemMap {
    * Creates a new {@link HardwareItemMap} with the supported hardware items in the active configuration.
    */
   public static HardwareItemMap newHardwareItemMap() {
+    OpModeManagerImpl opModeManagerImpl = OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().getRootActivity());
+    if (opModeManagerImpl != null) {
+      HardwareMap hardwareMap = opModeManagerImpl.getHardwareMap();
+      if (hardwareMap != null) {
+        return newHardwareItemMap(hardwareMap);
+      }
+    }
+
     try {
       RobotConfigFileManager robotConfigFileManager = new RobotConfigFileManager();
       RobotConfigFile activeConfig = robotConfigFileManager.getActiveConfig();
@@ -129,26 +137,35 @@ public class HardwareItemMap {
     HardwareItem parent = null;
     for (HardwareType hardwareType : HardwareType.values()) {
       List<HardwareDevice> devices = hardwareMap.getAll(hardwareType.deviceType);
-      for (HardwareDevice device : devices) {
-        // Having multiple names for a single device is confusing in our UI here, so we pick
-        // one arbitrarily. Note that this virtually never actually happens in practice; the
-        // one current (Sept '16) occurrence involves Matrix motor and servo controllers.
-        List<String> deviceNames = new ArrayList<String>(hardwareMap.getNamesOf(device));
-        if (!deviceNames.isEmpty()) {
-          Collections.sort(deviceNames, new Comparator<String>() {
-            @Override public int compare(String lhs, String rhs) {
-              // sort first by length (shortest first) and second by content
-              int result = lhs.length() - rhs.length();
-              if (result == 0) {
-                result = lhs.compareToIgnoreCase(rhs);
-              }
-              return result;
-            }
-          });
-          addHardwareItem(parent, hardwareType, deviceNames.get(0));
+      for (HardwareDevice hardwareDevice : devices) {
+        String deviceName = getDeviceName(hardwareMap, hardwareDevice);
+        if (deviceName != null) {
+          addHardwareItem(parent, hardwareType, deviceName);
         }
       }
     }
+  }
+
+  static String getDeviceName(HardwareMap hardwareMap, HardwareDevice hardwareDevice) {
+    // Having multiple names for a single device is confusing in our UI here, so we pick
+    // one arbitrarily. Note that this virtually never actually happens in practice; the
+    // one current (Sept '16) occurrence involves Matrix motor and servo controllers.
+    List<String> deviceNames = new ArrayList<String>(hardwareMap.getNamesOf(hardwareDevice));
+    if (deviceNames.isEmpty()) {
+      return null;
+    }
+
+    Collections.sort(deviceNames, new Comparator<String>() {
+      @Override public int compare(String lhs, String rhs) {
+            // sort first by length (shortest first) and second by content
+        int result = lhs.length() - rhs.length();
+        if (result == 0) {
+          result = lhs.compareToIgnoreCase(rhs);
+        }
+        return result;
+      }
+    });
+    return deviceNames.get(0);
   }
 
   /**

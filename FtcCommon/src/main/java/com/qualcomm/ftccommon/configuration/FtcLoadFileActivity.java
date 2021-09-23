@@ -67,7 +67,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link FtcLoadFileActivity} is responsible for managing the list of robot configuration files
  * on the robot controller phone.
  */
-public class FtcLoadFileActivity extends EditActivity implements RecvLoopRunnable.RecvLoopCallback {
+public class FtcLoadFileActivity extends EditActivity {
 
   //------------------------------------------------------------------------------------------------
   // State
@@ -79,7 +79,8 @@ public class FtcLoadFileActivity extends EditActivity implements RecvLoopRunnabl
   @Override protected FrameLayout getBackBar() { return findViewById(R.id.backbar); }
 
   private List<RobotConfigFile> fileList = new CopyOnWriteArrayList<RobotConfigFile>();
-  private NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
+  private final NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
+  protected final RecvLoopRunnable.RecvLoopCallback commandCallback = new CommandCallback();
 
   //------------------------------------------------------------------------------------------------
   // Life Cycle
@@ -101,7 +102,7 @@ public class FtcLoadFileActivity extends EditActivity implements RecvLoopRunnabl
       // Set up so that we'll hear the incoming network traffic. And we want to do that even
       // if we're not on the front of the screen so we reliably see messages from the RC as
       // we're transitioning back from editing particular files.
-      networkConnectionHandler.pushReceiveLoopCallback(this);
+      networkConnectionHandler.pushReceiveLoopCallback(commandCallback);
     }
   }
 
@@ -144,7 +145,7 @@ public class FtcLoadFileActivity extends EditActivity implements RecvLoopRunnabl
   @Override protected void onDestroy() {
     super.onDestroy();
     if (remoteConfigure) {
-      networkConnectionHandler.removeReceiveLoopCallback(this);
+      networkConnectionHandler.removeReceiveLoopCallback(commandCallback);
     }
   }
 
@@ -369,56 +370,22 @@ public class FtcLoadFileActivity extends EditActivity implements RecvLoopRunnabl
   // Remote handling
   //------------------------------------------------------------------------------------------------
 
-  @Override
-  public CallbackResult commandEvent(Command command) {
-    CallbackResult result = CallbackResult.NOT_HANDLED;
-    try {
-      String name = command.getName();
-      String extra = command.getExtra();
+  private class CommandCallback extends RecvLoopRunnable.DegenerateCallback {
+    @Override public CallbackResult commandEvent(Command command) throws RobotCoreException {
+      CallbackResult result = CallbackResult.NOT_HANDLED;
+      try {
+        String name = command.getName();
+        String extra = command.getExtra();
 
-      if (name.equals(CommandList.CMD_REQUEST_CONFIGURATIONS_RESP)) {
-        result = handleCommandRequestConfigFilesResp(extra);
-      } else if (name.equals(CommandList.CMD_NOTIFY_ACTIVE_CONFIGURATION)) {
-        result = handleCommandNotifyActiveConfig(extra);
+        if (name.equals(CommandList.CMD_REQUEST_CONFIGURATIONS_RESP)) {
+          result = handleCommandRequestConfigFilesResp(extra);
+        } else if (name.equals(CommandList.CMD_NOTIFY_ACTIVE_CONFIGURATION)) {
+          result = handleCommandNotifyActiveConfig(extra);
+        }
+      } catch (RobotCoreException e) {
+        RobotLog.logStacktrace(e);
       }
-    } catch (RobotCoreException e) {
-      RobotLog.logStacktrace(e);
+      return result;
     }
-    return result;
-  }
-
-  @Override
-  public CallbackResult packetReceived(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult peerDiscoveryEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult heartbeatEvent(RobocolDatagram packet, long tReceived) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult telemetryEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult gamepadEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult emptyEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult reportGlobalError(String error, boolean recoverable) {
-    return CallbackResult.NOT_HANDLED;
   }
 }

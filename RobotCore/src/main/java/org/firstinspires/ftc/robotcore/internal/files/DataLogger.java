@@ -33,13 +33,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.files;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.threeten.bp.LocalDateTime;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -61,9 +60,7 @@ public class DataLogger
 
     public static String createFileName(String root)
         {
-        Date dateUTC = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatter = AppUtil.getInstance().getIso8601DateFormat();
-        String uniquifier = formatter.format(dateUTC);
+        String uniquifier = AppUtil.getInstance().getIso8601DateTimeFormatter().format(LocalDateTime.now());
         return String.format(Locale.US, "%s-%s.txt", root, uniquifier);
         }
 

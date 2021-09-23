@@ -50,11 +50,11 @@ Blockly.Blocks['tfodCurrentGame_initialize'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setColour(functionColor);
-    this.setTooltip('Initialize TensorFlow Object Detection for ' + currentGameName + '.');
+    this.setTooltip('Initialize TensorFlow Object Detection for ' + tfodCurrentGameName + '.');
     this.getFtcJavaInputType = function(inputName) {
       switch (inputName) {
         case 'MINIMUM_CONFIDENCE':
-          return 'double';
+          return 'float';
       }
       return '';
     };

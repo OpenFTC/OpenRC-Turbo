@@ -464,8 +464,8 @@ public final class ChUpdaterCommManager extends WebSocketNamespaceHandler {
                 if (webSocket != null && webSocket.isOpen()) { // It's important to synchronize this null check too (or at least it was at one point)
                     String messageOverride = null;
                     if (result.getResultType() == OtaResultType.VERIFICATION_SUCCEEDED && webSocket.getRemoteIpAddress().isLoopbackAddress()) {
-                        // The fact that the request is coming in via localhost means that the client is not connected via WiFi, so we can show
-                        // them a version of the message that lacks the warning about WiFi.
+                        // The fact that the request is coming in via localhost means that the client is not connected via Wi-Fi, so we can show
+                        // them a version of the message that lacks the warning about Wi-Fi.
                         // This is mostly useful for the REV UI application.
                         messageOverride = AppUtil.getDefContext().getString(R.string.ota_result_type_verification_succeeded_localhost);
                     }

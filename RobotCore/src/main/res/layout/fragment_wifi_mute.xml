@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
-        android:text="Wifi Disabling In"
+        android:text="Wi-Fi Disabling In"
         android:gravity="center"
         android:textAlignment="center"
         android:textSize="48sp"
@@ -35,7 +35,7 @@
         android:layout_height="match_parent"
         android:fontFamily="sans-serif"
         android:gravity="center"
-        android:text="Wifi disabled, touch to enable"
+        android:text="Wi-Fi disabled, touch to enable"
         android:textAlignment="center"
         android:textSize="48sp"
         android:typeface="normal"/>

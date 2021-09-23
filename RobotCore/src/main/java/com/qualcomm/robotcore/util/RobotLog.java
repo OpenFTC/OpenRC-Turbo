@@ -48,6 +48,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.WeakHashMap;
 
 /**
@@ -55,6 +56,16 @@ import java.util.WeakHashMap;
  */
 @SuppressWarnings("WeakerAccess")
 public class RobotLog {
+
+  public static class GlobalWarningMessage {
+    public final String message;
+    public final boolean deservesWarningSound;
+
+    public GlobalWarningMessage(String message, boolean deservesWarningSound) {
+      this.message = message;
+      this.deservesWarningSound = deservesWarningSound;
+    }
+  }
 
   /*
    * Small little utility thread class to hold a RunShellCommand
@@ -110,12 +121,12 @@ public class RobotLog {
   /*
    * Prefixing with exec causes the call to destory to kill logcat instead of it's spawning shell.
    */
-  private static String logcatCommandRaw     = "logcat";
-  private static String logcatCommand        = "exec " + logcatCommandRaw;
-  private static int    kbLogcatQuantum      = 4 * 1024;
-  private static int    logcatRotatedLogsMax = 4;
-  private static String logcatFormat         = "threadtime";
-  private static String logcatFilter         = "UsbRequestJNI:S UsbRequest:S art:W ThreadPool:W System:W ExtendedExtractor:W OMXClient:W MediaPlayer:W dalvikvm:W  *:V";
+  private static final String logcatCommandRaw     = "logcat";
+  private static final String logcatCommand        = "exec " + logcatCommandRaw;
+  private static final int    kbLogcatQuantum      = 4 * 1024;
+  private static final int    logcatRotatedLogsMax = 4;
+  private static final String logcatFormat         = "threadtime";
+  private static final String logcatFilter         = "UsbRequestJNI:S UsbRequest:S art:W ThreadPool:W System:W ExtendedExtractor:W OMXClient:W MediaPlayer:W dalvikvm:W  *:V";
 
   private static Calendar matchStartTime     = null;
 
@@ -338,19 +349,6 @@ public class RobotLog {
     setGlobalErrorMsg(String.format(format, args));
   }
 
-
-  /**
-   * Adds a global warning message.
-   *
-   * This stays set until clearGlobalWarningMsg is called.
-   *
-   * @param message the warning message to set
-   */
-  @Deprecated
-  public static void setGlobalWarningMessage(String message) {
-    addGlobalWarningMessage(message);
-  }
-
   /**
    * Adds a global warning message.
    *
@@ -368,8 +366,8 @@ public class RobotLog {
     }
   }
 
-  public static void setGlobalWarningMessage(String format, Object... args) {
-    setGlobalWarningMessage(String.format(format, args));
+  public static void addGlobalWarningMessage(String format, Object... args) {
+    addGlobalWarningMessage(String.format(format, args));
   }
 
   /**
@@ -404,10 +402,6 @@ public class RobotLog {
     synchronized (globalWarningLock) {
       globalWarningSources.remove(globalWarningSource);
     }
-  }
-
-  public static void setGlobalWarningMsg(RobotCoreException e, String message) {
-    setGlobalWarningMessage(message + ": " + e.getMessage());
   }
 
   public static void setGlobalErrorMsg(RobotCoreException e, String message) {
@@ -450,15 +444,23 @@ public class RobotLog {
    * Returns the current global warning, or "" if there is none
    * @return the current global warning
    */
-  public static String getGlobalWarningMessage() {
+  public static GlobalWarningMessage getGlobalWarningMessage() {
     List<String> warnings = new ArrayList<String>();
+    String interimWarning;
+    boolean deservesWarningSound = false;
     synchronized (globalWarningLock) {
       warnings.add(globalWarningMessage);
       for (GlobalWarningSource source : globalWarningSources.keySet()) {
-        warnings.add(source.getGlobalWarning());
+        interimWarning = source.getGlobalWarning();
+        if (interimWarning != null && !interimWarning.isEmpty()) {
+          warnings.add(interimWarning);
+          if (source.shouldTriggerWarningSound()) {
+            deservesWarningSound = true;
+          }
         }
       }
-    return combineGlobalWarnings(warnings);
+    }
+    return new GlobalWarningMessage(combineGlobalWarnings(warnings), deservesWarningSound);
   }
 
   /**
@@ -478,7 +480,7 @@ public class RobotLog {
     for (String warning : warnings) {
       if (warning != null && !warning.isEmpty()) {
         if (result.length() > 0)
-          result.append("; ");
+          result.append("\n\n");
         result.append(warning);
       }
     }
@@ -498,7 +500,7 @@ public class RobotLog {
    * @return whether a global warning currently exists
    */
   public static boolean hasGlobalWarningMsg() {
-    return !getGlobalWarningMessage().isEmpty();
+    return !getGlobalWarningMessage().message.isEmpty();
   }
 
   /**
@@ -642,9 +644,10 @@ public class RobotLog {
       }
     }
 
-    String timeFormat = String.format("'%d-%d %d:%d:%d.000'", matchStartTime.get(Calendar.MONTH) + 1, matchStartTime.get(Calendar.DAY_OF_MONTH),
+    String timeFormat = String.format(Locale.ENGLISH, "'%d-%d %d:%d:%d.000'", matchStartTime.get(Calendar.MONTH) + 1, matchStartTime.get(Calendar.DAY_OF_MONTH),
           matchStartTime.get(Calendar.HOUR_OF_DAY), matchStartTime.get(Calendar.MINUTE), matchStartTime.get(Calendar.SECOND));
-    final String commandLine = String.format("%s -d -T %s -f %s -n%d -v %s %s", logcatCommand, timeFormat, filename, logcatRotatedLogsMax, logcatFormat, logcatFilter);
+    // We surround the filename in single quotes so that the shell doesn't try to interpret any characters (such as parentheses) from it
+    final String commandLine = String.format(Locale.ENGLISH, "%s -d -T %s -f '%s' -n%d -v %s %s", logcatCommand, timeFormat, filename, logcatRotatedLogsMax, logcatFormat, logcatFilter);
 
     LoggingThread matchLoggingThread = new LoggingThread("MatchLogging") {
       @SuppressLint("DefaultLocale") @Override public void run() {
@@ -718,7 +721,7 @@ public class RobotLog {
     directory.mkdirs(); // paranoia, though we *might* have actually seen this needed, hard to tell
 
     String name;
-    name = String.format("Match-%d-%s.txt", matchNum, opModeName.replaceAll(" ", "_"));
+    name = String.format(Locale.ENGLISH, "Match-%d-%s.txt", matchNum, opModeName.replaceAll(" ", "_"));
     File file = new File(directory, name);
     return file.getAbsolutePath();
   }

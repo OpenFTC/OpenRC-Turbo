@@ -127,6 +127,6 @@ public class Rock960 extends AndroidBoard {
     }
 
     @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
-        RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on a Rock960");
+        RobotLog.ww(TAG, "Unable to set the Wi-Fi AP beacon rate on a Rock960");
     }
 }

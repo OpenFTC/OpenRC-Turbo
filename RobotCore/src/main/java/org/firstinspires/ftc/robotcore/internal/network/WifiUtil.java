@@ -37,9 +37,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.net.NetworkInfo;
 import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -59,13 +59,14 @@ import java.lang.reflect.Method;
 import androidx.annotation.NonNull;
 
 /*
- * A collection of useful wifi related utilities.
+ * A collection of useful Wi-Fi related utilities.
  */
 public class WifiUtil {
 
     private static final String NO_AP = "None";
     @SuppressWarnings("ConstantConditions")
     @NonNull private static final WifiManager wifiManager = (WifiManager)AppUtil.getDefContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    public static final LocationManager locationManager = (LocationManager) AppUtil.getDefContext().getSystemService(Context.LOCATION_SERVICE);
     private static Boolean deviceSupports5Ghz = null;
     private static boolean showingLocationServicesDlg = false;
 
@@ -101,7 +102,7 @@ public class WifiUtil {
     public static boolean isWifiConnected()
     {
         /*
-         * The supplicant state may be in a state of obtaining an ip address even when wifi is not enabled!
+         * The supplicant state may be in a state of obtaining an ip address even when Wi-Fi is not enabled!
          * Ergo, one can not rely upon the WifiManager alone to determine connection state.
          */
         if (!isWifiEnabled()) {
@@ -115,19 +116,29 @@ public class WifiUtil {
                 state == NetworkInfo.DetailedState.OBTAINING_IPADDR);
     }
 
+    public static boolean areLocationServicesEnabled()
+    {
+        if (locationManager == null) { return false; }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return locationManager.isLocationEnabled();
+        } else {
+            int locationMode = 0;
+            try {
+                locationMode = Settings.Secure.getInt(AppUtil.getDefContext().getContentResolver(), Settings.Secure.LOCATION_MODE);
+            } catch (Settings.SettingNotFoundException e) {
+            }
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+        }
+    }
+
     public static void doLocationServicesCheck()
     {
         if ((Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) || (AppUtil.getInstance().isRobotController()) || (showingLocationServicesDlg)) {
             return;
         }
 
-        int locationMode = 0;
-        try {
-            locationMode = Settings.Secure.getInt(AppUtil.getDefContext().getContentResolver(), Settings.Secure.LOCATION_MODE);
-        } catch (Settings.SettingNotFoundException e) {
-        }
-
-        if (locationMode == Settings.Secure.LOCATION_MODE_OFF) {
+        if (!areLocationServicesEnabled()) {
             AlertDialog.Builder alert = new AlertDialog.Builder(AppUtil.getInstance().getActivity());
             alert.setMessage(Misc.formatForUser(R.string.locationServices));
             alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {

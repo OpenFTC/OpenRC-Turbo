@@ -79,6 +79,48 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  public void initializeWithIsModelTensorFlow2(VuforiaBaseAccess vuforiaBaseAccess, float minimumConfidence,
+      boolean useObjectTracker, boolean enableCameraMonitoring, boolean isModelTensorFlow2) {
+    startBlockExecution(BlockType.FUNCTION, ".initialize");
+    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+    if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
+      try {
+        tfodBase.initializeWithIsModelTensorFlow2(vuforiaBaseAccess.getVuforiaBase(),
+            minimumConfidence, useObjectTracker, enableCameraMonitoring, isModelTensorFlow2);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void initializeWithAllArgs(VuforiaBaseAccess vuforiaBaseAccess,
+      float minimumConfidence, boolean useObjectTracker, boolean enableCameraMonitoring,
+      boolean isModelTensorFlow2, boolean isModelQuantized, int inputSize,
+      int numInterpreterThreads, int numExecutorThreads,
+      int maxNumDetections, int timingBufferSize, double maxFrameRate,
+      float trackerMaxOverlap, float trackerMinSize,
+      float trackerMarginalCorrelation, float trackerMinCorrelation) {
+    startBlockExecution(BlockType.FUNCTION, ".initialize");
+    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+    if (checkAndSetTfodBase()&& vuforiaLocalizer != null) {
+      try {
+        tfodBase.initializeWithAllArgs(vuforiaBaseAccess.getVuforiaBase(),
+            minimumConfidence, useObjectTracker, enableCameraMonitoring,
+            isModelTensorFlow2, isModelQuantized, inputSize,
+            numInterpreterThreads, numExecutorThreads,
+            maxNumDetections, timingBufferSize, maxFrameRate,
+            trackerMaxOverlap, trackerMinSize,
+            trackerMarginalCorrelation, trackerMinCorrelation);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
   public void activate() {
     startBlockExecution(BlockType.FUNCTION, ".activate");
     if (tfodBase == null) {

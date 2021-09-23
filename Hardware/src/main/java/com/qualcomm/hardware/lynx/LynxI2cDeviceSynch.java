@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import com.qualcomm.hardware.R;
 import com.qualcomm.hardware.lynx.commands.LynxCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cConfigureChannelCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadMultipleBytesCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadSingleByteCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadStatusQueryCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadStatusQueryResponse;
@@ -216,6 +217,10 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
     // I2cDeviceSynch API methods
     //----------------------------------------------------------------------------------------------
 
+    //------------------------------------------------------------------------------------------------------------
+    //  Reading: register-based
+    //------------------------------------------------------------------------------------------------------------
+
     @Override
     public  byte[] read(int ireg, int creg)
         {
@@ -247,10 +252,108 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
         return LynxUsbUtil.makePlaceholderValue((byte)0);
         }
 
-    @Override
+    @Override //NB: this is firmware-version specific, but the (below) non-register-based version isn't
     public abstract TimestampedData readTimeStamped(final int ireg, final int creg);
 
-    //-------- writing
+    //------------------------------------------------------------------------------------------------------------
+    //  Reading: NON-register-based
+    //------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public  byte[] read(int creg)
+        {
+        return this.readTimeStamped(creg).data;
+        }
+
+    @Override
+    public synchronized byte read8()
+        {
+        try {
+            return acquireI2cLockWhile(new Supplier<Byte>()
+                {
+                @Override
+                public Byte get() throws InterruptedException, LynxNackException
+                    {
+                    LynxI2cReadSingleByteCommand readTx = new LynxI2cReadSingleByteCommand(getModule(), bus, i2cAddr);
+                    readTx.send();
+
+                    /*
+                     * The 'ireg' parameter is never read by *anything*
+                     * in the SDK (verified by Find Usages search) so rather
+                     * than creating a version of pollForReadResult without
+                     * the register parameter, we simply pass in 0
+                     */
+                    return pollForReadResult(i2cAddr, 0, 1).data[0];
+                    }
+                });
+            }
+        catch (InterruptedException|LynxNackException|RobotCoreException|RuntimeException e)
+            {
+            handleException(e);
+            }
+        return LynxUsbUtil.makePlaceholderValue((byte)0);
+        }
+
+    /*
+     * NOTE: Unlike the above readTimeStamped method that takes a register parameter,
+     * we do not need to defer to a firmware-specific implementation. The only reason
+     * the above method needs to do that is because it decides whether or not to use
+     * a special command which can write a single byte (reg addr) and then read the
+     * payload all in a single command (as opposed to sending a write command and then
+     * a read command) if the firmware supports it. Since we don't have a register addr
+     * to write here, we don't care about whether the module supports that special command.
+     */
+    @Override
+    public synchronized TimestampedData readTimeStamped(final int creg)
+        {
+        LynxI2cDeviceSynch deviceHavingProblems = null;
+
+        try {
+            return acquireI2cLockWhile(new Supplier<TimestampedData>()
+                {
+                @Override
+                public TimestampedData get() throws InterruptedException, LynxNackException
+                    {
+                    /*
+                     * LynxI2cReadMultipleBytesCommand does not support a
+                     * byte count of one, so we manually differentiate here.
+                     */
+                    LynxCommand<?> readTx = creg==1
+                            ? new LynxI2cReadSingleByteCommand(getModule(), bus, i2cAddr)
+                            : new LynxI2cReadMultipleBytesCommand(getModule(), bus, i2cAddr, creg);
+                    readTx.send();
+
+                    readTimeStampedPlaceholder.reset();
+
+                    /*
+                     * The 'ireg' parameter is never read by *anything*
+                     * in the SDK (verified by Find Usages search) so rather
+                     * than creating a version of pollForReadResult without
+                     * the register parameter, we simply pass in 0
+                     */
+                    return pollForReadResult(i2cAddr, 0, creg);
+                    }
+                });
+            }
+        catch (InterruptedException|RobotCoreException|RuntimeException e)
+            {
+            handleException(e);
+            }
+        catch (LynxNackException e)
+            {
+            /*
+             * This is a possible device problem, go ahead and tell makeFakeData to warn.
+             */
+            deviceHavingProblems = this;
+            handleException(e);
+            }
+
+        return readTimeStampedPlaceholder.log(TimestampedI2cData.makeFakeData(deviceHavingProblems, getI2cAddress(), 0, creg));
+        }
+
+    //------------------------------------------------------------------------------------------------------------
+    //  Writing: register-based
+    //------------------------------------------------------------------------------------------------------------
 
     @Override
     public void write(int ireg, byte[] data)
@@ -283,6 +386,62 @@ public abstract class LynxI2cDeviceSynch extends LynxController implements I2cDe
             // For register-based I2c devices: convention: first byte in a write is the initial register number
             byte[] payload = Util.concatenateByteArrays(new byte[] {(byte)ireg}, data);
 
+            // We use the single-byte case when we can out of paranoia about the LynxI2cWriteMultipleBytesCommand
+            // not being able to handle a byte count of one (that has not been verified with the firmware
+            // programmers, but the corresponding read case has been)
+            final LynxCommand<?> writeTx = payload.length==1
+                    ? new LynxI2cWriteSingleByteCommand(this.getModule(), this.bus, this.i2cAddr, payload[0])
+                    : new LynxI2cWriteMultipleBytesCommand(this.getModule(), this.bus, this.i2cAddr, payload);
+            try {
+                acquireI2cLockWhile(new Supplier<Object>()
+                    {
+                    @Override public Object get() throws InterruptedException, RobotCoreException, LynxNackException
+                        {
+                        sendI2cWriteTx(writeTx);
+                        internalWaitForWriteCompletions(waitControl);
+                        return null;
+                        }
+                    });
+                }
+            catch (InterruptedException|LynxNackException|RobotCoreException|RuntimeException e)
+                {
+                handleException(e);
+                }
+            }
+        }
+
+    //------------------------------------------------------------------------------------------------------------
+    //  Writing: NON-register-based
+    //------------------------------------------------------------------------------------------------------------
+
+    @Override
+    public synchronized void write(byte[] data)
+        {
+        internalWrite(data, I2cWaitControl.ATOMIC);
+        }
+
+    @Override
+    public synchronized void write(byte[] data, I2cWaitControl waitControl)
+        {
+        internalWrite(data, waitControl);
+        }
+
+    @Override
+    public synchronized void write8(int bVal)
+        {
+        internalWrite(new byte[] {(byte)bVal}, I2cWaitControl.ATOMIC);
+        }
+
+    @Override
+    public synchronized void write8(int bVal, I2cWaitControl waitControl)
+        {
+        internalWrite(new byte[] {(byte)bVal}, waitControl);
+        }
+
+    private void internalWrite(byte[] payload, final I2cWaitControl waitControl)
+        {
+        if(payload.length > 0) // paranoia, but safe
+            {
             // We use the single-byte case when we can out of paranoia about the LynxI2cWriteMultipleBytesCommand
             // not being able to handle a byte count of one (that has not been verified with the firmware
             // programmers, but the corresponding read case has been)

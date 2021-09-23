@@ -35,6 +35,7 @@ package com.qualcomm.robotcore.hardware.configuration;
 import android.os.Build;
 import androidx.annotation.Nullable;
 
+import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.robotcore.internal.system.SystemProperties;
@@ -49,14 +50,26 @@ public class LynxConstants
     public static final String TAG = "LynxConstants";
 
     public static final int DRAGONBOARD_CH_VERSION = 0;
+
+    public static final int MINIMUM_LEGAL_CH_OS_VERSION_CODE = 6; // Corresponds to Control Hub OS 1.1.2
+    public static final String MINIMUM_LEGAL_CH_OS_VERSION_STRING = "1.1.2"; // ONLY for display. Do not use in comparisons.
+
+    public static final int MINIMUM_LEGAL_DH_OS_VERSION_CODE = 20; // Corresponds to Driver Hub OS 1.1.0
+    public static final String MINIMUM_LEGAL_DH_OS_VERSION_STRING = "1.1.0"; // ONLY for display. Do not use in comparisons.
+
     private static final String DRAGONBOARD_MODEL = "FIRST Control Hub";
     private static final String EMPTY_STRING = "";
-    private static final int ORIGINAL_CH_OS_VERSIONNUM = 1;
+    private static final int ORIGINAL_CH_OS_VERSION_CODE = 1;
 
     /** Are we running on an Android / Lynx combo device */
+    private static Boolean isControlHub;
     public static boolean isRevControlHub()
         {
-        return SystemProperties.getBoolean("persist.ftcandroid.serialasusb", false);
+        if (isControlHub == null)
+            {
+            isControlHub = SystemProperties.getBoolean("persist.ftcandroid.serialasusb", false);
+            }
+        return isControlHub;
         }
 
     /** Returns the version of the Control Hub for the purpose of identifying software compatibility.
@@ -81,7 +94,7 @@ public class LynxConstants
     /** Get the Control Hub OS version. Returns null if OS version property is not set.
      *
      * Value is human-readable, do not attempt to parse.
-     * Use {@link #getControlHubOsVersionNum()} ()} to differentiate between OS versions programmatically. */
+     * Use {@link #getControlHubOsVersionCode()} ()} to differentiate between OS versions programmatically. */
     @Nullable public static String getControlHubOsVersion()
         {
         String chOsVersion = SystemProperties.get("ro.controlhub.os.version", EMPTY_STRING);
@@ -90,7 +103,7 @@ public class LynxConstants
         }
 
     /** Gets the machine-parsable version number of the Control Hub OS */
-    public static int getControlHubOsVersionNum()
+    public static int getControlHubOsVersionCode()
         {
         // ro.controlhub.os.versionnum was added in the second OS version (1.0.1), so if we don't
         // find it, it's safe to assume that we are looking at the original version of the Control
@@ -98,7 +111,29 @@ public class LynxConstants
 
         // It could also be a Dragonboard, but differences between Control Hub hardware revisions
         // should be handled within the different implementations of AndroidBoard.
-        return SystemProperties.getInt("ro.controlhub.os.versionnum", ORIGINAL_CH_OS_VERSIONNUM);
+        return SystemProperties.getInt("ro.controlhub.os.versionnum", ORIGINAL_CH_OS_VERSION_CODE);
+        }
+
+    public static boolean controlHubOsVersionIsObsolete()
+        {
+        return Device.isRevControlHub() && getControlHubOsVersionCode() < MINIMUM_LEGAL_CH_OS_VERSION_CODE;
+        }
+
+    /** Get the Driver Hub OS version. Returns null if OS version property is not set.
+     *
+     * Value is human-readable, do not attempt to parse.
+     * Use {@link #getDriverHubOsVersionCode()} ()} to differentiate between OS versions programmatically. */
+    @Nullable public static String getDriverHubOsVersion()
+        {
+        String dhOsVersion = SystemProperties.get("ro.driverhub.os.version", EMPTY_STRING);
+        if(EMPTY_STRING.equals(dhOsVersion)) dhOsVersion = null;
+        return dhOsVersion;
+        }
+
+    /** Gets the machine-parsable version number of the Driver Hub OS */
+    public static int getDriverHubOsVersionCode()
+        {
+        return SystemProperties.getInt("ro.driverhub.os.versionnum", 0);
         }
 
     public static boolean isEmbeddedSerialNumber(SerialNumber serialNumber)

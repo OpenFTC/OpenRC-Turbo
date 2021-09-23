@@ -36,6 +36,7 @@ import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,6 +52,7 @@ import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.wifi.NetworkConnection;
 import com.qualcomm.robotcore.wifi.NetworkConnectionFactory;
 import com.qualcomm.robotcore.wifi.NetworkType;
@@ -88,8 +90,8 @@ public class NetworkConnectionHandler {
     // State
     //----------------------------------------------------------------------------------------------
 
-    protected @Nullable WifiManager.WifiLock wifiLock;
-    protected boolean setupNeeded = true;
+    protected final WifiManager.WifiLock wifiLock = newWifiLock();
+    protected volatile boolean setupNeeded = true;
 
     protected Context context;
     protected final ElapsedTime lastRecvPacket = new ElapsedTime();
@@ -110,7 +112,7 @@ public class NetworkConnectionHandler {
     protected static WifiManager wifiManager = null;
 
     private boolean isPeerConnected = false;
-    private final List<PeerStatusCallback> peerStatusCallbacks = new ArrayList<>();
+    private final List<PeerStatusCallback> peerStatusCallbacks = new CopyOnWriteArrayList<>();
     private final Object peerStatusLock = new Object();
 
     private final SendOnceRunnable.DisconnectionCallback disconnectionCallback = new SendOnceRunnable.DisconnectionCallback() {
@@ -126,22 +128,24 @@ public class NetworkConnectionHandler {
     //----------------------------------------------------------------------------------------------
 
     @SuppressLint("WifiManagerLeak") // We _are_ using the application Context, but Android Lint doesn't know that.
-    protected static WifiManager getWifiManager() {
+    public static WifiManager getWifiManager() {
         if (wifiManager == null) {
             wifiManager = (WifiManager) AppUtil.getDefContext().getSystemService(Context.WIFI_SERVICE);
         }
         return wifiManager;
     }
 
-    public static WifiManager.WifiLock newWifiLock() {
-        return getWifiManager().createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "");
+    protected static WifiManager.WifiLock newWifiLock() {
+        WifiManager.WifiLock lock = getWifiManager().createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "");
+        lock.setReferenceCounted(false);
+        return lock;
     }
 
     /**
      * getDefaultNetworkType
      *
      * On the control hub we force the network type into wireless ap mode.  On any other device we'll
-     * use the stored preference while defaulting to wifi direct.
+     * use the stored preference while defaulting to Wi-Fi Direct.
      */
     public static NetworkType getDefaultNetworkType(Context context) {
 
@@ -158,8 +162,7 @@ public class NetworkConnectionHandler {
      *
      * The driver station version.
      */
-    public void init(@NonNull WifiManager.WifiLock wifiLock, @NonNull NetworkType networkType, @NonNull String owner, @NonNull String password, @NonNull Context context, @NonNull RobotCoreGamepadManager gamepadManager) {
-        this.wifiLock = wifiLock;
+    public void init(@NonNull NetworkType networkType, @NonNull String owner, @NonNull String password, @NonNull Context context, @NonNull RobotCoreGamepadManager gamepadManager) {
         this.connectionOwner = owner;
         this.connectionOwnerPassword = password;
         this.context = context;
@@ -188,6 +191,7 @@ public class NetworkConnectionHandler {
     private void initNetworkConnection(NetworkType networkType) {
         if (this.networkConnection != null && this.networkConnection.getNetworkType() != networkType) {
             // We're switching network types
+            stop();
             shutdown();
             this.networkConnection = null;
         }
@@ -261,7 +265,7 @@ public class NetworkConnectionHandler {
     }
 
     public void acquireWifiLock() {
-        if (wifiLock != null) wifiLock.acquire();
+        wifiLock.acquire();
     }
 
     public boolean isNetworkConnected() {
@@ -288,13 +292,17 @@ public class NetworkConnectionHandler {
         return networkConnection.getConnectionOwnerName();
     }
 
+    public String getExpectedConnectionOwnerName() {
+        return connectionOwner;
+    }
+
     public String getDeviceName() {
         return networkConnection.getDeviceName();
     }
 
     public void stop() {
-        networkConnection.disable();
-        if (wifiLock != null && wifiLock.isHeld()) wifiLock.release();
+        if (networkConnection != null) networkConnection.disable();
+        if (wifiLock.isHeld()) wifiLock.release();
     }
 
     public boolean connectingOrConnected() {
@@ -324,6 +332,13 @@ public class NetworkConnectionHandler {
     }
 
     /**
+     * @return whether or not the NetworkConnectionHandler is shut down
+     */
+    public boolean isShutDown() {
+        return setupNeeded;
+    }
+
+    /**
      * Register a callback that will notify you when a peer connects, disconnects, or is replaced
      *
      * @return true if a peer was connected at the time of registration
@@ -337,17 +352,18 @@ public class NetworkConnectionHandler {
     }
 
     private void updatePeerStatus(boolean newIsConnected, boolean forceUpdateCallbacks) {
+        boolean statusChanged;
         synchronized (peerStatusLock) {
-            boolean statusChanged = (newIsConnected != this.isPeerConnected);
+            statusChanged = (newIsConnected != this.isPeerConnected);
             this.isPeerConnected = newIsConnected;
+        }
 
-            if (statusChanged || forceUpdateCallbacks) {
-                for (PeerStatusCallback callback : peerStatusCallbacks) {
-                    if (isPeerConnected) {
-                        callback.onPeerConnected();
-                    } else {
-                        callback.onPeerDisconnected();
-                    }
+        if (statusChanged || forceUpdateCallbacks) {
+            for (PeerStatusCallback callback : peerStatusCallbacks) {
+                if (isPeerConnected) {
+                    callback.onPeerConnected();
+                } else {
+                    callback.onPeerDisconnected();
                 }
             }
 
@@ -374,7 +390,7 @@ public class NetworkConnectionHandler {
 
             /*
              * This appears to be necessary as it may take some time for wlan0 to be bound to
-             * the default ip address when not in wifi direct mode.
+             * the default ip address when not in Wi-Fi Direct mode.
              */
             if (networkConnection.getNetworkType() != NetworkType.WIFIDIRECT) {
                 ElapsedTime timeWaitingForIp = new ElapsedTime();
@@ -453,17 +469,24 @@ public class NetworkConnectionHandler {
      * this endpoint knows who our peer is and start the service that will
      * send datagrams back to the peer.  This is symmetric vis-a-vis the RC and DS.
      */
-    public synchronized void updateConnection(@NonNull RobocolDatagram packet)
+    public synchronized PeerDiscovery updateConnection(@NonNull RobocolDatagram packet)
             throws RobotCoreException, RobotProtocolException {
+
+        /*
+         * Always update our handle to the current socket (it may have been closed and a new one opened).
+         */
+        if (setupRunnable != null) {
+            socket = setupRunnable.getSocket();
+        }
 
         // Actually parse the packet in order to verify Robocol version compatibility
         // We don't want to set it as our current peer if we can't actually communicate with it.
-        try {
-            PeerDiscovery peerDiscovery = PeerDiscovery.forReceive();
-            peerDiscovery.fromByteArray(packet.getData());
-        } catch (RobotProtocolException e) {
-            RobotLog.ee(TAG, e.getMessage());
-            throw e;
+        PeerDiscovery peerDiscovery = PeerDiscovery.forReceive();
+        peerDiscovery.fromByteArray(packet.getData()); // Throws RobotProtocolException if there is a Robocol version mismatch
+
+        // Check if the packet indicates a rejection
+        if (peerDiscovery.getPeerType() == PeerDiscovery.PeerType.NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION) {
+            throw new RobotProtocolException(context.getString(R.string.anotherDsIsConnectedError));
         }
 
         lastRecvPacket.reset();
@@ -474,19 +497,12 @@ public class NetworkConnectionHandler {
              * Notify connection callbacks if appropriate, but don't do the rest of the setup.
              */
             updatePeerStatus(true, false);
-            return;
+            return peerDiscovery;
         }
 
         // update remoteAddr with the address of our new peer
         remoteAddr = packet.getAddress();
         RobotLog.vv(PeerDiscovery.TAG,"new remote peer discovered: " + remoteAddr.getHostAddress());
-
-        /*
-         * Always get the socket so our handle is not stale. (It may have been closed and a new one opened).
-         */
-        if (setupRunnable != null) {
-            socket = setupRunnable.getSocket();
-        }
 
         if (socket != null) {
             // start send loop, if needed
@@ -499,6 +515,8 @@ public class NetworkConnectionHandler {
             // force update the callbacks, since this we either were previously disconnected, or this is a different peer.
             updatePeerStatus(true, true);
         }
+
+        return peerDiscovery;
     }
 
     public boolean removeCommand(Command cmd) {
@@ -553,9 +571,21 @@ public class NetworkConnectionHandler {
         }
     }
 
-    public void sendDatagram(RobocolDatagram datagram) {
-        RobocolDatagramSocket socket = this.socket;
-        if (socket!=null) socket.send(datagram);
+    public void sendDatagram(final RobocolDatagram datagram) {
+        Runnable sendDatagramRunnable = new Runnable() {
+            @Override public void run() {
+                RobocolDatagramSocket socket = NetworkConnectionHandler.this.socket;
+                if (socket!=null) socket.send(datagram);
+            }
+        };
+
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // We're on the main thread! Send the datagram on a background thread instead.
+            ThreadPool.getDefault().execute(sendDatagramRunnable);
+        } else {
+            // We're not on the main thread, so go ahead and send here.
+            sendDatagramRunnable.run();
+        }
     }
 
     public synchronized void clientDisconnect() {
@@ -729,9 +759,9 @@ public class NetworkConnectionHandler {
             return CallbackResult.NOT_HANDLED;
         }
 
-        @Override public CallbackResult heartbeatEvent(RobocolDatagram packet, long tReceived) throws RobotCoreException {
+        @Override public CallbackResult heartbeatEvent(RobocolDatagram packet) throws RobotCoreException {
             for (RecvLoopRunnable.RecvLoopCallback callback : callbacks) {
-                CallbackResult result = callback.heartbeatEvent(packet, tReceived);
+                CallbackResult result = callback.heartbeatEvent(packet);
                 if (result.stopDispatch()) {
                     return CallbackResult.HANDLED;
                 }

@@ -55,7 +55,7 @@ public class AndroidTextToSpeech {
       public void onInit(int status) {
         if (status == TextToSpeech.ERROR) {
           initializationFailed = true;
-          RobotLog.setGlobalWarningMessage(context.getString(R.string.warningTtsFailedToInitialize));
+          RobotLog.addGlobalWarningMessage(context.getString(R.string.warningTtsFailedToInitialize));
           RobotLog.ww(TAG, "TTS initialization failed");
         } else {
           RobotLog.vv(TAG, "TTS initialization completed successfully");

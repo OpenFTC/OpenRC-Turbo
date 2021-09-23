@@ -96,6 +96,15 @@ public final class RobotWebHandlerManager implements WebHandlerManager {
                 errorString);
     }
 
+    public static NanoHTTPD.Response clientBadRequestError(String tag, String errorString)
+    {
+        RobotLog.ee(tag, errorString);
+        return newFixedLengthResponse(
+                NanoHTTPD.Response.Status.BAD_REQUEST,
+                NanoHTTPD.MIME_PLAINTEXT,
+                errorString);
+    }
+
     public static NanoHTTPD.Response internalErrorResponse(String tag, Throwable e)
     {
         RobotLog.ee(tag, e, e.getMessage());

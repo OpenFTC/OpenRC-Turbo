@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.firstinspires.inspection;
 
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -41,12 +42,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.Device;
+import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
@@ -79,32 +83,55 @@ public abstract class InspectionActivity extends ThemedActivity
      */
     private static final boolean SHOW_TRAFFIC_STATS = false;
 
-    private static final String goodMark = "\u2713";    // a check mark
-    private static final String badMark = "X";
+    private static final AppUtil appUtil = AppUtil.getInstance();
+
     private static final String notApplicable = "N/A";
+    private static final String notInstalled = "Not installed";
+    private static final String fwUnavailable = "firmware version unavailable";
+    private static final String fwMismatch = "mismatched";
 
-    private final boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
+    private final boolean remoteConfigure = appUtil.isDriverStation();
 
-    TextView wifiName, widiConnected, wifiEnabled, batteryLevel, androidVersion, controlHubOsVersion, firmwareVersion, airplaneMode, bluetooth, wifiConnected, appsStatus;
+    ValidatedInspectionItem airplaneMode, bluetooth, location, rcPassword, wifiEnabled, wifiConnected,
+            wifiName, androidVersion, isRCInstalled, rcMatchesDSVersion, isDSInstalled, osVersion,
+            firmwareVersion1, firmwareVersion2;
+
+    TextView batteryLevel;
+    View hubFirmwareExtraLineLayout, hubFirmwarePrimaryLine_layout;
     TextView trafficCount, bytesPerSecond;
     TextView trafficCountLabel, bytesPerSecondLabel;
     TextView txtManufacturer, txtModel, txtAppVersion;
-    TextView txtIsRCInstalled, txtIsDSInstalled;
-    TextView txtIsDefaultPassword;
-    LinearLayout controlHubOsVersionLayout;
+    TextView osVersionLabel;
+    LinearLayout osVersionLayout;
     LinearLayout airplaneModeLayout;
     Pattern teamNoRegex;
     Future refreshFuture = null;
-    int textOk = AppUtil.getInstance().getColor(R.color.text_okay);
-    int textWarning = AppUtil.getInstance().getColor(R.color.text_warning);
-    int textError = AppUtil.getInstance().getColor(R.color.text_error);
+    int textOk = AppUtil.getColor(R.color.text_okay);
+    int textWarning = AppUtil.getColor(R.color.text_warning);
+    int textError = AppUtil.getColor(R.color.text_error);
     StartResult nameManagerStartResult = new StartResult();
     private boolean properWifiConnectedState;
-    private boolean properBluetoothState;
 
-    protected static final int RC_MIN_VERSIONCODE = 21;
-    protected static final int DS_MIN_VERSIONCODE = 21;
-    protected static final int CH_OS_MIN_VERSIONNUM = 4; // Corresponds to Control Hub OS 1.1.1
+    protected static final int RC_MIN_VERSIONCODE = 42; // Corresponds to RC 7.0
+    protected static final int DS_MIN_VERSIONCODE = 42; // Corresponds to DS 7.0
+
+    class ValidatedInspectionItem
+        {
+        TextView txt;
+        ImageView img;
+
+        ValidatedInspectionItem(int txtId, int imgId)
+            {
+            this.txt = findViewById(txtId);
+            this.img = findViewById(imgId);
+            }
+
+        void setVisibility(int visibility)
+           {
+           txt.setVisibility(visibility);
+           img.setVisibility(visibility);
+           }
+        }
 
     //----------------------------------------------------------------------------------------------
     // Life cycle
@@ -117,27 +144,31 @@ public abstract class InspectionActivity extends ThemedActivity
         setContentView(R.layout.activity_inspection);
 
         // Find our various bits on the screen
-        txtIsRCInstalled = (TextView) findViewById(R.id.txtIsRCInstalled);
-        txtIsDSInstalled = (TextView) findViewById(R.id.txtIsDSInstalled);
+        isRCInstalled = new ValidatedInspectionItem(R.id.txtIsRCInstalled, R.id.txtIsRCInstalled_img);
+        rcMatchesDSVersion = new ValidatedInspectionItem(R.id.matchesDSVersion_txt, R.id.matchesDSVersion_img);
+        isDSInstalled = new ValidatedInspectionItem(R.id.txtIsDSInstalled, R.id.txtIsDSInstalled_img);
 
-        wifiName = (TextView) findViewById(R.id.wifiName);
-        trafficCount = (TextView) findViewById(R.id.trafficCount);
-        bytesPerSecond = (TextView) findViewById(R.id.bytesPerSecond);
-        trafficCountLabel = (TextView) findViewById(R.id.trafficCountLabel);
-        bytesPerSecondLabel = (TextView) findViewById(R.id.bytesPerSecondLabel);
-        widiConnected = (TextView) findViewById(R.id.widiConnected);
-        wifiEnabled = (TextView) findViewById(R.id.wifiEnabled);
-        batteryLevel = (TextView) findViewById(R.id.batteryLevel);
-        androidVersion = (TextView) findViewById(R.id.androidVersion);
-        controlHubOsVersion = findViewById(R.id.controlHubOsVersion);
-        firmwareVersion = (TextView) findViewById(R.id.hubFirmware);
-        airplaneMode = (TextView) findViewById(R.id.airplaneMode);
-        bluetooth = (TextView) findViewById(R.id.bluetoothEnabled);
-        wifiConnected = (TextView) findViewById(R.id.wifiConnected);
-        appsStatus = (TextView) findViewById(R.id.appsStatus);
-        txtAppVersion = (TextView) findViewById(R.id.textDeviceName);
-        txtIsDefaultPassword = (TextView) findViewById(R.id.isDefaultPassword);
-        controlHubOsVersionLayout = findViewById(R.id.controlHubOsVersionLayout);
+        wifiName = new ValidatedInspectionItem(R.id.wifiName, R.id.wifiName_img);
+        trafficCount = findViewById(R.id.trafficCount);
+        bytesPerSecond = findViewById(R.id.bytesPerSecond);
+        trafficCountLabel = findViewById(R.id.trafficCountLabel);
+        bytesPerSecondLabel = findViewById(R.id.bytesPerSecondLabel);
+        wifiEnabled = new ValidatedInspectionItem(R.id.wifiEnabled, R.id.wifiEnabled_img);
+        batteryLevel = findViewById(R.id.batteryLevel);
+        androidVersion = new ValidatedInspectionItem(R.id.androidVersion, R.id.androidVersion_img);
+        osVersion = new ValidatedInspectionItem(R.id.osVersion, R.id.osVersion_img);
+        firmwareVersion1 = new ValidatedInspectionItem(R.id.hubFirmwarePrimaryLine, R.id.hubFirmware_img);
+        firmwareVersion2 = new ValidatedInspectionItem(R.id.hubFirmwareExtraLine, R.id.hubFirmwareExtraLine_img);
+        hubFirmwareExtraLineLayout = findViewById(R.id.hubFirmwareExtraLine_layout);
+        hubFirmwarePrimaryLine_layout = findViewById(R.id.hubFirmwarePrimaryLine_layout);
+        airplaneMode = new ValidatedInspectionItem(R.id.airplaneMode, R.id.airplaneMode_img);
+        bluetooth = new ValidatedInspectionItem(R.id.bluetoothEnabled, R.id.bluetoothEnabled_img);
+        location = new ValidatedInspectionItem(R.id.locationEnabled, R.id.locationEnabled_img);
+        wifiConnected = new ValidatedInspectionItem(R.id.wifiConnected, R.id.wifiConnected_img);
+        txtAppVersion = findViewById(R.id.textDeviceName);
+        rcPassword = new ValidatedInspectionItem(R.id.isDefaultPassword, R.id.isDefaultPassword_img);
+        osVersionLabel = findViewById(R.id.osVersionLabel);
+        osVersionLayout = findViewById(R.id.osVersionLayout);
         airplaneModeLayout = findViewById(R.id.airplaneModeLayout);
 
         txtAppVersion.setText(inspectingRobotController()
@@ -146,16 +177,25 @@ public abstract class InspectionActivity extends ThemedActivity
 
         if (!inspectingRobotController())
             {
-            txtIsDefaultPassword.setVisibility(View.GONE);
+            rcPassword.setVisibility(View.GONE);
             findViewById(R.id.textViewPassword).setVisibility(View.GONE);
+            hubFirmwarePrimaryLine_layout.setVisibility(View.GONE);
+            hubFirmwareExtraLineLayout.setVisibility(View.GONE);
             }
 
-        txtManufacturer = (TextView) findViewById(R.id.txtManufacturer);
-        txtModel = (TextView) findViewById(R.id.txtModel);
+        if (!inspectingRemoteDevice())
+            {
+            // The only time we can know if the versions match is when we are inspecting a remote device
+            rcMatchesDSVersion.setVisibility(View.GONE);
+            findViewById(R.id.matchesDSVersionLabel).setVisibility(View.GONE);
+            }
+
+        txtManufacturer = findViewById(R.id.txtManufacturer);
+        txtModel = findViewById(R.id.txtModel);
 
         teamNoRegex = Pattern.compile("^\\d{1,5}(-\\w)?-(RC|DS)\\z", Pattern.CASE_INSENSITIVE);
 
-        ImageButton buttonMenu = (ImageButton) findViewById(R.id.menu_buttons);
+        ImageButton buttonMenu = findViewById(R.id.menu_buttons);
         if (useMenu())
             {
             buttonMenu.setOnClickListener(new View.OnClickListener()
@@ -184,7 +224,6 @@ public abstract class InspectionActivity extends ThemedActivity
         DeviceNameManagerFactory.getInstance().start(nameManagerStartResult);
 
         properWifiConnectedState = false;
-        properBluetoothState = false;
 
         NetworkType networkType = NetworkConnectionHandler.getDefaultNetworkType(this);
         if (networkType == NetworkType.WIRELESSAP)
@@ -218,7 +257,7 @@ public abstract class InspectionActivity extends ThemedActivity
 
     protected void makeWirelessAPModeSane()
         {
-        TextView labelWifiName = (TextView) findViewById(R.id.labelWifiName);
+        TextView labelWifiName = findViewById(R.id.labelWifiName);
         labelWifiName.setText(getString(R.string.wifiAccessPointLabel));
 
         properWifiConnectedState = true;
@@ -237,7 +276,7 @@ public abstract class InspectionActivity extends ThemedActivity
         {
         // Historical note: we used to have other items on the menu as well, but
         // the ability to clear remembered groups is now available on the Settings screen,
-        // and the ability to clear all wifi networks is (apparently) not available from M
+        // and the ability to clear all Wi-Fi networks is (apparently) not available from M
         // onwards, and so is now of marginal utility. Thus, both of these items have
         // been removed.
 
@@ -294,7 +333,7 @@ public abstract class InspectionActivity extends ThemedActivity
         int msInterval = 5000;
         refreshFuture = ThreadPool.getDefaultScheduler().scheduleAtFixedRate(new Runnable() {
             @Override public void run() {
-                AppUtil.getInstance().runOnUiThread(new Runnable() {
+                appUtil.runOnUiThread(new Runnable() {
                     @Override public void run() {
                         refresh();
                     }
@@ -310,56 +349,10 @@ public abstract class InspectionActivity extends ThemedActivity
         }
     }
 
-    private void refresh(TextView view, boolean valid)
+    private void refresh(ValidatedInspectionItem item, boolean valid, String message)
         {
-        refresh(view, valid, true);
-        }
-    private void refresh(TextView view, boolean value, boolean validValue)
-        {
-        view.setText(value ? goodMark : badMark);
-        view.setTextColor(value==validValue ? textOk : textError);
-        }
-    private void refresh(TextView view, String value, boolean valid)
-        {
-        view.setText(value);
-        view.setTextColor(valid ? textOk : textError);
-        }
-    private boolean refreshOptional(TextView view, String appVersion, boolean required)
-        {
-        boolean exists = InspectionState.isPackageInstalled(appVersion);
-        if (required)
-            {
-            refresh(view, exists);
-            return exists;
-            }
-        else
-            {
-            view.setText(notApplicable);
-            view.setTextColor(textOk);
-            return true;
-            }
-        }
-    private boolean refreshPackage(TextView view, String version, int versionCode, int minVersion)
-        {
-        if (InspectionState.isPackageInstalled(version))
-            {
-            view.setText(version);
-            if (versionCode < minVersion)
-                {
-                view.setTextColor(textWarning);
-                return false;
-                }
-            else
-                {
-                view.setTextColor(textOk);
-                }
-            }
-        else
-            {
-            view.setText(badMark);
-            view.setTextColor(textOk);
-            }
-        return true;
+        item.txt.setText(message);
+        item.img.setImageResource(valid ? R.drawable.ic_check_circle : R.drawable.ic_error);
         }
     private void refreshTrafficCount(TextView view, long rxData, long txData)
         {
@@ -388,29 +381,80 @@ public abstract class InspectionActivity extends ThemedActivity
     protected void refresh(InspectionState state)
         {
         // Set values
-        refresh(widiConnected, state.wifiDirectConnected);
-        refresh(wifiEnabled, state.wifiEnabled);
-        refreshTrafficStats(state);
-        refresh(bluetooth, state.bluetoothOn, properBluetoothState);
-        refresh(wifiConnected, state.wifiConnected, properWifiConnectedState);
-        txtManufacturer.setText(state.manufacturer);
-        txtModel.setText(state.model);
-        refresh(androidVersion, state.osVersion, isValidAndroidVersion(state));
-        refresh(firmwareVersion, state.firmwareVersion, isValidFirmwareVersion(state));
-        refresh(wifiName, state.deviceName, isValidDeviceName(state));
-        batteryLevel.setText(Math.round(state.batteryFraction * 100f) + "%");
-        batteryLevel.setTextColor(state.batteryFraction > 0.6 ? textOk : textWarning);
-        refresh(txtIsDefaultPassword, !state.isDefaultPassword);
 
-        // Only display Control Hub OS version if there is one to display
-        if (InspectionState.NO_VERSION.equals(state.controlHubOsVersion))
+        refresh(wifiEnabled, state.wifiEnabled == true, state.wifiEnabled ? "Yes" : "No");
+        refreshTrafficStats(state);
+        refresh(bluetooth, state.bluetoothOn == false, state.bluetoothOn ? "Enabled" : "Disabled");
+        refresh(wifiConnected, state.wifiConnected == properWifiConnectedState, state.wifiConnected ? "Yes" : "No");
+
+        if (state.sdkInt >= Build.VERSION_CODES.O)
             {
-            controlHubOsVersionLayout.setVisibility(View.GONE);
+            refresh(location, state.locationEnabled == true, state.locationEnabled ? "Enabled" : "Disabled");
             }
         else
             {
-            controlHubOsVersionLayout.setVisibility(View.VISIBLE);
-            refresh(controlHubOsVersion, state.controlHubOsVersion, isValidControlHubOsVersion(state));
+            location.setVisibility(View.GONE);
+            findViewById(R.id.locationLabel).setVisibility(View.GONE);
+            }
+
+        txtManufacturer.setText(state.manufacturer);
+        txtModel.setText(state.model);
+        refresh(androidVersion, isValidAndroidVersion(state), state.osVersion);
+
+        if(state.firmwareVersion == null || state.firmwareVersion.equals(notApplicable))
+            {
+            refresh(firmwareVersion1, false, notApplicable);
+            hubFirmwareExtraLineLayout.setVisibility(View.GONE);
+            }
+        else if(state.firmwareVersion.contains(fwMismatch))
+            {
+            refresh(firmwareVersion1, false, fwMismatch);
+            hubFirmwareExtraLineLayout.setVisibility(View.GONE);
+            }
+        else
+            {
+            String[] firmwareStrings = state.firmwareVersion
+                    .replace("Expansion Hub", "EH")
+                    .replace("Control Hub", "CH")
+                    .split("\n");
+
+            refresh(firmwareVersion1, isValidFirmwareVersion(firmwareStrings[0]), firmwareStrings[0].replace(fwUnavailable, notApplicable));
+
+            if(firmwareStrings.length > 1)
+                {
+                refresh(firmwareVersion2, isValidFirmwareVersion(firmwareStrings[1]), firmwareStrings[1].replace(fwUnavailable, notApplicable));
+                }
+            else
+                {
+                hubFirmwareExtraLineLayout.setVisibility(View.GONE);
+                }
+            }
+
+        refresh(wifiName, isValidDeviceName(state), state.deviceName);
+        batteryLevel.setText(Math.round(state.batteryFraction * 100f) + "%");
+        batteryLevel.setTextColor(state.batteryFraction > 0.6 ? textOk : textWarning);
+        refresh(rcPassword, state.isDefaultPassword == false, state.isDefaultPassword ? "Default" : "Not default");
+
+        // Only display Control Hub / Driver Hub OS version if there is one to display
+        boolean inspectingControlHub = !InspectionState.NO_VERSION.equals(state.controlHubOsVersion);
+        boolean inspectingDriverHub = !InspectionState.NO_VERSION.equals(state.driverHubOsVersion);
+        if (!inspectingControlHub && !inspectingDriverHub)
+            {
+            osVersionLayout.setVisibility(View.GONE);
+            }
+        else
+            {
+            osVersionLayout.setVisibility(View.VISIBLE);
+            if (inspectingControlHub)
+                {
+                osVersionLabel.setText(R.string.controlHubOsVersionLabel);
+                refresh(osVersion, isValidControlHubOsVersion(state), state.controlHubOsVersion);
+                }
+            else
+                {
+                osVersionLabel.setText(R.string.driverHubOsVersionLabel);
+                refresh(osVersion, isValidDriverHubOsVersion(state), state.driverHubOsVersion);
+                }
             }
 
         // Only display airplane mode line on non-REV devices.
@@ -422,26 +466,51 @@ public abstract class InspectionActivity extends ThemedActivity
         else
             {
             airplaneModeLayout.setVisibility(View.VISIBLE);
-            refresh(airplaneMode, state.airplaneModeOn);
+            refresh(airplaneMode, state.airplaneModeOn == true, state.airplaneModeOn ? "Enabled" : "Disabled");
             }
 
         // check the installed apps.
-        boolean appsOkay = true;
-        appsOkay = refreshPackage(txtIsRCInstalled, state.robotControllerVersion, state.robotControllerVersionCode, RC_MIN_VERSIONCODE) && appsOkay;
-        appsOkay = refreshPackage(txtIsDSInstalled, state.driverStationVersion, state.driverStationVersionCode, DS_MIN_VERSIONCODE) && appsOkay;
-
-        if (!state.isRobotControllerInstalled() && !state.isDriverStationInstalled()
-            || state.isRobotControllerInstalled() && state.isDriverStationInstalled())
+        if(inspectingRobotController())
             {
-            // you should have at least one or the other installed, but not both
-            appsOkay = false;
-            txtIsDSInstalled.setTextColor(textError);
-            txtIsRCInstalled.setTextColor(textError);
+            boolean rcIsObsolete = state.robotControllerBuildTime == null
+                    || appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.robotControllerBuildTime));
+            boolean validRcState = InspectionState.isPackageInstalled(state.robotControllerVersion) &&
+                    state.robotControllerVersionCode >= RC_MIN_VERSIONCODE &&
+                    !rcIsObsolete;
+            refresh(isRCInstalled,
+                    validRcState,
+                    state.robotControllerVersion.isEmpty() ? notInstalled : state.robotControllerVersion);
+            refresh(isDSInstalled,
+                    InspectionState.isPackageInstalled(state.driverStationVersion) == false,
+                    state.driverStationVersion.isEmpty() ? notInstalled : state.driverStationVersion);
+            if (inspectingRemoteDevice())
+                {
+                try
+                    {
+                    int ownVersionCode = AppUtil.getDefContext().getPackageManager().getPackageInfo(AppUtil.getDefContext().getPackageName(), 0).versionCode;
+                    boolean codesMatch = state.robotControllerVersionCode == ownVersionCode;
+                    refresh(rcMatchesDSVersion, codesMatch, codesMatch ? "Yes" : "No");
+                    }
+                catch (PackageManager.NameNotFoundException e)
+                    {
+                    RobotLog.ee(TAG, "Unable to get our own version code (should never happen");
+                    }
+                }
             }
-
-        appsOkay = validateAppsInstalled(state) && appsOkay;
-        appsStatus.setTextColor(appsOkay ? textOk : textError);
-        appsStatus.setText(appsOkay ? goodMark : badMark);
+        else
+            {
+            boolean dsIsObsolete = state.driverStationBuildTime == null
+                    || appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.driverStationBuildTime));
+            boolean validDsState = InspectionState.isPackageInstalled(state.driverStationVersion) &&
+                    state.driverStationVersionCode >= DS_MIN_VERSIONCODE &&
+                    !dsIsObsolete;
+            refresh(isDSInstalled,
+                    validDsState,
+                    state.driverStationVersion.isEmpty() ? notInstalled : state.driverStationVersion);
+            refresh(isRCInstalled,
+                    InspectionState.isPackageInstalled(state.robotControllerVersion) == false,
+                    state.robotControllerVersion.isEmpty() ? notInstalled : state.robotControllerVersion);
+            }
         }
 
     public boolean isValidAndroidVersion(InspectionState state)
@@ -452,19 +521,26 @@ public abstract class InspectionActivity extends ThemedActivity
 
     public boolean isValidControlHubOsVersion(InspectionState state)
         {
-        return state.controlHubOsVersionNum >= CH_OS_MIN_VERSIONNUM;
+        return state.controlHubOsVersionNum >= LynxConstants.MINIMUM_LEGAL_CH_OS_VERSION_CODE;
         }
 
-    public boolean isValidFirmwareVersion(InspectionState state)
+    public boolean isValidDriverHubOsVersion(InspectionState state)
         {
-        // For the 2020-2021 season, require firmware version 1.8.2
+        return state.driverHubOsVersionNum >= LynxConstants.MINIMUM_LEGAL_DH_OS_VERSION_CODE;
+        }
+
+    public boolean isValidFirmwareVersion(String string)
+        {
+        // For the 2021-2022 season, require firmware version 1.8.2
+        // When you update this, make sure to update LynxModuleWarningManager at the same time.
 
         //noinspection RedundantIfStatement
-        if (state.firmwareVersion != null && (
-                state.firmwareVersion.contains("1.6.0") ||
-                state.firmwareVersion.contains("1.7.0") ||
-                state.firmwareVersion.contains("1.7.2") ||
-                state.firmwareVersion.contains("mismatched")))
+        if (string != null && (
+                string.contains("1.6.0") ||
+                string.contains("1.7.0") ||
+                string.contains("1.7.2") ||
+                string.contains(fwUnavailable) ||
+                string.contains(fwMismatch)))
             {
             return false;
             }
@@ -480,9 +556,8 @@ public abstract class InspectionActivity extends ThemedActivity
     //----------------------------------------------------------------------------------------------
     // Subclass queries
     //----------------------------------------------------------------------------------------------
-
-    protected abstract boolean validateAppsInstalled(InspectionState state);
     protected abstract boolean inspectingRobotController();
+    protected abstract boolean inspectingRemoteDevice();
     protected abstract boolean useMenu();
 
     //----------------------------------------------------------------------------------------------
@@ -491,6 +566,6 @@ public abstract class InspectionActivity extends ThemedActivity
     
     private void showToast(String message)
         {
-        AppUtil.getInstance().showToast(UILocation.BOTH, message);
+        appUtil.showToast(UILocation.BOTH, message);
         }
     }

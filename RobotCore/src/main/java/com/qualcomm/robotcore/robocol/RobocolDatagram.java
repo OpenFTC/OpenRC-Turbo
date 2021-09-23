@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Queue;
@@ -26,10 +28,15 @@ public class RobocolDatagram {
    private DatagramPacket packet;
 
    /** If non-null, then this buffer should be salvaged on finalization */
-   private byte[]         receiveBuffer = null;
+   private byte[] receiveBuffer = null;
+
+   /** The time that we received this packet, in 2 formats */
+   private final Object receivedTimeLock = new Object();
+   private long wallClockTimeMsReceived = 0;
+   private long nanoTimeReceived = 0;
 
    /** the place we put old receive buffers */
-   static Queue<byte[]>   receiveBuffers = new ConcurrentLinkedQueue<byte[]>();
+   static Queue<byte[]> receiveBuffers = new ConcurrentLinkedQueue<byte[]>();
 
    //-----------------------------------------------------------------------------------------------
    // Construction
@@ -124,6 +131,16 @@ public class RobocolDatagram {
    public int getPort() {
       return packet.getPort();
    }
+   public long getWallClockTimeMsReceived() {
+      synchronized (receivedTimeLock) {
+         return wallClockTimeMsReceived;
+      }
+   }
+   public long getNanoTimeReceived() {
+      synchronized (receivedTimeLock) {
+         return nanoTimeReceived;
+      }
+   }
 
    public void setAddress(InetAddress address) {
       packet.setAddress(address);
@@ -149,5 +166,12 @@ public class RobocolDatagram {
 
    protected void setPacket(DatagramPacket packet) {
       this.packet = packet;
+   }
+
+   protected void markReceivedNow() {
+      synchronized (receivedTimeLock) {
+         wallClockTimeMsReceived = AppUtil.getInstance().getWallClockTime();
+         nanoTimeReceived = System.nanoTime();
+      }
    }
 }

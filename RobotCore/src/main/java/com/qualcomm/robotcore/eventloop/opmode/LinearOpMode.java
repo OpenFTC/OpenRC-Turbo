@@ -246,6 +246,11 @@ public abstract class LinearOpMode extends OpMode {
     if (helper.hasRuntimeException()) {
       throw helper.getRuntimeException();
     }
+    // if there is a NoClassDefFoundError; throw it so the normal error reporting process can
+    // handle it. It could be due to an external library that is missing.
+    if (helper.hasNoClassDefFoundError()) {
+      throw helper.getNoClassDefFoundError();
+    }
 
     synchronized (runningNotifier) {
       runningNotifier.notifyAll();
@@ -253,10 +258,12 @@ public abstract class LinearOpMode extends OpMode {
   }
 
   protected class LinearOpModeHelper implements Runnable {
+    private static final String TAG = "LinearOpModeHelper";
 
-    protected RuntimeException exception  = null;
-    protected boolean          isShutdown = false;
-    protected volatile boolean userMethodReturned = false;
+    protected RuntimeException     exception  = null;
+    protected NoClassDefFoundError noClassDefFoundError = null;
+    protected boolean              isShutdown = false;
+    protected volatile boolean     userMethodReturned = false;
 
     public LinearOpModeHelper() {
     }
@@ -265,15 +272,18 @@ public abstract class LinearOpMode extends OpMode {
     public void run() {
       ThreadPool.logThreadLifeCycle("LinearOpMode main", new Runnable() { @Override public void run() {
         exception = null;
+        noClassDefFoundError = null;
         isShutdown = false;
 
         try {
           LinearOpMode.this.runOpMode();
           userMethodReturned = true;
+          RobotLog.dd(TAG, "User runOpModeMethod exited");
           requestOpModeStop();
         } catch (InterruptedException ie) {
           // InterruptedException, shutting down the op mode
           RobotLog.d("LinearOpMode received an InterruptedException; shutting down this linear op mode");
+          requestOpModeStop();
         } catch (CancellationException ie) {
           // In our system, CancellationExceptions are thrown when data was trying to be acquired, but
           // an interrupt occurred, and you're in the unfortunate situation that the data acquisition API
@@ -281,8 +291,13 @@ public abstract class LinearOpMode extends OpMode {
           // you return?), and so you have to throw a RuntimeException. CancellationException seems the
           // best choice.
           RobotLog.d("LinearOpMode received a CancellationException; shutting down this linear op mode");
+          requestOpModeStop();
         } catch (RuntimeException e) {
           exception = e;
+          // We do NOT call requestOpModeStop() in this case, because we want to make sure the
+          // exception gets a chance to be thrown on the event loop thread.
+        } catch (NoClassDefFoundError e) {
+          noClassDefFoundError = e;
         } finally {
           // If the user has given us a telemetry.update() that hasn't get gone out, then
           // push it out now. However, any NEW device health warning should be suppressed while
@@ -307,6 +322,14 @@ public abstract class LinearOpMode extends OpMode {
 
     public RuntimeException getRuntimeException() {
       return exception;
+    }
+
+    public boolean hasNoClassDefFoundError() {
+      return (noClassDefFoundError != null);
+    }
+
+    public NoClassDefFoundError getNoClassDefFoundError() {
+      return noClassDefFoundError;
     }
 
     public boolean isShutdown() {

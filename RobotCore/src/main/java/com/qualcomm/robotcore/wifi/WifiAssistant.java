@@ -41,12 +41,12 @@ import android.net.wifi.WifiManager;
 import com.qualcomm.robotcore.util.RobotLog;
 
 /**
- * Class for monitoring if wifi is connected or not.
+ * Class for monitoring if Wi-Fi is connected or not.
  */
 public class WifiAssistant {
 
   /**
-   * Wifi NetworkEvent
+   * Wi-Fi NetworkEvent
    */
   public enum WifiState { CONNECTED, NOT_CONNECTED; }
 
@@ -56,7 +56,7 @@ public class WifiAssistant {
   public interface WifiAssistantCallback {
 
     /**
-     * Callback - called when wifi connects / disconnects
+     * Callback - called when Wi-Fi connects / disconnects
      * @param event WifiEvent
      */
     public void wifiEventCallback(WifiState event);

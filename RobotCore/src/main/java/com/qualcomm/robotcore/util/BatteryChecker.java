@@ -35,9 +35,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
-import android.os.Handler;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
 public class BatteryChecker {
@@ -89,12 +91,12 @@ public class BatteryChecker {
   // Don't spam the log if there's nothing wrong with the battery.
   private static final int LOG_THRESHOLD = 70;
 
-  private Context context;
-  private long repeatDelay;
-  private long initialDelay = 5000; // ms. 'not exactly clear why we wait to send
-  private BatteryWatcher watcher;
-  protected final Handler batteryHandler;
-  protected boolean closed;
+  private final Context context;
+  private final long repeatDelayMs;
+  private final long initialDelayMs = 5000; // Not exactly clear why we wait to send
+  private final BatteryWatcher watcher;
+  protected final ScheduledExecutorService scheduler = ThreadPool.getDefaultScheduler();
+  protected volatile boolean closed;
   protected final Monitor monitor = new Monitor();
 
   protected final static boolean debugBattery = false;
@@ -105,42 +107,32 @@ public class BatteryChecker {
   //------------------------------------------------------------------------------------------------
 
   public BatteryChecker(BatteryWatcher watcher, long delay) {
-    this.context = AppUtil.getDefContext();
     this.watcher = watcher;
-    this.repeatDelay = delay;
-    batteryHandler = new Handler();
+    this.repeatDelayMs = delay;
     closed = true;
+    context = AppUtil.getDefContext();
   }
 
-  public void startBatteryMonitoring() {
-    // sends one battery update after a short delay.
-    synchronized (batteryHandler) {
-      closed = false;
-      batteryHandler.postDelayed(batteryLevelChecker, initialDelay);
+  public synchronized void startBatteryMonitoring() {
+    if (closed) {
+      registerReceiver(monitor);
     }
-    registerReceiver(monitor);
+    closed = false;
+
+    // sends one battery update after a short delay. TODO(Noah): Consider removing delay. Is it so that the network has time to connect?
+    scheduler.schedule(batteryLevelChecker, initialDelayMs, TimeUnit.MILLISECONDS);
   }
 
-  public void close() {
-
+  public synchronized void close() {
     if (!closed) {
-
       // If the following throws an exception, it is not a big deal, log it and continue
       try {
         context.unregisterReceiver(monitor);
       } catch (Exception ex) {
         RobotLog.ee(TAG, ex, "Failed to unregister battery monitor receiver; ignored");
       }
-
-      try {
-        synchronized (batteryHandler) {
-          closed = true; // force any in-flight callback to simply drain
-          batteryHandler.removeCallbacks(batteryLevelChecker);
-        }
-      } catch (Exception ex) {
-        RobotLog.ee(TAG, ex, "Failed to remove battery monitor callbacks; ignored");
-      }
     }
+    closed = true;
   }
 
   //------------------------------------------------------------------------------------------------
@@ -169,13 +161,11 @@ public class BatteryChecker {
   Runnable batteryLevelChecker = new Runnable() {
     @Override
     public void run() {
-      pollBatteryLevel(watcher);
+      if (!closed) {
+        pollBatteryLevel(watcher);
 
-      // Posts the next iteration of this runnable, to be run after "delay" milliseconds.
-      synchronized (batteryHandler) {
-        if (!closed) {
-          batteryHandler.postDelayed(batteryLevelChecker, repeatDelay);
-        }
+        // Posts the next iteration of this runnable, to be run after "delay" milliseconds.
+        scheduler.schedule(batteryLevelChecker, repeatDelayMs, TimeUnit.MILLISECONDS);
       }
     }
   };

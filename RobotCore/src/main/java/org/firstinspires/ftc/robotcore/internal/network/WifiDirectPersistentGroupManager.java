@@ -232,14 +232,14 @@ public class WifiDirectPersistentGroupManager extends WifiStartStoppable
                 });
         }
 
-    /** Asynchronously enumerates the extant persistent Wifi Direct groups. Aka 'Remembered Groups' */
+    /** Asynchronously enumerates the extant persistent Wi-Fi Direct groups. Aka 'Remembered Groups' */
     public void requestPersistentGroups(PersistentGroupInfoListener listener)
         {
         Object persistentGroupInfoListenerProxy = createProxy(listener);
         ClassUtil.invoke(wifiDirectAgent.getWifiP2pManager(), methodRequestPersistentGroupInfo, wifiDirectAgent.getWifiP2pChannel(), persistentGroupInfoListenerProxy);
         }
 
-    /** Synchronously enumerates the extant persistent Wifi Direct groups. Must NOT be called
+    /** Synchronously enumerates the extant persistent Wi-Fi Direct groups. Must NOT be called
      * on the callback looper thread. If an error or interrupt occurs, an empty list is returned. */
     public Collection<WifiP2pGroup> getPersistentGroups()
         {

@@ -64,9 +64,13 @@ public class LynxModuleWarningManager {
 
     // Constant fields
     private final static String TAG = "LynxModuleWarningManager";
+
+    // When you update these values, make sure to update InspectionActivity.isValidFirmwareVersion() at the same time.
+    private final static String MIN_FW_VERSION_HUMAN_STRING = "1.8.2"; // ONLY for display to the user
     private final static int MIN_FW_VERSION_MAJOR = 1;
     private final static int MIN_FW_VERSION_MINOR = 8;
     private final static int MIN_FW_VERSION_ENG = 2;
+
     private final static int LOW_BATTERY_STATUS_TIMEOUT_SECONDS = 2;
     private final static int LOW_BATTERY_LOG_FREQUENCY_SECONDS = 2;
     private final static int UNRESPONSIVE_LOG_FREQUENCY_SECONDS = 2;
@@ -92,8 +96,10 @@ public class LynxModuleWarningManager {
         opModeManager.registerListener(opModeNotificationListener);
         warningSource.clearGlobalWarning();
         RobotLog.registerGlobalWarningSource(warningSource);
-        if (sharedPrefs.getBoolean(AppUtil.getDefContext().getString(R.string.pref_warn_about_outdated_firmware), true)) {
+        if (sharedPrefs.getBoolean(AppUtil.getDefContext().getString(R.string.pref_warn_about_obsolete_software), true)) {
             lookForOutdatedModules();
+        } else {
+            outdatedModules.clear();
         }
     }
 
@@ -283,65 +289,75 @@ public class LynxModuleWarningManager {
             }
         }
 
-        private String composeWarning() {
-            @Nullable String notRespondingWarning = composeNotRespondingWarning();
-            @Nullable String powerIssuesWarning = composePowerIssuesWarning();
-            @Nullable String outdatedHubsWarning = composeOutdatedHubsWarning();
-
-            StringBuilder builder = new StringBuilder();
-            if (notRespondingWarning != null) {
-                builder.append(notRespondingWarning);
-                if (powerIssuesWarning != null || outdatedHubsWarning != null) builder.append("; ");
-            }
-            if (powerIssuesWarning != null) {
-                builder.append(powerIssuesWarning);
-                if (outdatedHubsWarning != null) builder.append("; ");
-            }
-            if (outdatedHubsWarning != null) {
-                builder.append(outdatedHubsWarning);
-            }
-            return builder.toString();
+        @Override public boolean shouldTriggerWarningSound() {
+            return true;
         }
 
-        private @Nullable String composeNotRespondingWarning() {
-            if (modulesReportedUnresponsive.size() < 1) return null;
+        private String composeWarning() {
+            @Nullable String currentlyUnresponsiveWarning = null;
+            @Nullable String previouslyUnresponsiveWarning = null;
+            @Nullable String powerIssuesWarning;
+            @Nullable String outdatedHubsWarning;
 
-            List<String> modulesCurrentlyUnresponsive = new ArrayList<>();
-            List<String> modulesUnresponsiveDuringOpMode = new ArrayList<>();
-
-            for (UnresponsiveStatus status : modulesReportedUnresponsive.values()) {
-                if (status.lynxModule.isNotResponding()) {
-                    modulesCurrentlyUnresponsive.add(status.moduleName);
-                } else if (status.conditionTrueDuringOpModeRun && !modulesReportedReset.contains(status.moduleName)) {
-                    // If we know the module reset (lost power) entirely, we don't also need to report that it wasn't responding.
-                    modulesUnresponsiveDuringOpMode.add(status.moduleName);
+            if (modulesReportedUnresponsive.size() > 0) {
+                // Separate the currently unresponsive modules from the previously unresponsive ones
+                List<String> modulesCurrentlyUnresponsive = new ArrayList<>();
+                List<String> modulesUnresponsiveDuringOpMode = new ArrayList<>();
+                for (UnresponsiveStatus status : modulesReportedUnresponsive.values()) {
+                    if (status.lynxModule.isNotResponding()) {
+                        modulesCurrentlyUnresponsive.add(status.moduleName);
+                    } else if (status.conditionTrueDuringOpModeRun && !modulesReportedReset.contains(status.moduleName)) {
+                        // If we know the module reset (lost power) entirely, we don't also need to report that it wasn't responding.
+                        modulesUnresponsiveDuringOpMode.add(status.moduleName);
+                    }
                 }
+                currentlyUnresponsiveWarning = composeCurrentlyUnresponsiveWarning(modulesCurrentlyUnresponsive);
+                previouslyUnresponsiveWarning = composePreviouslyNotRespondingWarning(modulesUnresponsiveDuringOpMode);
             }
 
-            boolean composedWarning = false;
+            powerIssuesWarning = composePowerIssuesWarning();
+            outdatedHubsWarning= composeOutdatedHubsWarning();
 
-            StringBuilder builder = new StringBuilder();
+            return RobotLog.combineGlobalWarnings(Arrays.asList(currentlyUnresponsiveWarning, previouslyUnresponsiveWarning, powerIssuesWarning, outdatedHubsWarning));
+        }
+
+        @Nullable private String composeCurrentlyUnresponsiveWarning(List<String> modulesCurrentlyUnresponsive) {
             if (modulesCurrentlyUnresponsive.size() > 0) {
+                StringBuilder builder = new StringBuilder();
                 composeModuleList(modulesCurrentlyUnresponsive, builder);
                 builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleCurrentlyNotResponding));
-                composedWarning = true;
+                return builder.toString();
+            } else {
+                return null;
             }
-
-            if (modulesUnresponsiveDuringOpMode.size() > 0) {
-                if (modulesCurrentlyUnresponsive.size() > 0) builder.append("; ");
-                composeModuleList(modulesUnresponsiveDuringOpMode, builder);
-                builder.append(AppUtil.getDefContext().getString(R.string.lynxModulePreviouslyNotResponding));
-                composedWarning = true;
-            }
-            return composedWarning ? builder.toString() : null;
         }
 
-        private @Nullable String composePowerIssuesWarning() {
+        @Nullable private String composePreviouslyNotRespondingWarning(List<String> modulesUnresponsiveDuringOpMode) {
+            if (modulesUnresponsiveDuringOpMode.size() > 0) {
+                StringBuilder builder = new StringBuilder();
+                composeModuleList(modulesUnresponsiveDuringOpMode, builder);
+                builder.append(AppUtil.getDefContext().getString(R.string.lynxModulePreviouslyNotResponding));
+                return builder.toString();
+            } else {
+                return null;
+            }
+        }
+
+        @Nullable private String composePowerIssuesWarning() {
             if (modulesReportedReset.size() < 1 && modulesReportedLowBattery.size() < 1) return null;
 
             StringBuilder builder = new StringBuilder();
+
             boolean powerLossWarningAdded = composePowerLossWarning(builder);
+            if (powerLossWarningAdded) {
+                builder.append(" ");
+            }
+
             boolean batteryLowWarningAdded = composeBatteryLowWarning(builder);
+            if (batteryLowWarningAdded) {
+                builder.append(" ");
+            }
+
             if (powerLossWarningAdded || batteryLowWarningAdded) {
                 composePowerIssueTip(userOpModeRunning, builder);
                 return builder.toString();
@@ -350,11 +366,11 @@ public class LynxModuleWarningManager {
             }
         }
 
-        private @Nullable String composeOutdatedHubsWarning() {
+        @Nullable private String composeOutdatedHubsWarning() {
             if (outdatedModules.size() < 1) return null;
             StringBuilder builder = new StringBuilder();
             composeModuleList(outdatedModules, builder);
-            builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleFirmwareOutdated)).append(" ");
+            builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleFirmwareOutdated, MIN_FW_VERSION_HUMAN_STRING));
             return builder.toString();
         }
 
@@ -364,7 +380,7 @@ public class LynxModuleWarningManager {
             if (modulesReportedReset.size() < 1) return false;
 
             composeModuleList(modulesReportedReset, builder);
-            builder.append(AppUtil.getDefContext().getString(R.string.lynxModulePowerLost)).append(" ");
+            builder.append(AppUtil.getDefContext().getString(R.string.lynxModulePowerLost));
             return true;
         }
 
@@ -386,13 +402,16 @@ public class LynxModuleWarningManager {
 
             if (modulesCurrentlyReporting.size() > 0) {
                 composeModuleList(modulesCurrentlyReporting, builder);
-                builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleBatteryIsCurrentlyLow)).append(" ");
+                builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleBatteryIsCurrentlyLow));
                 warningAdded = true;
             }
 
             if (modulesReportedDuringOpMode.size() > 0) {
+                if (warningAdded) {
+                    builder.append(" ");
+                }
                 composeModuleList(modulesReportedDuringOpMode, builder);
-                builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleBatteryWasLow)).append(" ");
+                builder.append(AppUtil.getDefContext().getString(R.string.lynxModuleBatteryWasLow));
                 warningAdded = true;
             }
             return warningAdded;

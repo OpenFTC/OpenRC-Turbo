@@ -44,9 +44,11 @@ import org.firstinspires.ftc.robotcore.internal.opmode.BlocksClassFilter;
  * @author lizlooney@google.com (Liz Looney)
  */
 class MiscAccess extends Access {
+  private HardwareMap hardwareMap;
 
-  MiscAccess(BlocksOpMode blocksOpMode, String identifier) {
+  MiscAccess(BlocksOpMode blocksOpMode, String identifier, HardwareMap hardwareMap) {
     super(blocksOpMode, identifier, ""); // misc blocks don't have a first name.
+    this.hardwareMap = hardwareMap;
   }
 
   @SuppressWarnings("unused")
@@ -99,6 +101,7 @@ class MiscAccess extends Access {
   // have to explicitly declare all of the parameters. I have chosen to support methods with [0, 21]
   // arguments. We can't handle methods with over 21 parameters. 21 seems beyond reasonable to me,
   // but if we want to change that, we need to change this method and BlocksClassFilter.filterClass.
+
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Object callJava(String methodLookupString, String json,
@@ -139,7 +142,7 @@ class MiscAccess extends Access {
   private Object callJavaVarArgs(String methodLookupString, String json, Object... objectArgs) {
     startBlockExecution(BlockType.FUNCTION,
         "Java method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
-    Method method = BlocksClassFilter.getInstance().findMethod(methodLookupString);
+    Method method = BlocksClassFilter.getInstance().findStaticMethod(methodLookupString);
     if (method == null) {
       blocksOpMode.throwException(
           new RuntimeException("Could not find method " + methodLookupString + "."));
@@ -161,6 +164,77 @@ class MiscAccess extends Access {
     }
     try {
       return method.invoke(null, args);
+    } catch (Exception e) {
+      blocksOpMode.throwException(
+          new RuntimeException("Unable to invoke method " + methodLookupString + ".", e));
+      return null;
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public Object callHardware(String deviceName, String methodLookupString, String json,
+  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    return callHardwareVarArgs(deviceName, methodLookupString, json,
+        a0, a1, a2, a3, a4, a5, a6, a7,
+        a8, a9, a10, a11, a12, a13, a14,
+        a15, a16, a17, a18, a19, a20);
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public boolean callHardware_boolean(String deviceName, String methodLookupString, String json,
+  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    return (Boolean) callHardwareVarArgs(deviceName, methodLookupString, json,
+        a0, a1, a2, a3, a4, a5, a6, a7,
+        a8, a9, a10, a11, a12, a13, a14,
+        a15, a16, a17, a18, a19, a20);
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public String callHardware_String(String deviceName, String methodLookupString, String json,
+  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    Object result = callHardwareVarArgs(deviceName, methodLookupString, json,
+        a0, a1, a2, a3, a4, a5, a6, a7,
+        a8, a9, a10, a11, a12, a13, a14,
+        a15, a16, a17, a18, a19, a20);
+    return (result == null) ? null : result.toString();
+  }
+
+  private Object callHardwareVarArgs(String deviceName, String methodLookupString, String json, Object... objectArgs) {
+    startBlockExecution(BlockType.FUNCTION,
+        "Hardware method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+    Method method = BlocksClassFilter.getInstance().findHardwareMethod(methodLookupString);
+    if (method == null) {
+      blocksOpMode.throwException(
+          new RuntimeException("Could not find method " + methodLookupString + "."));
+      return null;
+    }
+    Object hardwareDevice = hardwareMap.get(method.getDeclaringClass(), deviceName);
+
+    Object[] jsonArgs = SimpleGson.getInstance().fromJson(json, Object[].class);
+    Class[] parameterTypes = method.getParameterTypes();
+    if (jsonArgs.length != parameterTypes.length || objectArgs.length < parameterTypes.length) {
+      blocksOpMode.throwException(
+          new RuntimeException("Number of arguments does not match required number of parameters."));
+      return null;
+    }
+    String[] parameterLabels = HardwareUtil.getParameterLabels(method);
+    List<Gamepad> gamepads = new ArrayList<>();
+    Object[] args = new Object[parameterTypes.length];
+    for (int i = 0; i < args.length; i++) {
+      args[i] = determineArgument(adjustParameterType(parameterTypes[i]), objectArgs[i], jsonArgs[i],
+          parameterLabels[i], gamepads);
+    }
+    try {
+      return method.invoke(hardwareDevice, args);
     } catch (Exception e) {
       blocksOpMode.throwException(
           new RuntimeException("Unable to invoke method " + methodLookupString + ".", e));

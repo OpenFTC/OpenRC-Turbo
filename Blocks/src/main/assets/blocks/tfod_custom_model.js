@@ -129,7 +129,7 @@ Blockly.Blocks['tfodCustomModel_initialize'] = {
     this.getFtcJavaInputType = function(inputName) {
       switch (inputName) {
         case 'MINIMUM_CONFIDENCE':
-          return 'double';
+          return 'float';
       }
       return '';
     };
@@ -143,6 +143,135 @@ Blockly.JavaScript['tfodCustomModel_initialize'] = function(block) {
 
 Blockly.FtcJava['tfodCustomModel_initialize'] = function(block) {
   return tfod_initialize_FtcJava(block, 'TfodCustomModel', 'VuforiaCurrentGame');
+};
+
+Blockly.Blocks['tfodCustomModel_initialize_withIsModelTensorFlow2'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('TensorFlowObjectDetectionCustomModel'))
+        .appendField('.')
+        .appendField(createNonEditableField('initialize'));
+    this.appendValueInput('MINIMUM_CONFIDENCE').setCheck('Number')
+        .appendField('minimumConfidence')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_OBJECT_TRACKER').setCheck('Boolean')
+        .appendField('useObjectTracker')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('ENABLE_CAMERA_MONITORING').setCheck('Boolean')
+        .appendField('enableCameraMonitoring')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('IS_MODEL_TENSORFLOW_2').setCheck('Boolean')
+        .appendField('isModelTensorFlow2')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Initialize TensorFlow Object Detection for a custom model.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'MINIMUM_CONFIDENCE':
+          return 'float';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['tfodCustomModel_initialize_withIsModelTensorFlow2'] = function(block) {
+  return tfodCustomModel_initialize_withIsModelTensorFlow2_JavaScript(block, tfodCustomModelIdentifierForJavaScript,
+      vuforiaCurrentGameIdentifierForJavaScript);
+};
+
+Blockly.FtcJava['tfodCustomModel_initialize_withIsModelTensorFlow2'] = function(block) {
+  return tfodCustomModel_initialize_withIsModelTensorFlow2_FtcJava(block, 'TfodCustomModel', 'VuforiaCurrentGame');
+};
+
+Blockly.Blocks['tfodCustomModel_initialize_withAllArgs'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField('TensorFlowObjectDetectionCustomModel'))
+        .appendField('.')
+        .appendField(createNonEditableField('initialize'));
+    this.appendValueInput('MINIMUM_CONFIDENCE').setCheck('Number')
+        .appendField('minimumConfidence')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_OBJECT_TRACKER').setCheck('Boolean')
+        .appendField('useObjectTracker')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('ENABLE_CAMERA_MONITORING').setCheck('Boolean')
+        .appendField('enableCameraMonitoring')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('IS_MODEL_TENSORFLOW_2').setCheck('Boolean')
+        .appendField('isModelTensorFlow2')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('IS_MODEL_QUANTIZED').setCheck('Boolean')
+        .appendField('isModelQuantized')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('INPUT_SIZE').setCheck('Number')
+        .appendField('inputSize')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('NUM_INTERPRETER_THREADS').setCheck('Number')
+        .appendField('numInterpreterThreads')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('NUM_EXECUTOR_THREADS').setCheck('Number')
+        .appendField('numExecutorThreads')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('MAX_NUM_DETECTIONS').setCheck('Number')
+        .appendField('maxNumDetections')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('TIMING_BUFFER_SIZE').setCheck('Number')
+        .appendField('timingBufferSize')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('MAX_FRAME_RATE').setCheck('Number')
+        .appendField('maxFrameRate')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('TRACKER_MAX_OVERLAP').setCheck('Number')
+        .appendField('trackerMaxOverlap')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('TRACKER_MIN_SIZE').setCheck('Number')
+        .appendField('trackerMinSize')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('TRACKER_MARGINAL_CORRELATION').setCheck('Number')
+        .appendField('trackerMarginalCorrelation')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('TRACKER_MIN_CORRELATION').setCheck('Number')
+        .appendField('trackerMinCorrelation')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Initialize TensorFlow Object Detection for a custom model.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'MAX_FRAME_RATE':
+          return 'double';
+        case 'INPUT_SIZE':
+        case 'NUM_INTERPRETER_THREADS':
+        case 'NUM_EXECUTOR_THREADS':
+        case 'MAX_NUM_DETECTIONS':
+        case 'TIMING_BUFFER_SIZE':
+          return 'int';
+        case 'MINIMUM_CONFIDENCE':
+        case 'TRACKER_MAX_OVERLAP':
+        case 'TRACKER_MIN_SIZE':
+        case 'TRACKER_MARGINAL_CORRELATION':
+        case 'TRACKER_MIN_CORRELATION':
+          return 'float';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['tfodCustomModel_initialize_withAllArgs'] = function(block) {
+  return tfodCustomModel_initialize_withAllArgs_JavaScript(block, tfodCustomModelIdentifierForJavaScript,
+      vuforiaCurrentGameIdentifierForJavaScript);
+};
+
+Blockly.FtcJava['tfodCustomModel_initialize_withAllArgs'] = function(block) {
+  return tfodCustomModel_initialize_withAllArgs_FtcJava(block, 'TfodCustomModel', 'VuforiaCurrentGame');
 };
 
 Blockly.Blocks['tfodCustomModel_activate'] = {

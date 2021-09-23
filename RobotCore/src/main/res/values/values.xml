@@ -33,7 +33,7 @@
         <item>@string/tokenThemeTeal</item>
     </string-array>
     <string-array name="networkTypes">
-        <item>"Wifi Direct"</item>
+        <item>"Wi-Fi Direct"</item>
         <item>"Control Hub"</item>
     </string-array>
     <string-array name="wifi_direct_channels">
@@ -106,15 +106,18 @@
     <color name="bright_purple">#740aff</color>
     <color name="bright_red">#ff0a19</color>
     <color name="bright_teal">#0abeff</color>
+    <color name="c_gray">#cccccc</color>
+    <color name="d_gray">#dddddd</color>
     <color name="dark_blue">#06014e</color>
     <color name="dark_green">#014b01</color>
     <color name="dark_orange">#4b2101</color>
     <color name="dark_purple">#21014b</color>
     <color name="dark_red">#4e0106</color>
     <color name="dark_teal">#01384b</color>
+    <color name="e_gray">#eeeeee</color>
     <color name="firstblue">#009cd7</color>
     <color name="firstgreen">#00a651</color>
-    <color name="firstorgange">#f57e25</color>
+    <color name="firstorange">#f57e25</color>
     <color name="firstred">#ed1c24</color>
     <color name="inactive_button_gray">#666666</color>
     <color name="info_shadow">#A8A8A8</color>
@@ -178,12 +181,13 @@
     <string name="VUFORIA_INIT_LICENSE_ERROR_UNKNOWN_ERROR">Failed to initialize Vuforia.</string>
     <string name="actionlistenerfailure_busy">Error: BUSY</string>
     <string name="actionlistenerfailure_error">Error</string>
-    <string name="actionlistenerfailure_nop2p">WifiDirect not supported</string>
+    <string name="actionlistenerfailure_nop2p">Wi-Fi Direct not supported</string>
     <string name="actionlistenerfailure_nosevicerequests">Error: no service requests</string>
-    <string name="actionlistenerfailure_nowifi">Wifi is disabled</string>
+    <string name="actionlistenerfailure_nowifi">Wi-Fi is disabled</string>
     <string name="actionlistenerfailure_unknown">Error: UNKNOWN</string>
     <string name="adafruit_imu_description">an Adafruit IMU</string>
     <string name="adafruit_imu_name">Adafruit IMU</string>
+    <string name="anotherDsIsConnectedError">Another Driver Station is already connected to the Robot Controller.</string>
     <string name="appNameDriverStation">Driver Station</string>
     <string name="appNameRobotController">Robot Controller</string>
     <string name="appNameUnknown">Unknown Application</string>
@@ -192,7 +196,7 @@
     <string name="app_name">RobotCore</string>
     <string name="buttonNameCancel">Cancel</string>
     <string name="buttonNameOK">OK</string>
-    <string name="buttonWirelessApSettingsLabel">Wifi Settings</string>
+    <string name="buttonWirelessApSettingsLabel">Wi-Fi Settings</string>
     <string name="ch_updater_not_supported">This device does not include the ControlHubUpdater.</string>
     <string name="configGivingUpOnCommand">Giving up on command %1$s(%2$d) after %3$d attempts</string>
     <string name="configTypeAdafruitColorSensor">Adafruit Color Sensor</string>
@@ -263,15 +267,15 @@
     <string name="dialogMessagePleaseWait">Please wait...</string>
     <string name="displayNameMatrixMotorController">Matrix Motor Controller</string>
     <string name="displayNameMatrixServoController">Matrix Servo Controller</string>
-    <string name="duplicateWebcam">ambiguous device for webcam %1$s</string>
-    <string name="duplicateWebcamWithName">ambiguous device for webcam \"%1$s\" (%2$s)</string>
+    <string name="duplicateWebcam">Multiple webcams found with serial number %1$s.</string>
+    <string name="duplicateWebcamWithName">Multiple webcams found with serial number of \"%1$s\" (%2$s).</string>
     <string name="errorOpModeStuck">OpMode \'%1$s\' stuck in %2$s. Restarting robot controller app.</string>
     <string name="expansionHubDisplayName">Expansion Hub</string>
     <string name="incompatibleAppsError">The Robot Controller and Driver Station apps are incompatible with each other. Update the %s app.</string>
     <string name="led_description">an LED</string>
-    <string name="locationServices">The Driver Station has detected that it can not find any WifiDirect peers and Location Services is
+    <string name="locationServices">The Driver Station has detected that it can not find any Wi-Fi Direct peers and Location Services is
     turned off at a System Level.  Google\'s Android operating system, Oreo and above, requires Locations Services to be on in order to scan
-    for Wifi Direct peers.  Pressing Ok will redirect you to the Location Services setting page where this may be enabled.</string>
+    for Wi-Fi Direct peers.  Pressing OK will redirect you to the Location Services setting page where this may be enabled.</string>
     <string name="lynxAnalogInputControllerDisplayName">Expansion Hub Analog Input Controller</string>
     <string name="lynxDcMotorControllerDisplayName">Expansion Hub DC Motor Controller</string>
     <string name="lynxDigitalChannelControllerDisplayName">Expansion Hub Digital Channel Controller</string>
@@ -316,7 +320,7 @@
     <string name="pairing_kind_title">"Pairing Method"</string>
     <string name="peerStatusConnected">connected</string>
     <string name="peerStatusDisconnected">disconnected</string>
-    <string name="permAccessLocationExplain">The SDK infrastructure does WiFi scans to help with pairing of
+    <string name="permAccessLocationExplain">The SDK infrastructure does Wi-Fi scans to help with pairing of
     phones.  Knowing what access points are available can allow an application to know an approximation of its
     location.  Even though the SDK does not use location information, Android requires that we ask for this permission.
     It is not possible to run the application without this permission.  You must allow all permissions.</string>
@@ -361,8 +365,8 @@
     <string name="pref_device_name_rc">pref_device_name_rc</string>
     <string name="pref_device_name_rc_display">pref_device_name_rc_display</string>
     <string name="pref_device_name_tracking">pref_device_name_tracking</string>
+    <string name="pref_dh_os_version_code">pref_dh_os_version_code</string>
     <string name="pref_ds_supports_5_ghz">pref_ds_supports_5_ghz</string>
-    <string name="pref_ds_version_code">pref_ds_version_code</string>
     <string name="pref_gamepad_user1_type_key">pref_gamepad_user1_type</string>
     <string name="pref_gamepad_user2_type_key">pref_gamepad_user2_type</string>
     <string name="pref_has_independent_phone_battery">pref_has_independent_phone_battery</string>
@@ -399,12 +403,14 @@
     <string name="pref_sound_on_off">pref_sound_on_off</string>
     <string name="pref_sound_on_off_rc">pref_sound_on_off_rc</string>
     <string name="pref_warn_about_2_4_ghz_band">pref_warn_about_2_4_ghz_band</string>
+    <string name="pref_warn_about_incorrect_clocks">pref_warn_about_incorrect_clocks</string>
     <string name="pref_warn_about_mismatched_app_versions">pref_warn_about_mismatched_app_versions</string>
-    <string name="pref_warn_about_outdated_firmware">pref_warn_about_outdated_firmware</string>
+    <string name="pref_warn_about_obsolete_software">pref_warn_about_obsolete_software</string>
     <string name="pref_wifip2p_channel">pref_wifip2p_channel</string>
     <string name="pref_wifip2p_groupowner_connectedto">pref_wifip2p_groupowner_connectedto</string>
     <string name="pref_wifip2p_groupowner_lastconnectedto">pref_wifip2p_groupowner_lastconnectedto</string>
     <string name="pref_wifip2p_groupowner_map">pref_wifip2p_groupowner_map</string>
+    <string name="pref_wifip2p_groupowner_map_timestamp">pref_wifip2p_groupowner_map_timestamp</string>
     <string name="pref_wifip2p_remote_channel_change_works">pref_wifip2p_remote_channel_change_works</string>
     <string name="prefcat_about_ds">About Driver Station</string>
     <string name="prefcat_about_rc">About Robot Controller</string>
@@ -413,13 +419,13 @@
     <string name="prefcat_gamepad">Gamepads</string>
     <string name="prefcat_logging">Logging</string>
     <string name="prefcat_wifi_config">Network Configuration</string>
-    <string name="prefcat_wifi_settings">Wifi Settings</string>
+    <string name="prefcat_wifi_settings">Wi-Fi Settings</string>
     <string name="prefedit_app_theme_ds">Driver Station Color Scheme</string>
     <string name="prefedit_app_theme_rc">Robot Controller Color Scheme</string>
     <string name="prefedit_app_theme_summary_ds">Change the color scheme of the driver station. Will take effect on next app launch.</string>
     <string name="prefedit_app_theme_summary_rc">Change the color scheme of the robot controller. Note: the app will restart if the color scheme is changed</string>
-    <string name="prefedit_change_wifi_channel">Change Wifi Direct Channel</string>
-    <string name="prefedit_clear_remembered_groups_summary">Clears remembered Wifi Direct groups from the robot controller</string>
+    <string name="prefedit_change_wifi_channel">Change Wi-Fi Direct Channel</string>
+    <string name="prefedit_clear_remembered_groups_summary">Clears remembered Wi-Fi Direct groups from the robot controller</string>
     <string name="prefedit_debug_driver_station_logs">Log Internal Events</string>
     <string name="prefedit_debug_driver_station_logs_summary">Record low-level internal events to the log. This may generate a large log volume.</string>
     <string name="prefedit_device_name">Device Name</string>
@@ -430,7 +436,7 @@
     <string name="prefedit_device_name_summary">Change the name of this device</string>
     <string name="prefedit_device_name_summary_ds">Change the name of the driver station</string>
     <string name="prefedit_device_name_summary_rc">Change the name of the robot controller</string>
-    <string name="prefedit_edit_wifi_channel_summary">Changes the Wifi channel on which the phone-based robot controller operates</string>
+    <string name="prefedit_edit_wifi_channel_summary">Changes the Wi-Fi channel on which the phone-based robot controller operates</string>
     <string name="prefedit_gamepad_user1_type">Gamepad #1 Type</string>
     <string name="prefedit_gamepad_user2_type">Gamepad #2 Type</string>
     <string name="prefedit_launch_inspect_ds">Inspect Driver Station</string>
@@ -439,7 +445,7 @@
     <string name="prefedit_launch_inspect_rc_summary">Creates a self-inspection report for the robot controller</string>
     <string name="prefedit_pair_rc">Pair with Robot Controller</string>
     <string name="prefedit_pair_rc_summary">Change the robot controller this driver station is paired with</string>
-    <string name="prefedit_remembered_groups">Clear Wifi Direct Groups</string>
+    <string name="prefedit_remembered_groups">Clear Wi-Fi Direct Groups</string>
     <string name="prefedit_sound_on_off">Sound</string>
     <string name="prefedit_sound_on_off_summary">Turn app sounds on or off</string>
     <string name="prefedit_sound_on_off_summary_ds">Turn driver station app sounds on or off</string>
@@ -476,16 +482,16 @@
     <string name="robotStatusUnableToStartRobot">unable to start robot</string>
     <string name="robotStatusUnknown">unknown</string>
     <string name="robotStatusWaitingOnNetworkConnection">waiting for network to become active</string>
-    <string name="robotStatusWaitingOnWifi">waiting for Wifi to enable</string>
-    <string name="robotStatusWaitingOnWifiDirect">waiting for Wifi Direct to enable</string>
-    <string name="setWifiChannelFailure">Unable to change Wifi Direct channel to \'%s\'</string>
-    <string name="setWifiChannelSuccess">Changed Wifi Direct channel to \'%s\'</string>
+    <string name="robotStatusWaitingOnWifi">waiting for Wi-Fi to enable</string>
+    <string name="robotStatusWaitingOnWifiDirect">waiting for Wi-Fi Direct to enable</string>
+    <string name="setWifiChannelFailure">Unable to change Wi-Fi Direct channel to \'%s\'</string>
+    <string name="setWifiChannelSuccess">Changed Wi-Fi Direct channel to \'%s\'</string>
     <string name="standard_servo_description">a servo</string>
-    <string name="toastDisableWifi">Disabling WiFi</string>
-    <string name="toastDisableWifiWarn">WiFi disable in\u0020</string>
-    <string name="toastDisconnectedFromWifiDirect">Successfully disconnected from WiFi Direct</string>
-    <string name="toastEnableWifi">Enabling WiFi</string>
-    <string name="toastErrorDisconnectingFromWifiDirect">There was an error disconnecting from WiFi Direct</string>
+    <string name="toastDisableWifi">Disabling Wi-Fi</string>
+    <string name="toastDisableWifiWarn">Wi-Fi disable in\u0020</string>
+    <string name="toastDisconnectedFromWifiDirect">Successfully disconnected from Wi-Fi Direct</string>
+    <string name="toastEnableWifi">Enabling Wi-Fi</string>
+    <string name="toastErrorDisconnectingFromWifiDirect">There was an error disconnecting from Wi-Fi Direct</string>
     <string name="toastOpModeStuck">OpMode stuck in %s. Restarting robot controller app.</string>
     <string name="toastRebootRC">Rebooting Robot Controller</string>
     <string name="tokenThemeBlue">blue</string>
@@ -506,18 +512,28 @@
     <string name="usb_vid_name_logitech">Logitech</string>
     <string name="usb_vid_name_microsoft">Microsoft</string>
     <string name="usb_vid_name_qualcomm">Qualcomm</string>
-    <string name="warning2_4GhzUnnecessaryUsage">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a 5 GHz WiFi channel</string>
-    <string name="warning2_4GhzUnnecessaryUsageWiFiDirectAuto">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a specific 5 GHz WiFi channel (auto may select a 2.4 GHz channel)</string>
-    <string name="warningMismatchedAppVersions">The Robot Controller and Driver Station app versions do not match. You should consider updating the %s app</string>
-    <string name="warningProblemCommunicatingWithUSBDevice">problem communicating with %s</string>
-    <string name="warningTtsFailedToInitialize">Text-to-speech failed to initialize</string>
-    <string name="warningUSBDeviceDetached">%s detached</string>
-    <string name="warningUnableToOpen">unable to open %s</string>
-    <string name="webcamNotFound">unable to find webcam with serial number %s</string>
-    <string name="webcamNotFoundWithName">unable to find webcam \"%1$s\" with serial number %2$s</string>
+    <string name="warning2_4GhzUnnecessaryUsage">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a 5 GHz Wi-Fi channel.</string>
+    <string name="warning2_4GhzUnnecessaryUsageWiFiDirectAuto">Both the Robot Controller and Driver Station support 5 GHz. You should consider selecting a specific 5 GHz Wi-Fi channel (auto generally selects a 2.4 GHz channel).</string>
+    <string name="warningBothAppsObsolete">The Robot Controller and Driver Station apps are both obsolete. You should install the new versions for this FTC season.</string>
+    <string name="warningBothClocksBehind">Both the Robot Controller and Driver Station clocks are behind. Please set the clocks to the correct time.</string>
+    <string name="warningChOsObsolete">The Control Hub OS does not meet the minimum requirement for this FTC season. Update to Control Hub OS %s or later.</string>
+    <string name="warningClocksDiffer">The Driver Station and Robot Controller clocks are more than an hour out of sync with each other. Please set the clocks to the correct time.</string>
+    <string name="warningDhOsObsolete">The Driver Hub OS does not meet the minimum requirement for this FTC season. Update to Driver Hub OS %s or later.</string>
+    <string name="warningDsAppObsolete">The Driver Station app is obsolete. You should install the new version for this FTC season.</string>
+    <string name="warningDsClockBehind">The Driver Station\'s clock is behind. Please set the clock to the correct time.</string>
+    <string name="warningDuplicateOpMode">An Op Mode with the name \'%s\' is already registered; renaming the duplicate Op Mode.</string>
+    <string name="warningMismatchedAppVersions">The Robot Controller and Driver Station app versions do not match, which is required for competition. You should update the %s app.</string>
+    <string name="warningProblemCommunicatingWithUSBDevice">Problem communicating with %s.</string>
+    <string name="warningRcAppObsolete">The Robot Controller app is obsolete. You should install the new version for this FTC season.</string>
+    <string name="warningRcClockBehind">The Robot Controller\'s clock is behind. Please set the clock to the correct time.</string>
+    <string name="warningTtsFailedToInitialize">Text-to-speech failed to initialize.</string>
+    <string name="warningUSBDeviceDetached">%s detached.</string>
+    <string name="warningUnableToOpen">Unable to open %s.</string>
+    <string name="webcamNotFound">Unable to find webcam with serial number %s.</string>
+    <string name="webcamNotFoundWithName">Unable to find webcam \"%1$s\" with serial number %2$s.</string>
     <string name="wifiApDescription">Wireless access point pairing is used to pair a driver station with a robot controller
-        running on a Control Hub (use WifiDirect to pair with other robot controllers).\n\nEach Control Hub robot controller hosts its
-        own Wifi network named with the name of the robot controller (default password: \"password\"). Click the button below to use the system Wifi Settings of
+        running on a Control Hub (use Wi-Fi Direct to pair with other robot controllers).\n\nEach Control Hub robot controller hosts its
+        own Wi-Fi network named with the name of the robot controller (default password: \"password\"). Click the button below to use the system Wi-Fi Settings of
         your driver station to select the network of the robot controller you want to pair with.</string>
     <string name="wirelessApStatusLabel">Status: </string>
     <style name="AppBaseTheme" parent="android:Theme.Light">

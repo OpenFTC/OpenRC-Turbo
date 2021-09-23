@@ -2,11 +2,30 @@
 <resources>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+    <string name="airplaneModeLabel">Airplane Mode:</string>
+    <string name="androidVersionLabel">Android Version:</string>
     <string name="app_name">Inspection</string>
+    <string name="appsInstalledLabel">Apps Installed:</string>
+    <string name="batteryLevelLabel">Battery Level:</string>
+    <string name="bluetoothLabel">Bluetooth:</string>
+    <string name="bytesPerSecondLabel">Bytes Per Second:</string>
+    <string name="controlHubOsVersionLabel">Control Hub OS Version:</string>
+    <string name="driverHubOsVersionLabel">Driver Hub OS Version:</string>
+    <string name="driverStationLabel">Driver Station:</string>
+    <string name="hubFirmwareLabel">Hub Firmware:</string>
     <string name="inspection_activity">Inspection Mode</string>
+    <string name="locationLabel">Location services:</string>
+    <string name="matchesDSVersionLabel">Matches DS version:</string>
+    <string name="menuButtonContentDescription">Menu button</string>
+    <string name="passwordLabel">RC Password:</string>
+    <string name="robotControllerLabel">Robot Controller:</string>
     <string name="stringManufacturer">Manufacturer:</string>
     <string name="stringModel">Model:</string>
     <string name="titleInspectionReportDS">Driver Station\nInspection Report</string>
     <string name="titleInspectionReportRC">Robot Controller\nInspection Report</string>
-    <string name="wifiAccessPointLabel">WiFi Access Point</string>
+    <string name="trafficCountLabel">Rx/Tx Data:</string>
+    <string name="wifiAccessPointLabel">Wi-Fi Access Point</string>
+    <string name="wifiConnectedLabel">Standard Wi-Fi Connected:</string>
+    <string name="wifiEnabledLabel">Wi-Fi Enabled:</string>
+    <string name="wifiNameLabel">Wi-Fi Direct Name:</string>
 </resources>

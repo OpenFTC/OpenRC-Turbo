@@ -200,16 +200,6 @@ Blockly.FtcJava['androidSoundPool_setProperty_Number'] = function(block) {
   var property = block.getFieldValue('PROP');
   var value = Blockly.FtcJava.valueToCode(
       block, 'VALUE', Blockly.FtcJava.ORDER_NONE);
-  switch (property) {
-    case 'Volume':
-    case 'Rate':
-      if (isNaN(value)) {
-        value = '(float) (' + value + ')';
-      } else {
-        value = value + 'F';
-      }
-      break;
-  }
   return identifier + '.set' + property + '(' + value + ');\n';
 };
 

@@ -22,6 +22,7 @@ import android.util.Pair;
 import android.webkit.JavascriptInterface;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.Parameters.CameraMonitorFeedback;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
@@ -78,15 +79,30 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
       boolean useCompetitionFieldTargetLocations) {
+    initialize_withCameraDirection_2(cameraDirectionString,
+        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+        dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+        useCompetitionFieldTargetLocations);
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void initialize_withCameraDirection_2(String cameraDirectionString,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
+      float dx, float dy, float dz,
+      String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
+      boolean useCompetitionFieldTargetLocations) {
     startBlockExecution(BlockType.FUNCTION, ".initialize");
     CameraDirection cameraDirection = checkVuforiaLocalizerCameraDirection(cameraDirectionString);
+    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
     Pair<Boolean, CameraMonitorFeedback> cameraMonitorFeedback =
         checkCameraMonitorFeedback(cameraMonitorFeedbackString);
-    if (cameraDirection != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
+    if (cameraDirection != null && axesOrder != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
+      String vuforiaLicenseKey = "";
       try {
         vuforiaBase.initialize(vuforiaLicenseKey, cameraDirection,
             useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
-            dx, dy, dz, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
+            dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
       } catch (Exception e) {
         blocksOpMode.throwException(e);
       }
@@ -95,10 +111,22 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  public void initialize_withWebcam(
-      String cameraNameString, String webcamCalibrationFilename, boolean useExtendedTracking,
-      boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
+  public void initialize_withWebcam(String cameraNameString, String webcamCalibrationFilename,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
+      boolean useCompetitionFieldTargetLocations) {
+    initialize_withWebcam_2(cameraNameString, webcamCalibrationFilename,
+        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+        dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+        useCompetitionFieldTargetLocations);
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void initialize_withWebcam_2(String cameraNameString, String webcamCalibrationFilename,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
+      float dx, float dy, float dz,
+      String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
       boolean useCompetitionFieldTargetLocations) {
     startBlockExecution(BlockType.FUNCTION, ".initialize");
     CameraName cameraName;
@@ -107,14 +135,15 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } else {
       cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
     }
+    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
     Pair<Boolean, CameraMonitorFeedback> cameraMonitorFeedback =
         checkCameraMonitorFeedback(cameraMonitorFeedbackString);
-    if (cameraName != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
+    if (cameraName != null && axesOrder != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
       String vuforiaLicenseKey = "";
       try {
         vuforiaBase.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename,
             useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
-            dx, dy, dz, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
+            dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
       } catch (Exception e) {
         blocksOpMode.throwException(e);
       }

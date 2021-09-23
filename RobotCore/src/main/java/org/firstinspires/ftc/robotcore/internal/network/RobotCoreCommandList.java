@@ -167,7 +167,7 @@ public class RobotCoreCommandList
     public static final String CMD_ROBOT_CONTROLLER_PREFERENCE = "CMD_ROBOT_CONTROLLER_PREFERENCE";
 
     //----------------------------------------------------------------------------------------------
-    // Wifi management
+    // Wi-Fi management
     //----------------------------------------------------------------------------------------------
 
     public static final String CMD_CLEAR_REMEMBERED_GROUPS                      = "CMD_CLEAR_REMEMBERED_GROUPS";
@@ -390,6 +390,11 @@ public class RobotCoreCommandList
     // Telemetry
     //----------------------------------------------------------------------------------------------
     public static final String CMD_SET_TELEMETRY_DISPLAY_FORMAT = "CMD_SET_TELEM_DISPL_FORMAT";
+
+    //----------------------------------------------------------------------------------------------
+    // Gamepads
+    //----------------------------------------------------------------------------------------------
+    public static final String CMD_RUMBLE_GAMEPAD = "CMD_RUMBLE_EFFECT";
 
     //----------------------------------------------------------------------------------------------
     // Telemetry text-to-speech

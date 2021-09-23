@@ -15,7 +15,7 @@
 <block type="comment" id="#ul#WaXLbg~hUii+7AB_">
 <field name="COMMENT">Initialize Vuforia.</field>
 <next>
-<block type="vuforiaCurrentGame_initialize_withWebcam" id="6Xzo0d*2b_I.B:]B4+5q">
+<block type="vuforiaCurrentGame_initialize_withWebcam_2" id="6Xzo0d*2b_I.B:]B4+5q">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="Uztu;2eL:)g_#d6}G98K">
 <field name="WEBCAM_NAME">Webcam 1</field>
@@ -38,37 +38,42 @@
 </value>
 <value name="CAMERA_MONITOR_FEEDBACK">
 <shadow type="navigation_typedEnum_cameraMonitorFeedback" id="TG%:#^SAd7#]OFj[V9K?">
-<field name="CAMERA_MONITOR_FEEDBACK">AXES</field>
+<field name="CAMERA_MONITOR_FEEDBACK">NONE</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DX">
+<value name="DX">
 <shadow type="math_number" id="~PyI_z2IlCq!Uv~b9^=v">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DY">
+<value name="DY">
 <shadow type="math_number" id="CWCmb0p(S96VKi%Kk(3W">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DZ">
+<value name="DZ">
 <shadow type="math_number" id="5WhUGHWwt[OKb:2pH+~:">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_X_ANGLE">
+<value name="AXES_ORDER">
+<shadow type="navigation_typedEnum_axesOrder" id="K8jWG:)SaZ?-YT@w(WSz">
+<field name="AXES_ORDER">XZY</field>
+</shadow>
+</value>
+<value name="FIRST_ANGLE">
 <shadow type="math_number" id="!C$T}|^{.b[TPj=vdHo$">
 <field name="NUM">90</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_Y_ANGLE">
+<value name="SECOND_ANGLE">
 <shadow type="math_number" id="=a{Eypfq::uaptXMi6Jq">
-<field name="NUM">0</field>
+<field name="NUM">90</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_Z_ANGLE">
+<value name="THIRD_ANGLE">
 <shadow type="math_number" id=":|I95FQpD}bI]ECP-w/,">
-<field name="NUM">90</field>
+<field name="NUM">0</field>
 </shadow>
 </value>
 <value name="USE_COMPETITION_FIELD_TARGET_LOCATIONS">
@@ -126,6 +131,18 @@
 </shadow>
 </value>
 </block>
+</value>
+<next>
+<block type="telemetry_addTextData_All" id="s_:#ax|XU($5-SgMk^r~">
+<value name="KEY">
+<shadow type="text" id="Ap*A_$!|_PNTn{jMi}%c">
+<field name="TEXT">DS preview on/off</field>
+</shadow>
+</value>
+<value name="TEXT">
+<shadow type="text" id="rdN3#0#{IaatvWp;6n+g">
+<field name="TEXT">3 dots, Camera Stream</field>
+</shadow>
 </value>
 <next>
 <block type="telemetry_addTextData_All" id="/Zm[n8^)(`(S}Ab9j!;|">
@@ -247,7 +264,7 @@
 <block type="math_arithmetic" id="?6nQyMGz}aU1fC+utj9g">
 <field name="OP">ADD</field>
 <value name="A">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="math_number" id="A(cWTP6GX-7F%pan2;S:">
+<shadow type="math_number" id="A(cWTP6GX-7F%pan2;S:">
 <field name="NUM">1</field>
 </shadow>
 <block type="variables_get" id="_Qa|p#!QpQ?:hR:4$)Ki">
@@ -321,9 +338,11 @@
 </block>
 </next>
 </block>
+</next>
+</block>
 </statement>
 </block>
-<block type="procedures_defnoreturn" id=")21zCFQOO-Q6a!/Wu4LO" x="0" y="1485">
+<block type="procedures_defnoreturn" id=")21zCFQOO-Q6a!/Wu4LO" x="28" y="1532">
 <mutation>
 <arg name="i" varid="ZHu7]h(iKQ-7Q9eq/q3X"/>
 </mutation>
@@ -336,7 +355,7 @@
 <block type="telemetry_addTextData_All" id=";6SFb8haRI5qo45n}iJ8">
 <comment pinned="false" h="80" w="160">Display the label and index number for the recognition.</comment>
 <value name="KEY">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="_dKJensTqN?qDeXC6vm|">
+<shadow type="text" id="_dKJensTqN?qDeXC6vm|">
 <field name="TEXT">key</field>
 </shadow>
 <block type="text_join" id="_f._U;/kb2{Yz0e76KNN">
@@ -354,7 +373,7 @@
 </block>
 </value>
 <value name="TEXT">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="#+^2[kj(=_-pPWHzSDN^">
+<shadow type="text" id="#+^2[kj(=_-pPWHzSDN^">
 <field name="TEXT">text</field>
 </shadow>
 <block type="tfodRecognition_getProperty_String" id="d7@$bcm+3wluc1@Wtq|u">
@@ -373,7 +392,7 @@
 <block type="telemetry_addTextData_All" id="8nKd8v-zW;`u5BOb+C%9">
 <comment pinned="false" h="100" w="200">Display the location of the top left corner of the detection boundary for the recognition</comment>
 <value name="KEY">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="_dKJensTqN?qDeXC6vm|">
+<shadow type="text" id="_dKJensTqN?qDeXC6vm|">
 <field name="TEXT">key</field>
 </shadow>
 <block type="text_join" id="7Fn(t/Mm3i1ur(2xaI_X">
@@ -391,18 +410,30 @@
 </block>
 </value>
 <value name="TEXT">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="#+^2[kj(=_-pPWHzSDN^">
+<shadow type="text" id="#+^2[kj(=_-pPWHzSDN^">
 <field name="TEXT">text</field>
 </shadow>
 <block type="text_join" id="DT/!lFr4vq[1YesUPQ_T">
 <mutation items="2"/>
 <value name="ADD0">
+<block type="misc_roundDecimal" id="@b+^#[RI!{l)+F_7j38t">
+<value name="NUMBER">
+<shadow type="math_number" id="#vf+kHubT%nId(LfWIaf">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="VeL$%e^~N33.uZUiGhUK">
 <field name="PROP">Left</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="89kTVFyI498d3Mlqk$Do">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="mu!fU%UY;cG+dEX;r*S.">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -415,12 +446,24 @@
 </block>
 </value>
 <value name="ADD1">
+<block type="misc_roundDecimal" id="]A,~JjE/rcT%wN{Jx)Aj">
+<value name="NUMBER">
+<shadow type="math_number" id="OeGys.XSr%1,]E{h;}NJ">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="G~K_0Bp1F20i`4CU,PE{">
 <field name="PROP">Top</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="M]Nj%yp]N-HH{kA|-PC!">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="b#+m|EU#/z@%|j$c/,6c">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -435,7 +478,7 @@
 <block type="telemetry_addTextData_All" id="Q+UdE@m8P2B.yiwA.w%$">
 <comment pinned="false" h="100" w="200">Display the location of the bottom right corner of the detection boundary for the recognition</comment>
 <value name="KEY">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="_dKJensTqN?qDeXC6vm|">
+<shadow type="text" id="_dKJensTqN?qDeXC6vm|">
 <field name="TEXT">key</field>
 </shadow>
 <block type="text_join" id="zJv0lB`hN,S+t!Xt,0_l">
@@ -453,18 +496,30 @@
 </block>
 </value>
 <value name="TEXT">
-<shadow xmlns="http://www.w3.org/1999/xhtml" type="text" id="#+^2[kj(=_-pPWHzSDN^">
+<shadow type="text" id="#+^2[kj(=_-pPWHzSDN^">
 <field name="TEXT">text</field>
 </shadow>
 <block type="text_join" id="o8Gtc?kcbG~`#vx!7ck^">
 <mutation items="2"/>
 <value name="ADD0">
+<block type="misc_roundDecimal" id="+7chsnq8Znz^{z9~Iwg|">
+<value name="NUMBER">
+<shadow type="math_number" id="GY|}YgdQ#cwv(2X*$M`W">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="B-6W%AK(jO!ur3t$S!h@">
 <field name="PROP">Right</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="I%pBUv`--i6Yr0iXNPT4">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="6D.Vj04y;Ulr7cMTImo~">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -477,12 +532,24 @@
 </block>
 </value>
 <value name="ADD1">
+<block type="misc_roundDecimal" id="118~G8[N$;Izv[Mz6FJB">
+<value name="NUMBER">
+<shadow type="math_number" id="L@82|?|T{,UA=OfsD2;j">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="F%|Lo.;yf5Od/%EqOuf)">
 <field name="PROP">Bottom</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="TA34*WE*L([F@%Yk_x*4">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="-u!13XoX}xo@2r7-1[Yd">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -506,6 +573,6 @@
 </xml>
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <Extra>
-<OpModeMeta flavor="TELEOP" group="" />
+<OpModeMeta flavor="TELEOP" group="" autoTransition="" />
 <Enabled value="true" />
 </Extra>

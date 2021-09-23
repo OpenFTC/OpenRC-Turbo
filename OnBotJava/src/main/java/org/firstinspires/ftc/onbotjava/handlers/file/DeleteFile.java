@@ -37,7 +37,10 @@ package org.firstinspires.ftc.onbotjava.handlers.file;
 import org.firstinspires.ftc.onbotjava.*;
 import com.google.gson.JsonSyntaxException;
 
+import org.firstinspires.ftc.onbotjava.ExternalLibraries;
+import org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils;
 import org.firstinspires.ftc.onbotjava.OnBotJavaManager;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
 
 import java.io.File;
@@ -48,6 +51,10 @@ import static org.firstinspires.ftc.onbotjava.StandardResponses.badRequest;
 
 @RegisterWebHandler(uri = OnBotJavaProgrammingMode.URI_FILE_DELETE)
 public class DeleteFile implements WebHandler {
+
+    private static final String EXTERNAL_LIBRARIES_PREFIX = "src" + OnBotJavaManager.EXTERNAL_LIBRARIES + OnBotJavaFileSystemUtils.PATH_SEPARATOR;
+
+
     /**
      * <li>Delete
      * <p>Requires a "delete" entry in data map. This should be a JSON encoded array</p>
@@ -63,29 +70,21 @@ public class DeleteFile implements WebHandler {
                 return StandardResponses.badRequest("Invalid delete syntax - bad JSON");
             }
             for (String fileToDeletePath : deleteFiles) {
-                final File fileToDelete = new File(OnBotJavaManager.javaRoot, fileToDeletePath);
-                if (fileToDelete.exists()) {
-                    recursiveDelete(fileToDelete);
+                // Special case for files in the ExternalLibraries tree.
+                if (fileToDeletePath.startsWith(EXTERNAL_LIBRARIES_PREFIX)) {
+                    String relativePath = fileToDeletePath.substring(EXTERNAL_LIBRARIES_PREFIX.length());
+                    File uploadedFile = new File(OnBotJavaManager.extLibDir, relativePath);
+                    ExternalLibraries.getInstance().deleteExternalLibrary(uploadedFile);
+                } else {
+                    final File fileToDelete = new File(OnBotJavaManager.javaRoot, fileToDeletePath);
+                    if (fileToDelete.exists()) {
+                        AppUtil.getInstance().delete(fileToDelete);
+                    }
                 }
             }
             return StandardResponses.successfulRequest();
         }
 
         return StandardResponses.badRequest();
-    }
-
-    /**
-     * Recursively delete a file or a folder
-     *
-     * @param file the starting point
-     */
-    private void recursiveDelete(File file) {
-        if (file.isDirectory()) {
-            final File[] files = file.listFiles();
-            for (File file1 : files) {
-                recursiveDelete(file1);
-            }
-        }
-        file.delete();
     }
 }

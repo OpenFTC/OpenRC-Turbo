@@ -34,6 +34,8 @@ package com.qualcomm.robotcore.hardware;
 
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
 
+import androidx.annotation.Nullable;
+
 /**
  * {@link LynxModuleMeta} has simple lynx module meta information for transmission from RC to DS
  */
@@ -42,23 +44,20 @@ public class LynxModuleMeta
     {
     protected int moduleAddress;
     protected boolean isParent;
+    @Nullable protected volatile Boolean hasImu; // The boxed type is used because hasImu should be null until we check for an IMU
 
     public LynxModuleMeta(int moduleAddress, boolean isParent)
         {
         this.moduleAddress = moduleAddress;
         this.isParent = isParent;
-        }
-
-    public LynxModuleMeta(RobotCoreLynxModule him)
-        {
-        this.moduleAddress = him.getModuleAddress();
-        this.isParent = him.isParent();
+        this.hasImu = null;
         }
 
     public LynxModuleMeta(LynxModuleMeta him)
         {
         this.moduleAddress = him.getModuleAddress();
         this.isParent = him.isParent();
+        this.hasImu = him.hasImu;
         }
 
     public int getModuleAddress()
@@ -71,8 +70,22 @@ public class LynxModuleMeta
         return isParent;
         }
 
+    /**
+     * @return true if an IMU is known to be present, false if it is known to not be present,null if
+     *         it is not known if an IMU is present on the device or not.
+     */
+    @Nullable public Boolean hasImu()
+        {
+        return hasImu;
+        }
+
+    public void setHasImu(boolean hasImu)
+        {
+        this.hasImu = hasImu;
+        }
+
     @Override public String toString()
         {
-        return Misc.formatForUser("LynxModuleMeta(#%d,%s)", moduleAddress, isParent);
+        return Misc.formatForUser("LynxModuleMeta(#%d,%b,%b)", moduleAddress, isParent, hasImu);
         }
     }

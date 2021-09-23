@@ -130,6 +130,7 @@ public class RobocolDatagramSocket {
         // Block until a packet is received or a timeout occurs
         if (VERBOSE_DEBUG) RobotLog.vv(TAG, "calling socket.receive()");
         socket.receive(packetRecv);
+        result.markReceivedNow();
         if (DEBUG) RobotLog.vv(TAG, String.format("received packet from=%s len=%d", packetRecv.getAddress().toString(), result.getPayloadLength()));
         if (trafficDataCollection) rxDataSample += result.getPayloadLength();
 

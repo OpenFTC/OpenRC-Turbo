@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 49
-        versionName "8.4"
+        versionCode 51
+        versionName "10.0"
     }
 
     buildTypes {
@@ -15,6 +15,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 }
@@ -31,4 +35,6 @@ dependencies {
      * External
      */
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.tools:r8:2.1.75'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.1'
 }

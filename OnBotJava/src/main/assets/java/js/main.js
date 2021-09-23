@@ -47,6 +47,10 @@
             $(this).replaceWith($('<' + newType + ' />', attrs).append($(this).contents()));
         });
     };
+    env.errors = {
+        FILE_NOT_FOUND: "error=file_not_found",
+        FILE_NOT_DIRECTORY: "error=file_not_directory",
+    }
 
     env.installedEditorThemes = ['light', 'dark'];
     env.editorTheme = 'obj'; //env.settings.get('theme');
@@ -170,7 +174,59 @@
             }
         },
         parse: {
+            _findNodeInTree: function _findInTree(file, tree) {
+                let restToMatch = file;
+                let currNode = null;
+                for (let node of tree) {
+                    console.log(restToMatch, node.parentFile)
+                    if (restToMatch.startsWith(node.parentFile + node.file + "/")) {
+                        restToMatch = restToMatch.substr(node.parentFile.length + node.file.length + 1);
+                        console.log(restToMatch);
+                        currNode = node;
+                    }
+                }
+
+                if (currNode === null) {
+                    return env.errors.FILE_NOT_FOUND;
+                }
+
+                let foundNode = true;
+                while (foundNode) {
+                    foundNode = false;
+                    for (let node of currNode.nodes) {
+                        if (node.folder && restToMatch.startsWith(node.file + "/")) {
+                            if (restToMatch === node.file + "/") {
+                                return node;
+                            }
+                            restToMatch = restToMatch.substr(node.file.length + 1);
+                            console.log(restToMatch);
+                            currNode = node;
+                            foundNode = true;
+                            break;
+                        // this only happens since we sometimes skip directories
+                        // in the file tree view
+                        } else if (file.startsWith(node.parentFile + node.file)) {
+                            if (file === node.parentFile + node.file) {
+                                return node;
+                            }
+                            restToMatch = file.substr(node.parentFile.length + node.file.length + 1);
+                            console.log(restToMatch);
+                            currNode = node;
+                            foundNode = true;
+                            break;
+                        } else if (!node.folder && restToMatch.startsWith(node.file + "/")) {
+                            return env.errors.FILE_NOT_DIRECTORY;
+                        } else if (!node.folder && restToMatch === node.file) {
+                            return node;
+                        }
+                    }
+                }
+
+                return env.errors.FILE_NOT_FOUND;
+            },
             sourceTree: function parseSourceTree(fileTree) {
+                env.allowExternalLibraries = fileTree.allowExternalLibraries;
+
                 // Filter the jars directory out of the file tree data src file data before being parsed
                 const JARS_DIR = '/jars';
                 fileTree.src = fileTree.src.filter(function (node) {
@@ -178,10 +234,16 @@
                 });
 
                 env.trees.srcFiles = env.trees.parse._tree(fileTree.src, 'src');
+                env.trees.findInSourceFiles = function findNodeInSource(file) {
+                    return env.trees.parse._findNodeInTree(file, env.trees.srcFiles);
+                }
                 return env.trees.srcFiles;
             },
             librariesTree: function parseLibrariesTree(fileTree) {
                 env.trees.jarFiles = env.trees.parse._tree(fileTree.jars, 'jars');
+                env.trees.findInLibraries = function findNodeInLibraries(file) {
+                    return env.trees.parse._findNodeInTree(file, env.trees.jarFiles);
+                }
                 return env.trees.jarFiles;
             },
             _tree: function parseFileTree(fileTree, fileNamespace) {
@@ -210,7 +272,8 @@
                     var iconForFile = function () {
                         if (hasExtension('.java')) {
                             return 'fa fa-file-code-o';
-                        } else if (hasExtension('.jar') || hasExtension('.zip')) {
+                        } else if (hasExtension('.zip')
+                            || hasExtension('.jar') || hasExtension('.aar')) {
                             return 'fa fa-archive';
                         } else if (hasExtension('.txt') || hasExtension('.md')) {
                             return 'fa fa-file-text';
@@ -265,7 +328,11 @@
                             resultsFolder.push(items);
                         } else { // file
                             validFiles.push('/' + location + attr);
-                            items.href = href + '/' + location + attr;
+                            if (attr.endsWith('.jar') || attr.endsWith('.aar')) {
+                              items.href = 'javaScript:void(0);';
+                            } else {
+                              items.href = href + '/' + location + attr;
+                            }
                             resultsFiles.push(items);
                         }
                     }
@@ -683,6 +750,25 @@
                 return nodeItemRequired(trigger) || getSelected().length !== 1;
             };
 
+            const requireOpenableNode = function(trigger) {
+                var node = fetchNodeFromTreeViewDom(trigger);
+                return node.folder || node.file.endsWith('.jar') || node.file.endsWith('.aar');
+            };
+
+            const isExternalLibrariesNode = function(node) {
+              return node.folder && node.parentId === undefined && node.text == "ExternalLibraries";
+            };
+            const isExternalLibrariesItem = function(trigger) {
+              return isExternalLibrariesNode(fetchNodeFromTreeViewDom(trigger));
+            };
+            const isInExternalLibrariesTree = function(trigger) {
+              var node = fetchNodeFromTreeViewDom(trigger);
+              while (node.parentId !== undefined) {
+                node = $file.treeview('getNode', node.parentId);
+              }
+              return isExternalLibrariesNode(node);
+            };
+
             var nodesToCopy = null;
             const markFilesToBeCut = function () {
                 $('#file-tree').find('a[href]').each(function () {
@@ -722,7 +808,7 @@
                                     window.location = fetchNodeFromTreeViewDom(this).href;
                                 },
                                 disabled: function () {
-                                    return nodeItemRequired(this) || fetchNodeFromTreeViewDom(this).folder;
+                                    return nodeItemRequired(this) || requireOpenableNode(this);
                                 }
                             },
                             new: {
@@ -747,14 +833,68 @@
                                 name: 'Rename', callback: function () {
                                     const selectedNode = fetchNodeFromTreeViewDom(this);
                                     var folder = selectedNode.folder;
-                                    parent.showPrompt('Enter a new filename', (folder ? selectedNode.parentFile : '') + selectedNode.file, function(newFileName) {
-                                        if (folder) {
-                                            if (newFileName === selectedNode.parentFile + selectedNode.file) return;
-                                        } else {
-                                            if (newFileName === selectedNode.file) return;
+                                    parent.showPrompt('Enter a new filename', selectedNode.file, function(newFileName) {
+                                        if (newFileName === null) return;
+                                        if (newFileName === selectedNode.file) return;
+                                        // Warn a user if they change the file extension
+                                        if (
+                                            // Both files have a file extension
+                                            (newFileName.indexOf(".") > -1 && selectedNode.file.indexOf(".") > -1) &&
+                                            // And those extensions are not the same
+                                            (
+                                                newFileName.substring(newFileName.lastIndexOf(".")) !==
+                                                selectedNode.file.substring(selectedNode.file.lastIndexOf("."))
+                                            ) &&
+                                            // and the user didn't confirm they wanted the op to happen
+                                            !confirm(
+                                                "You are about to rename a file to different file extension.\n" +
+                                                "Are you sure you want to rename the file?"
+                                            )
+                                        ) {
+                                            return;
+                                        } else if (
+                                            // The old file has a file extension and the new one doesn't
+                                            (newFileName.indexOf(".") === -1 && selectedNode.file.indexOf(".") > -1)
+                                        ) {
+                                            var oldExt = selectedNode.file.substring(selectedNode.file.lastIndexOf(".") + 1)
+                                            var possibleFix = newFileName + "." + oldExt;
+                                            if (confirm(
+                                                "You might have dropped the file extension with the rename.\n" +
+                                                "Did you mean: " + possibleFix + "?"
+                                            )) {
+                                                newFileName = possibleFix;
+                                            }
                                         }
-                                        var to = folder ? newFileName : selectedNode.parentFile + newFileName;
+
+                                        // Warn users about a behavior change in rename
+                                        if (newFileName.indexOf("/") > -1) {
+                                            var exampleFileName = newFileName.substring(newFileName.lastIndexOf("/") + 1);
+                                            var exampleTo = selectedNode.parentFile + exampleFileName;
+                                            if (folder) exampleTo += '/';
+                                            if (confirm(
+                                                "You no longer need to specify the full path of a file; rename will " +
+                                                "move a file within the same folder.\n" +
+                                                "This rename will move the file to: " + exampleTo + "\n" +
+                                                "Do you want to rename the file still?"
+                                            )) {
+                                                newFileName = exampleFileName;
+                                            } else {
+                                                return;
+                                            }
+                                        }
+
+                                        var to = selectedNode.parentFile + newFileName;
                                         if (folder) to += '/';
+                                        if (env.trees.findInSourceFiles(to) === env.errors.FILE_NOT_DIRECTORY) {
+                                            parent.confirm(
+                                                "Error: Cannot rename this file, since we would that would " +
+                                                "put a file inside a normal file"
+                                            );
+                                            return;
+                                        } else if (env.trees.findInSourceFiles(to) !== env.errors.FILE_NOT_FOUND) {
+                                            parent.confirm("Error: must select a unique new filename.");
+                                            return;
+                                        }
                                         env.tools.copyFiles({
                                             silent: true,
                                             callback: function (failed) {
@@ -764,17 +904,6 @@
                                                     $file.treeview('selectNode', selectedNode);
                                                     env.tools.delete({
                                                         silent: true, callback: function (opDeletedSelf) {
-                                                            if (opDeletedSelf) {
-                                                                if (to.indexOf('/') !== 0) to = '/' + to;
-                                                                var newCurrentFileName = to;
-                                                                if (selectedNode.folder) { // check if we renamed a folder
-                                                                    newCurrentFileName = env.documentId.substr(
-                                                                        ('/' + selectedNode.parentFile + selectedNode.file).length + 1);
-                                                                    newCurrentFileName = to + newCurrentFileName;
-                                                                }
-                                                                window.location = env.javaUrlRoot + '/editor.html?' + newCurrentFileName;
-                                                            }
-
                                                             env.setup.projectView();
                                                         }
                                                     });
@@ -785,7 +914,9 @@
                                         });
                                     });
                                 },
-                                disabled: requireSingleNodeSelected
+                                disabled: function() {
+                                    return requireSingleNodeSelected(this) || isInExternalLibrariesTree(this);
+                                }
                             },
                             sep1: '---------',
                             cut: {
@@ -797,7 +928,9 @@
                                     env.tools._copy = nodesToCopy;
                                     markFilesToBeCut();
                                 },
-                                disabled: nodeItemRequired
+                                disabled: function() {
+                                    return nodeItemRequired(this) || isInExternalLibrariesTree(this);
+                                }
                             },
                             copy: {
                                 name: 'Copy', icon: 'fa-files-o', callback: function () {
@@ -807,7 +940,9 @@
                                     };
                                     env.tools._copy = nodesToCopy;
                                 },
-                                disabled: nodeItemRequired
+                                disabled: function() {
+                                    return nodeItemRequired(this) || isInExternalLibrariesTree(this);
+                                }
                             },
                             paste: {
                                 name: 'Paste', icon: 'fa-clipboard', callback: function () {
@@ -819,9 +954,60 @@
                                     var deletedSelf = false;
                                     var results = [];
                                     var to;
+
+                                    // Verify this operation can complete without an overwrite
+                                    // Check the head of the tree to be copied, if any new folders need to be created
+                                    // in an existing directory, we only need to check for conflicts between existing
+                                    // files and the new files in the existing directory.
+                                    for (var node of nodesToCopy.nodes) {
+                                        var newFileName = newParentFile + node.file;
+                                        if (node.folder) {
+                                            newFileName += '/';
+                                        }
+                                        if (env.trees.findInSourceFiles(newFileName) === env.errors.FILE_NOT_DIRECTORY) {
+                                            parent.confirm('You cannot create a folder inside a file. Try a different location.');
+                                            return;
+                                        } else if (env.trees.findInSourceFiles(newFileName) !== env.errors.FILE_NOT_FOUND) {
+                                            var originalName = node.file;
+                                            var ext = '';
+                                            if (originalName.indexOf('.') >= 0) {
+                                                ext = originalName.substring(originalName.lastIndexOf('.'));
+                                                originalName = originalName.substring(0, originalName.lastIndexOf('.'));
+                                            }
+                                            var suffix = "_Copy";
+                                            if (originalName.endsWith(suffix)) {
+                                                suffix = "";
+                                            }
+                                            var dest = originalName + suffix + ext;
+                                            var testFileName = newParentFile + dest;
+                                            if (node.folder) {
+                                                testFileName += '/';
+                                            }
+                                            for (
+                                                var i = 2;
+                                                i < 1000 &&
+                                                env.trees.findInSourceFiles(testFileName) !== env.errors.FILE_NOT_FOUND;
+                                                i++
+                                            ) {
+                                                dest = originalName + suffix + i + ext;
+                                                testFileName = newParentFile + dest;
+                                                if (node.folder) {
+                                                    testFileName += '/';
+                                                }
+                                            }
+                                            if (!parent.confirm(
+                                                'OnBotJava is going to create a copy named ' + dest + ', otherwise ' +
+                                                'this would overwrite an existing file. Do you still want to continue?'
+                                            )) {
+                                                return;
+                                            }
+                                        }
+                                    }
+
                                     nodesToCopy.nodes.forEach(function(value) {
                                         to = newParentFile + value.file;
                                         if (value.folder) to += '/';
+
                                         var copyPromise = env.tools.copyFiles({ // copy file blocks until the operation is complete
                                             silent: true,
                                             callback: function (failed) {
@@ -866,7 +1052,7 @@
                                         env.setup.projectView();
                                     });
                                 }, disabled: function () {
-                                    return nodesToCopy === null || requireSingleNodeSelected(this);
+                                    return nodesToCopy === null || requireSingleNodeSelected(this) || isInExternalLibrariesTree(this);
                                 }
                             },
                             sep2: '---------',
@@ -892,14 +1078,16 @@
                                     window.open(url, '_blank');
                                 },
                                 disabled: function () {
-                                    return false;
+                                    return isInExternalLibrariesTree(this);
                                 }
                             },
                             delete: {
                                 name: 'Delete', icon: 'fa-trash', callback: function () {
                                     env.tools.delete();
                                 },
-                                disabled: nodeItemRequired
+                                disabled: function() {
+                                    return nodeItemRequired(this) || isExternalLibrariesItem(this);
+                                }
                             }
                         }
                     };

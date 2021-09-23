@@ -82,10 +82,14 @@ public class OnBotJavaCompiler
         Iterable<? extends JavaFileObject> javaFileObjects = fileManager.getJavaFileObjects(javaFiles.toArray(new File[javaFiles.size()]));
         if (javaFileObjects.iterator().hasNext())
             {
+            // For Marshmallow we use dex, which does not work for 1.8.
+            // TODO: Once we no longer allow Marshmallow devices, this can be 1.8.
+            String version = OnBotJavaManager.USE_D8 ? "1.8" : "1.7";
+
             // Our list of options here matches what's used by Android Studio's build process, as empirically determined
             List<String> options = Arrays.asList(
-                    "-source", "1.7",
-                    "-target", "1.7",
+                    "-source", version,
+                    "-target", version,
                     "-g",                       // generate all debug info
                     "-encoding", "UTF-8",
                     "-Xlint:unchecked",         // shows details of unchecked or unsafe usage

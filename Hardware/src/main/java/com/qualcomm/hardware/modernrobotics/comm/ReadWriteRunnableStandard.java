@@ -495,7 +495,7 @@ public class ReadWriteRunnableStandard implements ReadWriteRunnable {
     if (this.owner != null && (this.owner instanceof GlobalWarningSource)) {
       ((GlobalWarningSource)this.owner).setGlobalWarning(message);
     } else {
-      RobotLog.setGlobalWarningMessage(message);
+      RobotLog.addGlobalWarningMessage(message);
     }
   }
 

@@ -712,6 +712,11 @@ public final class I2cDeviceSynchImpl extends I2cDeviceSynchReadHistoryImpl impl
             }
         }
 
+    @Override public byte read8()
+        {
+        throw new UnsupportedOperationException();
+        }
+
     /*
      * Read the byte at the indicated register.
      */
@@ -720,12 +725,22 @@ public final class I2cDeviceSynchImpl extends I2cDeviceSynchReadHistoryImpl impl
         return this.read(ireg, 1)[0];
         }
 
+    @Override public byte[] read(int creg)
+        {
+        throw new UnsupportedOperationException();
+        }
+
     /*
      * Read a contiguous set of registers
      */
     @Override public byte[] read(int ireg, int creg)
         {
         return this.readTimeStamped(ireg, creg).data;
+        }
+
+    @Override public TimestampedData readTimeStamped(int creg)
+        {
+        throw new UnsupportedOperationException();
         }
 
     /*
@@ -859,6 +874,11 @@ public final class I2cDeviceSynchImpl extends I2cDeviceSynchReadHistoryImpl impl
             }
         }
 
+    @Override public void write8(int bVal)
+        {
+        throw new UnsupportedOperationException();
+        }
+
     protected boolean isOpenForReading()
         {
         return this.isHooked && this.newReadsAndWritesAllowed();
@@ -900,9 +920,20 @@ public final class I2cDeviceSynchImpl extends I2cDeviceSynchReadHistoryImpl impl
         {
         this.write(ireg, new byte[]{(byte) data});
         }
+
+    @Override public void write(byte[] data)
+        {
+        throw new UnsupportedOperationException();
+        }
+
     @Override public void write8(int ireg, int data, I2cWaitControl waitControl)
         {
         this.write(ireg, new byte[]{(byte) data}, waitControl);
+        }
+
+    @Override public void write(byte[] data, I2cWaitControl waitControl)
+        {
+        throw new UnsupportedOperationException();
         }
 
     /*
@@ -915,6 +946,12 @@ public final class I2cDeviceSynchImpl extends I2cDeviceSynchReadHistoryImpl impl
         {
         write(ireg, data, I2cWaitControl.ATOMIC);
         }
+
+    @Override public void write8(int bVal, I2cWaitControl waitControl)
+        {
+        throw new UnsupportedOperationException();
+        }
+
     @Override public void write(int ireg, byte[] data, I2cWaitControl waitControl)
         {
         try

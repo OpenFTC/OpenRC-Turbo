@@ -169,7 +169,7 @@ void vuforiaext_destroyExternalCamera(Vuforia::ExternalProvider::ExternalCamera*
  */
 JNIEXPORT JNI_NATIVE_POINTER JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativePreVuforiaInit(
-        JNIEnv *env, jclass type,
+        JNIEnv *env, jobject type,
         jstring jstrLibraryName    // null or empty if we're not to use an external library
         )
     {
@@ -196,7 +196,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
 
 JNIEXPORT void JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeReleaseVuforiaWebcam(
-        JNIEnv *env, jclass type,
+        JNIEnv *env, jobject type,
         JNI_NATIVE_POINTER pointer
         )
     {
@@ -208,7 +208,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
 
 JNIEXPORT jboolean JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativePostVuforiaInit(
-        JNIEnv *env, jclass type,
+        JNIEnv *env, jobject type,
         JNI_NATIVE_POINTER pointer,
         jobject vuforiaWebcam // a VuforiaWebcamNativeCallback
         )
@@ -232,9 +232,9 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
     return tojboolean(rc);
     }
 
-JNIEXPORT bool JNICALL
+JNIEXPORT jboolean JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativePreVuforiaDeinit(
-        JNIEnv *env, jclass type,
+        JNIEnv *env, jobject type,
         JNI_NATIVE_POINTER pointer
         )
     {
@@ -253,7 +253,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
     }
 
 JNIEXPORT void JNICALL
-Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativePostVuforiaDeinit(JNIEnv *env, jclass type)
+Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativePostVuforiaDeinit(JNIEnv *env, jobject type)
     {
     FTC_TRACE();
     Vuforia::setExternalProviderLibrary("", nullptr);
@@ -264,7 +264,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
 //--------------------------------------------------------------------------------------------------
 
 JNIEXPORT void JNICALL
-Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeNoteAndroidVuforiaExternalFormatMapping(JNIEnv *env, jclass type,
+Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeNoteAndroidVuforiaExternalFormatMapping(JNIEnv *env, jobject type,
          JNI_NATIVE_POINTER pointer,
          int uvcFrameFormat,
          int vuforiaExternalProviderFormat)
@@ -280,7 +280,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
     }
 
 JNIEXPORT void JNICALL
-Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeDeliverFrameToVuforiaUvc(JNIEnv *env, jclass type,
+Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeDeliverFrameToVuforiaUvc(JNIEnv *env, jobject type,
         JNI_NATIVE_POINTER pointer,
         JNI_NATIVE_POINTER pointerCallback,
         JNI_NATIVE_POINTER pointerUvcFrame,
@@ -319,7 +319,7 @@ Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWe
     }
 
 JNIEXPORT void JNICALL
-Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeDeliverFrameToVuforiaVuforia(JNIEnv *env, jclass type,
+Java_org_firstinspires_ftc_robotcore_internal_vuforia_externalprovider_VuforiaWebcam_nativeDeliverFrameToVuforiaVuforia(JNIEnv *env, jobject type,
         JNI_NATIVE_POINTER pointer,
         JNI_NATIVE_POINTER pointerCallback,
         JNI_NATIVE_POINTER pointerVuforiaFrame,

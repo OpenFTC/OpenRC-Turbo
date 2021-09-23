@@ -83,6 +83,14 @@ function isJavaIdentifierPart(c) {
   return /[a-zA-Z0-9$_]/.test(c);
 }
 
+function containsAtLeastOneAlphanumeric(s) {
+  return /[a-zA-Z0-9]+/.test(s);
+}
+
+function containsAmpersand(s) {
+  return /&+/.test(s);
+}
+
 function makeIdentifier(deviceName) {
   var identifier = '';
 
@@ -208,6 +216,9 @@ function knownTypeToClassName(type) {
     case 'DigitalChannel':
     case 'DigitalChannel.Mode':
     case 'DistanceSensor':
+    case 'Gamepad':
+    case 'Gamepad.RumbleEffect':
+    case 'Gamepad.RumbleEffect.Builder':
     case 'GyroSensor':
     case 'Gyroscope':
     case 'I2cAddr':
@@ -298,6 +309,7 @@ function knownTypeToClassName(type) {
     case 'Recognition':
     case 'TfodBase':
     case 'TfodCurrentGame':
+    case 'TfodCustomModel':
     case 'TfodRoverRuckus':
     case 'TfodSkyStone':
       return 'org.firstinspires.ftc.robotcore.external.tfod.' + type;

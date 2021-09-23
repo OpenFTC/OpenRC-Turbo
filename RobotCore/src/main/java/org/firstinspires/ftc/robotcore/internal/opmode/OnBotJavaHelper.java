@@ -32,33 +32,35 @@ package org.firstinspires.ftc.robotcore.internal.opmode;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 public interface OnBotJavaHelper {
 
     File javaRoot               = new File(AppUtil.FIRST_FOLDER, "/java/");
     File srcDir                 = new File(javaRoot, "/src/");
-    File jarDir                 = new File(srcDir,   "/jars/");
     File statusDir              = new File(javaRoot, "/status/");
     File buildSuccessfulFile    = new File(statusDir, "buildSuccessful.txt");
 
     File controlDir             = new File(javaRoot, "/control/");
 
-    /*
-     * This probably needs some rework...
-     *
-     * Any given instance of an OBJ class loader can only be used once as it closes
-     * it's dex files when done.  If you use the class loader to get a list of class
-     * names, and then reuse it to try to load those classes, it will not find any classes.
-     * Additionally, be careful when caching this class loader as a rebuild of OBJ software
-     * produces a _new_ jar which any given cached instance of the class loader will not
-     * know about, and hence changes will not appear.
+    /**
+     * Create a ClassLoader for the current OnBotJava output .dex files.
      */
-    ClassLoader getOnBotJavaClassLoader();
+    ClassLoader createOnBotJavaClassLoader();
 
-    Set<String> getOnBotJavaClassNames();
+    /**
+     * Returns a Collection of the names of classes in OnBotJava.
+     */
+    Collection<String> getOnBotJavaClassNames();
 
-    void close(ClassLoader classLoader);
+    /**
+     * Returns a Collection of the names of classes in external libraries.
+     */
+    Collection<String> getExternalLibrariesClassNames();
 
+    /**
+     * Returns true if the given NoClassDefFoundError (or one of its causes) is due to a class from
+     * an external library not being found; false otherwise.
+     */
+    boolean isExternalLibrariesError(NoClassDefFoundError e);
 }

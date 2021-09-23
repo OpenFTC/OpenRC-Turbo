@@ -47,10 +47,18 @@ static LPCSTR TAG = "JniTime";
  * kernel/security/commoncap.c. On the Control Hub, that has been disabled, and so this should
  * succeed.
  *
+ * UPDATE: on recent Android versions, calling this actually crashes the app instead of
+ * just failing silently: https://source.android.com/devices/tech/debug/native-crash#seccomp
+ *
+ *      The seccomp system (specifically seccomp-bpf) restricts access to system calls.
+ *      For more information about seccomp for platform developers, see the blog post
+ *      Seccomp filter in Android O. A thread that calls a restricted system call will
+ *      receive a SIGSYS signal with code SYS_SECCOMP.
+ *
  * Return 0 on success, -errno on failure.
  */
 JNIEXPORT jboolean JNICALL
-Java_org_firstinspires_ftc_robotcore_internal_system_AppUtil_nativeSetCurrentTimeMillis(JNIEnv *env, jclass type, jlong millis)
+Java_org_firstinspires_ftc_robotcore_internal_system_AppUtil_nativeSetCurrentTimeMillis(JNIEnv *env, jobject type, jlong millis)
     {
     uvc_error rc = UVC_SUCCESS;
     FTC_TRACE();

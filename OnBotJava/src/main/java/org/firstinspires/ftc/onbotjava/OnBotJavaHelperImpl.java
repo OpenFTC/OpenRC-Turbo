@@ -31,57 +31,84 @@ package org.firstinspires.ftc.onbotjava;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.ClassManager;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
 
-import java.util.Collections;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-
-import dalvik.system.DexFile;
-
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class OnBotJavaHelperImpl implements OnBotJavaHelper {
 
     private final static String TAG = "OnBotJavaHelperImpl";
 
     @Override
-    public ClassLoader getOnBotJavaClassLoader()
+    public ClassLoader createOnBotJavaClassLoader()
     {
-        return new OnBotJavaClassLoader();
+        // Build the dex path.
+        StringBuilder dexPath = new StringBuilder();
+        String delimiter = "";
+        for (File dotDexFile : OnBotJavaManager.getOutputDexFiles()) {
+          dexPath.append(delimiter).append(dotDexFile.getAbsolutePath());
+          delimiter = File.pathSeparator;
+        }
+        // Create the ClassLoader.
+        return new OnBotJavaClassLoader(dexPath.toString(), OnBotJavaManager.getParentClassLoaderForOnBotJava());
     }
 
     @Override
-    public Set<String> getOnBotJavaClassNames()
+    public Collection<String> getOnBotJavaClassNames()
     {
         Set<String> classNames = new HashSet<String>();
-        OnBotJavaClassLoader onBotJavaClassLoader = new OnBotJavaClassLoader();
-        try
+        for (File dotJarFile : OnBotJavaManager.getOutputJarFiles())
         {
-            for (DexFile dexFile : onBotJavaClassLoader.getDexFiles())
+            try
             {
-                for (String name : Collections.list(dexFile.entries())) {
-                    RobotLog.ii(TAG, dexFile.getName() + ": " + name);
-                    classNames.add(name);
+                JarFile jarFile = new JarFile(dotJarFile);
+                try
+                {
+                    for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); )
+                    {
+                        JarEntry entry = entries.nextElement();
+                        if (entry.isDirectory())
+                        {
+                            continue;
+                        }
+                        String entryName = entry.getName();
+                        if (entryName.endsWith(".class"))
+                        {
+                            String className = entryName.substring(0, entryName.lastIndexOf('.'))
+                                .replace('/', '.');
+                            classNames.add(className);
+                        }
+                    }
                 }
-
+                finally
+                {
+                    jarFile.close();
+                }
             }
-            return classNames;
+            catch (IOException e)
+            {
+                RobotLog.ee(TAG, e, "getOnBotJavaClassNames");
+            }
         }
-        finally
-        {
-            onBotJavaClassLoader.close();
-        }
+        return classNames;
     }
 
     @Override
-    public void close(ClassLoader classLoader)
+    public Collection<String> getExternalLibrariesClassNames()
     {
-        if (classLoader instanceof OnBotJavaClassLoader) {
-            ((OnBotJavaClassLoader) classLoader).close();
-        } else {
-            RobotLog.ee(TAG, "Attempt to close a non-closable class loader: " + classLoader.getClass().getSimpleName());
-        }
+        return ExternalLibraries.getInstance().getClassNames();
+    }
+
+    @Override
+    public boolean isExternalLibrariesError(NoClassDefFoundError e)
+    {
+      return ExternalLibraries.getInstance().isExternalLibrariesError(e);
     }
 }

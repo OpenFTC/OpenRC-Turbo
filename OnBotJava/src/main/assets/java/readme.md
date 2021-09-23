@@ -9,7 +9,8 @@ The sample you chose will be renamed to match the name you entered, and it
 will appear on the "project files" list in the left pane.
 
 To edit your code, just click on the desired file in the left hand pane, 
-and it will be loaded into this Code Editor window. Make any changes.
+and it will be loaded into this Code Editor window. Make any changes. You can also
+use Ctrl-F (or Cmd-F on Macs) to search the file you are working on.
 
 Once you are done, click the "Build Everything" icon at the bottom of this pane.
 This will build your OpModes and report any errors.
@@ -36,6 +37,6 @@ eg: The name's prefix describes the general purpose, which can be one of the fol
             Pushbot sample to see how this can be used in an OpMode.
             If you add a Hardware sample to your project, you MUST use the identical name.
 
-For more help, visit the FTC Control System Wiki (https://github.com/ftctechnh/ftc_app/wiki)
+For more help, visit the FTC Control System Wiki (https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki)
 
 

@@ -408,6 +408,7 @@ var WEBSOCKET_CORE = function () {
     return {
         WebSocketMessage: WebSocketMessage,
         WebSocketManager: WebSocketManager,
+        isWebSocketConnected: isWebSocketConnected,
         enableLogging: enableLogging,
         disableLogging: disableLogging,
         openWebSocket: openWebSocket,

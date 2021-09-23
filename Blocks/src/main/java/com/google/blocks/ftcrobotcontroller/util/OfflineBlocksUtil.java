@@ -129,6 +129,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/quaternion.js");
     assetsToInclude.add("blocks/range.js");
     assetsToInclude.add("blocks/rev_blinkin_led_driver.js");
+    assetsToInclude.add("blocks/rumble_effect.js");
     assetsToInclude.add("blocks/servo.js");
     assetsToInclude.add("blocks/servo_controller.js");
     // sound_util.js is not needed

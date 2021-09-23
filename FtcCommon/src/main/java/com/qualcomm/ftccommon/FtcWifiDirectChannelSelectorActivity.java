@@ -132,7 +132,7 @@ public class FtcWifiDirectChannelSelectorActivity extends ThemedActivity impleme
         {
         super.onStart();
 
-        // Since is the WiFi Direct Channel Selector activity, we assume this is a WiFi Direct connection.
+        // Since is the Wi-Fi Direct Channel Selector activity, we assume this is a Wi-Fi Direct connection.
         // Check to see if a preferred channel has already been defined.
         int prefChannel = preferencesHelper.readInt(getString(com.qualcomm.ftccommon.R.string.pref_wifip2p_channel), -1);
         if (prefChannel == -1)
@@ -260,7 +260,7 @@ public class FtcWifiDirectChannelSelectorActivity extends ThemedActivity impleme
 
     public void onWifiSettingsClicked(View view)
         {
-        RobotLog.vv(TAG, "launch wifi settings");
+        RobotLog.vv(TAG, "launch Wi-Fi settings");
         startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
         }
 

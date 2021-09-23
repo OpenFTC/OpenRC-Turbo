@@ -49,6 +49,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.Nullable;
+
 /**
  * {@link LynxModuleMetaList} is a container of {@link RobotCoreLynxModule}s.
  * Its primary use is for transmission of module information from RC to DS.
@@ -74,21 +76,6 @@ public class LynxModuleMetaList implements Iterable<LynxModuleMeta>
     public LynxModuleMetaList(SerialNumber serialNumber, Collection<LynxModuleMeta> modules)
         {
         this(serialNumber, metaFromModules(modules));
-        }
-
-    public LynxModuleMetaList(SerialNumber serialNumber, List<RobotCoreLynxModule> modules)
-        {
-        this(serialNumber, metaFromModules(modules));
-        }
-
-    private static LynxModuleMeta[] metaFromModules(List<RobotCoreLynxModule> modules)
-        {
-        LynxModuleMeta[] result = new LynxModuleMeta[modules.size()];
-        for (int i=0; i < result.length; i++)
-            {
-            result[i] = new LynxModuleMeta(modules.get(i));
-            }
-        return result;
         }
 
     private static LynxModuleMeta[] metaFromModules(Collection<LynxModuleMeta> modules)
@@ -117,7 +104,7 @@ public class LynxModuleMetaList implements Iterable<LynxModuleMeta>
         return Arrays.asList(this.modules).iterator();
         }
 
-    public LynxModuleMeta getParent()
+    @Nullable public LynxModuleMeta getParent()
         {
         for (int i = 0; i < modules.length; i++)
             {
@@ -178,7 +165,7 @@ public class LynxModuleMetaList implements Iterable<LynxModuleMeta>
         for (LynxModuleMeta module : this.modules)
             {
             if (!first) result.append(" ");
-            result.append(String.format(Locale.getDefault(), "%d(%s)", module.getModuleAddress(), module.isParent()));
+            result.append(String.format(Locale.getDefault(), "%d(%s, %s)", module.getModuleAddress(), module.isParent(), module.hasImu()));
             first = false;
             }
         result.append("]");

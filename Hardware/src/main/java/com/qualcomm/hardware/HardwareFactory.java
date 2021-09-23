@@ -744,9 +744,17 @@ public class HardwareFactory {
     }
   }
 
+  /**
+   * If this method returns without throwing an exception, you can be sure that an equivalent
+   * LynxModule instance is registered with the LynxUsbDevice. However, it is not guaranteed that
+   * the exact LynxModule instance passed in is the one registered to the LynxUsbDevice. ALWAYS use
+   * the one connected to the connectedModules map parameter, not one originally passed in.
+   */
   private void connectModule(LynxUsbDevice lynxUsbDevice, LynxModule module, Map<Integer,String> moduleNames, Map<Integer,LynxModule> connectedModules, boolean enableCharging) throws InterruptedException {
     try {
-      lynxUsbDevice.addConfiguredModule(module);    // this will throw if there's a problem
+      // addConfiguredModule may return a different LynxModule instance than we passed in, and if it
+      // does that, that's the one we should be using.
+      module = lynxUsbDevice.addConfiguredModule(module);    // this will throw if there's a problem
       if (enableCharging) {
         // When we first connect, we enable phone charging because we KNOW that the modules
         // aren't connected to a PC where that will be a problem. Note that if for some reason
@@ -845,12 +853,6 @@ public class HardwareFactory {
     ColorSensor sensor = deviceMgr.createLynxColorRangeSensor(module, devConf.getI2cChannel(), devConf.getName());
     map.colorSensor.put(devConf.getName(), sensor);
     map.opticalDistanceSensor.put(devConf.getName(), (OpticalDistanceSensor)sensor);
-  }
-
-  private void mapLED(HardwareMap map, DeviceManager deviceMgr, DigitalChannelController digitalChannelController, DeviceConfiguration devConf) {
-    if (!devConf.isEnabled()) return;
-    LED led = deviceMgr.createLED(digitalChannelController, devConf.getPort(), devConf.getName());
-    map.led.put(devConf.getName(), led);
   }
 
   private void mapModernRoboticsColorSensor(HardwareMap map, DeviceManager deviceMgr, I2cController i2cController, DeviceConfiguration devConf) {

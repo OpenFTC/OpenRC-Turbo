@@ -42,7 +42,7 @@ import java.nio.ByteBuffer;
  * KeepAlive message
  * <p>
  * Not acked.  Used as a workaround for 2.4/5Ghz dual band Motorola phones that take an exceedingly long
- * time to do a wifi scan.
+ * time to do a Wi-Fi scan.
  */
 @SuppressWarnings("unused,WeakerAccess")
 public class KeepAlive extends RobocolParsableBase  {

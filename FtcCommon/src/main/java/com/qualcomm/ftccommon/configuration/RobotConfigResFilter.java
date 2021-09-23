@@ -11,6 +11,7 @@ import android.content.res.XmlResourceParser;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.opmode.ClassFilter;
+import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaDeterminer;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -114,7 +115,11 @@ public class RobotConfigResFilter implements ClassFilter {
 
     @Override public void filterOnBotJavaClassesStart()
     {
+    }
 
+    @Override public void filterExternalLibrariesClassesStart()
+    {
+        // We don't support robot configurations in external libraries.
     }
 
     /*
@@ -122,6 +127,10 @@ public class RobotConfigResFilter implements ClassFilter {
      */
     @Override
     public void filterClass(Class clazz) {
+        // We don't support robot configurations in external libraries.
+      if (OnBotJavaDeterminer.isExternalLibraries(clazz))
+        return;
+
       if (clazz.getName().endsWith("R$xml")) {
       /*
        * Pull out all the R.xml classes and then filter all the xml files for robot configurations.
@@ -149,6 +158,11 @@ public class RobotConfigResFilter implements ClassFilter {
         filterClass(clazz);
     }
 
+    @Override public void filterExternalLibrariesClass(Class clazz)
+    {
+        // We don't support robot configurations in external libraries.
+    }
+
     @Override public void filterAllClassesComplete()
     {
         // Nothing to do
@@ -157,5 +171,10 @@ public class RobotConfigResFilter implements ClassFilter {
     @Override public void filterOnBotJavaClassesComplete()
     {
         filterAllClassesComplete();
+    }
+
+    @Override public void filterExternalLibrariesClassesComplete()
+    {
+        // We don't support robot configurations in external libraries.
     }
 }

@@ -66,15 +66,19 @@ public interface LynxUsbDevice extends RobotUsbModule, GlobalWarningSource, Robo
 
     void changeModuleAddress(LynxModule module, int oldAddress, Runnable runnable);
 
-    void addConfiguredModule(LynxModule module) throws RobotCoreException, InterruptedException, LynxNackException;
+    LynxModule addConfiguredModule(LynxModule module) throws RobotCoreException, InterruptedException;
 
     @Nullable LynxModule getConfiguredModule(int moduleAddress);
 
+    /** Should ONLY be called by LynxModule.close() */
     void removeConfiguredModule(LynxModule module);
 
     void noteMissingModule(LynxModule module, String moduleName);
 
-    LynxModuleMetaList discoverModules() throws RobotCoreException, InterruptedException;
+    void performSystemOperationOnConnectedModule(int moduleAddress, boolean isParent, @Nullable Consumer<LynxModule> moduleConsumer)
+            throws RobotCoreException, InterruptedException;
+
+    LynxModuleMetaList discoverModules(boolean checkForImus) throws RobotCoreException, InterruptedException;
 
     void acquireNetworkTransmissionLock(@NonNull LynxMessage message) throws InterruptedException;
 

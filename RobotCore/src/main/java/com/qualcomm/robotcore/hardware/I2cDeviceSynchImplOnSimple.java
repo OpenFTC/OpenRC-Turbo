@@ -461,15 +461,49 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         }
 
     @Override
+    public byte read8()
+        {
+        return  read(1)[0];
+        }
+
+    @Override
     public synchronized byte read8(int ireg)
         {
         return read(ireg, 1)[0];
         }
 
     @Override
+    public byte[] read(int creg)
+        {
+        return readTimeStamped(creg).data;
+        }
+
+    @Override
     public byte[] read(int ireg, int creg)
         {
         return readTimeStamped(ireg,creg).data;
+        }
+
+    @Override
+    public TimestampedData readTimeStamped(int creg)
+        {
+        synchronized (concurrentClientLock)
+            {
+            if (!this.isOpenForReading())
+                return TimestampedI2cData.makeFakeData(null, getI2cAddress(), 0, creg);
+
+            this.cregReadLast = creg;
+
+            TimestampedI2cData result = new TimestampedI2cData();
+            result.i2cAddr  = this.getI2cAddress();
+
+            TimestampedData justData = this.i2cDeviceSynchSimple.readTimeStamped(creg);
+            result.data       = justData.data;
+            result.nanoTime   = justData.nanoTime;
+
+            addToHistoryQueue(result);
+            return result;
+            }
         }
 
     @Override
@@ -497,6 +531,12 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         }
 
     @Override
+    public void write8(int bVal)
+        {
+        write8(bVal, I2cWaitControl.ATOMIC);
+        }
+
+    @Override
     public void write8(int ireg, int bVal)
         {
         write8(ireg, bVal, I2cWaitControl.ATOMIC);
@@ -509,9 +549,21 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         }
 
     @Override
+    public void write8(int bVal, I2cWaitControl waitControl)
+        {
+        write(new byte[] { (byte)bVal }, waitControl);
+        }
+
+    @Override
     public void write(int ireg, byte[] data)
         {
         write(ireg, data, I2cWaitControl.ATOMIC);
+        }
+
+    @Override
+    public void write(byte[] data)
+        {
+        write(data, I2cWaitControl.ATOMIC);
         }
 
     @Override
@@ -525,6 +577,19 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
             this.iregWriteLast = ireg;
             this.rgbWriteLast = Arrays.copyOf(data, data.length);
             this.i2cDeviceSynchSimple.write(ireg, data, waitControl);
+            }
+        }
+
+    @Override
+    public void write(byte[] data, I2cWaitControl waitControl)
+        {
+        synchronized (concurrentClientLock)
+            {
+            if (!isOpenForWriting())
+                return; // Ignore the write
+
+            this.rgbWriteLast = Arrays.copyOf(data, data.length);
+            this.i2cDeviceSynchSimple.write(data, waitControl);
             }
         }
 

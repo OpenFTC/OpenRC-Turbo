@@ -29,36 +29,19 @@
  */
 package org.firstinspires.ftc.robotcore.internal.opmode;
 
-import com.qualcomm.robotcore.util.RobotLog;
-
-import java.lang.reflect.Constructor;
-
 public class OnBotJavaDeterminer {
 
-    private static String TAG = "OnBotJavaDeterminer";
-    private static String onBotJavaConstructorName = "org.firstinspires.ftc.onbotjava.OnBotJavaClassLoader";
+    private static String onBotJavaClassLoaderName = "org.firstinspires.ftc.onbotjava.OnBotJavaClassLoader";
+
+    private static String externalLibrariesClassLoaderName = "org.firstinspires.ftc.onbotjava.ExternalLibrariesClassLoader";
 
     public static boolean isOnBotJava(Class clazz)
     {
-        ClassLoader classLoader = clazz.getClassLoader();
-        Class targetClazz = classLoader.getClass();
-        boolean result;
-
-        try {
-            Constructor ctor = targetClazz.getConstructor();
-            String classLoaderName = ctor.getName();
-            if (classLoaderName.equals(onBotJavaConstructorName)) {
-                result = true;
-            } else {
-                result = false;
-            }
-        } catch (NoSuchMethodException e) {
-            RobotLog.vv(TAG, "isOnBotJava: class=%s loader=%s: %s", clazz.getSimpleName(), classLoader.getClass().getSimpleName(), false);
-            return false;
-        }
-
-        RobotLog.vv(TAG, "isOnBotJava: class=%s loader=%s: %s", clazz.getSimpleName(), classLoader.getClass().getSimpleName(), result);
-        return result;
+        return clazz.getClassLoader().getClass().getName().equals(onBotJavaClassLoaderName);
     }
 
+    public static boolean isExternalLibraries(Class clazz)
+    {
+        return clazz.getClassLoader().getClass().getName().equals(externalLibrariesClassLoaderName);
+    }
 }

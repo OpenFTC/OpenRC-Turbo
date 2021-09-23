@@ -43,6 +43,6 @@ public interface RobotCoreLynxUsbDevice
     void failSafe();
     void lockNetworkLockAcquisitions();
     void setThrowOnNetworkLockAcquisition(boolean shouldThrow);
-    LynxModuleMetaList discoverModules() throws RobotCoreException, InterruptedException;
+    LynxModuleMetaList discoverModules(boolean checkForImus) throws RobotCoreException, InterruptedException;
     void close();
     }

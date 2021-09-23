@@ -79,6 +79,7 @@ public class VendorProductSerialNumber extends SerialNumber
 
     public VendorProductSerialNumber(int vid, int pid, String connectionPath)
         {
+        // Do NOT change this, so we don't break old configuration files
         this(Misc.formatInvariant("%svendor=0x%04x|product=0x%04x|connection=%s", vendorProductPrefix, vid, pid, connectionPath==null?"":connectionPath));
         }
 

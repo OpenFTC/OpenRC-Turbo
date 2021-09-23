@@ -32,6 +32,16 @@ goog.provide('Blockly.FtcJava.texts');
 goog.require('Blockly.FtcJava');
 
 
+Blockly.FtcJava.getOutputType_text_ = function(block) {
+  switch (block.type) {
+    case 'text_length':
+    case 'text_indexOf':
+    case 'text_count':
+      return 'int';
+  }
+  return false;
+};
+
 Blockly.FtcJava['text'] = function(block) {
   // Text value.
   var code = Blockly.FtcJava.quote_(block.getFieldValue('TEXT'));

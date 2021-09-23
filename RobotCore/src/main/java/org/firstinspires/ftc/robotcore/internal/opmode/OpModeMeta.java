@@ -46,7 +46,7 @@ public class OpModeMeta
     //----------------------------------------------------------------------------------------------
 
     public enum Flavor { AUTONOMOUS, TELEOP }
-    public enum Source { ANDROID_STUDIO, BLOCKLY, ONBOTJAVA}
+    public enum Source { ANDROID_STUDIO, BLOCKLY, ONBOTJAVA, EXTERNAL_LIBRARY}
 
     // arbitrary, but unlikely to be used by users. Sorts early
     public static final String DefaultGroup = "$$$$$$$";

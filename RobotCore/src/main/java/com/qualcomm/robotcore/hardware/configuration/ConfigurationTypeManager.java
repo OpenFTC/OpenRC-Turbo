@@ -402,6 +402,21 @@ public final class ConfigurationTypeManager implements ClassFilter
             }
         }
 
+    private void clearExternalLibrariesTypes()
+        {
+        List<UserConfigurationType> extantUserTypes = new ArrayList<>(mapTagToUserType.values());  // capture to avoid deleting while iterating
+
+        for (UserConfigurationType userType : extantUserTypes)
+            {
+            if (userType.isExternalLibraries())
+                {
+                existingTypeDisplayNamesMap.get(userType.getDeviceFlavor()).remove(userType.getName());
+                existingXmlTags.remove(userType.getXmlTag());
+                mapTagToUserType.remove(userType.getXmlTag());
+                }
+            }
+        }
+
     //----------------------------------------------------------------------------------------------
     // Annotation parsing
     //----------------------------------------------------------------------------------------------
@@ -414,6 +429,11 @@ public final class ConfigurationTypeManager implements ClassFilter
     @Override public void filterOnBotJavaClassesStart()
         {
         clearOnBotJavaTypes();
+        }
+
+    @Override public void filterExternalLibrariesClassesStart()
+        {
+        clearExternalLibrariesTypes();
         }
 
     @SuppressWarnings("unchecked")
@@ -459,6 +479,11 @@ public final class ConfigurationTypeManager implements ClassFilter
         filterClass(clazz);
         }
 
+    @Override public void filterExternalLibrariesClass(Class clazz)
+        {
+        filterClass(clazz);
+        }
+
     @Override public void filterAllClassesComplete()
         {
         // Nothing to do
@@ -466,7 +491,12 @@ public final class ConfigurationTypeManager implements ClassFilter
 
     @Override public void filterOnBotJavaClassesComplete()
         {
-        filterAllClassesComplete();
+        // Nothing to do
+        }
+
+    @Override public void filterExternalLibrariesClassesComplete()
+        {
+        // Nothing to do
         }
 
     @SuppressWarnings("unchecked")

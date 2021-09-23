@@ -50,7 +50,6 @@ import org.firstinspires.ftc.ftccommon.external.RobotStateMonitor;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameListener;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.robotcore.internal.network.WifiDirectDeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkStatus;
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
 
@@ -258,19 +257,18 @@ public class UpdateUI {
     void refreshTextErrorMessage() {
 
       String errorMessage   = RobotLog.getGlobalErrorMsg();
-      String warningMessage = RobotLog.getGlobalWarningMessage();
+      RobotLog.GlobalWarningMessage warningMessage = RobotLog.getGlobalWarningMessage();
 
-      if (!errorMessage.isEmpty() || !warningMessage.isEmpty()) {
+      if (!errorMessage.isEmpty() || !warningMessage.message.isEmpty()) {
         if (!errorMessage.isEmpty()) {
-          String message = activity.getString(R.string.error_text_error, trimTextErrorMessage(errorMessage));
-          setText(textErrorMessage, message);
+          String errorForDisplay = activity.getString(R.string.error_text_error, errorMessage);
+          setText(textErrorMessage, errorForDisplay);
           textErrorMessage.setTextColor(AppUtil.getInstance().getColor(R.color.text_error));
-          if (stateMonitor != null) stateMonitor.updateErrorMessage(message);
+          if (stateMonitor != null) stateMonitor.updateErrorMessage(errorMessage);
         } else {
-          String message = activity.getString(R.string.error_text_warning, trimTextErrorMessage(warningMessage));
-          setText(textErrorMessage, message);
+          setText(textErrorMessage, warningMessage.message);
           textErrorMessage.setTextColor(AppUtil.getInstance().getColor(R.color.text_warning));
-          if (stateMonitor != null) stateMonitor.updateWarningMessage(message);
+          if (stateMonitor != null) stateMonitor.updateWarningMessage(warningMessage);
         }
         dimmer.longBright();
       } else {
@@ -281,11 +279,6 @@ public class UpdateUI {
           stateMonitor.updateWarningMessage(null);
         }
       }
-    }
-
-    String trimTextErrorMessage(String message) {
-      // error text box is larger now; don't bother trimming
-      return message;
     }
 
   }

@@ -1,4 +1,4 @@
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<xml xmlns="https://developers.google.com/blockly/xml">
 <variables>
 <variable type="" id="FbaKvU!;|Tlp/}9nA2Ob">imuParameters</variable>
 <variable type="" id="~LUL9~Z;enziZiH||`!?">angles</variable>

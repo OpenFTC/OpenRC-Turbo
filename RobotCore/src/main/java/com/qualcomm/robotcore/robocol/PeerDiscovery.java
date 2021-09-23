@@ -31,12 +31,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.robotcore.robocol;
 
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.exception.RobotProtocolException;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.TypeConversion;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.threeten.bp.YearMonth;
 
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -55,15 +58,15 @@ public class PeerDiscovery extends RobocolParsableBase {
   public enum PeerType {
     /*
      * NOTE: when adding new message types, do not change existing message
-     * type values or you will break backwards capability.
+     * type values, or you will break backwards compatibility.
      */
     NOT_SET(0),
     PEER(1),
-    GROUP_OWNER(2),
+    @Deprecated GROUP_OWNER(2),
     NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION(3);
 
     private static final PeerType[] VALUES_CACHE = PeerType.values();
-    private int type;
+    private final int type;
 
     /**
      * Create a PeerType from a byte
@@ -75,7 +78,7 @@ public class PeerDiscovery extends RobocolParsableBase {
       try {
         p = VALUES_CACHE[b];
       } catch (ArrayIndexOutOfBoundsException e) {
-        RobotLog.w(String.format("Cannot convert %d to Peer: %s", b, e.toString()));
+        RobotLog.ww(TAG, "Cannot convert %d to Peer: %s", b, e.toString());
       }
       return p;
     }
@@ -98,17 +101,32 @@ public class PeerDiscovery extends RobocolParsableBase {
   //------------------------------------------------------------------------------------------------
 
   private PeerType peerType;
+  // The public APIs of this class only expose YearMonth, but internally we represent them as they
+  // exist on the wire, to prevent unnecessary allocations
+  private byte sdkBuildMonth;
+  private short sdkBuildYear;
+  private int sdkMajorVersion;
+  private int sdkMinorVersion;
 
   //------------------------------------------------------------------------------------------------
   // Construction
   //------------------------------------------------------------------------------------------------
 
   public static PeerDiscovery forReceive() {
-    return new PeerDiscovery(PeerType.NOT_SET);
+    return new PeerDiscovery(PeerType.NOT_SET, (byte) 1, (short) 1, 0, 0);
   }
 
-  public PeerDiscovery(PeerDiscovery.PeerType peerType) {
+  public static PeerDiscovery forTransmission(PeerDiscovery.PeerType peerType) {
+    YearMonth buildMonth = AppUtil.getInstance().getLocalSdkBuildMonth();
+    return new PeerDiscovery(peerType, (byte) buildMonth.getMonthValue(), (short) buildMonth.getYear(), BuildConfig.SDK_MAJOR_VERSION, BuildConfig.SDK_MINOR_VERSION);
+  }
+
+  private PeerDiscovery(PeerDiscovery.PeerType peerType, byte sdkBuildMonth, short sdkBuildYear, int sdkMajorVersion, int sdkMinorVersion) {
     this.peerType = peerType;
+    this.sdkBuildMonth = sdkBuildMonth;
+    this.sdkBuildYear = sdkBuildYear;
+    this.sdkMajorVersion = sdkMajorVersion;
+    this.sdkMinorVersion = sdkMinorVersion;
   }
 
   //------------------------------------------------------------------------------------------------
@@ -120,6 +138,32 @@ public class PeerDiscovery extends RobocolParsableBase {
    */
   public PeerType getPeerType() {
     return peerType;
+  }
+
+  /**
+   * @return The month and year that the SDK that sent this packet was built in
+   */
+  public YearMonth getSdkBuildMonth() {
+    if (sdkBuildMonth >= 1 && sdkBuildMonth <= 12) {
+      return YearMonth.of(sdkBuildYear, sdkBuildMonth);
+    } else {
+      return YearMonth.of(1, 1);
+    }
+  }
+
+  /**
+   * Checks if the build month was set correctly without allocating
+   */
+  public boolean isSdkBuildMonthValid() {
+    return sdkBuildMonth > 0; // All we really need to check here is if it's non-zero
+  }
+
+  public int getSdkMajorVersion() {
+    return sdkMajorVersion;
+  }
+
+  public int getSdkMinorVersion() {
+    return sdkMinorVersion;
   }
 
   @Override
@@ -137,7 +181,9 @@ public class PeerDiscovery extends RobocolParsableBase {
   //
   // That's 13 bytes total. On reception, a check was made that the incoming packet had at least 13 bytes.
   // We aim to preserve compatibility with this format, even though that means that the header
-  // structure of a PeerDiscovery is now different than all other RobocolParsable's.
+  // structure of a PeerDiscovery is now different from all other RobocolParsable's. Starting in
+  // version 7.0, the 6-byte trailing payload contains information about the SDK version, instead of
+  // just zeros.
   //
   // The current serialization format is this:
   //
@@ -146,7 +192,11 @@ public class PeerDiscovery extends RobocolParsableBase {
   //  1 byte    ROBOCOL_VERSION
   //  1 byte    peer type
   //  2 bytes   sequence number (big endian)
-  //  6 bytes   unused payload (ignored on reception)
+  //  1 byte    month that the SDK version was released in (1-12)
+  //  2 bytes   year that the SDK version was released in (big endian)
+  //  1 byte    major SDK version number (unsigned)
+  //  1 byte    minor SDK version number (unsigned)
+  //  1 byte    ignored
 
   static final int cbBufferHistorical  = 13;
   static final int cbPayloadHistorical = 10;
@@ -155,13 +205,15 @@ public class PeerDiscovery extends RobocolParsableBase {
   public byte[] toByteArray() throws RobotCoreException {
     ByteBuffer buffer = allocateWholeWriteBuffer(cbBufferHistorical);
     try {
-
       buffer.put(getRobocolMsgType().asByte());
       buffer.putShort((short) cbPayloadHistorical);
-      buffer.put(RobocolConfig.ROBOCOL_VERSION);
+      buffer.put((byte) RobocolConfig.ROBOCOL_VERSION);
       buffer.put(peerType.asByte());
       buffer.putShort((short)this.sequenceNumber);
-
+      buffer.put(sdkBuildMonth);
+      buffer.putShort(sdkBuildYear);
+      buffer.put((byte) sdkMajorVersion);
+      buffer.put((byte) sdkMinorVersion);
     } catch (BufferOverflowException e) {
       RobotLog.logStacktrace(e);
     }
@@ -178,9 +230,13 @@ public class PeerDiscovery extends RobocolParsableBase {
 
     byte  peerMessageType    = byteBuffer.get();
     short peerCbPayload      = byteBuffer.getShort();
-    byte  peerRobocolVersion = byteBuffer.get();
+    int   peerRobocolVersion  = byteBuffer.get() & 0xFF; // Convert from -128 to 128, to 0 to 255
     byte  peerType           = byteBuffer.get();
     short peerSeqNum         = byteBuffer.getShort();
+    sdkBuildMonth            = byteBuffer.get();
+    sdkBuildYear             = byteBuffer.getShort();
+    sdkMajorVersion          = TypeConversion.unsignedByteToInt(byteBuffer.get());
+    sdkMinorVersion          = TypeConversion.unsignedByteToInt(byteBuffer.get());
 
     // We insist on both ends having the same understanding of the protocol. Something fancier
     // we could do in the future is the usual major.minor version management, but that doesn't

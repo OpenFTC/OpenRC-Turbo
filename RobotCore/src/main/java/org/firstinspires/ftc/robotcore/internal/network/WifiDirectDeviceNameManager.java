@@ -158,7 +158,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
      *              initializeP2pSettings();
      *          }
      *
-     * It's the initializeP2pSettings() here that initializes the Wifi Direct device name. Note that
+     * It's the initializeP2pSettings() here that initializes the Wi-Fi Direct device name. Note that
      * that happens *after* the state and connection changed broadcasts (!). Also note that we don't
      * *necessarily* get a WIFI_P2P_THIS_DEVICE_CHANGED_ACTION with the name in it: if this is a reboot
      * after name initialization, and something in the WIFI_P2P_THIS_DEVICE_CHANGED_ACTION state hasn't
@@ -182,7 +182,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
      * Sets the name by which this device is publicly known. Attempts in doing so to keep secondary
      * system names (e.g. the WifiDirect name, if applicable) in sync with this name.
      * @param deviceName the new name for the device
-     * @param sendChangeToSystem whether or not we should tell Android to change the WiFi Direct name
+     * @param sendChangeToSystem whether or not we should tell Android to change the Wi-Fi Direct name
      */
     @Override
     public synchronized void setDeviceName(@NonNull String deviceName, boolean sendChangeToSystem) throws InvalidNetworkSettingException {
@@ -240,13 +240,13 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
      * to something else, if we chose. */
     protected enum DeviceNameTracking { UNINITIALIZED, AWAITING_WIFIDIRECT, WIFIDIRECT }
 
-    /** From android.provider.Settings: the WiFi peer-to-peer device name */
+    /** From android.provider.Settings: the Wi-Fi peer-to-peer device name */
     protected static final String WIFI_P2P_DEVICE_NAME = "wifi_p2p_device_name";
 
     @Override
     public synchronized void initializeDeviceNameIfNecessary()
         {
-        // Get from Wifi Direct if we're just starting out: ask nicely,
+        // Get from Wi-Fi Direct if we're just starting out: ask nicely,
         // using the sanctioned public API.
         if (getDeviceNameTracking()==DeviceNameTracking.UNINITIALIZED)
             {
@@ -323,7 +323,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
             // Don't send the new name to the system
             setDeviceNameTracking(DeviceNameTracking.AWAITING_WIFIDIRECT);
         } else {
-            // Update the system WiFi direct name with the made up value
+            // Update the system Wi-Fi Direct name with the made up value
             setDeviceNameTracking(DeviceNameTracking.WIFIDIRECT);
         }
         internalSetDeviceName(defaultMadeUpDeviceName);
@@ -368,7 +368,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
                     {
                     RobotLog.vv(TAG, "deviceName pref changed: now=%s", newDeviceName);
 
-                    // keep the wifi direct name in sync if they're supposed to be locked
+                    // keep the Wi-Fi Direct name in sync if they're supposed to be locked
                     if (getDeviceNameTracking()==DeviceNameTracking.WIFIDIRECT)
                         {
                         setWifiDirectDeviceName(newDeviceName);
@@ -388,7 +388,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
         }
 
     //----------------------------------------------------------------------------------------------
-    // Wifi Direct
+    // Wi-Fi Direct
     //----------------------------------------------------------------------------------------------
 
     protected class WifiAgentCallback implements WifiDirectAgent.Callback
@@ -421,17 +421,17 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
                 this.wifiDirectName = wifiDirectName;
                 RobotLog.vv(TAG, "wifiDirectName=%s", wifiDirectName);
 
-                // If our device name is supposed to track wifi direct, then update that too
+                // If our device name is supposed to track Wi-Fi Direct, then update that too
                 DeviceNameTracking tracking = getDeviceNameTracking();
                 if (tracking==DeviceNameTracking.WIFIDIRECT || tracking==DeviceNameTracking.AWAITING_WIFIDIRECT)
                     {
-                    // We have a real Wifi direct name in hand now, so enough of this AWAITING
+                    // We have a real Wi-Fi Direct name in hand now, so enough of this AWAITING
                     if (tracking==DeviceNameTracking.AWAITING_WIFIDIRECT)
                         {
                         setDeviceNameTracking(DeviceNameTracking.WIFIDIRECT);
                         }
 
-                    // Remember our device name as the wifi direct one
+                    // Remember our device name as the Wi-Fi Direct one
                     internalSetDeviceName(wifiDirectName);
                     }
 
@@ -454,7 +454,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
         wifiDirectAgent.unregisterCallback(wifiAgentCallback);
         }
 
-    /** Waits a good long while, but not forever, for the wifi direct name to be initialized */
+    /** Waits a good long while, but not forever, for the Wi-Fi Direct name to be initialized */
     protected void waitForWifiDirectName() throws TimeoutException
         {
         RobotLog.vv(TAG, "waitForWifiDirectName() thread=%d...", Thread.currentThread().getId());
@@ -488,7 +488,7 @@ public class WifiDirectDeviceNameManager extends WifiStartStoppable implements D
         }
 
     /**
-     * Attempts to set the Android Wifi Direct name of this device. No status as to whether the
+     * Attempts to set the Android Wi-Fi Direct name of this device. No status as to whether the
      * attempt is successful or not is (currently) provided, there being no current motivation and
      * the asynchrony involved making the providing thereof not a trivial thing.
      * @param deviceName the new name for the device

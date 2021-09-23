@@ -61,7 +61,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * {@link WifiDirectAgent provides *low-level* basic connectivity to Wifi Direct. Most
+ * {@link WifiDirectAgent provides *low-level* basic connectivity to Wi-Fi Direct. Most
  * importantly, this handles callback threading reasonably for us so we don't end up in
  * deadlock situations with the main app thread.
  */
@@ -205,9 +205,9 @@ import java.util.List;
         }
 
     //----------------------------------------------------------------------------------------------
-    // General wifi-related queries & utilities
+    // General Wi-Fi-related queries & utilities
     //
-    // Not really wifi-*direct*-related, per se, but it's handy and convenient to locate there here
+    // Not really Wi-Fi-*direct*-related, per se, but it's handy and convenient to locate there here
     //----------------------------------------------------------------------------------------------
 
     @Deprecated
@@ -240,7 +240,7 @@ import java.util.List;
         return state== NetworkInfo.State.CONNECTED || state== NetworkInfo.State.CONNECTING;
         }
 
-    /** synchronously disconnects from wifi direct. must not be called on the callback looper thread */
+    /** synchronously disconnects from Wi-Fi direct. must not be called on the callback looper thread */
     public boolean disconnectFromWifiDirect()
         {
         return lockCompletion(false, new Func<Boolean>()
@@ -352,7 +352,7 @@ import java.util.List;
                     break;
                     }
                 case WifiDirectPersistentGroupManager.WIFI_P2P_PERSISTENT_GROUPS_CHANGED_ACTION: {
-                    RobotLog.vv(TAG, "wifi direct remembered groups cleared");
+                    RobotLog.vv(TAG, "Wi-Fi Direct remembered groups cleared");
                     // Let our network peer know if he's connected and listening
                     NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_NOTIFY_WIFI_DIRECT_REMEMBERED_GROUPS_CHANGED));
                     break;

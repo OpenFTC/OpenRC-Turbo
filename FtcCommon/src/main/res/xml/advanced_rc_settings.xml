@@ -45,9 +45,9 @@
         </PreferenceScreen>
 
         <SwitchPreference
-            android:title="@string/titleWarnAboutOutdatedHubs"
-            android:summary="@string/summaryWarnAboutOutdatedHubs"
-            android:key="@string/pref_warn_about_outdated_firmware"
+            android:title="@string/titleWarnAboutObsoleteSoftware"
+            android:summary="@string/summaryWarnAboutObsoleteSoftware"
+            android:key="@string/pref_warn_about_obsolete_software"
             android:defaultValue="true" />
 
         <SwitchPreference
@@ -60,6 +60,12 @@
             android:title="@string/titleWarnAbout2_4GhzBand"
             android:summary="@string/summaryWarnAbout2_4GhzBand"
             android:key="@string/pref_warn_about_2_4_ghz_band"
+            android:defaultValue="true" />
+
+        <SwitchPreference
+            android:title="@string/titleWarnAboutIncorrectClocks"
+            android:summary="@string/summaryWarnAboutIncorrectClocks"
+            android:key="@string/pref_warn_about_incorrect_clocks"
             android:defaultValue="true" />
 
     </PreferenceCategory>

@@ -42,9 +42,7 @@ import org.firstinspires.ftc.onbotjava.RequestConditions;
 import org.firstinspires.ftc.onbotjava.OnBotJavaManager;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
-
-import java.nio.file.Path;
-import java.util.Date;
+import org.threeten.bp.LocalDateTime;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -59,7 +57,7 @@ public class DownloadFile implements WebHandler {
 
         String fileName = RequestConditions.dataForParameter(session, RequestConditions.REQUEST_KEY_FILE);
         if (fileName.equals(OnBotJavaFileSystemUtils.PATH_SEPARATOR + OnBotJavaManager.srcDir.getName() + OnBotJavaFileSystemUtils.PATH_SEPARATOR)) {
-            fileName = "OnBotJava-" + AppUtil.getInstance().getIso8601DateFormat().format(new Date()) + OnBotJavaFileSystemUtils.EXT_ZIP_FILE;
+            fileName = "OnBotJava-" + AppUtil.getInstance().getIso8601DateTimeFormatter().format(LocalDateTime.now()) + OnBotJavaFileSystemUtils.EXT_ZIP_FILE;
         } else if (fileName.endsWith(OnBotJavaFileSystemUtils.PATH_SEPARATOR)) {
             // Check to see if this is a folder, if so add a ".zip" extension
             fileName = fileName.substring(0, fileName.length() - 1);

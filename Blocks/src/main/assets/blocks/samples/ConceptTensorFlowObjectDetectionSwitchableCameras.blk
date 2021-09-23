@@ -20,10 +20,10 @@
 <block type="comment" id="#ul#WaXLbg~hUii+7AB_">
 <field name="COMMENT">Initialize Vuforia using SwitchableCamera</field>
 <next>
-<block type="vuforiaCurrentGame_initialize_withWebcam" id="6Xzo0d*2b_I.B:]B4+5q">
+<block type="vuforiaCurrentGame_initialize_withWebcam_2" id="6Xzo0d*2b_I.B:]B4+5q">
 <value name="CAMERA_NAME">
 <shadow type="navigation_webcamName" id="Uztu;2eL:)g_#d6}G98K">
-<field name="WEBCAM_NAME">C270</field>
+<field name="WEBCAM_NAME">Webcam 1</field>
 </shadow>
 <block type="navigation_switchableCamera" id="KvwXc`?Zj:Xz!4!YBg8c"/>
 </value>
@@ -44,37 +44,42 @@
 </value>
 <value name="CAMERA_MONITOR_FEEDBACK">
 <shadow type="navigation_typedEnum_cameraMonitorFeedback" id="TG%:#^SAd7#]OFj[V9K?">
-<field name="CAMERA_MONITOR_FEEDBACK">AXES</field>
+<field name="CAMERA_MONITOR_FEEDBACK">NONE</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DX">
+<value name="DX">
 <shadow type="math_number" id="~PyI_z2IlCq!Uv~b9^=v">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DY">
+<value name="DY">
 <shadow type="math_number" id="CWCmb0p(S96VKi%Kk(3W">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_DZ">
+<value name="DZ">
 <shadow type="math_number" id="5WhUGHWwt[OKb:2pH+~:">
 <field name="NUM">0</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_X_ANGLE">
+<value name="AXES_ORDER">
+<shadow type="navigation_typedEnum_axesOrder" id="K8jWG:)SaZ?-YT@w(WSz">
+<field name="AXES_ORDER">XZY</field>
+</shadow>
+</value>
+<value name="FIRST_ANGLE">
 <shadow type="math_number" id="!C$T}|^{.b[TPj=vdHo$">
 <field name="NUM">90</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_Y_ANGLE">
+<value name="SECOND_ANGLE">
 <shadow type="math_number" id="=a{Eypfq::uaptXMi6Jq">
-<field name="NUM">0</field>
+<field name="NUM">90</field>
 </shadow>
 </value>
-<value name="CAMERA_LOCATION_ON_ROBOT_Z_ANGLE">
+<value name="THIRD_ANGLE">
 <shadow type="math_number" id=":|I95FQpD}bI]ECP-w/,">
-<field name="NUM">90</field>
+<field name="NUM">0</field>
 </shadow>
 </value>
 <value name="USE_COMPETITION_FIELD_TARGET_LOCATIONS">
@@ -132,6 +137,18 @@
 </shadow>
 </value>
 </block>
+</value>
+<next>
+<block type="telemetry_addTextData_All" id="R8@mL`4cKqe:)%Y(CMw@">
+<value name="KEY">
+<shadow type="text" id="}.*a`:)zt=hmy{i3l5)(">
+<field name="TEXT">DS preview on/off</field>
+</shadow>
+</value>
+<value name="TEXT">
+<shadow type="text" id="!+8FpABU5y5EsUo@y5n;">
+<field name="TEXT">3 dots, Camera Stream</field>
+</shadow>
 </value>
 <next>
 <block type="telemetry_addTextData_All" id="/Zm[n8^)(`(S}Ab9j!;|">
@@ -307,6 +324,8 @@
 <field name="COMMENT">Deactivate TFOD.</field>
 <next>
 <block type="tfodCurrentGame_deactivate" id=")#LnjM-c3n?~scY$Z!@Y"/>
+</next>
+</block>
 </next>
 </block>
 </next>
@@ -681,12 +700,24 @@
 <block type="text_join" id="DT/!lFr4vq[1YesUPQ_T">
 <mutation items="2"/>
 <value name="ADD0">
+<block type="misc_roundDecimal" id="MJiUx(.*1/uTx=U3UQVN">
+<value name="NUMBER">
+<shadow type="math_number" id="Xa3d{xZ,ZI;#;+Y13M}c">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="VeL$%e^~N33.uZUiGhUK">
 <field name="PROP">Left</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="89kTVFyI498d3Mlqk$Do">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="![41h)tK?{#QSR)Bm#}:">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -699,12 +730,24 @@
 </block>
 </value>
 <value name="ADD1">
+<block type="misc_roundDecimal" id="B//_ik,!i4,{#Q!u_?Ov">
+<value name="NUMBER">
+<shadow type="math_number" id="FxFf8zHn|U9)1(l|!%9P">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="G~K_0Bp1F20i`4CU,PE{">
 <field name="PROP">Top</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="M]Nj%yp]N-HH{kA|-PC!">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="a+TH2AFM%a_5LCJK~;5o">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -743,12 +786,24 @@
 <block type="text_join" id="o8Gtc?kcbG~`#vx!7ck^">
 <mutation items="2"/>
 <value name="ADD0">
+<block type="misc_roundDecimal" id="]zo?7:.K9?MZidSqcH~`">
+<value name="NUMBER">
+<shadow type="math_number" id=".lxHzqCsC(IvbJ1UZSQG">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="B-6W%AK(jO!ur3t$S!h@">
 <field name="PROP">Right</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="I%pBUv`--i6Yr0iXNPT4">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="Xc$F/9{NLa(:zO7ji*?N">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -761,12 +816,24 @@
 </block>
 </value>
 <value name="ADD1">
+<block type="misc_roundDecimal" id="~i`TNxQ|fbw!Gj_W_yM/">
+<value name="NUMBER">
+<shadow type="math_number" id="[ln5d]Lsy|IUdDhm#Jui">
+<field name="NUM">3.14159265</field>
+</shadow>
 <block type="tfodRecognition_getProperty_Number" id="F%|Lo.;yf5Od/%EqOuf)">
 <field name="PROP">Bottom</field>
 <value name="TFOD_RECOGNITION">
 <block type="variables_get" id="TA34*WE*L([F@%Yk_x*4">
 <field name="VAR" id="vP~n9zf$lW%hYD/C.j_-">recognition</field>
 </block>
+</value>
+</block>
+</value>
+<value name="PRECISION">
+<shadow type="math_number" id="TATnfy]t(yEHQz.hHL[5">
+<field name="NUM">0</field>
+</shadow>
 </value>
 </block>
 </value>
@@ -790,6 +857,6 @@
 </xml>
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <Extra>
-<OpModeMeta flavor="TELEOP" group="" />
+<OpModeMeta flavor="TELEOP" group="" autoTransition="" />
 <Enabled value="true" />
 </Extra>

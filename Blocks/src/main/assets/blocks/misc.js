@@ -290,77 +290,125 @@ Blockly.FtcJava['misc_addItemToList'] = function(block) {
   return list + '.add(' + item + ');\n';
 };
 
-function callJava_mutationToDom(block) {
+//................................................................................
+// MyBlocks
+
+var MY_BLOCKS_DEFAULT_HEADING = 'call Java method';
+var MY_BLOCKS_DEFAULT_COLOR = 289;
+
+function misc_call_mutationToDom(block) {
   var xmlElement = Blockly.utils.xml.createElement('mutation');
-  xmlElement.setAttribute('methodLookupString', block.methodLookupString_);
-  xmlElement.setAttribute('parameterCount', block.parameterCount_);
-  xmlElement.setAttribute('returnType', block.returnType_);
-  xmlElement.setAttribute('comment', block.comment_);
-  xmlElement.setAttribute('tooltip', block.tooltip_);
-  xmlElement.setAttribute('accessMethod', block.accessMethod_);
-  xmlElement.setAttribute('convertReturnValue', block.convertReturnValue_);
-  for (var i = 0; i < block.parameterCount_; i++) {
-    xmlElement.setAttribute('argLabel' + i, block.argLabels_[i]);
-    xmlElement.setAttribute('argType' + i, block.argTypes_[i]);
-    xmlElement.setAttribute('argAuto' + i, block.argAutos_[i]);
+  xmlElement.setAttribute('createDropdownFunctionName', block.ftcAttributes_.createDropdownFunctionName);
+  xmlElement.setAttribute('methodLookupString', block.ftcAttributes_.methodLookupString);
+  xmlElement.setAttribute('fullClassName', block.ftcAttributes_.fullClassName);
+  xmlElement.setAttribute('simpleName', block.ftcAttributes_.simpleName);
+  xmlElement.setAttribute('parameterCount', block.ftcAttributes_.parameterCount);
+  xmlElement.setAttribute('returnType', block.ftcAttributes_.returnType);
+  xmlElement.setAttribute('color', String(block.ftcAttributes_.color));
+  xmlElement.setAttribute('heading', block.ftcAttributes_.heading);
+  xmlElement.setAttribute('comment', block.ftcAttributes_.comment);
+  xmlElement.setAttribute('tooltip', block.ftcAttributes_.tooltip);
+  xmlElement.setAttribute('accessMethod', block.ftcAttributes_.accessMethod);
+  xmlElement.setAttribute('convertReturnValue', block.ftcAttributes_.convertReturnValue);
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    xmlElement.setAttribute('argLabel' + i, block.ftcAttributes_.argLabels[i]);
+    xmlElement.setAttribute('argType' + i, block.ftcAttributes_.argTypes[i]);
+    xmlElement.setAttribute('argAuto' + i, block.ftcAttributes_.argAutos[i]);
   }
   return xmlElement;
 }
 
-function callJava_domToMutation(block, xmlElement) {
-  block.methodLookupString_ = xmlElement.getAttribute('methodLookupString');
-  block.parameterCount_ = parseInt(xmlElement.getAttribute('parameterCount'), 10);
-  block.returnType_ = xmlElement.getAttribute('returnType');
-  block.comment_ = xmlElement.getAttribute('comment');
-  block.tooltip_ = xmlElement.getAttribute('tooltip');
-  block.accessMethod_ = xmlElement.getAttribute('accessMethod');
-  block.convertReturnValue_ = xmlElement.getAttribute('convertReturnValue');
-  // When the PR was first created, accessMethod and convertReturnValue were not saved in the block.
-  if (!block.accessMethod_) {
+function misc_call_domToMutation(block, xmlElement) {
+  if (!block.ftcAttributes_) {
+    block.ftcAttributes_ = Object.create(null);
+  }
+  block.ftcAttributes_.methodLookupString = xmlElement.getAttribute('methodLookupString');
+  block.ftcAttributes_.parameterCount = parseInt(xmlElement.getAttribute('parameterCount'), 10);
+  block.ftcAttributes_.returnType = xmlElement.getAttribute('returnType');
+  block.ftcAttributes_.comment = xmlElement.getAttribute('comment');
+  block.ftcAttributes_.tooltip = xmlElement.getAttribute('tooltip');
+  block.ftcAttributes_.accessMethod = xmlElement.getAttribute('accessMethod');
+  block.ftcAttributes_.convertReturnValue = xmlElement.getAttribute('convertReturnValue');
+
+  // Attributes added for 2021-2022 season.
+  block.ftcAttributes_.heading = xmlElement.hasAttribute('heading')
+      ? xmlElement.getAttribute('heading') : MY_BLOCKS_DEFAULT_HEADING;
+  block.ftcAttributes_.color = xmlElement.hasAttribute('color')
+      ? Number(xmlElement.getAttribute('color')) : MY_BLOCKS_DEFAULT_COLOR;
+  block.ftcAttributes_.createDropdownFunctionName = xmlElement.hasAttribute('createDropdownFunctionName')
+      ? xmlElement.getAttribute('createDropdownFunctionName') : '';
+  block.ftcAttributes_.fullClassName = xmlElement.hasAttribute('fullClassName')
+      ? xmlElement.getAttribute('fullClassName') : ('org.firstinspires.ftc.teamcode.' + block.getFieldValue('CLASS_NAME'));
+  block.ftcAttributes_.simpleName = xmlElement.hasAttribute('simpleName')
+      ? xmlElement.getAttribute('simpleName') : block.getFieldValue('CLASS_NAME');
+
+  // When the feature was first created, accessMethod and convertReturnValue were not saved in the block.
+  if (!block.ftcAttributes_.accessMethod) {
     figureOutAccessMethodAndConvertReturnValue(block);
   }
 
   // Update the block.
-  if (block.returnType_ != 'void') {
-    var outputCheck = classTypeToCheck(block.returnType_, false);
+  if (block.ftcAttributes_.returnType != 'void') {
+    var outputCheck = classTypeToCheck(block.ftcAttributes_.returnType, false);
     if (outputCheck) {
       if (block.outputConnection) {
         block.outputConnection.setCheck(outputCheck)
       }
     }
-    block.outputType_ = classTypeToFtcJavaInputOutputType(block.returnType_, outputCheck, false);
+    block.outputType_ = classTypeToFtcJavaInputOutputType(block.ftcAttributes_.returnType, outputCheck, false);
     block.getFtcJavaOutputType = function() {
       return block.outputType_;
     }
   }
   // Add argument sockets.
-  block.argLabels_ = [];
-  block.argTypes_ = [];
-  block.argAutos_ = [];
+  block.ftcAttributes_.argLabels = [];
+  block.ftcAttributes_.argTypes = [];
+  block.ftcAttributes_.argAutos = [];
   block.inputTypes_ = [];
-  for (var i = 0; i < block.parameterCount_; i++) {
-    block.argLabels_[i] = xmlElement.getAttribute('argLabel' + i);
-    block.argTypes_[i] = xmlElement.getAttribute('argType' + i);
-    block.argAutos_[i] = xmlElement.getAttribute('argAuto' + i);
-    var inputCheck = classTypeToCheck(block.argTypes_[i], true);
-    block.inputTypes_[i] = classTypeToFtcJavaInputOutputType(block.argTypes_[i], inputCheck, true);
-    if (block.argAutos_[i]) {
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    block.ftcAttributes_.argLabels[i] = xmlElement.getAttribute('argLabel' + i);
+    block.ftcAttributes_.argTypes[i] = xmlElement.getAttribute('argType' + i);
+    block.ftcAttributes_.argAutos[i] = xmlElement.getAttribute('argAuto' + i);
+    var inputCheck = classTypeToCheck(block.ftcAttributes_.argTypes[i], true);
+    block.inputTypes_[i] = classTypeToFtcJavaInputOutputType(block.ftcAttributes_.argTypes[i], inputCheck, true);
+    if (block.ftcAttributes_.argAutos[i]) {
       // No socket if parameter is provided automatically.
     } else {
       var input = block.appendValueInput('ARG' + i);
       if (inputCheck) {
         input.setCheck(inputCheck);
       }
-      var label = block.argLabels_[i]
-          ? block.argLabels_[i]
-          : classTypeToLabel(block.argTypes_[i], true);
+      var label = block.ftcAttributes_.argLabels[i]
+          ? block.ftcAttributes_.argLabels[i]
+          : classTypeToLabel(block.ftcAttributes_.argTypes[i], true);
       input.appendField(label)
           .setAlign(Blockly.ALIGN_RIGHT);
     }
   }
+  // Set the block's color.
+  block.setColour(block.ftcAttributes_.color);
+  // Set the block's HEADING (only misc_callJava_* blocks have HEADING)
+  var field = block.getField('HEADING');
+  if (field) {
+    var value = block.ftcAttributes_.heading || '';
+    if (value) {
+      field.setValue(value);
+    } else {
+      block.removeInput('HEADING'); // Remove the heading row.
+    }
+  }
+  // Set the block's DEVICE_NAME dropdown (only misc_callHardware_* blocks have DEVICE_NAME)
+  var input = block.getInput('DEVICE_NAME');
+  if (input) {
+    var fn = window[block.ftcAttributes_.createDropdownFunctionName];
+    if (typeof fn === 'function') {
+      input.removeField('DEVICE_NAME');
+      input.insertFieldAt(1, fn(), 'DEVICE_NAME');
+    }
+  }
   // Add a comment for the method's javadoc comment.
-  if (block.comment_) {
-    block.setCommentText(block.comment_);
+  if (block.ftcAttributes_.comment) {
+    block.setCommentText(block.ftcAttributes_.comment);
   }
   block.getFtcJavaInputType = function(inputName) {
     if (inputName.startsWith('ARG')) {
@@ -372,17 +420,17 @@ function callJava_domToMutation(block, xmlElement) {
 }
 
 function figureOutAccessMethodAndConvertReturnValue(block) {
-  block.accessMethod_ = 'callJava';
-  block.convertReturnValue_ = '';
-  switch (block.returnType_) {
+  block.ftcAttributes_.accessMethod = 'callJava';
+  block.ftcAttributes_.convertReturnValue = '';
+  switch (block.ftcAttributes_.returnType) {
     case 'boolean':
     case 'java.lang.Boolean':
-      block.accessMethod_ += '_boolean';
+      block.ftcAttributes_.accessMethod += '_boolean';
       break;
     case 'char':
     case 'java.lang.Character':
     case 'java.lang.String':
-      block.accessMethod_ += '_String';
+      block.ftcAttributes_.accessMethod += '_String';
       break;
     case 'byte':
     case 'java.lang.Byte':
@@ -396,8 +444,8 @@ function figureOutAccessMethodAndConvertReturnValue(block) {
     case 'java.lang.Float':
     case 'double':
     case 'java.lang.Double':
-      block.accessMethod_ += '_String';
-      block.convertReturnValue_ = 'Number';
+      block.ftcAttributes_.accessMethod += '_String';
+      block.ftcAttributes_.convertReturnValue = 'Number';
       break;
   }
 }
@@ -543,48 +591,66 @@ function arrayTypeToLabel(arrayType, removePackage) {
   return elementType + '[]';
 }
 
+function generateFtcImport(type) {
+  if (type.includes('.')) {
+    // Check for array of class.
+    if (type.match(/^\[*L.*\;$/)) {
+      var lastBracket = type.indexOf('[L');
+      var semiColon = type.indexOf(';');
+      generateFtcImport(type.substring(lastBracket + 2, semiColon));
+    } else {
+      var classToImport = type;
+      // For inner classes, import the outer class.
+      if (classToImport.includes('$')) {
+        classToImport = classToImport.substring(0, classToImport.indexOf('$'));
+      }
+      Blockly.FtcJava.generateImportStatement_(classToImport);
+    }
+  }
+}
+
 Blockly.Blocks['misc_callJava_return'] = {
   init: function() {
     this.setOutput(true);
-    this.appendDummyInput()
-        .appendField('call Java method');
+    this.appendDummyInput('HEADING')
+        .appendField(MY_BLOCKS_DEFAULT_HEADING, 'HEADING');
     this.appendDummyInput()
         .appendField(createNonEditableField(''), 'CLASS_NAME')
         .appendField('.')
         .appendField(createNonEditableField(''), 'METHOD_NAME');
-    this.setColour(functionColor);
+    this.setColour(MY_BLOCKS_DEFAULT_COLOR);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
     this.setTooltip(function() {
-      if (thisBlock.tooltip_) {
-        return thisBlock.tooltip_;
+      if (thisBlock.ftcAttributes_.tooltip) {
+        return thisBlock.ftcAttributes_.tooltip;
       } else {
-        var className = thisBlock.getFieldValue('CLASS_NAME');
         var methodName = thisBlock.getFieldValue('METHOD_NAME');
         return 'Calls the Java method named ' + methodName +
-            ' from the class named org.firstinspires.ftc.teamcode.' + className + '.' +
-            ' The Java method\'s return type is ' + classTypeToLabel(thisBlock.returnType_, false) + '.';
+            ' from the class named ' + thisBlock.ftcAttributes_.fullClassName + '.' +
+            ' The Java method\'s return type is ' + classTypeToLabel(thisBlock.ftcAttributes_.returnType, false) + '.';
       }
     });
   },
   mutationToDom: function() {
-    return callJava_mutationToDom(this);
+    return misc_call_mutationToDom(this);
   },
   domToMutation: function(xmlElement) {
-    callJava_domToMutation(this, xmlElement);
+    misc_call_domToMutation(this, xmlElement);
   },
 };
 
 function generateJavaScriptCallJava(block) {
   var delimiter = ',\n' + Blockly.JavaScript.INDENT + Blockly.JavaScript.INDENT;
+  // callJava is in runtime.js
   var code = 'callJava(' + miscIdentifierForJavaScript + delimiter +
-      '"' + block.returnType_ + '"' + delimiter +
-      '"' + block.accessMethod_ + '"' + delimiter +
-      '"' + block.convertReturnValue_ + '"' + delimiter +
-      '"' + block.methodLookupString_ + '"';
-  for (var i = 0; i < block.parameterCount_; i++) {
+      '"' + block.ftcAttributes_.returnType + '"' + delimiter +
+      '"' + block.ftcAttributes_.accessMethod + '"' + delimiter +
+      '"' + block.ftcAttributes_.convertReturnValue + '"' + delimiter +
+      '"' + block.ftcAttributes_.methodLookupString + '"';
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
     code += delimiter;
-    code += (block.argAutos_[i]
+    code += (block.ftcAttributes_.argAutos[i]
         ? 'null'
         : (Blockly.JavaScript.valueToCode(block, 'ARG' + i, Blockly.JavaScript.ORDER_COMMA) || 'null'));
   }
@@ -598,49 +664,30 @@ Blockly.JavaScript['misc_callJava_return'] = function(block) {
 };
 
 function generateFtcJavaCallJava(block) {
-  if (block.returnType_ != 'void') {
-    generateFtcImport(block.returnType_);
-  }
-  for (var i = 0; i < block.parameterCount_; i++) {
-    generateFtcImport(block.argTypes_[i]);
+  generateFtcImport(block.ftcAttributes_.returnType);
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    generateFtcImport(block.ftcAttributes_.argTypes[i]);
   }
 
-  var className = block.getFieldValue('CLASS_NAME');
+  if (block.ftcAttributes_.fullClassName.startsWith("org.firstinspires.ftc.teamcode.") &&
+      block.ftcAttributes_.fullClassName.lastIndexOf('.') == 30) {
+  } else {
+    generateFtcImport(block.ftcAttributes_.fullClassName);
+  }
+  var className = block.ftcAttributes_.simpleName;
   var methodName = block.getFieldValue('METHOD_NAME');
   var code = className + '.' + methodName + '(';
   var delimiter = '';
-  var order = (block.parameterCount_ == 1) ? Blockly.FtcJava.ORDER_NONE : Blockly.FtcJava.ORDER_COMMA;
-  for (var i = 0; i < block.parameterCount_; i++) {
+  var order = (block.ftcAttributes_.parameterCount == 1) ? Blockly.FtcJava.ORDER_NONE : Blockly.FtcJava.ORDER_COMMA;
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
     code += delimiter;
-    code += (block.argAutos_[i]
-        ? block.argAutos_[i]
+    code += (block.ftcAttributes_.argAutos[i]
+        ? block.ftcAttributes_.argAutos[i]
         : (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null'));
     delimiter = ', ';
   }
   code += ')';
   return code;
-}
-
-function generateFtcImport(classType) {
-  if (classType.includes('.')) {
-    // Check for array of class.
-    if (classType.match(/^\[*L.*\;$/)) {
-      var lastBracket = classType.indexOf('[L');
-      var semiColon = classType.indexOf(';');
-      generateFtcImport(classType.substring(lastBracket + 2, semiColon));
-    } else {
-      var classToImport = classType;
-      // For inner classes, import the outer class.
-      if (classToImport.includes('$')) {
-        classToImport = classToImport.substring(0, classToImport.indexOf('$'));
-      }
-      // Don't import classes in the java.lang package.
-      if (classToImport.startsWith('java.lang.') && classToImport.lastIndexOf('.') == 9) {
-        return;
-      }
-      Blockly.FtcJava.generateImportForJavaClass_(classToImport);
-    }
-  }
 }
 
 Blockly.FtcJava['misc_callJava_return'] = function(block) {
@@ -650,33 +697,32 @@ Blockly.FtcJava['misc_callJava_return'] = function(block) {
 
 Blockly.Blocks['misc_callJava_noReturn'] = {
   init: function() {
-    this.appendDummyInput()
-        .appendField('call Java method');
+    this.appendDummyInput('HEADING')
+        .appendField(MY_BLOCKS_DEFAULT_HEADING, 'HEADING');
     this.appendDummyInput()
         .appendField(createNonEditableField(''), 'CLASS_NAME')
         .appendField('.')
         .appendField(createNonEditableField(''), 'METHOD_NAME');
     this.setPreviousStatement(true);
     this.setNextStatement(true);
-    this.setColour(functionColor);
+    this.setColour(MY_BLOCKS_DEFAULT_COLOR);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
     this.setTooltip(function() {
-      if (thisBlock.tooltip_) {
-        return thisBlock.tooltip_;
+      if (thisBlock.ftcAttributes_.tooltip) {
+        return thisBlock.ftcAttributes_.tooltip;
       } else {
-        var className = thisBlock.getFieldValue('CLASS_NAME');
         var methodName = thisBlock.getFieldValue('METHOD_NAME');
         return 'Calls the Java method named ' + methodName +
-            ' from the class named org.firstinspires.ftc.teamcode.' + className + '.';
+            ' from the class named ' + thisBlock.ftcAttributes_.fullClassName + '.';
       }
     });
   },
   mutationToDom: function() {
-    return callJava_mutationToDom(this);
+    return misc_call_mutationToDom(this);
   },
   domToMutation: function(xmlElement) {
-    callJava_domToMutation(this, xmlElement);
+    misc_call_domToMutation(this, xmlElement);
   },
 };
 
@@ -687,3 +733,137 @@ Blockly.JavaScript['misc_callJava_noReturn'] = function(block) {
 Blockly.FtcJava['misc_callJava_noReturn'] = function(block) {
   return generateFtcJavaCallJava(block) + ';\n';
 };
+
+//................................................................................
+// MyBlocks for hardware
+
+Blockly.Blocks['misc_callHardware_return'] = {
+  init: function() {
+    this.setOutput(true);
+    this.appendDummyInput('DEVICE_NAME')
+        .appendField('call')
+        .appendField(createNonEditableField(''), 'DEVICE_NAME')
+        .appendField('.')
+        .appendField(createNonEditableField(''), 'METHOD_NAME');
+    this.setColour(MY_BLOCKS_DEFAULT_COLOR);
+    // Assign 'this' to a variable for use in the tooltip closure below.
+    var thisBlock = this;
+    this.setTooltip(function() {
+      if (thisBlock.ftcAttributes_.tooltip) {
+        return thisBlock.ftcAttributes_.tooltip;
+      } else {
+        var methodName = thisBlock.getFieldValue('METHOD_NAME');
+        return 'Calls the Java method named ' + methodName +
+            ' from the class named ' + thisBlock.ftcAttributes_.fullClassName + '.' +
+            ' The Java method\'s return type is ' + classTypeToLabel(thisBlock.ftcAttributes_.returnType, false) + '.';
+      }
+    });
+  },
+  mutationToDom: function() {
+    return misc_call_mutationToDom(this);
+  },
+  domToMutation: function(xmlElement) {
+    misc_call_domToMutation(this, xmlElement);
+  },
+};
+
+function generateJavaScriptCallHardware(block) {
+  var deviceName = block.getFieldValue('DEVICE_NAME');
+  var delimiter = ',\n' + Blockly.JavaScript.INDENT + Blockly.JavaScript.INDENT;
+  // callHardware is in runtime.js
+  var code = 'callHardware(' + miscIdentifierForJavaScript + delimiter +
+      '"' + block.ftcAttributes_.returnType + '"' + delimiter +
+      '"' + block.ftcAttributes_.accessMethod + '"' + delimiter +
+      '"' + block.ftcAttributes_.convertReturnValue + '"' + delimiter +
+      '"' + deviceName + '"' + delimiter +
+      '"' + block.ftcAttributes_.methodLookupString + '"';
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    code += delimiter;
+    code += (block.ftcAttributes_.argAutos[i]
+        ? 'null'
+        : (Blockly.JavaScript.valueToCode(block, 'ARG' + i, Blockly.JavaScript.ORDER_COMMA) || 'null'));
+  }
+  code += ')';
+  return code;
+}
+
+Blockly.JavaScript['misc_callHardware_return'] = function(block) {
+  var code = generateJavaScriptCallHardware(block);
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+function generateFtcJavaCallHardware(block) {
+  generateFtcImport(block.ftcAttributes_.returnType);
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    generateFtcImport(block.ftcAttributes_.argTypes[i]);
+  }
+
+  var deviceName = block.getFieldValue('DEVICE_NAME');
+  var identifier = makeIdentifier(deviceName);
+
+  generateFtcImport(block.ftcAttributes_.fullClassName);
+  Blockly.FtcJava.definitions_['declare_field_' + identifier] =
+      'private ' + block.ftcAttributes_.simpleName + ' ' + identifier + ';';
+  var rvalue = 'hardwareMap.get(' + block.ftcAttributes_.simpleName + '.class, ' +
+      Blockly.FtcJava.quote_(deviceName) + ')';
+  Blockly.FtcJava.definitions_['assign_field_' + identifier] =
+      identifier + ' = ' + rvalue + ';';
+
+  var methodName = block.getFieldValue('METHOD_NAME');
+  var code = identifier + '.' + methodName + '(';
+  var delimiter = '';
+  var order = (block.ftcAttributes_.parameterCount == 1) ? Blockly.FtcJava.ORDER_NONE : Blockly.FtcJava.ORDER_COMMA;
+  for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
+    code += delimiter;
+    code += (block.ftcAttributes_.argAutos[i]
+        ? block.ftcAttributes_.argAutos[i]
+        : (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null'));
+    delimiter = ', ';
+  }
+  code += ')';
+  return code;
+}
+
+Blockly.FtcJava['misc_callHardware_return'] = function(block) {
+  var code = generateFtcJavaCallHardware(block);
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['misc_callHardware_noReturn'] = {
+  init: function() {
+    this.appendDummyInput('DEVICE_NAME')
+        .appendField('call')
+        .appendField(createNonEditableField(''), 'DEVICE_NAME')
+        .appendField('.')
+        .appendField(createNonEditableField(''), 'METHOD_NAME');
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(MY_BLOCKS_DEFAULT_COLOR);
+    // Assign 'this' to a variable for use in the tooltip closure below.
+    var thisBlock = this;
+    this.setTooltip(function() {
+      if (thisBlock.ftcAttributes_.tooltip) {
+        return thisBlock.ftcAttributes_.tooltip;
+      } else {
+        var methodName = thisBlock.getFieldValue('METHOD_NAME');
+        return 'Calls the Java method named ' + methodName +
+            ' from the class named ' + thisBlock.ftcAttributes_.fullClassName + '.';
+      }
+    });
+  },
+  mutationToDom: function() {
+    return misc_call_mutationToDom(this);
+  },
+  domToMutation: function(xmlElement) {
+    misc_call_domToMutation(this, xmlElement);
+  },
+};
+
+Blockly.JavaScript['misc_callHardware_noReturn'] = function(block) {
+  return generateJavaScriptCallHardware(block) + ';\n';
+};
+
+Blockly.FtcJava['misc_callHardware_noReturn'] = function(block) {
+  return generateFtcJavaCallHardware(block) + ';\n';
+};
+

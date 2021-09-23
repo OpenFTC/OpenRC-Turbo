@@ -30,24 +30,31 @@
 
 package com.qualcomm.robotcore.hardware;
 
-import android.annotation.TargetApi;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.robocol.RobocolParsableBase;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
+import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.network.SendOnceRunnable;
 import org.firstinspires.ftc.robotcore.internal.ui.GamepadUser;
 
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Monitor a hardware gamepad.
@@ -87,31 +94,31 @@ public class Gamepad extends RobocolParsableBase {
   public enum Type {
     // Do NOT change the order/names of existing entries,
     // you will break backwards compatibility!!
+    UNKNOWN(LegacyType.UNKNOWN),
+    LOGITECH_F310(LegacyType.LOGITECH_F310),
+    XBOX_360(LegacyType.XBOX_360),
+    SONY_PS4(LegacyType.SONY_PS4), // This indicates a PS4-compatible controller that is being used through our compatibility mode
+    SONY_PS4_SUPPORTED_BY_KERNEL(LegacyType.SONY_PS4); // This indicates a PS4-compatible controller that is being used through the DualShock 4 Linux kernel driver.
+
+    private final LegacyType correspondingLegacyType;
+    Type(LegacyType correspondingLegacyType) {
+      this.correspondingLegacyType = correspondingLegacyType;
+    }
+  }
+
+  // LegacyType is necessary because robocol gamepad version 3 was written in a way that was not
+  // forwards-compatible, so we have to keep sending V3-compatible values.
+  public enum LegacyType {
+    // Do NOT change the order or names of existing entries, or add new entries.
+    // You will break backwards compatibility!!
     UNKNOWN,
     LOGITECH_F310,
     XBOX_360,
     SONY_PS4;
-
-    static Type[] values = Type.values();
   }
 
-  Type type = Type.UNKNOWN; // IntelliJ thinks this is redundant, but it is NOT. Must be a bug in the analyzer?
-
-  /**
-   * Optional callback interface for monitoring changes due to MotionEvents and KeyEvents.
-   *
-   * This interface can be used to notify you if the gamepad changes due to either a KeyEvent or a
-   * MotionEvent. It does not notify you if the gamepad changes for other reasons.
-   */
-  public interface GamepadCallback {
-
-    /**
-     * This method will be called whenever the gamepad state has changed due to either a KeyEvent
-     * or a MotionEvent.
-     * @param gamepad device which state has changed
-     */
-    void gamepadChanged(Gamepad gamepad);
-  }
+  @SuppressWarnings("UnusedAssignment")
+  public Type type = Type.UNKNOWN; // IntelliJ thinks this is redundant, but it is NOT. Must be a bug in the analyzer?
 
   /**
    * left analog stick horizontal axis
@@ -254,6 +261,12 @@ public class Gamepad extends RobocolParsableBase {
    * PS4 Support - touchpad
    */
   public boolean touchpad = false;
+  public boolean touchpad_finger_1;
+  public boolean touchpad_finger_2;
+  public float touchpad_finger_1_x;
+  public float touchpad_finger_1_y;
+  public float touchpad_finger_2_x;
+  public float touchpad_finger_2_y;
 
   /**
    * PS4 Support - PS Button
@@ -271,6 +284,14 @@ public class Gamepad extends RobocolParsableBase {
   //
   public void setUser(GamepadUser user) {
     this.user = user.id;
+  }
+
+  /**
+   * See {@link org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl#runActiveOpMode(Gamepad[])}
+   */
+  protected byte userForRumble = ID_UNASSOCIATED;
+  public void setUserForRumble(byte userForRumble) {
+    this.userForRumble = userForRumble;
   }
 
   /**
@@ -318,17 +339,12 @@ public class Gamepad extends RobocolParsableBase {
   protected float joystickDeadzone = 0.2f; // very high, since we don't know the device type
 
   // private static values used for packaging the gamepad state into a byte array
-  private static final short PAYLOAD_SIZE = 43;
+  private static final short PAYLOAD_SIZE = 60;
   private static final short BUFFER_SIZE = PAYLOAD_SIZE + RobocolParsable.HEADER_LENGTH;
 
-  private static final byte ROBOCOL_GAMEPAD_VERSION = 3;
+  private static final byte ROBOCOL_GAMEPAD_VERSION = 5;
 
   private static final float MAX_MOTION_RANGE = 1.0f;
-
-  private final GamepadCallback callback;
-
-  public int vid = -1; // for internal use only
-  public int pid = -1; // for internal use only
 
   private static Set<Integer> gameControllerDeviceIdCache = new HashSet<Integer>();
 
@@ -360,11 +376,6 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   public Gamepad() {
-    this(null);
-  }
-
-  public Gamepad(GamepadCallback callback) {
-    this.callback = callback;
     this.type = type();
   }
 
@@ -392,81 +403,6 @@ public class Gamepad extends RobocolParsableBase {
     }
   }
 
-  /**
-   * Set the joystick deadzone. Must be between 0 and 1.
-   * @param deadzone amount of joystick deadzone
-   */
-  public void setJoystickDeadzone(float deadzone) {
-    if (deadzone < 0 || deadzone > MAX_MOTION_RANGE) {
-      throw new IllegalArgumentException("deadzone cannot be greater than max joystick value");
-    }
-
-    joystickDeadzone = deadzone;
-  }
-
-  // For internal use only
-  public void setVidPid(int vid, int pid)
-  {
-    this.vid = vid;
-    this.pid = pid;
-  }
-
-  /**
-   * Update the gamepad based on a MotionEvent
-   * @param event motion event
-   */
-  public void update(android.view.MotionEvent event) {
-
-    setGamepadId(event.getDeviceId());
-    setTimestamp(event.getEventTime());
-
-    left_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_X));
-    left_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Y));
-    right_stick_x = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_Z));
-    right_stick_y = cleanMotionValues(event.getAxisValue(MotionEvent.AXIS_RZ));
-    left_trigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER);
-    right_trigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER);
-    dpad_down = event.getAxisValue(MotionEvent.AXIS_HAT_Y) > dpadThreshold;
-    dpad_up = event.getAxisValue(MotionEvent.AXIS_HAT_Y) < -dpadThreshold;
-    dpad_right = event.getAxisValue(MotionEvent.AXIS_HAT_X) > dpadThreshold;
-    dpad_left = event.getAxisValue(MotionEvent.AXIS_HAT_X) < -dpadThreshold;
-
-    callCallback();
-  }
-
-  /**
-   * Update the gamepad based on a KeyEvent
-   * @param event key event
-   */
-  public void update(android.view.KeyEvent event) {
-
-    setGamepadId(event.getDeviceId());
-    setTimestamp(event.getEventTime());
-
-    int key = event.getKeyCode();
-    if      (key == KeyEvent.KEYCODE_DPAD_UP) dpad_up = pressed(event);
-    else if (key == KeyEvent.KEYCODE_DPAD_DOWN) dpad_down = pressed(event);
-    else if (key == KeyEvent.KEYCODE_DPAD_RIGHT) dpad_right = pressed(event);
-    else if (key == KeyEvent.KEYCODE_DPAD_LEFT) dpad_left = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_A) a = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_B) b = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_X) x = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_Y) y = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_MODE) guide = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_START) start = pressed(event);
-
-    // Handle "select" and "back" key codes as a "back" button event.
-    else if (key == KeyEvent.KEYCODE_BUTTON_SELECT || key == KeyEvent.KEYCODE_BACK) back = pressed(event);
-
-    else if (key == KeyEvent.KEYCODE_BUTTON_R1) right_bumper = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_L1) left_bumper = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_THUMBL) left_stick_button = pressed(event);
-    else if (key == KeyEvent.KEYCODE_BUTTON_THUMBR) right_stick_button = pressed(event);
-
-    updateButtonAliases();
-    callCallback();
-  }
-
   @Override
   public MsgType getRobocolMsgType() {
     return RobocolParsable.MsgType.GAMEPAD;
@@ -490,6 +426,8 @@ public class Gamepad extends RobocolParsableBase {
       buffer.putFloat(left_trigger).array();
       buffer.putFloat(right_trigger).array();
 
+      buttons = (buttons << 1) + (touchpad_finger_1 ? 1 : 0);
+      buttons = (buttons << 1) + (touchpad_finger_2 ? 1 : 0);
       buttons = (buttons << 1) + (touchpad ? 1 : 0);
       buttons = (buttons << 1) + (left_stick_button ? 1 : 0);
       buttons = (buttons << 1) + (right_stick_button ? 1 : 0);
@@ -512,7 +450,16 @@ public class Gamepad extends RobocolParsableBase {
       buffer.put(user);
 
       // Version 3
+      buffer.put((byte) legacyType().ordinal());
+
+      // Version 4
       buffer.put((byte) type.ordinal());
+
+      // Version 5
+      buffer.putFloat(touchpad_finger_1_x);
+      buffer.putFloat(touchpad_finger_1_y);
+      buffer.putFloat(touchpad_finger_2_x);
+      buffer.putFloat(touchpad_finger_2_y);
     } catch (BufferOverflowException e) {
       RobotLog.logStacktrace(e);
     }
@@ -544,6 +491,8 @@ public class Gamepad extends RobocolParsableBase {
       right_trigger = byteBuffer.getFloat();
 
       buttons = byteBuffer.getInt();
+      touchpad_finger_1   = (buttons & 0x20000) != 0;
+      touchpad_finger_2   = (buttons & 0x10000) != 0;
       touchpad            = (buttons & 0x08000) != 0;
       left_stick_button   = (buttons & 0x04000) != 0;
       right_stick_button  = (buttons & 0x02000) != 0;
@@ -569,11 +518,26 @@ public class Gamepad extends RobocolParsableBase {
 
     // extract version 3 values
     if (version >= 3) {
-      type = Type.values[byteBuffer.get()];
+      type = Type.values()[byteBuffer.get()];
+    }
+
+    if (version >= 4) {
+      byte v4TypeValue = byteBuffer.get();
+      if (v4TypeValue < Type.values().length) {
+        // Yes, this will replace the version 3 value. That is a good thing, since the version 3
+        // value was not forwards-compatible.
+        type = Type.values()[v4TypeValue];
+      } // Else, we don't know what the number means, so we just stick with the value we got from the v3 type field
+    }
+
+    if(version >= 5) {
+      touchpad_finger_1_x = byteBuffer.getFloat();
+      touchpad_finger_1_y = byteBuffer.getFloat();
+      touchpad_finger_2_x = byteBuffer.getFloat();
+      touchpad_finger_2_y = byteBuffer.getFloat();
     }
 
     updateButtonAliases();
-    callCallback();
   }
 
   /**
@@ -596,6 +560,15 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   /**
+   * Get the type of gamepad as a {@link LegacyType}. This method defaults to "UNKNOWN".
+   * @return gamepad type
+   */
+  private LegacyType legacyType() {
+    return type.correspondingLegacyType;
+  }
+
+
+  /**
    * Display a summary of this gamepad, including the state of all buttons, analog sticks, and triggers
    * @return a summary
    */
@@ -604,6 +577,7 @@ public class Gamepad extends RobocolParsableBase {
 
     switch (type) {
       case SONY_PS4:
+      case SONY_PS4_SUPPORTED_BY_KERNEL:
         return ps4ToString();
 
       case UNKNOWN:
@@ -662,35 +636,6 @@ public class Gamepad extends RobocolParsableBase {
             right_stick_x, right_stick_y, left_trigger, right_trigger, buttons);
   }
 
-  // clean values
-  // remove values larger than max
-  // apply deadzone logic
-  protected float cleanMotionValues(float number) {
-
-    // apply deadzone
-    if (number < joystickDeadzone && number > -joystickDeadzone) return 0.0f;
-
-    // apply trim
-    if (number >  MAX_MOTION_RANGE) return  MAX_MOTION_RANGE;
-    if (number < -MAX_MOTION_RANGE) return -MAX_MOTION_RANGE;
-
-    // scale values "between deadzone and trim" to be "between 0 and Max range"
-    if (number > 0)
-      number = (float)Range.scale(number, joystickDeadzone, MAX_MOTION_RANGE, 0, MAX_MOTION_RANGE);
-    else
-      number = (float)Range.scale(number, -joystickDeadzone, -MAX_MOTION_RANGE, 0, -MAX_MOTION_RANGE);
-
-    return number;
-  }
-
-  protected boolean pressed(android.view.KeyEvent event) {
-    return event.getAction() == KeyEvent.ACTION_DOWN;
-  }
-
-  protected void callCallback() {
-    if (callback != null) callback.gamepadChanged(this);
-  }
-
   /**
    * Add a whitelist filter for a specific device vendor/product ID.
    * <p>
@@ -721,7 +666,6 @@ public class Gamepad extends RobocolParsableBase {
    * @param deviceId device ID
    * @return true, if gamepad device; false otherwise
    */
-  @TargetApi(19)
   public static synchronized boolean isGamepadDevice(int deviceId) {
 
     // check the cache
@@ -738,14 +682,10 @@ public class Gamepad extends RobocolParsableBase {
       if ((source & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
           || (source & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
 
-        if (android.os.Build.VERSION.SDK_INT >= 19) {
-          // null mDeviceWhitelist means all devices are valid
-          // non-null mDeviceWhitelist means only use devices in mDeviceWhitelist
-          if (deviceWhitelist == null
-              || deviceWhitelist.contains(new DeviceId(device.getVendorId(), device.getProductId()))) {
-            gameControllerDeviceIdCache.add(id);
-          }
-        } else {
+        // null mDeviceWhitelist means all devices are valid
+        // non-null mDeviceWhitelist means only use devices in mDeviceWhitelist
+        if (deviceWhitelist == null
+            || deviceWhitelist.contains(new DeviceId(device.getVendorId(), device.getProductId()))) {
           gameControllerDeviceIdCache.add(id);
         }
       }
@@ -757,6 +697,188 @@ public class Gamepad extends RobocolParsableBase {
 
     // this is not an event from a game pad
     return false;
+  }
+
+  // To prevent blowing up the command queue if the user tries to send a rumble command in a tight loop,
+  // we have a 1-element evicting blocking queue for the outgoing rumble effect and the event loop periodically
+  // just grabs the effect out of it (if any)
+  public EvictingBlockingQueue<RumbleEffect> rumbleQueue = new EvictingBlockingQueue<>(new ArrayBlockingQueue<RumbleEffect>(1));
+  public long nextRumbleApproxFinishTime = RUMBLE_FINISH_TIME_FLAG_NOT_RUMBLING;
+
+  public static final int RUMBLE_DURATION_CONTINUOUS = -1;
+
+  public static class RumbleEffect {
+    public static class Step {
+      public int large;
+      public int small;
+      public int duration;
+    }
+
+    public int user;
+    public final ArrayList<Step> steps;
+
+    private RumbleEffect(ArrayList<Step> steps) {
+      this.steps = steps;
+    }
+
+    public String serialize() {
+      return SimpleGson.getInstance().toJson(this);
+    }
+
+    public static RumbleEffect deserialize(String serialized) {
+      return SimpleGson.getInstance().fromJson(serialized, RumbleEffect.class);
+    }
+
+    public static class Builder {
+      private ArrayList<Step> steps = new ArrayList<>();
+
+      /**
+       * Add a "step" to this rumble effect. A step basically just means to rumble
+       * at a certain power level for a certain duration. By creating a chain of
+       * steps, you can create unique effects. See {@link #rumbleBlips(int)} for a
+       * a simple example.
+       * @param rumble1 rumble power for rumble motor 1 (0.0 - 1.0)
+       * @param rumble2 rumble power for rumble motor 2 (0.0 - 1.0)
+       * @param durationMs milliseconds this step lasts
+       * @return the builder object, to follow the builder pattern
+       */
+      public Builder addStep(double rumble1, double rumble2, int durationMs) {
+        return addStepInternal(rumble1, rumble2, Math.max(durationMs, 0));
+      }
+
+      private Builder addStepInternal(double rumble1, double rumble2, int durationMs) {
+
+        rumble1 = Range.clip(rumble1, 0, 1);
+        rumble2 = Range.clip(rumble2, 0, 1);
+
+        Step step = new Step();
+        step.large = (int) Math.round(Range.scale(rumble1, 0.0, 1.0, 0, 255));
+        step.small = (int) Math.round(Range.scale(rumble2, 0.0, 1.0, 0, 255));
+        step.duration = durationMs;
+        steps.add(step);
+
+        return this;
+      }
+
+      /**
+       * After you've added your steps, call this to get a RumbleEffect object
+       * that you can then pass to {@link #runRumbleEffect(RumbleEffect)}
+       * @return a RumbleEffect object, built from previously added steps
+       */
+      public RumbleEffect build() {
+        return new RumbleEffect(steps);
+      }
+    }
+  }
+
+  /**
+   * Run a rumble effect built using {@link RumbleEffect.Builder}
+   * The rumble effect will be run asynchronously; your OpMode will
+   * not halt execution while the effect is running.
+   *
+   * Calling this will displace any currently running rumble effect
+   */
+  public void runRumbleEffect(RumbleEffect effect) {
+    queueEffect(effect);
+  }
+
+  /**
+   * Rumble the gamepad's first rumble motor at maximum power for a certain duration.
+   * Calling this will displace any currently running rumble effect.
+   * @param durationMs milliseconds to rumble for, or {@link #RUMBLE_DURATION_CONTINUOUS}
+   */
+  public void rumble(int durationMs) {
+
+    if (durationMs != RUMBLE_DURATION_CONTINUOUS) {
+      durationMs = Math.max(0, durationMs);
+    }
+
+    RumbleEffect effect = new RumbleEffect.Builder().addStepInternal(1.0, 0, durationMs).build();
+    queueEffect(effect);
+  }
+
+  /**
+   * Rumble the gamepad at a fixed rumble power for a certain duration
+   * Calling this will displace any currently running rumble effect
+   * @param rumble1 rumble power for rumble motor 1 (0.0 - 1.0)
+   * @param rumble2 rumble power for rumble motor 2 (0.0 - 1.0)
+   * @param durationMs milliseconds to rumble for, or {@link #RUMBLE_DURATION_CONTINUOUS}
+   */
+  public void rumble(double rumble1, double rumble2, int durationMs) {
+
+    if (durationMs != RUMBLE_DURATION_CONTINUOUS) {
+      durationMs = Math.max(0, durationMs);
+    }
+
+    RumbleEffect effect = new RumbleEffect.Builder().addStepInternal(rumble1, rumble2, durationMs).build();
+    queueEffect(effect);
+  }
+
+  /**
+   * Cancel the currently running rumble effect, if any
+   */
+  public void stopRumble() {
+    rumble(0,0,RUMBLE_DURATION_CONTINUOUS);
+  }
+
+  /**
+   * Rumble the gamepad for a certain number of "blips" using predetermined blip timing
+   * This will displace any currently running rumble effect.
+   * @param count the number of rumble blips to perform
+   */
+  public void rumbleBlips(int count) {
+    RumbleEffect.Builder builder = new RumbleEffect.Builder();
+
+    for(int i = 0; i < count; i++) {
+      builder.addStep(1.0,0,250).addStep(0,0,100);
+    }
+
+    queueEffect(builder.build());
+  }
+
+  private void queueEffect(RumbleEffect effect) {
+    effect.user = userForRumble;
+    rumbleQueue.offer(effect);
+    nextRumbleApproxFinishTime = calcApproxRumbleFinishTime(effect);
+  }
+
+  private static final long RUMBLE_FINISH_TIME_FLAG_NOT_RUMBLING = -1;
+  private static final long RUMBLE_FINISH_TIME_FLAG_INFINITE = Long.MAX_VALUE;
+
+  /**
+   * Returns an educated guess about whether there is a rumble action ongoing on this gamepad
+   * @return an educated guess about whether there is a rumble action ongoing on this gamepad
+   */
+  public boolean isRumbling() {
+    if(nextRumbleApproxFinishTime == RUMBLE_FINISH_TIME_FLAG_NOT_RUMBLING) {
+      return false;
+    } else if(nextRumbleApproxFinishTime == RUMBLE_FINISH_TIME_FLAG_INFINITE) {
+      return true;
+    } else {
+      return System.currentTimeMillis() < nextRumbleApproxFinishTime;
+    }
+  }
+
+  private long calcApproxRumbleFinishTime(RumbleEffect effect) {
+    // If the effect is only 1 step long and has an infinite duration...
+    if(effect.steps.size() == 1 && effect.steps.get(0).duration == RUMBLE_DURATION_CONTINUOUS) {
+      // If the power is zero, then that means the gamepad is being commanded to cease rumble
+      if (effect.steps.get(0).large == 0 && effect.steps.get(0).small == 0) {
+        return RUMBLE_FINISH_TIME_FLAG_NOT_RUMBLING;
+      } else { // But if not, that means it's an infinite (continuous) rumble command
+        return RUMBLE_FINISH_TIME_FLAG_INFINITE;
+      }
+    } else { // If the effect has more than one step (or one step with non-infinite duration) we need to sum the step times
+      long time = System.currentTimeMillis();
+      long overhead = 50 /* rumbleGamepadsInterval in FtcEventLoopHandler */ +
+                      SendOnceRunnable.MS_BATCH_TRANSMISSION_INTERVAL +
+                      5  /* Slop */;
+      for(RumbleEffect.Step step : effect.steps) {
+        time += step.duration;
+      }
+      time += overhead;
+      return time;
+    }
   }
 
   /**

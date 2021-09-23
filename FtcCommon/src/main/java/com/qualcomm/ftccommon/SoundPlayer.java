@@ -162,6 +162,7 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
         {
         mediaSizer = new MediaPlayer();
         AudioAttributes.Builder audioAttributesBuilder = new AudioAttributes.Builder();
+        audioAttributesBuilder.setUsage(AudioAttributes.USAGE_MEDIA);
         audioAttributesBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
         AudioAttributes audioAttributes = audioAttributesBuilder.build();
 

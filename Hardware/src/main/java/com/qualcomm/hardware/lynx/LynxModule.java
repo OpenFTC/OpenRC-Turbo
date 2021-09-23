@@ -233,11 +233,11 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     protected SerialNumber          moduleSerialNumber;
     protected AtomicInteger         nextMessageNumber;
     protected boolean               isParent;
-    protected boolean               isSystemSynthetic;  // if true, then system made this up, not user
-    protected boolean               isUserModule;       // if false, then this is for some system-admin purpose
+    protected volatile boolean      isSystemSynthetic;  // If true, then the system made this up. It's available to the user, but is not explicitly in the current configuration file.
+    protected volatile boolean      isUserModule;       // If false, then this is for some system-admin purpose
     protected boolean               isEngaged;
     protected final Object          engagementLock = this; // 'this' for historical reasons; optimization might be possible
-    protected boolean               isOpen;
+    protected volatile boolean      isOpen;
     protected volatile boolean      isNotResponding = false;
     protected final Object          startStopLock;
 
@@ -279,7 +279,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public LynxModule(LynxUsbDevice lynxUsbDevice, int moduleAddress, boolean isParent)
+    public LynxModule(LynxUsbDevice lynxUsbDevice, int moduleAddress, boolean isParent, boolean isUserModule)
         {
         this.lynxUsbDevice      = lynxUsbDevice;
         this.controllers        = new CopyOnWriteArrayList<LynxController>();
@@ -288,7 +288,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         this.isParent           = isParent;
         this.isSystemSynthetic  = false;
         this.isEngaged          = true;
-        this.isUserModule       = true;
+        this.isUserModule       = isUserModule;
         this.isOpen             = true;
         this.startStopLock      = new Object();
 
@@ -334,9 +334,11 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         {
         synchronized (startStopLock)
             {
+            this.isOpen = false;
             RobotLog.vv(TAG, "close(#%d)", moduleAddress);
             stopFtdiResetWatchdog();
-            this.isOpen = false;
+            unregisterCallback(this);
+            lynxUsbDevice.removeConfiguredModule(this);
             stopAttentionRequired();
             stopPingTimer(true);
             stopExecutor();
@@ -346,6 +348,11 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     //----------------------------------------------------------------------------------------------
     // Accessors
     //----------------------------------------------------------------------------------------------
+
+    @Override public boolean isOpen()
+        {
+        return isOpen;
+        }
 
     public boolean isUserModule()
         {
@@ -583,13 +590,6 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     public void resetDeviceConfigurationForOpMode()
         {
         setBulkCachingMode(BulkCachingMode.OFF);
-        }
-
-    // Separate here for deadlock paranoia. Used only where we know we need it. Could
-    // perhaps use more generally
-    public void removeAsConfigured()
-        {
-        this.lynxUsbDevice.removeConfiguredModule(this);
         }
 
     /**
@@ -964,8 +964,9 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         }
 
     /** Do all the stuff we need to do when we've become aware that this module is in fact
-     * attached to its USB device. */
-    public void pingAndQueryKnownInterfacesAndEtc(long randSeed) throws RobotCoreException, InterruptedException
+     * attached to its USB device. Throws a RobotCoreException if we were unable to communicate with
+     * the module. */
+    public void pingAndQueryKnownInterfacesAndEtc() throws RobotCoreException, InterruptedException
         {
         RobotLog.vv(TAG, "pingAndQueryKnownInterfaces mod=%d", this.getModuleAddress());
         // We always ping first, just in case he's stuck right now in discovery mode.
@@ -974,19 +975,15 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         pingInitialContact();
         queryInterface(LynxDekaInterfaceCommand.createDekaInterface());
         startFtdiResetWatchdog();
-        if (isUserModule())
+        initializeDebugLogging();
+        initializeLEDS();
+        // Figure out if we're the module embedded in the Control Hub
+        if (this.isParent())
             {
-            initializeDebugLogging();
-            initializeLEDS();
-
-            // Figure out if we're the module embedded in the Control Hub
-            if (this.isParent())
+            if (LynxConstants.isEmbeddedSerialNumber(this.getSerialNumber()))
                 {
-                if (LynxConstants.isEmbeddedSerialNumber(this.getSerialNumber()))
-                    {
-                    RobotLog.vv(TAG, "setAsControlHubEmbeddedModule(mod=%d)", this.getModuleAddress());
-                    EmbeddedControlHubModule.set(this);
-                    }
+                RobotLog.vv(TAG, "setAsControlHubEmbeddedModule(mod=%d)", this.getModuleAddress());
+                EmbeddedControlHubModule.set(this);
                 }
             }
         }
@@ -1891,7 +1888,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             {
             for (LynxRespondable respondable : unfinishedCommands.values())
                 {
-                RobotLog.vv(RobotLog.TAG, "force-nacking unfinished command=%s mod=%d msg#=%d", respondable.getClass().getSimpleName(), respondable.getModuleAddress(), respondable.getMessageNumber());
+                RobotLog.vv(TAG, "force-nacking unfinished command=%s mod=%d msg#=%d", respondable.getClass().getSimpleName(), respondable.getModuleAddress(), respondable.getMessageNumber());
                 LynxNack nack = new LynxNack(this, respondable.isResponseExpected() ? LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_RESPONSE : LynxNack.StandardReasonCode.ABANDONED_WAITING_FOR_ACK);
                 respondable.onNackReceived(nack);
                 finishedWithMessage(respondable);

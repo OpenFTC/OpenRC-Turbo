@@ -57,23 +57,24 @@ Blockly.FtcJava.ORDER_BITWISE_NOT = 4.1;    // ~
 Blockly.FtcJava.ORDER_UNARY_PLUS = 4.2;     // +expr
 Blockly.FtcJava.ORDER_UNARY_NEGATION = 4.3; // -expr
 Blockly.FtcJava.ORDER_LOGICAL_NOT = 4.4;    // !
-Blockly.FtcJava.ORDER_DIVISION = 5.1;       // /
-Blockly.FtcJava.ORDER_MULTIPLICATION = 5.2; // *
-Blockly.FtcJava.ORDER_MODULUS = 5.3;        // %
-Blockly.FtcJava.ORDER_SUBTRACTION = 6.1;    // -
-Blockly.FtcJava.ORDER_ADDITION = 6.2;       // +
-Blockly.FtcJava.ORDER_BITWISE_SHIFT = 7;    // << >> >>>
-Blockly.FtcJava.ORDER_RELATIONAL = 8;       // < <= > >=
-Blockly.FtcJava.ORDER_INSTANCEOF = 8;       // instanceof
-Blockly.FtcJava.ORDER_EQUALITY = 9;         // == !=
-Blockly.FtcJava.ORDER_BITWISE_AND = 10;     // &
-Blockly.FtcJava.ORDER_BITWISE_XOR = 11;     // ^
-Blockly.FtcJava.ORDER_BITWISE_OR = 12;      // |
-Blockly.FtcJava.ORDER_LOGICAL_AND = 13;     // &&
-Blockly.FtcJava.ORDER_LOGICAL_OR = 14;      // ||
-Blockly.FtcJava.ORDER_CONDITIONAL = 15;     // ? :
-Blockly.FtcJava.ORDER_ASSIGNMENT = 16;      // = += -= *= /= %= &= ^= |= <<= >>= >>>=
-Blockly.FtcJava.ORDER_COMMA = 17;           // ,
+Blockly.FtcJava.ORDER_CAST = 5;           // (int) (float) ...
+Blockly.FtcJava.ORDER_DIVISION = 6.1;       // /
+Blockly.FtcJava.ORDER_MULTIPLICATION = 6.2; // *
+Blockly.FtcJava.ORDER_MODULUS = 6.3;        // %
+Blockly.FtcJava.ORDER_SUBTRACTION = 7.1;    // -
+Blockly.FtcJava.ORDER_ADDITION = 7.2;       // +
+Blockly.FtcJava.ORDER_BITWISE_SHIFT = 8;    // << >> >>>
+Blockly.FtcJava.ORDER_RELATIONAL = 9;       // < <= > >=
+Blockly.FtcJava.ORDER_INSTANCEOF = 9;       // instanceof
+Blockly.FtcJava.ORDER_EQUALITY = 10;         // == !=
+Blockly.FtcJava.ORDER_BITWISE_AND = 11;     // &
+Blockly.FtcJava.ORDER_BITWISE_XOR = 12;     // ^
+Blockly.FtcJava.ORDER_BITWISE_OR = 13;      // |
+Blockly.FtcJava.ORDER_LOGICAL_AND = 14;     // &&
+Blockly.FtcJava.ORDER_LOGICAL_OR = 15;      // ||
+Blockly.FtcJava.ORDER_CONDITIONAL = 16;     // ? :
+Blockly.FtcJava.ORDER_ASSIGNMENT = 17;      // = += -= *= /= %= &= ^= |= <<= >>= >>>=
+Blockly.FtcJava.ORDER_COMMA = 18;           // ,
 Blockly.FtcJava.ORDER_NONE = 99;            // (...)
 
 /**
@@ -460,95 +461,46 @@ Blockly.FtcJava.determineProcedureReturnType_ = function(procedureBlock, blocksI
 }
 
 Blockly.FtcJava.chooseBestType_ = function(types, expectedTypes) {
-  var bestType = '';
-
-  // Check whether we only have one type.
-  var uniqueTypes = Object.create(null);
+  // Use the type that is the widest type (has the lowest value from getTypeValue_).
+  var typesByValue = [];
   for (var iType = 0; iType < types.length; iType++) {
-    uniqueTypes[types[iType]] = true;
+    var type = Blockly.FtcJava.convertBlocksTypeToFtcJavaType_(types[iType]);
+    var value = Blockly.FtcJava.getTypeValue_(type);
+    typesByValue[value] = type;
   }
+  var keys = Object.keys(typesByValue);
+  if (keys.length > 0) {
+    return typesByValue[keys[0]];
+  }
+
+  // If we get here, it (probably) means that there are no types. In other words, this
+  // variable is used, but never set. In this case, we will use the narrowest expected type.
+  var expectedTypesByValue = [];
   for (var iExpectedType = 0; iExpectedType < expectedTypes.length; iExpectedType++) {
-    uniqueTypes[expectedTypes[iExpectedType]] = true;
+    var expectedType = Blockly.FtcJava.convertBlocksTypeToFtcJavaType_(expectedTypes[iExpectedType]);
+    var value = Blockly.FtcJava.getTypeValue_(expectedType);
+    expectedTypesByValue[value] = expectedType;
   }
-  if (Object.keys(uniqueTypes).length == 1) {
-    bestType = Object.keys(uniqueTypes)[0];
-  } else {
-    // Use the type that is the least specific type (has the lowest value from getTypeValue_) that
-    // fits in all expected types. However, we ignore Number when looking at types used.
-    var typesByValue = [];
-    for (var iType = 0; iType < types.length; iType++) {
-      var type = types[iType];
-      if (type != 'Number') {
-        var value = Blockly.FtcJava.getTypeValue_(type);
-        typesByValue[value] = type;
-      }
-    }
-    var keys = Object.keys(typesByValue);
-    for (var iKey = 0; iKey < keys.length; iKey++) {
-      var type = typesByValue[keys[iKey]];
-      var fitsAll = true;
-      for (var iExpectedType = 0; iExpectedType < expectedTypes.length; iExpectedType++) {
-        var expectedType = expectedTypes[iExpectedType];
-        if (!Blockly.FtcJava.checkTypes_(type, expectedType)) {
-          fitsAll = false;
-          break;
-        }
-      }
-      if (fitsAll) {
-        bestType = type;
-        break;
-      }
-    }
-    if (bestType == '') {
-      // Use the most specific expected type.
-      var expectedTypesByValue = [];
-      for (var iExpectedType = 0; iExpectedType < expectedTypes.length; iExpectedType++) {
-        var expectedType = expectedTypes[iExpectedType];
-        var value = Blockly.FtcJava.getTypeValue_(expectedType);
-        expectedTypesByValue[value] = expectedType;
-      }
-      keys = Object.keys(expectedTypesByValue);
-      if (keys.length > 0) {
-        bestType = expectedTypesByValue[keys[keys.length - 1]];
-      }
-    }
+  keys = Object.keys(expectedTypesByValue);
+  if (keys.length > 0) {
+    return expectedTypesByValue[keys[keys.length - 1]];
   }
 
-  uniqueTypes = null;
-
-  return Blockly.FtcJava.convertBlocksTypeToFtcJavaType_(bestType);
-};
-
-Blockly.FtcJava.checkTypes_ = function(type, expectedType) {
-  if (type == expectedType) {
-    return true;
-  }
-  switch (expectedType) {
-    case 'Number':
-    case 'double':
-      return type == 'Number' || type == 'double' || type == 'float' || type == 'long' || type == 'int' || type == 'short' || type == 'byte';
-    case 'float':
-      return type == 'float' || type == 'long' || type == 'int' || type == 'short' || type == 'byte';
-    case 'long':
-      return type == 'long' || type == 'int' || type == 'short' || type == 'byte';
-    case 'int':
-      return type == 'int' || type == 'short' || type == 'byte';
-    case 'short':
-      return type == 'short' || type == 'byte';
-
-    case 'MatrixF':
-      return type == 'MatrixF' || type == 'OpenGLMatrix';
-
-    case 'List':
-      return type.match(/^List<(.*)>$/) ? true : false;
-  }
-  return false;
+  return '';
 };
 
 Blockly.FtcJava.getOutputType_ = function(block) {
   if (block) {
-    // If the block is a variable getter, see if we already know the type of that variable.
+    // If it's an FTC block, ask it what the output type is.
+    if (typeof block.getFtcJavaOutputType == 'function') {
+      var outputType = block.getFtcJavaOutputType();
+      if (outputType != '') {
+        return outputType;
+      }
+    }
+
     if (block.type == 'variables_get') {
+      // If the block is a variable getter, see if we already know the type of that variable.
       var variableName = Blockly.FtcJava.getVariableName_(block);
       // Maybe it's a variable.
       var variableType = Blockly.FtcJava.variableTypes_[variableName];
@@ -573,21 +525,44 @@ Blockly.FtcJava.getOutputType_ = function(block) {
           }
         }
       }
-    }
-
-    // If the block is a procedures_callreturn, see if we already know the return type of that procedure.
-    if (block.type == 'procedures_callreturn') {
+    } else if (block.type == 'procedures_callreturn') {
+      // If the block is a procedures_callreturn, see if we already know the return type of that procedure.
       var functionName = Blockly.FtcJava.getFunctionName_(block);
       var returnType = Blockly.FtcJava.procedureReturnTypes_[functionName];
       if (returnType != '') {
         return returnType;
       }
-    }
-
-    // If it's an FTC block, ask it what the output type is.
-    if (typeof block.getFtcJavaOutputType == 'function') {
-      var outputType = block.getFtcJavaOutputType();
-      if (outputType != '') {
+    } else if (block.type.startsWith('math_')) {
+      var outputType = Blockly.FtcJava.getOutputType_math_(block);
+      // outputType can be '' which usually means that the block depends on a variable whose type
+      // is not yet known. In this case, we do not want to execute the code below that looks at
+      // the connection check. We want to return ''.
+      // outputType can be false, in which case we do want to execute the code below that looks at
+      // the connection check. false means that our code that determines the output of a math block
+      // is incomplete.
+      if (typeof outputType == 'string') {
+        return outputType;
+      }
+    } else if (block.type.startsWith('text_')) {
+      var outputType = Blockly.FtcJava.getOutputType_text_(block);
+      // outputType can be '' which usually means that the block depends on a variable whose type
+      // is not yet known. In this case, we do not want to execute the code below that looks at
+      // the connection check. We want to return ''.
+      // outputType can be false, in which case we do want to execute the code below that looks at
+      // the connection check. false means that our code that determines the output of a text block
+      // is incomplete.
+      if (typeof outputType == 'string') {
+        return outputType;
+      }
+    } else if (block.type.startsWith('lists_')) {
+      var outputType = Blockly.FtcJava.getOutputType_lists_(block);
+      // outputType can be '' which usually means that the block depends on a variable whose type
+      // is not yet known. In this case, we do not want to execute the code below that looks at
+      // the connection check. We want to return ''.
+      // outputType can be false, in which case we do want to execute the code below that looks at
+      // the connection check. false means that our code that determines the output of a lists block
+      // is incomplete.
+      if (typeof outputType == 'string') {
         return outputType;
       }
     }
@@ -1076,18 +1051,40 @@ Blockly.FtcJava.convertBlocksTypeToFtcJavaType_ = function(type) {
 };
 
 Blockly.FtcJava.isFtcJavaTypePrimitive_ = function(type) {
-  return type == 'boolean' || type == 'double' || type == 'float'
-      || type == 'long' || type == 'int' || type == 'short' || type == 'byte';
+  switch (type) {
+    case 'boolean':
+    case 'byte':
+    case 'char':
+    case 'double':
+    case 'float':
+    case 'int':
+    case 'long':
+    case 'short':
+    case 'void':
+      return true;
+  }
+  return false;
 }
 
-Blockly.FtcJava.generateImportForJavaClass_ = function(javaClassName) {
-  var importCode = 'import ' + javaClassName + ';';
+Blockly.FtcJava.generateImportStatement_ = function(type) {
+  // Don't import primitives
+  if (Blockly.FtcJava.isFtcJavaTypePrimitive_(type)){
+    return;
+  }
+
+  // Don't import classes in the java.lang package.
+  if (type.startsWith('java.lang.') && type.lastIndexOf('.') == 9) {
+    return;
+  }
+  // Don't import classes in the org.firstinspires.ftc.teamcode package.
+  if (type.startsWith('org.firstinspires.ftc.teamcode.') && type.lastIndexOf('.') == 30) {
+    return;
+  }
+  var importCode = 'import ' + type + ';';
   Blockly.FtcJava.definitions_['import_' + importCode] = importCode;
 }
 
 Blockly.FtcJava.generateImport_ = function(type) {
-  var importCode = null;
-
   // For inner classes, only import the outer class.
   var dot = type.indexOf('.');
   if (dot > -1) {
@@ -1097,18 +1094,18 @@ Blockly.FtcJava.generateImport_ = function(type) {
   if (matches) {
     Blockly.FtcJava.generateImport_('List');
     Blockly.FtcJava.generateImport_(matches[1]);
-    return true;
+    return;
   }
 
   // Use knownTypeToClassName (in vars.js) to get the full class name of a type that used in blocks.
   var className = knownTypeToClassName(type);
   if (className) {
-    importCode = 'import ' + className + ';';
-    Blockly.FtcJava.definitions_['import_' + importCode] = importCode;
-    return true;
+    Blockly.FtcJava.generateImportStatement_(className);
+    return;
   }
 
-  return false;
+  // Otherwise, it's a full class name.
+  Blockly.FtcJava.generateImportStatement_(type);
 };
 
 Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, javaType) {
@@ -1212,12 +1209,12 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
       identifier = block.getFieldValue(identifierFieldName);
 
       try {
-        // getIdentifierForFtcJava is generated dynamically in
+        // getHardwareItemIdentifierForFtcJava is generated dynamically in
         // HardwareUtil.fetchJavaScriptForHardware().
-        identifierForFtcJava = getIdentifierForFtcJava(identifier);
+        identifierForFtcJava = getHardwareItemIdentifierForFtcJava(identifier);
       } catch (e) {
-        // getIdentifierForFtcJava throws an exception if the hardware device is missing.
-        // Use makeIdentifier (in vars.js) to generate a identifier;
+        // getHardwareItemIdentifierForFtcJava throws an exception if the hardware device is
+        // missing. Use makeIdentifier (in vars.js) to generate a identifier;
         identifierForFtcJava = makeIdentifier(identifier);
       }
 
@@ -1259,4 +1256,54 @@ Blockly.FtcJava.makeFirstLetterLowerCase_ = function(text) {
 
 Blockly.FtcJava.makeFirstLetterUpperCase_ = function(text) {
   return text[0].toUpperCase() + text.substring(1);
+};
+
+Blockly.FtcJava.originalValueToCode = Blockly.FtcJava.valueToCode;
+
+Blockly.FtcJava.valueToCode = function(block, name, outerOrder) {
+  var input = block.getInput(name);
+  if (input && input.connection) {
+    var inputTargetBlock = input.connection.targetBlock();
+    if (inputTargetBlock) {
+      var expectedType = Blockly.FtcJava.getExpectedType_(block, input.connection);
+      if (expectedType != '') {
+        var outputType = Blockly.FtcJava.getOutputType_(inputTargetBlock);
+        if (Blockly.FtcJava.shouldCast_(outputType, expectedType)) {
+          return '(' + expectedType + ') ' +
+              Blockly.FtcJava.originalValueToCode(block, name, Blockly.FtcJava.ORDER_CAST);
+        }
+      }
+    }
+  }
+
+  return Blockly.FtcJava.originalValueToCode(block, name, outerOrder);
+};
+
+Blockly.FtcJava.shouldCast_ = function(type, expectedType) {
+  if (type == expectedType) {
+    return false;
+  }
+  switch (expectedType) {
+    case 'float':
+      return type == 'Number' || type == 'double';
+    case 'long':
+      return type == 'Number' || type == 'double' || type == 'float';
+    case 'int':
+      return type == 'Number' || type == 'double' || type == 'float' || type == 'long';
+    case 'short':
+      return type == 'Number' || type == 'double' || type == 'float' || type == 'long' || type == 'int';
+    case 'byte':
+      return type == 'Number' || type == 'double' || type == 'float' || type == 'long' || type == 'int' || type == 'short';
+
+    case 'OpenGLMatrix':
+      return type == 'MatrixF';
+
+    default:
+      if (expectedType) {
+        if (expectedType.match(/^List<(.*)>$/)) {
+          return type == 'List';
+        }
+      }
+  }
+  return false;
 };

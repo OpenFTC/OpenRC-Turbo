@@ -52,7 +52,9 @@ import com.qualcomm.robotcore.hardware.configuration.ConfigurationUtility;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.usb.RobotArmingStateNotifier;
+import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.BatteryChecker;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -61,6 +63,8 @@ import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.robotcore.external.function.Supplier;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +109,9 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
 
   protected ElapsedTime       updateUITimer             = new ElapsedTime();
   protected double            updateUIInterval          = 0.250; // in seconds
+
+  protected ElapsedTime       rumbleGamepadsTimer       = new ElapsedTime();
+  protected int               rumbleGamepadsInterval    = 50; // in milliseconds
 
   /** the actual hardware map seen by the user */
   protected HardwareMap       hardwareMap               = null;
@@ -210,6 +217,23 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
    * @param serialNumber            the serial number of the object to retrieve
    * @param usbScanManagerSupplier  how to get a {@link USBScanManager} if it ends up we need one
    */
+  // TODO(Noah): Consider deleting this method, and related things like hardwareMapExtra.
+  //             This is only used for visual identification, so it is specifically used to get a
+  //             LynxModule. The problem is that if no matching LynxModule is configured, it creates
+  //             one in user mode, when this is actually for a system action. In addition, the
+  //             devices this method adds to hardwareMapExtra never get removed or closed out until
+  //             a Robot Restart. So the LynxModule returned by this method will stay green, even if
+  //             it never gets added. Sure, higher levels will do a robot restart after exiting the
+  //             configuration interface, but that's not a great thing to depend on. Ideally we'd
+  //             only do a Robot Restart after the active configuration is actually changed in some
+  //             way.    HOWEVER. For visual identification, it's important that the LynxModule
+  //             remains open, until the visual identification ends. So that means we need some
+  //             extra features in LynxUsbDevice.performSystemOperationOnConnectedModule(). One way
+  //             that should work is to have a different version of the method that returns an
+  //             object that can be used to indicate when the device can be closed, instead of
+  //             assuming that it can be closed after the consumer exits.
+  //
+  //
   public @Nullable <T> T getHardwareDevice(Class<? extends T> classOrInterface, final SerialNumber serialNumber, Supplier<USBScanManager> usbScanManagerSupplier) {
     synchronized (hardwareFactory) {
       RobotLog.vv(TAG, "getHardwareDevice(%s)...", serialNumber);
@@ -306,7 +330,24 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
             ? eventLoopManager.getGamepads()
             : new Gamepad[2];
   }
-
+  
+  public void rumbleGamepads() {
+    if (rumbleGamepadsTimer.milliseconds() > rumbleGamepadsInterval) {
+      Gamepad[] gamepads = getGamepads();
+      Gamepad.RumbleEffect rumble0 = gamepads[0].rumbleQueue.poll();
+      Gamepad.RumbleEffect rumble1 = gamepads[1].rumbleQueue.poll();
+      
+      if (rumble0 != null) {
+        NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_RUMBLE_GAMEPAD, rumble0.serialize()));
+      }
+      if (rumble1 != null) {
+        NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_RUMBLE_GAMEPAD, rumble1.serialize()));
+      }
+      
+      rumbleGamepadsTimer.reset();
+    }
+  }
+  
   /**
    * Updates the (indicated) user's telemetry: the telemetry is transmitted if a sufficient
    * interval has passed since the last transmission. If the telemetry is transmitted, the

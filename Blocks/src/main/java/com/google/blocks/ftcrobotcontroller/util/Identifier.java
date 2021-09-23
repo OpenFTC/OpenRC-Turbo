@@ -79,6 +79,8 @@ public enum Identifier {
       null, null),
   RANGE("rangeAccess", "rangeIdentifierForJavaScript",
       null, null),
+  RUMBLE_EFFECT("rumbleEffectAccess", "rumbleEffectIdentifierForJavaScript",
+      null, null),
   SYSTEM("systemAccess", "systemIdentifierForJavaScript",
       null, null),
   TELEMETRY("telemetry", "telemetryIdentifierForJavaScript",

@@ -101,6 +101,8 @@ public interface TFObjectDetector extends CameraStreamSource {
 
     public boolean useObjectTracker = true;
 
+    public boolean isModelTensorFlow2 = false;
+
     // Additional configuration requested in
     // https://github.com/FIRST-Tech-Challenge/SkyStone/issues/210.
     public boolean isModelQuantized = true;

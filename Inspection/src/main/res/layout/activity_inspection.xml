@@ -21,7 +21,8 @@
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:adjustViewBounds="true"
-            android:layout_margin="1dp"/>
+            android:layout_margin="1dp"
+            tools:ignore="ContentDescription"/>
 
         <TextView
             android:id="@+id/textDeviceName"
@@ -40,7 +41,7 @@
             android:layout_toStartOf="@+id/menu_buttons"/>
         <ImageButton
             android:id="@+id/menu_buttons"
-            android:contentDescription="menu_buttons"
+            android:contentDescription="@string/menuButtonContentDescription"
             android:scaleType="fitXY"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -74,7 +75,7 @@
     <LinearLayout
         android:id="@+id/inspectionRootLayout"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
         android:layout_marginTop="2dp"
         android:orientation="vertical"
@@ -92,7 +93,7 @@
 
             <TextView
                 android:id="@+id/labelManufacturer"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/stringManufacturer"
@@ -114,7 +115,7 @@
 
             <TextView
                 android:id="@+id/labelModel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/stringModel"
@@ -128,6 +129,36 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/osVersionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/osVersionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/controlHubOsVersionLabel"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <TextView
+                android:id="@+id/osVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/osVersion_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/androidVersionLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -137,10 +168,10 @@
 
             <TextView
                 android:id="@+id/textView12"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Android Version:"
+                android:text="@string/androidVersionLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -148,31 +179,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/androidVersion_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/controlHubOsVersionLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="2dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Control Hub OS Version:"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-            <TextView
-                android:id="@+id/controlHubOsVersion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-        </LinearLayout>
-
-        <LinearLayout
+            android:id="@+id/hubFirmwarePrimaryLine_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -181,18 +198,52 @@
 
             <TextView
                 android:id="@+id/textViewHubFirmware"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Hub Firmware: "
+                android:text="@string/hubFirmwareLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
-                android:id="@+id/hubFirmware"
+                android:id="@+id/hubFirmwarePrimaryLine"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/hubFirmware_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/hubFirmwareExtraLine_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/hubFirmwareExtraLine"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/hubFirmwareExtraLine_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -208,7 +259,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Battery Level:"
+                android:text="@string/batteryLevelLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:visibility="visible"/>
 
@@ -231,10 +282,10 @@
 
             <TextView
                 android:id="@+id/textView10"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Airplane Mode:"
+                android:text="@string/airplaneModeLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -242,6 +293,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/airplaneMode_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -253,10 +312,10 @@
 
             <TextView
                 android:id="@+id/textView13"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Bluetooth:"
+                android:text="@string/bluetoothLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -264,6 +323,42 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/bluetoothEnabled_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/locationLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/locationLabel"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <TextView
+                android:id="@+id/locationEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/locationEnabled_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -275,10 +370,10 @@
 
             <TextView
                 android:id="@+id/textViewPassword"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="RC Password:"
+                android:text="@string/passwordLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -286,6 +381,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/isDefaultPassword_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -297,10 +399,10 @@
 
             <TextView
                 android:id="@+id/textView7"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="WiFi Enabled:"
+                android:text="@string/wifiEnabledLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -308,6 +410,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/wifiEnabled_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -319,10 +428,10 @@
 
             <TextView
                 android:id="@+id/textView11"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="WiFi Connected:"
+                android:text="@string/wifiConnectedLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -330,6 +439,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/wifiConnected_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -341,10 +457,10 @@
 
             <TextView
                 android:id="@+id/labelWifiName"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="WiFi Name:"
+                android:text="@string/wifiNameLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -352,29 +468,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
-        </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="2dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/textView6"
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/wifiName_img"
+                android:src="@drawable/ic_warning"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="WiDi Connection Status:"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-            <TextView
-                android:id="@+id/widiConnected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <LinearLayout
@@ -386,10 +486,10 @@
 
             <TextView
                 android:id="@+id/trafficCountLabel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Rx/Tx Data:"
+                android:text="@string/trafficCountLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -408,10 +508,10 @@
 
             <TextView
                 android:id="@+id/bytesPerSecondLabel"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Bytes Per Second:"
+                android:text="@string/bytesPerSecondLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -430,16 +530,10 @@
 
             <TextView
                 android:id="@+id/appsInstalled"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Apps Installed:"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
-
-            <TextView
-                android:id="@+id/appsStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:text="@string/appsInstalledLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         </LinearLayout>
@@ -455,10 +549,10 @@
 
             <TextView
                 android:id="@+id/textView3"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Robot Controller:"
+                android:text="@string/robotControllerLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -467,10 +561,49 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/txtIsRCInstalled_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
             <FrameLayout
                 android:id="@+id/isRCInstalled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="2dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/matchesDSVersionLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/matchesDSVersionLabel"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <TextView
+                android:id="@+id/matchesDSVersion_txt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/matchesDSVersion_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
         </LinearLayout>
 
@@ -485,10 +618,10 @@
 
             <TextView
                 android:id="@+id/textView4"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Driver Station:"
+                android:text="@string/driverStationLabel"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
 
             <TextView
@@ -496,6 +629,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <ImageView
+                android:paddingLeft="5dp"
+                android:id="@+id/txtIsDSInstalled_img"
+                android:src="@drawable/ic_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
             <FrameLayout
                 android:id="@+id/isDSInstalled"
@@ -505,7 +645,7 @@
 
         <Space
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginBottom="2dp"
             android:layout_marginTop="5dp"
             android:layout_weight="1"/>

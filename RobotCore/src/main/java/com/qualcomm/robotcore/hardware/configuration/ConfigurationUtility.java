@@ -235,17 +235,51 @@ public class ConfigurationUtility
         try {
             if (metas == null) metas = new LynxModuleMetaList(serialNumber);
             RobotLog.vv(TAG, "buildLynxUsbDevice(): discovered lynx modules: %s", metas);
-            //
-            List<LynxModuleConfiguration> modules = new LinkedList<LynxModuleConfiguration>();
+
+            Boolean parentHasImu;
+            if (metas.getParent() == null)
+                {
+                parentHasImu = false;
+                }
+            else
+                {
+                // Returns null if the RC didn't report if the modules have IMUs
+                parentHasImu = metas.getParent().hasImu();
+                }
+
+            // If the RC didn't report if the modules have IMUs, assume that the parent does.
+            if (parentHasImu == null) { parentHasImu = true; }
+
+            List<LynxModuleConfiguration> modules = new LinkedList<>();
             for (LynxModuleMeta meta : metas)
                 {
                 boolean isEmbeddedControlHubModule =
                         isEmbeddedControlHubUsbDevice &&
                         meta.isParent() &&
                         meta.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS;
+
+                boolean addSyntheticImu;
+                if (parentHasImu)
+                    {
+                    // When the parent has an IMU, that's the IMU that should be used for
+                    // performance reasons, so we don't want to add the synthetic IMU on any other
+                    // modules.
+
+                    // Because we previously set parentHasImu to true if the RC is outdated,
+                    // this branch includes that case.
+                    addSyntheticImu = meta.isParent();
+                    }
+                else
+                    {
+                    // When the parent is known to not have an IMU, we want to add the synthetic IMU
+                    // for any modules that are known to physically have one.
+                    addSyntheticImu = Boolean.TRUE.equals(meta.hasImu());
+                    }
+
                 modules.add(buildNewLynxModule(
                         meta.getModuleAddress(),
                         meta.isParent(),
+                        addSyntheticImu,
                         true,
                         isEmbeddedControlHubModule));
                 }
@@ -267,7 +301,7 @@ public class ConfigurationUtility
             }
         }
 
-    public LynxModuleConfiguration buildNewLynxModule(int moduleAddress, boolean isParent, boolean isEnabled, boolean isEmbeddedControlHubModule)
+    public LynxModuleConfiguration buildNewLynxModule(int moduleAddress, boolean isParent, boolean addSyntheticImu, boolean isEnabled, boolean isEmbeddedControlHubModule)
         {
         String name;
         if (isEmbeddedControlHubModule) {
@@ -280,18 +314,20 @@ public class ConfigurationUtility
 
         LynxModuleConfiguration lynxModuleConfiguration = buildEmptyLynxModule(name, moduleAddress, isParent, isEnabled);
 
-        // Add add the embedded IMU device to the newly created configuration
-        Context context = AppUtil.getDefContext();
-        UserConfigurationType embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedIMUType();
-        Assert.assertTrue(embeddedIMUConfigurationType!=null && embeddedIMUConfigurationType.isDeviceFlavor(ConfigurationType.DeviceFlavor.I2C));
+        // Add the embedded IMU device to the newly created configuration, if applicable
+        if (addSyntheticImu)
+            {
+            UserConfigurationType embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedIMUType();
+            Assert.assertTrue(embeddedIMUConfigurationType!=null && embeddedIMUConfigurationType.isDeviceFlavor(ConfigurationType.DeviceFlavor.I2C));
 
-        String imuName = createUniqueName(embeddedIMUConfigurationType, R.string.preferred_imu_name, R.string.counted_imu_name, 1);
-        LynxI2cDeviceConfiguration imuConfiguration = new LynxI2cDeviceConfiguration();
-        imuConfiguration.setConfigurationType(embeddedIMUConfigurationType);
-        imuConfiguration.setName(imuName);
-        imuConfiguration.setEnabled(true);
-        imuConfiguration.setBus(LynxConstants.EMBEDDED_IMU_BUS);
-        lynxModuleConfiguration.getI2cDevices().add(imuConfiguration);
+            String imuName = createUniqueName(embeddedIMUConfigurationType, R.string.preferred_imu_name, R.string.counted_imu_name, 1);
+            LynxI2cDeviceConfiguration imuConfiguration = new LynxI2cDeviceConfiguration();
+            imuConfiguration.setConfigurationType(embeddedIMUConfigurationType);
+            imuConfiguration.setName(imuName);
+            imuConfiguration.setEnabled(true);
+            imuConfiguration.setBus(LynxConstants.EMBEDDED_IMU_BUS);
+            lynxModuleConfiguration.getI2cDevices().add(imuConfiguration);
+            }
 
         return lynxModuleConfiguration;
         }
@@ -309,7 +345,7 @@ public class ConfigurationUtility
                 RobotCoreLynxUsbDevice device = null;
                 try {
                     device = deviceManager.createLynxUsbDevice(LynxConstants.SERIAL_NUMBER_EMBEDDED, null);
-                    return device.discoverModules();
+                    return device.discoverModules(true);
                     }
                 catch (InterruptedException e)
                     {

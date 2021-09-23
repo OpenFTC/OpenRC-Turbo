@@ -43,10 +43,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import dalvik.system.DexFile;
 
@@ -79,7 +77,7 @@ public class ClassManager {
     }
 
     private static final String TAG = "ClassManager";
-    private final boolean DEBUG = false;
+    private static final boolean DEBUG = false;
 
     private List<String> packagesAndClassesToIgnore;
     private List<ClassFilter> filters;
@@ -110,19 +108,27 @@ public class ClassManager {
 
     protected void clearIgnoredList()
     {
-        // We ignore certain packages to make us more robust and efficient
+        // We ignore certain packages to make us more robust and efficient.
+        // Classes in these packages will not be put through our various ClassFilter implementations.
+        // This means that they will not be scanned for any annotations that are defined in the
+        // FTC SDK, such as @TeleOp, or @DeviceProperties, or for configuration XML files.
         this.packagesAndClassesToIgnore = new ArrayList<String>();
         this.packagesAndClassesToIgnore.addAll(Arrays.asList(
-                "com.android.dex",
-                "com.google",
-                "com.sun.tools",
-                "gnu.kawa.swingviews",
-                "io.netty",
-                "javax.tools",
-                "kawa",
-                "org.firstinspires.ftc.robotcore.internal.android",
-                "android.support.v4",
-                "androidx"
+            "android", // Also excludes androidx
+            "com.android",
+            "com.google",
+            "com.sun",
+            "gnu.kawa.swingviews",
+            "io.netty",
+            "java", // Also excludes javax
+            "kawa",
+            "org.apache",
+            "org.checkerframework",
+            "org.firstinspires.ftc.robotcore.internal.android",
+            "org.java_websocket",
+            "org.slf4j",
+            "org.tensorflow",
+            "org.threeten"
         ));
     }
 
@@ -135,7 +141,7 @@ public class ClassManager {
         this.onBotJavaHelper = helper;
     }
 
-    protected void setClassLoader(ClassLoader classLoader)
+    private void setClassLoader(ClassLoader classLoader)
     {
         this.classLoader = classLoader;
     }
@@ -168,10 +174,13 @@ public class ClassManager {
         // Deal with instant run's craziness
         classNames.addAll(InstantRunHelper.getAllClassNames(context));
 
-        // Load classes from OnBotJava
         if (onBotJavaHelper != null) {
+            // Load classes from OnBotJava
             classNames.addAll(onBotJavaHelper.getOnBotJavaClassNames());
-            setClassLoader(onBotJavaHelper.getOnBotJavaClassLoader());
+            setClassLoader(onBotJavaHelper.createOnBotJavaClassLoader());
+
+            // Load classes from external libraries.
+            classNames.addAll(onBotJavaHelper.getExternalLibrariesClassNames());
         }
 
         return classNames;
@@ -180,58 +189,50 @@ public class ClassManager {
     protected List<Class> classNamesToClasses(Collection<String> classNames)
     {
         List<Class> result = new LinkedList<Class>();
-        try
+        ClassLoader classLoaderToUse = (classLoader != null)
+            ? classLoader
+            : this.getClass().getClassLoader();
+        for (String className : classNames)
         {
-            for (String className : classNames)
+            // Ignore classes that are in some packages that we know aren't worth considering
+            boolean shouldIgnore = false;
+            for (String packageName : packagesAndClassesToIgnore)
             {
-                // Ignore classes that are in some packages that we know aren't worth considering
-                boolean shouldIgnore = false;
-                for (String packageName : packagesAndClassesToIgnore)
+                if (Util.isPrefixOf(packageName, className))
                 {
-                    if (Util.isPrefixOf(packageName, className))
-                    {
-                        shouldIgnore = true;
-                        break;
-                    }
+                    shouldIgnore = true;
+                    break;
                 }
-                if (shouldIgnore)
-                    continue;
+            }
+            if (shouldIgnore)
+                continue;
 
-                // Get the Class from the className
-                Class clazz;
-                try
+            // Get the Class from the className
+            Class clazz;
+            try
+            {
+                clazz = Class.forName(className, false, classLoaderToUse);
+                if (DEBUG) RobotLog.ii(TAG, "class %s: loader=%s", className, clazz.getClassLoader().getClass().getSimpleName());
+            }
+            catch (NoClassDefFoundError|ClassNotFoundException ex)
+            {
+                // We can't find that class
+                if (logClassNotFound(className)) RobotLog.ww(TAG, ex, className + " " + ex.toString());
+                if (className.contains("$"))
                 {
-                    if (classLoader == null) {
-                        clazz = Class.forName(className, false, this.getClass().getClassLoader());
-                    } else {
-                        clazz = Class.forName(className, false, classLoader);
-                    }
-                    if (DEBUG) RobotLog.ii(TAG, "class %s: loader=%s", className, clazz.getClassLoader().getClass().getSimpleName());
-                }
-                catch (NoClassDefFoundError|ClassNotFoundException ex)
-                {
-                    // We can't find that class
-                    if (logClassNotFound(className)) RobotLog.ww(TAG, ex, className + " " + ex.toString());
-                    if (className.contains("$"))
-                    {
-                        // Prevent loading similar inner classes, a performance optimization
-                        className = className.substring(0, className.indexOf("$") /* -1 */);
-                    }
-
-                    packagesAndClassesToIgnore.add(className);
-                    continue;
+                    // Prevent loading similar inner classes, a performance optimization
+                    className = className.substring(0, className.indexOf("$") /* -1 */);
                 }
 
-                // Remember that class
-                result.add(clazz);
+                packagesAndClassesToIgnore.add(className);
+                continue;
             }
 
-            return result;
+            // Remember that class
+            result.add(clazz);
         }
-        finally
-        {
-            if (onBotJavaHelper != null) onBotJavaHelper.close(classLoader);
-        }
+
+        return result;
     }
 
     protected boolean logClassNotFound(String className)
@@ -273,8 +274,8 @@ public class ClassManager {
         }
 
         clearIgnoredList();
-        Set<String> classNames = onBotJavaHelper.getOnBotJavaClassNames();
-        setClassLoader(onBotJavaHelper.getOnBotJavaClassLoader());
+        Collection<String> classNames = onBotJavaHelper.getOnBotJavaClassNames();
+        setClassLoader(onBotJavaHelper.createOnBotJavaClassLoader());
         List<Class> onBotJavaClasses = classNamesToClasses(classNames);
 
         for (ClassFilter f : filters)
@@ -282,12 +283,41 @@ public class ClassManager {
             f.filterOnBotJavaClassesStart();
             for (Class clazz : onBotJavaClasses)
             {
-                Assert.assertTrue(OnBotJavaDeterminer.isOnBotJava(clazz), "class %s isn't OnBotJava: loader=%s", clazz.getSimpleName(), clazz.getClassLoader().getClass().getSimpleName());
+                Assert.assertTrue(OnBotJavaDeterminer.isOnBotJava(clazz),
+                    "class %s isn't OnBotJava: loader=%s", clazz.getSimpleName(), clazz.getClassLoader().getClass().getSimpleName());
                 f.filterOnBotJavaClass(clazz);
             }
             f.filterOnBotJavaClassesComplete();
         }
     }
 
+    /**
+     * Processes the classes from external libraries. Called after a new external library (a .jar
+     * or a .aar) file is uploaded.
+     */
+    public void processExternalLibrariesClasses()
+    {
+        if (onBotJavaHelper == null) {
+            return;
+        }
 
+        clearIgnoredList();
+        Collection<String> classNames = onBotJavaHelper.getExternalLibrariesClassNames();
+        // The OnBotJavaClassLoader sits on top of the ExternalLibraries ClassLoader, so we need to
+        // get a new OnBotJavaClassLoader.
+        setClassLoader(onBotJavaHelper.createOnBotJavaClassLoader());
+        List<Class> externalLibrariesClasses = classNamesToClasses(classNames);
+
+        for (ClassFilter f : filters)
+        {
+            f.filterExternalLibrariesClassesStart();
+            for (Class clazz : externalLibrariesClasses)
+            {
+                Assert.assertTrue(OnBotJavaDeterminer.isExternalLibraries(clazz),
+                    "class %s isn't ExternalLibraries: loader=%s", clazz.getSimpleName(), clazz.getClassLoader().getClass().getSimpleName());
+                f.filterExternalLibrariesClass(clazz);
+            }
+            f.filterExternalLibrariesClassesComplete();
+        }
+    }
 }

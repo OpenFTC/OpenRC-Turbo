@@ -54,12 +54,14 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.qualcomm.robotcore.R;
+import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.InvalidNetworkSettingException;
+import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 import org.firstinspires.ftc.robotcore.internal.network.WifiUtil;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -110,7 +112,7 @@ public class WifiDirectAssistant extends NetworkConnection {
   private int clients = 0;
 
   /*
-   * Maintains the list of wifi p2p peers available
+   * Maintains the list of Wi-Fi p2p peers available
    */
   private class WifiDirectPeerListListener implements PeerListListener {
 
@@ -280,7 +282,7 @@ public class WifiDirectAssistant extends NetworkConnection {
   private WifiDirectAssistant(Context context) {
     super(context);
 
-    // Set up the intent filter for wifi direct
+    // Set up the intent filter for Wi-Fi Direct
     intentFilter = new IntentFilter();
     intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
     intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -304,10 +306,17 @@ public class WifiDirectAssistant extends NetworkConnection {
 
   public synchronized void enable() {
     clients += 1;
-    RobotLog.vv(TAG, "There are " + clients + " Wifi Direct Assistant Clients (+)");
+    RobotLog.vv(TAG, "There are " + clients + " Wi-Fi Direct Assistant Clients (+)");
+
+    if (Device.isRevDriverHub()) {
+      // TODO(Noah): Remove this once the Driver Hub OS has been updated to fix the issue with
+      //             connecting to Wi-Fi Direct while connected to a normal access point
+      RobotLog.vv(TAG, "Disconnecting from normal Wi-Fi access point");
+      NetworkConnectionHandler.getWifiManager().disconnect();
+    }
 
     if (clients == 1) {
-      RobotLog.vv(TAG, "Enabling Wifi Direct Assistant");
+      RobotLog.vv(TAG, "Enabling Wi-Fi Direct Assistant");
       if (receiver == null) receiver = new WifiP2pBroadcastReceiver();
       context.registerReceiver(receiver, intentFilter);
 
@@ -336,10 +345,10 @@ public class WifiDirectAssistant extends NetworkConnection {
 
   public synchronized void disable() {
     clients -= 1;
-    RobotLog.vv(TAG, "There are " + clients + " Wifi Direct Assistant Clients (-)");
+    RobotLog.vv(TAG, "There are " + clients + " Wi-Fi Direct Assistant Clients (-)");
 
     if (clients == 0) {
-      RobotLog.vv(TAG, "Disabling Wifi Direct Assistant");
+      RobotLog.vv(TAG, "Disabling Wi-Fi Direct Assistant");
       wifiP2pManager.stopPeerDiscovery(wifiP2pChannel, null);
       wifiP2pManager.cancelConnect(wifiP2pChannel, null);
 
@@ -506,7 +515,7 @@ public class WifiDirectAssistant extends NetworkConnection {
   }
 
   /**
-   * Discover Wifi Direct peers
+   * Discover Wi-Fi Direct peers
    */
   public void discoverPeers() {
     if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
@@ -524,14 +533,14 @@ public class WifiDirectAssistant extends NetworkConnection {
       public void onFailure(int reason) {
         String reasonStr = failureReasonToString(reason);
         failureReason = reason;
-        RobotLog.ww(TAG, "Wifi Direct failure while trying to discover peers - reason: " + reasonStr);
+        RobotLog.ww(TAG, "Wi-Fi Direct failure while trying to discover peers - reason: " + reasonStr);
         sendEvent(NetworkEvent.ERROR);
       }
     });
   }
 
   /**
-   * Cancel discover Wifi Direct peers request
+   * Cancel discover Wi-Fi Direct peers request
    */
   public void cancelDiscoverPeers() {
     RobotLog.dd(TAG, "stop discovering peers");
@@ -539,7 +548,7 @@ public class WifiDirectAssistant extends NetworkConnection {
   }
 
   /**
-   * Create a Wifi Direct group
+   * Create a Wi-Fi Direct group
    * <p>
    * Will receive a NetworkEvent.GROUP_CREATED if the group is created. If there is an
    * error creating group NetworkEvent.ERROR will be sent. If group already exists, no
@@ -566,7 +575,7 @@ public class WifiDirectAssistant extends NetworkConnection {
         } else {
           String reasonStr = failureReasonToString(reason);
           failureReason = reason;
-          RobotLog.ww(TAG, "Wifi Direct failure while trying to create group - reason: " + reasonStr);
+          RobotLog.ww(TAG, "Wi-Fi Direct failure while trying to create group - reason: " + reasonStr);
           synchronized (connectStatusLock) {
             connectStatus = ConnectStatus.ERROR;
           }
@@ -577,7 +586,7 @@ public class WifiDirectAssistant extends NetworkConnection {
   }
 
   /**
-   * Remove a Wifi Direct group
+   * Remove a Wi-Fi Direct group
    */
   public void removeGroup() {
     wifiP2pManager.removeGroup(wifiP2pChannel, null);
