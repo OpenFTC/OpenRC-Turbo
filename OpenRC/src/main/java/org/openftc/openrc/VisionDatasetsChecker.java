@@ -125,7 +125,7 @@ public class VisionDatasetsChecker
 
     private static void showError(final String title, final String message)
     {
-        RobotLog.setGlobalWarningMessage(message);
+        RobotLog.addGlobalWarningMessage(message);
 
         if(LynxConstants.isRevControlHub())
         {

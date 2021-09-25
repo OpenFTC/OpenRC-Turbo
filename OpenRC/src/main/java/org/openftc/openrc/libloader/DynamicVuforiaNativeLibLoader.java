@@ -155,7 +155,7 @@ public class DynamicVuforiaNativeLibLoader
             // No period at the end, since a semicolon may be appended by the system.
             String globalWarningMessage = "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage";
             RobotLog.ee(TAG, e, globalWarningMessage);
-            RobotLog.setGlobalWarningMessage(globalWarningMessage);
+            RobotLog.addGlobalWarningMessage(globalWarningMessage);
 
             showLibNotOnSdcardDialog();
         }
@@ -167,7 +167,7 @@ public class DynamicVuforiaNativeLibLoader
             String globalWarningMessage = "libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
                     "checksum does not match what is expected. Delete and re-download the file.";
             RobotLog.ee(TAG, e, globalWarningMessage);
-            RobotLog.setGlobalWarningMessage(globalWarningMessage);
+            RobotLog.addGlobalWarningMessage(globalWarningMessage);
 
             showLibCorruptedDialog();
         }

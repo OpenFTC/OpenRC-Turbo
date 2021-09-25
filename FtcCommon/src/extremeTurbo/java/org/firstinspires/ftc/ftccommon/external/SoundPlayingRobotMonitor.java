@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.robot.RobotStatus;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.network.NetworkStatus;
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatus;
@@ -36,7 +37,7 @@ public class SoundPlayingRobotMonitor implements RobotStateMonitor {
     }
 
     @Override
-    public void updateWarningMessage(@Nullable String warningMessage) {
+    public void updateWarningMessage(@Nullable RobotLog.GlobalWarningMessage warningMessage) {
 
     }
 }
