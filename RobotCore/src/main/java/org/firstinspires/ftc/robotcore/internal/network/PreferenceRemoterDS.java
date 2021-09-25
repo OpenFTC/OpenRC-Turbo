@@ -35,8 +35,11 @@ package org.firstinspires.ftc.robotcore.internal.network;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.SystemClock;
 
 import com.qualcomm.robotcore.R;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
+import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
@@ -70,7 +73,16 @@ public class PreferenceRemoterDS extends PreferenceRemoter
 
     public PreferenceRemoterDS()
         {
-        loadRenameMap();
+        // It's not critical for this code to work perfectly. If it gets confused because the user
+        // changed the system time, the worst that can happen is for the wrong RC name to get displayed
+        long maybeIncorrectSystemBootTime = System.currentTimeMillis() - SystemClock.elapsedRealtime();
+        boolean rebootedSinceLastP2pRenameMapUpdate = maybeIncorrectSystemBootTime > getTimestampWhenRenameMapWasLastSaved();
+        if (rebootedSinceLastP2pRenameMapUpdate) {
+            RobotLog.vv(TAG, "The device has been booted since the last time the Driver Station was running");
+            clearRenameMap();
+        } else {
+            loadRenameMap();
+        }
 
         // Remove preferences that indicate state with temporary knowledge
         preferencesHelper.remove(context.getString(R.string.pref_wifip2p_groupowner_lastconnectedto));
@@ -88,12 +100,6 @@ public class PreferenceRemoterDS extends PreferenceRemoter
     // Managing WifiP2p's refusal to track changes in robot controller name
     //----------------------------------------------------------------------------------------------
 
-    public void onPhoneBoot()
-        {
-        RobotLog.vv(TAG, "onPhoneBoot()");
-        clearRenameMap();
-        }
-
     public void onWifiToggled(boolean enabled)
         {
         RobotLog.vv(TAG, "onWifiToggled(%s)", enabled);
@@ -109,13 +115,24 @@ public class PreferenceRemoterDS extends PreferenceRemoter
         mapGroupOwnerToDeviceName = new PreferencesHelper.StringMap();
         saveRenameMap();
         }
+
     protected void saveRenameMap()
         {
         preferencesHelper.writeStringMapPrefIfDifferent(context.getString(R.string.pref_wifip2p_groupowner_map), mapGroupOwnerToDeviceName);
+        preferencesHelper.writeLongPrefIfDifferent(context.getString(R.string.pref_wifip2p_groupowner_map_timestamp), System.currentTimeMillis());
         }
+
     protected void loadRenameMap()
         {
         mapGroupOwnerToDeviceName = preferencesHelper.readStringMap(context.getString(R.string.pref_wifip2p_groupowner_map), new PreferencesHelper.StringMap());
+        }
+
+    /**
+     * @return The timestamp (in the format used by {@link System#currentTimeMillis()}) when the rename map was last saved
+     */
+    protected long getTimestampWhenRenameMapWasLastSaved()
+        {
+        return preferencesHelper.readLong(context.getString(R.string.pref_wifip2p_groupowner_map_timestamp), 0L);
         }
 
     public String getDeviceNameForWifiP2pGroupOwner(String groupOwnerName)
@@ -193,7 +210,7 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             // You wouldn't think we'd have to do this, but it turns out that when the RC (the WifiP2p
             // group owner) changes its name, the group owner as reported by the system here on the
             // DS doesn't actually change until we reboot (or, perhaps, until we toggle and retoggle
-            // our wifi). It'll all be fine when we reboot, but until then, we've got to keep the
+            // our Wi-Fi). It'll all be fine when we reboot, but until then, we've got to keep the
             // names straight.
             String groupOwner = preferencesHelper.readString(context.getString(R.string.pref_wifip2p_groupowner_connectedto), "");
             if (groupOwner.isEmpty())
@@ -222,7 +239,7 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             // Remember that setting of the robot controller
             preferencesHelper.writePrefIfDifferent(context.getString(R.string.pref_has_independent_phone_battery_rc), rcPrefAndValue.getValue());
             }
-        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_outdated_firmware)))
+        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_obsolete_software)))
             {
             preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
             }
@@ -231,6 +248,10 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
             }
         else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_2_4_ghz_band)))
+            {
+            preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
+            }
+        else if (rcPrefAndValue.getPrefName().equals(context.getString(R.string.pref_warn_about_incorrect_clocks)))
             {
             preferencesHelper.writePrefIfDifferent(rcPrefAndValue.getPrefName(), rcPrefAndValue.getValue());
             }
@@ -264,7 +285,7 @@ public class PreferenceRemoterDS extends PreferenceRemoter
                 {
                 rcPrefName = context.getString(R.string.pref_wifip2p_channel);
                 }
-            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_outdated_firmware)))
+            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_obsolete_software)))
                 {
                 rcPrefName = dsPrefName;
                 }
@@ -273,6 +294,10 @@ public class PreferenceRemoterDS extends PreferenceRemoter
                 rcPrefName = dsPrefName;
                 }
             else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_2_4_ghz_band)))
+                {
+                rcPrefName = dsPrefName;
+                }
+            else if (dsPrefName.equals(context.getString(R.string.pref_warn_about_incorrect_clocks)))
                 {
                 rcPrefName = dsPrefName;
                 }
@@ -314,7 +339,10 @@ public class PreferenceRemoterDS extends PreferenceRemoter
             }
         catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); } // shouldn't happen
 
-        sendPreference(new RobotControllerPreference(context.getString(R.string.pref_ds_version_code), dsVersionCode));
         sendPreference(new RobotControllerPreference(context.getString(R.string.pref_ds_supports_5_ghz), WifiUtil.is5GHzAvailable()));
+        if (Device.isRevDriverHub())
+            {
+            sendPreference(new RobotControllerPreference(context.getString(R.string.pref_dh_os_version_code), LynxConstants.getDriverHubOsVersionCode()));
+            }
         }
     }

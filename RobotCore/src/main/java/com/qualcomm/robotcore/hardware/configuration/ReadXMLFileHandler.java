@@ -229,11 +229,6 @@ public class ReadXMLFileHandler extends ConfigurationUtility {
       // TODO(i18n): Convert to XML string
       warningManager.addWarning(String.format("%s is a deprecated configuration type and may be removed in a future release", device.getConfigurationType().getDisplayName(ConfigurationType.DisplayNameFlavor.Normal)));
     }
-
-    else if (device.getConfigurationType() == BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER) {
-      // TODO(i18n): Convert to XML string
-      warningManager.addWarning("The Legacy Module is illegal for competition and support may be removed from this app in a future release.");
-    }
   }
 
   private void parseIgnoreElementChildren() throws IOException, XmlPullParserException {
@@ -277,6 +272,10 @@ public class ReadXMLFileHandler extends ConfigurationUtility {
     @Override
     public synchronized String getGlobalWarning() {
       return warningMessageSuppressionCount > 0 ? "" : warningMessage;
+    }
+
+    @Override public boolean shouldTriggerWarningSound() {
+      return false;
     }
 
     @Override

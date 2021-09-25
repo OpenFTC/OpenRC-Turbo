@@ -31,8 +31,9 @@
 package com.qualcomm.ftccommon.configuration;
 
 import android.content.Context;
+import android.content.res.Resources;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.XmlRes;
 
 import com.google.gson.JsonSyntaxException;
@@ -143,7 +144,7 @@ public class RobotConfigFile {
         return location;
     }
 
-    public @Nullable XmlPullParser getXml()
+    public @NonNull XmlPullParser getXml() throws FileNotFoundException, XmlPullParserException
     {
         switch (location) {
         case LOCAL_STORAGE:
@@ -152,54 +153,48 @@ public class RobotConfigFile {
             return getXmlResource();
         case NONE:
             return getXmlNone();
+        default:
+            throw new RuntimeException("Unknown type of configuration location: " + location);
         }
-        return null;
     }
 
     // In the 'none' case we simply return an XmlPullParser on a degenerate, empty, configuration
-    protected XmlPullParser getXmlNone()
-    {
+    protected XmlPullParser getXmlNone() throws XmlPullParserException
+        {
         XmlPullParser result = null;
-        try {
-            String emptyXml = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n" +
-                    "<Robot type=\"FirstInspires-FTC\">\n" + "</Robot>\n";
-            StringReader stringReader = new StringReader(emptyXml);
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            factory.setNamespaceAware(true);
-            result = factory.newPullParser();
-            result.setInput(stringReader);
-        }
-        catch (XmlPullParserException e) {
-            RobotLog.logStacktrace(e);
-        }
+        String emptyXml = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\n" +
+                "<Robot type=\"FirstInspires-FTC\">\n" + "</Robot>\n";
+        StringReader stringReader = new StringReader(emptyXml);
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        result = factory.newPullParser();
+        result.setInput(stringReader);
         return result;
     }
 
-    protected XmlPullParser getXmlLocalStorage()
-    {
+    protected XmlPullParser getXmlLocalStorage() throws XmlPullParserException, FileNotFoundException
+        {
         FileInputStream inputStream;
         XmlPullParserFactory factory;
         XmlPullParser parser;
 
-        parser = null;
-        try {
-            File fullPath = RobotConfigFileManager.getFullPath(getName());
-            inputStream = new FileInputStream(fullPath);
-            factory = XmlPullParserFactory.newInstance();
-            factory.setNamespaceAware(true);
-            parser = factory.newPullParser();
-            parser.setInput(inputStream, null);
-        } catch (XmlPullParserException|FileNotFoundException e) {
-            RobotLog.logStacktrace(e);
-        }
-
+        File fullPath = RobotConfigFileManager.getFullPath(getName());
+        inputStream = new FileInputStream(fullPath);
+        factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        parser = factory.newPullParser();
+        parser.setInput(inputStream, null);
         return parser;
     }
 
-    protected XmlPullParser getXmlResource()
-    {
+    protected XmlPullParser getXmlResource() throws FileNotFoundException
+        {
         Context context = AppUtil.getInstance().getApplication();
-        return context.getResources().getXml(resourceId);
+        try {
+            return context.getResources().getXml(resourceId);
+        } catch (Resources.NotFoundException e) {
+            throw new FileNotFoundException("XML resource not found");
+        }
     }
 
     public boolean isNoConfig()

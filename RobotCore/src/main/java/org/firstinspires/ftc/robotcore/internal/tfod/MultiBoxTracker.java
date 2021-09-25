@@ -41,8 +41,6 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 public class MultiBoxTracker {
   private static final String TAG = "MultiBoxTracker";
 
-  private static final float TEXT_SIZE_DIP = 18;
-
   private static final int[] COLORS = {
     Color.BLUE,
     Color.RED,
@@ -81,7 +79,6 @@ public class MultiBoxTracker {
 
   private final Paint boxPaint = new Paint();
 
-  private final float textSizePx;
   private final BorderedText borderedText;
 
   private Matrix frameToCanvasMatrix;
@@ -107,8 +104,7 @@ public class MultiBoxTracker {
     boxPaint.setStrokeJoin(Join.ROUND);
     boxPaint.setStrokeMiter(100);
 
-    textSizePx = 20;
-    borderedText = new BorderedText(textSizePx);
+    borderedText = new BorderedText(60);
   }
 
   private Matrix getFrameToCanvasMatrix() {
@@ -129,8 +125,9 @@ public class MultiBoxTracker {
     for (final Pair<Float, RectF> detection : screenRects) {
       final RectF rect = detection.second;
       canvas.drawRect(rect, boxPaint);
-      canvas.drawText("" + detection.first, rect.left, rect.top, textPaint);
-      borderedText.drawText(canvas, rect.centerX(), rect.centerY(), "" + detection.first);
+      String text = String.format("%.2f", detection.first);
+      canvas.drawText(text, rect.left, rect.top, textPaint);
+      borderedText.drawText(canvas, rect.centerX(), rect.centerY(), text);
     }
 
     if (objectTracker == null) {
@@ -249,7 +246,7 @@ public class MultiBoxTracker {
         String message =
             "Object tracking support not found. "
                 + "See tensorflow/examples/android/README.md for details.";
-        //        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        //Toast.makeText(context, message, Toast.LENGTH_LONG).show();
         Log.e(TAG, message);
       }
     }
@@ -267,10 +264,7 @@ public class MultiBoxTracker {
       final ObjectTracker.TrackedObject trackedObject = recognition.trackedObject;
       final float correlation = trackedObject.getCurrentCorrelation();
       if (correlation < params.trackerMinCorrelation) {
-        //Log.v(
-        //    TAG,
-        //    String.format(
-        //        "Removing tracked object %s because NCC is %.2f", trackedObject, correlation));
+        //Log.v(TAG, String.format("Removing tracked object %s because NCC is %.2f", trackedObject, correlation));
         trackedObject.stopTracking();
         trackedObjects.remove(recognition);
 
@@ -296,8 +290,7 @@ public class MultiBoxTracker {
       final RectF detectionScreenRect = new RectF();
       rgbFrameToScreen.mapRect(detectionScreenRect, detectionFrameRect);
 
-      //Log.v(
-      //    TAG,
+      //Log.v(TAG,
       //    "Result! Frame: " + recognitionImpl.getLocation() + " mapped to screen:" + detectionScreenRect);
 
       screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
@@ -346,13 +339,9 @@ public class MultiBoxTracker {
         objectTracker.trackObject(potential.second.getLocation(), timestamp, frameCopy);
 
     final float potentialCorrelation = potentialObject.getCurrentCorrelation();
-    //Log.v(
-    //    TAG,
-    //    String.format(
-    //        "Tracked object went from %s to %s with correlation %.2f",
-    //        potential.second,
-    //        potentialObject.getTrackedPositionInPreviewFrame(),
-    //        potentialCorrelation));
+    //Log.v(TAG, String.format(
+    //    "Tracked object went from %s to %s with correlation %.2f",
+    //    potential.second, potentialObject.getTrackedPositionInPreviewFrame(), potentialCorrelation));
 
     if (potentialCorrelation < params.trackerMarginalCorrelation) {
       //Log.v(TAG, String.format("Correlation too low to begin tracking %s.", potentialObject));
@@ -385,8 +374,7 @@ public class MultiBoxTracker {
       // recognition needs to be removed and possibly replaced with the new one.
       if (intersects && intersectOverUnion > params.trackerMaxOverlap) {
         if (potential.first < trackedRecognition.detectionConfidence
-            && trackedRecognition.trackedObject.getCurrentCorrelation()
-                > params.trackerMarginalCorrelation) {
+            && trackedRecognition.trackedObject.getCurrentCorrelation() > params.trackerMarginalCorrelation) {
           // If track for the existing object is still going strong and the detection score was
           // good, reject this new object.
           potentialObject.stopTracking();
@@ -427,13 +415,11 @@ public class MultiBoxTracker {
 
     // Remove everything that got intersected.
     for (final TrackedRecognition trackedRecognition : removeList) {
-      //Log.v(
-      //    TAG,
-      //    String.format(
-      //        "Removing tracked object %s with detection confidence %.2f, correlation %.2f",
-      //        trackedRecognition.trackedObject,
-      //        trackedRecognition.detectionConfidence,
-      //        trackedRecognition.trackedObject.getCurrentCorrelation()));
+      //Log.v(TAG, String.format(
+      //    "Removing tracked object %s with detection confidence %.2f, correlation %.2f",
+      //    trackedRecognition.trackedObject,
+      //    trackedRecognition.detectionConfidence,
+      //    trackedRecognition.trackedObject.getCurrentCorrelation()));
       trackedRecognition.trackedObject.stopTracking();
       trackedObjects.remove(trackedRecognition);
       if (trackedRecognition != recogToReplace) {
@@ -448,14 +434,12 @@ public class MultiBoxTracker {
     }
 
     // Finally safe to say we can track this object.
-    //Log.v(
-    //    TAG,
-    //    String.format(
-    //        "Tracking object %s (%s) with detection confidence %.2f at position %s",
-    //        potentialObject,
-    //        potential.second.getLabel(),
-    //        potential.first,
-    //        potential.second.getLocation()));
+    //Log.v(TAG, String.format(
+    //    "Tracking object %s (%s) with detection confidence %.2f at position %s",
+    //    potentialObject,
+    //    potential.second.getLabel(),
+    //    potential.first,
+    //    potential.second.getLocation()));
     final TrackedRecognition trackedRecognition = new TrackedRecognition();
     trackedRecognition.detectionConfidence = potential.first;
     trackedRecognition.trackedObject = potentialObject;

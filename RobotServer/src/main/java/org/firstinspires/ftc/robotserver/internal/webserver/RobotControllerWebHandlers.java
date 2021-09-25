@@ -373,6 +373,7 @@ public class RobotControllerWebHandlers
     public static abstract class FileUpload implements WebHandler
     {
         private static final String FILE_FORM_ID = "file";
+        private static final String FILE_FORM_FORCE = "force";
 
         /**
          * Abstract method that must be implemented to return a response. The intention is to
@@ -414,6 +415,14 @@ public class RobotControllerWebHandlers
                     File tempFile = new File(fileList.get(FILE_FORM_ID));
                     File destDir = provideDestinationDirectory(fileName, tempFile);
                     File targetFile = new File(destDir, fileName);
+                    boolean force = false;
+                    if (session.getParameters().containsKey(FILE_FORM_FORCE)) {
+                        force = session.getParameters().get(FILE_FORM_FORCE).get(0).equalsIgnoreCase("true");
+                    }
+
+                    if (!force && targetFile.exists()) {
+                        return RobotWebHandlerManager.clientBadRequestError(TAG, "The file already exists.");
+                    }
 
                     if (!checkDir(destDir)) {
                         return RobotWebHandlerManager.internalErrorResponse(TAG, "Could not access upload location " + destDir.getAbsolutePath());

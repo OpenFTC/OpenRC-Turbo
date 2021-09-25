@@ -36,17 +36,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.NetworkInfo;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
-import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.ThreadPool;
 
 import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
@@ -55,18 +59,23 @@ import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class DriverStationAccessPointAssistant extends AccessPointAssistant {
 
     private static final String TAG = "DriverStationAccessPointAssistant";
     private static final boolean DEBUG = false;
+    private static final int DEFAULT_SECONDS_BETWEEN_WIFI_SCANS = 15;
 
     private static DriverStationAccessPointAssistant wirelessAPAssistant = null;
 
-    private final List<ScanResult> scanResults = new ArrayList<ScanResult>();
     private IntentFilter intentFilter;
     private BroadcastReceiver receiver;
-    private ConnectStatus connectStatus;
+    private volatile ConnectStatus connectStatus;
+    private ConnectivityManager connectivityManager;
+
+    private ConnectivityManager.NetworkCallback wifiNetworkCallback;
 
     private final Object enableDisableLock = new Object();
 
@@ -74,21 +83,26 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     private ArrayList<ConnectedNetworkHealthListener> healthListeners = new ArrayList<>();
     private NetworkHealthPollerThread networkHealthPollerThread;
 
-    private DriverStationAccessPointAssistant(Context context) {
+    protected volatile boolean doContinuousScans;
+    private volatile int secondsBetweenWifiScans = DEFAULT_SECONDS_BETWEEN_WIFI_SCANS;
+    private final List<ScanResult> scanResults = new ArrayList<ScanResult>();
+    protected final WiFiScanRunnable wiFiScanRunnable = new WiFiScanRunnable();
 
+    @Nullable protected ScheduledFuture<?> wifiScanFuture;
+    protected final Object wifiScanFutureLock = new Object();
+
+    @Nullable protected ScheduledFuture<?> resetTimeBetweenWiFiScansFuture;
+    protected final Object resetTimeBetweenWiFiScansFutureLock = new Object();
+
+    private DriverStationAccessPointAssistant(Context context)
+    {
         super(context);
+        connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        connectStatus = ConnectStatus.NOT_CONNECTED;
+        doContinuousScans = false;
 
         intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-
-        if (wifiManager.getConnectionInfo().getSupplicantState() == SupplicantState.COMPLETED) {
-            connectStatus = ConnectStatus.CONNECTED;
-            saveConnectionInfo(wifiManager.getConnectionInfo());
-            startHealthPoller();
-        } else {
-            connectStatus = ConnectStatus.NOT_CONNECTED;
-        }
     }
 
     /**
@@ -106,7 +120,7 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     /**
      * enable
      *
-     * Listen for wifi state changes.
+     * Listen for Wi-Fi state changes.
      */
     @Override
     public void enable()
@@ -119,12 +133,33 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
                         String action = intent.getAction();
                         if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
                             handleScanResultsAvailable(intent);
-                        } else if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                            handleNetworkStateChanged(intent);
                         }
                     }
                 };
                 context.registerReceiver(receiver, intentFilter);
+            }
+
+            if (wifiNetworkCallback == null) {
+                wifiNetworkCallback = new ConnectivityManager.NetworkCallback() {
+                    @Override
+                    public void onAvailable(@NonNull Network network) {
+                        onWiFiNetworkConnected(network);
+                    }
+
+                    @Override
+                    public void onLost(@NonNull Network network) {
+                        onWiFiNetworkDisconnected(network);
+                    }
+
+                    @Override
+                    public void onUnavailable() {
+                        RobotLog.ee(TAG, "connectivityManager.requestNetwork() failed");
+                    }
+                };
+                NetworkRequest wifiNetworkRequest = new NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .build();
+                connectivityManager.requestNetwork(wifiNetworkRequest, wifiNetworkCallback);
             }
         }
     }
@@ -132,7 +167,7 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     /**
      * disable
      *
-     * Stop listening for wifi state changes.
+     * Stop listening for Wi-Fi state changes.
      */
     @Override
     public void disable()
@@ -142,6 +177,13 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
                 context.unregisterReceiver(receiver);
                 receiver = null;
             }
+            if (wifiNetworkCallback != null) {
+                // Since wifiNetworkCallback won't get notified past this point if our currently
+                // bound network goes away, it's important that we unbind it now
+                connectivityManager.bindProcessToNetwork(null);
+                connectivityManager.unregisterNetworkCallback(wifiNetworkCallback);
+                wifiNetworkCallback = null;
+            }
         }
     }
 
@@ -150,7 +192,8 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
      *
      * Returns the ssid of the access point we are currently connected to.
      */
-    @Override public String getConnectionOwnerName() {
+    @Override public String getConnectionOwnerName()
+    {
         return WifiUtil.getConnectedSsid();
     }
 
@@ -158,6 +201,51 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     public void setNetworkSettings(@Nullable String deviceName, @Nullable String password, @Nullable ApChannel channel)
     {
         RobotLog.ee(TAG, "setNetworkProperties not supported on Driver Station");
+    }
+
+    /**
+     *  discoverPotentialConnections
+     *
+     *  On disconnect from an already connected access point, start continuous scanning for access points.
+     *  The scan results will be used to attempt to find the last known access point and automatically reconnect.
+     *  We spend the cycles for continuous scanning as presumably we want to reconnect as quickly as possible.
+     *  A typical scenario is pulling the power supply on a control hub that's broadcasting the ssid.
+     *
+     *  Proactive reconnects mitigate the captive portal problem wherein the underlying OS won't reconnect to
+     *  an access point that it's determined has no upstream internet connectivity.
+     *
+     *  Note that this has a detrimental effect on battery life if left in this state for extended (hours and hours)
+     *  periods of time.
+     */
+    @Override
+    public void discoverPotentialConnections()
+    {
+        RobotLog.vv(TAG, "Starting scans for the most recently connected Control Hub Wi-Fi network");
+        doContinuousScans = true;
+
+        synchronized (wifiScanFutureLock) {
+            if (wifiScanFuture == null || wifiScanFuture.isDone() || wifiScanFuture.isCancelled()) {
+                /*
+                 * If we perform a scan too quickly after detecting a disconnect, then it might
+                 * still detect the now non-existent SSID. Wait a short period to let whatever
+                 * latent state there is floating around clear before we start scanning.
+                 */
+                wifiScanFuture = ThreadPool.getDefaultScheduler().schedule(wiFiScanRunnable, 1000, TimeUnit.MILLISECONDS);
+            }
+        }
+    }
+
+    /**
+     * cancelPotentialConnections
+     *
+     * Stop the continuous scanning.
+     */
+    @Override
+    public void cancelPotentialConnections()
+    {
+        RobotLog.vv(TAG, "Stopping scans for the most recently connected Control Hub Wi-Fi network");
+        doContinuousScans = false;
+        resetSecondsBetweenWiFiScansToDefault();
     }
 
     /**
@@ -202,9 +290,15 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
 
         if (doContinuousScans == true) {
             if (lookForKnownAccessPoint(ssid, macAddr, scanResults) == false) {
-                wifiManager.startScan();
+                // We didn't find what we were looking for. Schedule another scan, unless one is already scheduled
+                synchronized (wifiScanFutureLock) {
+                    if (wifiScanFuture == null || wifiScanFuture.isDone() || wifiScanFuture.isCancelled()) {
+                        wifiScanFuture = ThreadPool.getDefaultScheduler().schedule(wiFiScanRunnable, secondsBetweenWifiScans, TimeUnit.SECONDS);
+                    }
+                }
             } else {
-                doContinuousScans = false;
+                // We found the network we were looking for, so we can stop looking
+                cancelPotentialConnections();
             }
         }
     }
@@ -220,6 +314,39 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
     {
         synchronized (listenersLock) {
             healthListeners.remove(listener);
+        }
+    }
+
+    public void temporarilySetSecondsBetweenWifiScans(int newSecondsBetweenScans, int secondsBeforeReset)
+    {
+        RobotLog.dd(TAG, "Setting the number of seconds between Wi-Fi scans to %d. This will reset to %d seconds after %d seconds.", newSecondsBetweenScans, DEFAULT_SECONDS_BETWEEN_WIFI_SCANS, secondsBeforeReset);
+        synchronized (resetTimeBetweenWiFiScansFutureLock) {
+            if (resetTimeBetweenWiFiScansFuture != null) {
+                resetTimeBetweenWiFiScansFuture.cancel(false);
+            }
+
+            resetTimeBetweenWiFiScansFuture = ThreadPool.getDefaultScheduler().schedule(new Runnable() {
+                @Override public void run()
+                {
+                    resetSecondsBetweenWiFiScansToDefault();
+                }
+            }, secondsBeforeReset, TimeUnit.SECONDS);
+        }
+        secondsBetweenWifiScans = newSecondsBetweenScans;
+    }
+
+    public void resetSecondsBetweenWiFiScansToDefault()
+    {
+        if (secondsBetweenWifiScans != DEFAULT_SECONDS_BETWEEN_WIFI_SCANS) {
+            RobotLog.dd(TAG, "Resetting time between Wi-Fi scans to the default value of %d seconds", DEFAULT_SECONDS_BETWEEN_WIFI_SCANS);
+            secondsBetweenWifiScans = DEFAULT_SECONDS_BETWEEN_WIFI_SCANS;
+        }
+
+        synchronized (resetTimeBetweenWiFiScansFutureLock) {
+            if (resetTimeBetweenWiFiScansFuture != null) {
+                resetTimeBetweenWiFiScansFuture.cancel(false);
+                resetTimeBetweenWiFiScansFuture = null;
+            }
         }
     }
 
@@ -272,22 +399,30 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
         }
     }
 
-    /**
-     * handleNetworkStateChanged
-     */
-    protected void handleNetworkStateChanged(Intent intent)
-    {
+    protected void onWiFiNetworkConnected(Network network) {
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        NetworkInfo state = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-        RobotLog.v("Wifi state change:, state: " + state + ", wifiInfo: " + wifiInfo);
-        if ((connectStatus == ConnectStatus.CONNECTED) && (state.isConnected() == false)) {
-            handleWifiDisconnect();
-            killHealthPoller();
-        } else if ((connectStatus == ConnectStatus.NOT_CONNECTED) && (state.isConnected() == true)) {
+
+        RobotLog.ii(TAG, "onWiFiConnected() called. wifiInfo: " + wifiInfo);
+        RobotLog.vv(TAG, "Binding app to new Wi-Fi network.\n" +
+                "NOTE: Communication that can be transmitted over a different network (such as Ethernet)" +
+                "should use sockets explicitly bound to a different android.net.Network instance.");
+        connectivityManager.bindProcessToNetwork(network);
+
+        if (connectStatus == ConnectStatus.NOT_CONNECTED) {
             startHealthPoller();
             connectStatus = ConnectStatus.CONNECTED;
             saveConnectionInfo(wifiInfo);
-            sendEvent(NetworkEvent.CONNECTION_INFO_AVAILABLE);
+        }
+        sendEvent(NetworkEvent.CONNECTION_INFO_AVAILABLE);
+    }
+
+    protected void onWiFiNetworkDisconnected(Network network) {
+        RobotLog.ii(TAG, "onWiFiDisconnected() called. Unbinding app.");
+        connectivityManager.bindProcessToNetwork(null);
+        if (connectStatus == ConnectStatus.CONNECTED) {
+            connectStatus = ConnectStatus.NOT_CONNECTED;
+            handleWifiDisconnect();
+            killHealthPoller();
         }
     }
 
@@ -306,7 +441,7 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
 
         List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
         if (list == null) {
-            RobotLog.ee(TAG, "Wifi is likely off");
+            RobotLog.ee(TAG, "Wi-Fi is likely off");
             return false;
         }
 
@@ -344,7 +479,7 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
      */
     private void handleWifiDisconnect()
     {
-        RobotLog.vv(TAG, "Handling wifi disconnect");
+        RobotLog.vv(TAG, "Handling Wi-Fi disconnect");
 
         connectStatus = ConnectStatus.NOT_CONNECTED;
         sendEvent(NetworkEvent.DISCONNECTED);
@@ -381,5 +516,15 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
                         (ipAddress >> 16 & 0xff),
                         (ipAddress >> 24 & 0xff));
         return address;
+    }
+
+    private class WiFiScanRunnable implements Runnable {
+        @Override
+        public void run()
+        {
+            if (doContinuousScans) {
+                wifiManager.startScan();
+            }
+        }
     }
 }

@@ -34,22 +34,21 @@ package org.firstinspires.ftc.robotcore.internal.network;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 
 import com.qualcomm.robotcore.R;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.GlobalWarningSource;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.util.SoftwareVersionWarningSource;
+import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.wifi.NetworkConnection;
 import com.qualcomm.robotcore.wifi.WifiDirectAssistant;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Nullable;
 
@@ -91,9 +90,10 @@ public class PreferenceRemoterRC extends PreferenceRemoter
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_wifip2p_channel));
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_has_independent_phone_battery));
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_has_speaker));
-        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_outdated_firmware));
-        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_mismatched_app_versions));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_obsolete_software));
         rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_2_4_ghz_band));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_mismatched_app_versions));
+        rcPrefsOfInterestToDS.add(context.getString(R.string.pref_warn_about_incorrect_clocks));
         warningSource = new WarningSource();
         }
 
@@ -123,14 +123,13 @@ public class PreferenceRemoterRC extends PreferenceRemoter
                 RobotLog.ee(TAG, "incorrect preference value type: " + pair.getValue());
                 }
             }
-        else if (pair.getPrefName().equals(context.getString(R.string.pref_ds_version_code)))
-            {
-            Integer dsVersionCode = (Integer) pair.getValue();
-            warningSource.checkForMismatchedAppVersions(dsVersionCode);
-            }
         else if (pair.getPrefName().equals(context.getString(R.string.pref_ds_supports_5_ghz)))
             {
             warningSource.dsSupports5Ghz = (Boolean) pair.getValue();
+            }
+        else if (pair.getPrefName().equals(context.getString(R.string.pref_dh_os_version_code)))
+            {
+            SoftwareVersionWarningSource.getInstance().onReceivedDriverHubOsVersionCode((Integer) pair.getValue());
             }
         else
             {
@@ -184,104 +183,72 @@ public class PreferenceRemoterRC extends PreferenceRemoter
     protected class WarningSource implements GlobalWarningSource, PeerStatusCallback
         {
         private final SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(AppUtil.getDefContext());
-        private final ElapsedTime timeSinceLastChannelCheck = new ElapsedTime(0);
-        private volatile boolean currentlyUsing2_4Ghz_cache;
         private volatile boolean dsSupports5Ghz = false;
-        private volatile String mismatchedAppVersionsWarning;
+        @Nullable private volatile String unnecessary2_4GhzUsageWarning;
 
         public WarningSource()
             {
             RobotLog.registerGlobalWarningSource(this);
             NetworkConnectionHandler.getInstance().registerPeerStatusCallback(this);
+            // Every 5 seconds, check if we're unnecessarily using 2.4 GHz WiFi, and update unnecessary2_4GhzUsageWarning accordingly
+            ThreadPool.getDefaultScheduler().scheduleAtFixedRate(new Runnable()
+                {
+                @Override
+                public void run()
+                    {
+                    if (!sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_2_4_ghz_band), true))
+                        {
+                        unnecessary2_4GhzUsageWarning = null;
+                        return;
+                        }
+
+                    boolean rcSupports5Ghz = WifiUtil.is5GHzAvailable();
+                    ApChannel currentChannel = ApChannelManagerFactory.getInstance().getCurrentChannel();
+                    boolean currentlyUsing2_4Ghz = (currentChannel != ApChannel.UNKNOWN) && (currentChannel.band == ApChannel.Band.BAND_2_4_GHZ);
+
+                    if (dsSupports5Ghz && rcSupports5Ghz && currentlyUsing2_4Ghz)
+                        {
+                        NetworkConnection currentConnection = NetworkConnectionHandler.getInstance().getNetworkConnection();
+                        boolean usingWifiDirect = currentConnection instanceof WifiDirectAssistant;
+
+                        if (usingWifiDirect && ApChannelManagerFactory.getInstance().getCurrentChannel() == ApChannel.AUTO_2_4_GHZ)
+                            {
+                            // When using Wi-Fi Direct, it's possible that AUTO 2.4 GHz mode could actually be broadcasting on 5 GHz.
+                            // We unfortunately don't have a way to tell, so instead we just display a different warning.
+                            unnecessary2_4GhzUsageWarning = context.getString(R.string.warning2_4GhzUnnecessaryUsageWiFiDirectAuto);
+                            }
+                        else
+                            {
+                            unnecessary2_4GhzUsageWarning = context.getString(R.string.warning2_4GhzUnnecessaryUsage);
+                            }
+                        }
+                    else
+                        {
+                        unnecessary2_4GhzUsageWarning = null;
+                        }
+                    }
+                }, 0, 5, TimeUnit.SECONDS);
             }
 
         @Override public String getGlobalWarning()
             {
-            List<String> activeWarnings = new ArrayList<>();
-            if (sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_mismatched_app_versions), true))
-                {
-                activeWarnings.add(mismatchedAppVersionsWarning);
-                }
-            if (sharedPrefs.getBoolean(context.getString(R.string.pref_warn_about_2_4_ghz_band), true))
-                {
-                String unnecessary2_4GhzUsageWarning = getUnnecessary2_4GhzUsageWarningOrNull();
-                if (unnecessary2_4GhzUsageWarning != null)
-                    {
-                    activeWarnings.add(unnecessary2_4GhzUsageWarning);
-                    }
-                }
-            return RobotLog.combineGlobalWarnings(activeWarnings);
+            return unnecessary2_4GhzUsageWarning;
+            }
+
+        @Override public boolean shouldTriggerWarningSound()
+            {
+            return false;
             }
 
         @Override public void clearGlobalWarning()
             {
-            mismatchedAppVersionsWarning = null;
+            unnecessary2_4GhzUsageWarning = null;
             }
 
         @Override public void onPeerDisconnected()
             {
             clearGlobalWarning();
             dsSupports5Ghz = false;
-            }
-
-        public void checkForMismatchedAppVersions(int dsVersionCode)
-            {
-            try
-                {
-                int rcVersionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
-                if (rcVersionCode == dsVersionCode)
-                    {
-                    mismatchedAppVersionsWarning = null;
-                    }
-                else
-                    {
-                    String oldAppName;
-                    if (rcVersionCode < dsVersionCode)
-                        {
-                        oldAppName = "Robot Controller";
-                        }
-                    else
-                        {
-                        oldAppName = "Driver Station";
-                        }
-                    mismatchedAppVersionsWarning = context.getString(R.string.warningMismatchedAppVersions, oldAppName);
-                    }
-                }
-            catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); } // shouldn't happen
-            }
-
-        public @Nullable String getUnnecessary2_4GhzUsageWarningOrNull()
-            {
-            boolean rcSupports5Ghz = WifiUtil.is5GHzAvailable();
-            if (dsSupports5Ghz && rcSupports5Ghz && currentlyUsing2_4Ghz())
-                {
-                NetworkConnection currentConnection = NetworkConnectionHandler.getInstance().getNetworkConnection();
-                boolean usingWifiDirect = currentConnection instanceof WifiDirectAssistant;
-
-                if (usingWifiDirect && ApChannelManagerFactory.getInstance().getCurrentChannel() == ApChannel.AUTO_2_4_GHZ)
-                    {
-                    // When using WiFi Direct, it's possible that AUTO 2.4 GHz mode could actually be broadcasting on 5 GHz.
-                    // We unfortunately don't have a way to tell, so instead we just display a different warning.
-                    return context.getString(R.string.warning2_4GhzUnnecessaryUsageWiFiDirectAuto);
-                    }
-                else
-                    {
-                    return context.getString(R.string.warning2_4GhzUnnecessaryUsage);
-                    }
-                }
-            return null;
-            }
-
-        private boolean currentlyUsing2_4Ghz()
-            {
-            // On the Control Hub, checking the current channel uses IPC, so we only refresh the value every 5 seconds
-            if (timeSinceLastChannelCheck.seconds() > 5)
-                {
-                ApChannel currentChannel = ApChannelManagerFactory.getInstance().getCurrentChannel();
-                currentlyUsing2_4Ghz_cache = (currentChannel != ApChannel.UNKNOWN) && (currentChannel.band == ApChannel.Band.BAND_2_4_GHZ);
-                timeSinceLastChannelCheck.reset();
-                }
-            return currentlyUsing2_4Ghz_cache;
             }
 
         // Degenerate overrides

@@ -99,24 +99,26 @@ public class FetchAutocompleteJavaScript implements WebHandler {
     }
 
     private static void buildResponse() throws IOException {
+        ClassLoader parentClassLoader = OnBotJavaManager.getParentClassLoaderForOnBotJava();
         final List<File> jarFiles = AppUtil.getInstance().filesIn(OnBotJavaManager.libDir, ".jar");
-        jarFiles.addAll(AppUtil.getInstance().filesIn(OnBotJavaManager.jarDir, ".jar"));
+        jarFiles.addAll(AppUtil.getInstance().filesUnder(OnBotJavaManager.extLibDir, ".jar"));
         final HashMap<String, List<AutoClass>> autoClassList = new HashMap<>();
         for (File jarFile : jarFiles) {
+            boolean isExternalLibrary = jarFile.getParentFile().equals(OnBotJavaManager.extLibDir);
             JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
             JarEntry entry;
             while ((entry = jarInputStream.getNextJarEntry()) != null) {
                 final String entryName = entry.getName();
                 // Skip the unimportant classes
                 if (!entryName.endsWith(".class")) continue;
-                if (!packagesToAutoComplete(entryName)) continue;
+                if (!isExternalLibrary && !packagesToAutoComplete(entryName)) continue;
                 String className = entryName.replaceAll("/", "\\.");
                 String myClass = className.substring(0, className.lastIndexOf('.'));
                 // A "$" denotes an inner class which we will parse as referenced by the classes we scan
                 if (myClass.contains("$")) continue;
                 final Class currentClass;
                 try {
-                    currentClass = Class.forName(myClass, false, FetchAutocompleteJavaScript.class.getClassLoader());
+                    currentClass = Class.forName(myClass, false, parentClassLoader);
                 } catch (ClassNotFoundException ignored) {
                     continue;
                 }

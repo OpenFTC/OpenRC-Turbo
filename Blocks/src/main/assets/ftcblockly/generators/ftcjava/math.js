@@ -31,6 +31,33 @@ goog.provide('Blockly.FtcJava.math');
 
 goog.require('Blockly.FtcJava');
 
+Blockly.FtcJava.getOutputType_math_ = function(block) {
+  switch (block.type) {
+    case 'math_number':
+      return Blockly.FtcJava.getOutputType_math_number_(block);
+    case 'math_arithmetic':
+      return Blockly.FtcJava.getOutputType_math_arithmetic_(block);
+    case 'math_single':
+    case 'math_round':
+    case 'math_trig':
+      return Blockly.FtcJava.getOutputType_math_single_(block);
+    case 'math_constant':
+      return 'double';
+    case 'math_number_property':
+      return 'boolean';
+    case 'math_on_list':
+      return 'double';
+    case 'math_modulo':
+      return Blockly.FtcJava.getOutputType_math_modulo_(block);
+    case 'math_constrain':
+      return 'double';
+    case 'math_random_int':
+      return 'int';
+    case 'math_random_float':
+      return 'double';
+  }
+  return false;
+};
 
 Blockly.FtcJava['math_number'] = function(block) {
   // Numeric value.
@@ -38,6 +65,10 @@ Blockly.FtcJava['math_number'] = function(block) {
   var order = code >= 0 ? Blockly.FtcJava.ORDER_ATOMIC :
       Blockly.FtcJava.ORDER_UNARY_NEGATION;
   return [code, order];
+};
+
+Blockly.FtcJava.getOutputType_math_number_ = function(block) {
+  return Number.isInteger(parseFloat(block.getFieldValue('NUM'))) ? 'int' : 'double';
 };
 
 Blockly.FtcJava['math_arithmetic'] = function(block) {
@@ -62,6 +93,43 @@ Blockly.FtcJava['math_arithmetic'] = function(block) {
   }
   code = argument0 + operator + argument1;
   return [code, order];
+};
+
+Blockly.FtcJava.getOutputType_math_arithmetic_ = function(block) {
+  switch (block.getFieldValue('OP')) {
+    case 'ADD':
+    case 'MINUS':
+    case 'MULTIPLY':
+    case 'DIVIDE':
+      return Blockly.FtcJava.getArithmeticResultType_(
+          Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('A')),
+          Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('B')));
+      break;
+    case 'POWER':
+      return 'double';
+  }
+  return false;
+};
+
+Blockly.FtcJava.getArithmeticResultType_ = function(aType, bType) {
+  if (aType == '' || bType == '') {
+    return '';
+  }
+  if (aType == 'double' || bType == 'double') {
+    return 'double';
+  }
+  if (aType == 'float' || bType == 'float') {
+    return 'float';
+  }
+  if (aType == 'long' || bType == 'long') {
+    return 'long';
+  }
+  if (aType == 'int' || bType == 'int' ||
+      aType == 'short' || bType == 'short' ||
+      aType == 'byte' || bType == 'byte') {
+    return 'int';
+  }
+  return '';
 };
 
 Blockly.FtcJava['math_single'] = function(block) {
@@ -146,6 +214,67 @@ Blockly.FtcJava['math_single'] = function(block) {
       throw 'Unknown math operator: ' + operator;
   }
   return [code, Blockly.FtcJava.ORDER_DIVISION];
+};
+
+Blockly.FtcJava.getOutputType_math_single_ = function(block) {
+  switch (block.getFieldValue('OP')) {
+    case 'NEG':
+      var inputType = Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('NUM'));
+      switch (inputType) {
+        case 'double':
+        case 'float':
+        case 'long':
+        case 'int':
+        case 'short':
+        case 'byte':
+          return inputType;
+      }
+      break;
+    case 'ABS':
+      // We generate Math.abs(), which can return either double, float, long, or int
+      var inputType = Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('NUM'));
+      switch (inputType) {
+        case 'double':
+        case 'float':
+        case 'long':
+        case 'int':
+          return inputType;
+        case 'short':
+        case 'byte':
+          return 'int';
+      }
+      break;
+    case 'ROUND':
+      // We generate Math.round(), which can return either long (if input is double) or int
+      // (if input is float, long, int, short, or byte).
+      var inputType = Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('NUM'));
+      switch (inputType) {
+        case 'double':
+          return 'long';
+        case 'float':
+        case 'long':
+        case 'int':
+        case 'short':
+        case 'byte':
+          return 'int';
+      }
+      break;
+    case 'ROOT':
+    case 'LN':
+    case 'EXP':
+    case 'POW10':
+    case 'ROUNDUP':
+    case 'ROUNDDOWN':
+    case 'SIN':
+    case 'COS':
+    case 'TAN':
+    case 'LOG10':
+    case 'ASIN':
+    case 'ACOS':
+    case 'ATAN':
+      return 'double';
+  }
+  return '';
 };
 
 Blockly.FtcJava['math_constant'] = function(block) {
@@ -265,6 +394,12 @@ Blockly.FtcJava['math_modulo'] = function(block) {
       Blockly.FtcJava.ORDER_MODULUS) || '0';
   var code = argument0 + ' % ' + argument1;
   return [code, Blockly.FtcJava.ORDER_MODULUS];
+};
+
+Blockly.FtcJava.getOutputType_math_modulo_ = function(block) {
+  return Blockly.FtcJava.getArithmeticResultType_(
+      Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('DIVIDEND')),
+      Blockly.FtcJava.getOutputType_(block.getInputTargetBlock('DIVISOR')));
 };
 
 Blockly.FtcJava['math_constrain'] = function(block) {

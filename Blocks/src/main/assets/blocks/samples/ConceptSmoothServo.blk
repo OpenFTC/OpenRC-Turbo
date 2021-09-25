@@ -1,4 +1,4 @@
-<xml xmlns="http://www.w3.org/1999/xhtml">
+<xml xmlns="https://developers.google.com/blockly/xml">
 <variables>
 <variable type="" id="c::G;KT~vDU3W?qLiS5t">ServoPosition</variable>
 <variable type="" id="`^NMNM,9eBuc=VxXBMuy">ServoSpeed</variable>

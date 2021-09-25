@@ -60,14 +60,18 @@ function initializeAutoTransitionSelect() {
 
 function initializeBlocks() {
   var projectName = getParameterByName('project');
-  if (isValidProjectName(projectName)) {
+  if (isValidProjectName(projectName) && !containsAmpersand(projectName) && containsAtLeastOneAlphanumeric(projectName)) {
     currentProjectName = projectName;
     getBlocksJavaClassName(currentProjectName, function(className, errorMessage) {
       if (className) {
         currentClassName = className;
         Blockly.FtcJava.setClassNameForFtcJava_(currentClassName);
       } else {
-        alert(errorMessage);
+        if (errorMessage) {
+          alert(errorMessage);
+        } else {
+          alert('Error: The specified project name is not valid. Please rename it in the Blocks projects page.');
+        }
       }
     });
     fetchBlkFileContent(currentProjectName, function(blkFileContent, errorMessage) {
@@ -81,7 +85,7 @@ function initializeBlocks() {
       }
     });
   } else {
-    alert('Error: The specified project name is not valid.');
+    alert('Error: The specified project name is not valid. Please rename it on the Blocks projects page.');
   }
 }
 
@@ -614,15 +618,21 @@ function checkBlock(block, missingHardware) {
           'This block is optimized for Relic Recovery (2017-2018) and will not work correctly ' +
           'for other FTC games.\n\n' +
           'Please replace this block with the corresponding one from the ' +
-          'Optimized for ' + currentGameName + ' toolbox category.');
+          'Optimized for ' + vuforiaCurrentGameName + ' toolbox category.');
     } else if (block.type == 'vuforiaRoverRuckus_initialize_withCameraDirection' ||
         block.type == 'vuforiaRoverRuckus_initialize_withWebcam' ||
         block.type == 'vuforiaRoverRuckus_activate' ||
         block.type == 'vuforiaRoverRuckus_deactivate' ||
         block.type == 'vuforiaRoverRuckus_track' ||
         block.type == 'vuforiaRoverRuckus_trackPose' ||
-        block.type == 'vuforiaRoverRuckus_typedEnum_trackableName' ||
-        block.type == 'tfodRoverRuckus_initialize' ||
+        block.type == 'vuforiaRoverRuckus_typedEnum_trackableName') {
+      warningBits |= WarningBits.ROVER_RUCKUS;
+      warningText = addWarning(warningText,
+          'This block is optimized for Rover Ruckus (2018-2019) and will not work correctly ' +
+          'for other FTC games.\n\n' +
+          'Please replace this block with the corresponding one from the ' +
+          'Optimized for ' + vuforiaCurrentGameName + ' toolbox category.');
+    } else if (block.type == 'tfodRoverRuckus_initialize' ||
         block.type == 'tfodRoverRuckus_activate' ||
         block.type == 'tfodRoverRuckus_deactivate' ||
         block.type == 'tfodRoverRuckus_setClippingMargins' ||
@@ -633,10 +643,12 @@ function checkBlock(block, missingHardware) {
           'This block is optimized for Rover Ruckus (2018-2019) and will not work correctly ' +
           'for other FTC games.\n\n' +
           'Please replace this block with the corresponding one from the ' +
-          'Optimized for ' + currentGameName + ' toolbox category.');
+          'Optimized for ' + tfodCurrentGameName + ' toolbox category.');
     } else if (block.type == 'misc_callJava_return' ||
-        block.type == 'misc_callJava_noReturn') {
-      if (!methodLookupStrings.includes(block.methodLookupString_)) {
+        block.type == 'misc_callJava_noReturn' ||
+        block.type == 'misc_callHardware_return' ||
+        block.type == 'misc_callHardware_noReturn') {
+      if (!methodLookupStrings.includes(block.ftcAttributes_.methodLookupString)) {
         warningBits |= WarningBits.MISSING_METHOD;
         warningText = addWarning(warningText,
             'This block refers to a Java method that has been changed or removed. It will not ' +

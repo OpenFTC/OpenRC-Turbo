@@ -58,26 +58,43 @@ public final class Device {
   public final static String MANUFACTURER_REV = "REV Robotics";
   public final static String MANUFACTURER_MOTOROLA = "motorola";
   public final static String MODEL_E5_PLAY = "moto e5 play";
+  public final static String MODEL_E5_XT1920DL = "moto e5 (XT1920DL)";
   public final static String MODEL_E4 = "Moto E (4)";
 
   @Nullable private static String cachedSerialNumberOrUnknown;
+  @Nullable private static Boolean isDriverHub;
+  @Nullable private static Boolean isMoto;
+  @Nullable private static Boolean hasBackButton;
+  @Nullable private static LinuxKernelVersion kernelVersion;
   @SuppressWarnings("ConstantConditions")
   @NonNull private static final UiModeManager uiManager = (UiModeManager) AppUtil.getDefContext().getSystemService(Context.UI_MODE_SERVICE);
 
+  public static LinuxKernelVersion getLinuxKernelVersion() {
+    if (kernelVersion == null) {
+      kernelVersion = new LinuxKernelVersion(System.getProperty("os.version"));
+    }
+    return kernelVersion;
+  }
+
   public static boolean isMotorola() {
-    return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA);
+    if (isMoto == null) {
+      isMoto = Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA);
+    }
+    return isMoto;
   }
 
-  public static boolean isMotorolaE5Play() {
-    return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA) && Build.MODEL.equalsIgnoreCase(MODEL_E5_PLAY);
-  }
-
-  public static boolean isMotorolaE4() {
-    return Build.MANUFACTURER.equalsIgnoreCase(MANUFACTURER_MOTOROLA) && Build.MODEL.equalsIgnoreCase(MODEL_E4);
+  public static boolean isRevDriverHub() {
+    if (isDriverHub == null) {
+      isDriverHub = SystemProperties.getBoolean("persist.rds", false);
+    }
+    return isDriverHub;
   }
 
   public static boolean deviceHasBackButton() {
-    return uiManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_NORMAL;
+    if (hasBackButton == null) {
+      hasBackButton = uiManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_NORMAL;
+    }
+    return hasBackButton;
   }
 
   /*
@@ -177,5 +194,45 @@ public final class Device {
       throw new AndroidSerialNumberNotFoundException();
     }
     return serialNumber;
+  }
+
+  public static class LinuxKernelVersion {
+    public final int major;
+    public final int minor;
+    public final int patch; // WARNING: The "patch" version is non-standard
+
+    String TAG = "LinuxKernelVersion";
+
+    private LinuxKernelVersion(String rawKernelVersion) {
+      RobotLog.vv(TAG, "Raw Linux kernel version string: " + rawKernelVersion);
+
+      String[] versionStringArray = rawKernelVersion.split("\\.");
+      major = parseIntFromStringArraySafely(versionStringArray, 0);
+      minor = parseIntFromStringArraySafely(versionStringArray, 1);
+      patch = parseIntFromStringArraySafely(versionStringArray, 2);
+
+      RobotLog.vv(TAG, "Processed Linux kernel version: " + toString());
+    }
+
+    @NonNull @Override public String toString() {
+      return "" + major + '.' + minor + '.' + patch;
+    }
+
+    private int parseIntFromStringArraySafely(String[] intStringArray, int index) {
+      int result = 0;
+
+      if (index >= intStringArray.length) {
+        RobotLog.ii(TAG, "The Linux kernel version string does not have all 3 fields. Substituting a zero.");
+        return result;
+      }
+
+      try {
+        result = Integer.parseInt(intStringArray[index]);
+      } catch (RuntimeException e) {
+        RobotLog.ww(TAG, e, "Failed to parse int from String \"%s\". Substituting a zero.", intStringArray[index]);
+      }
+
+      return result;
+    }
   }
 }

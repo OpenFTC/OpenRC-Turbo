@@ -1,5 +1,5 @@
 <category name="TensorFlow Object Detection">
-  <category name="Optimized for placeholder_current_game_name">
+  <category name="Optimized for placeholder_tfod_current_game_name">
     <block type="tfodCurrentGame_initialize">
       <value name="MINIMUM_CONFIDENCE"><shadow type="math_number"><field name="NUM">0.4</field></shadow></value>
       <value name="USE_OBJECT_TRACKER"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
@@ -52,10 +52,28 @@
         </block>
       </value>
     </block>
-    <block type="tfodCustomModel_initialize">
+    <block type="tfodCustomModel_initialize_withIsModelTensorFlow2">
       <value name="MINIMUM_CONFIDENCE"><shadow type="math_number"><field name="NUM">0.4</field></shadow></value>
       <value name="USE_OBJECT_TRACKER"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
       <value name="ENABLE_CAMERA_MONITORING"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+      <value name="IS_MODEL_TENSORFLOW_2"><shadow type="logic_boolean"><field name="BOOL">FALSE</field></shadow></value>
+    </block>
+    <block type="tfodCustomModel_initialize_withAllArgs">
+      <value name="MINIMUM_CONFIDENCE"><shadow type="math_number"><field name="NUM">0.4</field></shadow></value>
+      <value name="USE_OBJECT_TRACKER"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+      <value name="ENABLE_CAMERA_MONITORING"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+      <value name="IS_MODEL_TENSORFLOW_2"><shadow type="logic_boolean"><field name="BOOL">FALSE</field></shadow></value>
+      <value name="IS_MODEL_QUANTIZED"><shadow type="logic_boolean"><field name="BOOL">TRUE</field></shadow></value>
+      <value name="INPUT_SIZE"><shadow type="math_number"><field name="NUM">300</field></shadow></value>
+      <value name="NUM_INTERPRETER_THREADS"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="NUM_EXECUTOR_THREADS"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
+      <value name="MAX_NUM_DETECTIONS"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+      <value name="TIMING_BUFFER_SIZE"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+      <value name="MAX_FRAME_RATE"><shadow type="math_number"><field name="NUM">30</field></shadow></value>
+      <value name="TRACKER_MAX_OVERLAP"><shadow type="math_number"><field name="NUM">0.2</field></shadow></value>
+      <value name="TRACKER_MIN_SIZE"><shadow type="math_number"><field name="NUM">16.0</field></shadow></value>
+      <value name="TRACKER_MARGINAL_CORRELATION"><shadow type="math_number"><field name="NUM">0.75</field></shadow></value>
+      <value name="TRACKER_MIN_CORRELATION"><shadow type="math_number"><field name="NUM">0.3</field></shadow></value>
     </block>
     <block type="tfodCustomModel_activate">
     </block>

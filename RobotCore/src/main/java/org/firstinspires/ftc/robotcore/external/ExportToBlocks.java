@@ -22,17 +22,31 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.qualcomm.robotcore.hardware.HardwareDevice;
+import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
+
 /**
  * {@link ExportToBlocks} indicates that a method is exported to the Blocks programming environment
  * and provides a way for the Java coder to specify some UI attributes of the "call Java method"
  * block.
  *
- * In order for a method to be exported to Blocks, it must:
+ * A static method can be exported to blocks if it satisfies all of these requirements:
  * <ul>
- * <li> have the ExportToBlocks annotation
- * <li> be public and static
- * <li> not be abstract
- * <li> be in a class in the org.firstinspires.ftc.teamcode package
+ * <li> it has the ExportToBlocks annotation
+ * <li> it is public and static
+ * <li> it is not abstract
+ * <li> it in a class that is in the org.firstinspires.ftc.teamcode package<br>
+ *      or<br>
+ *      it is in a class that has the {@link ExportClassToBlocks} annotation
+ * </ul>
+ *
+ * A method in a hardware device class can be exported to blocks if it satisfies all of these requirements:
+ * <ul>
+ * <li> it has the ExportToBlocks annotation
+ * <li> it is public
+ * <li> it is not abstract
+ * <li> it is not static
+ * <li> it is in a class that implements {@link HardwareDevice} and has the {@link DeviceProperties} annotation
  * </ul>
  *
  * @author lizlooney@google.com (Liz Looney)
@@ -42,22 +56,30 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ExportToBlocks {
   /**
-   * The comment to be used, by default, on the "call Java method" block. If empty, the block will
+   * The hue of the block.
+   */
+  int color() default 289;
+  /**
+   * The heading to be used on the block.
+   */
+  String heading() default "call Java method";
+  /**
+   * The comment to be used on the block. If empty, the block will
    * not have a comment by default.
    */
   String comment() default "";
 
   /**
-   * The tooltip to be used on the "call Java method" block. If empty, a tooltip naming the method,
+   * The tooltip to be used on the block. If empty, a tooltip naming the method,
    * its enclosing class, and its return type will be used.
    */
   String tooltip() default "";
 
   /**
-   * The parameter labels to be shown next to each socket on the "call Java method" block. If empty,
-   * or if the length of the array does not match the method's number of parameters, all sockets
-   * will be labeled with the parameter types. If an individual element is empty, the corresponding
-   * socket will be labeled with the parameter type.
+   * The parameter labels to be shown next to each socket on the block. If empty, or if the length
+   * of the array does not match the method's number of parameters, all sockets will be labeled
+   * with the parameter types. If an individual element is empty, the corresponding socket will be
+   * labeled with the parameter type.
    *
    * Parameter labels for parameters whose type is LinearOpMode, OpMode, HardwareMap, Telemetry,
    * and Gamepad are ignored as the block does not have sockets corresponding to these parameters.

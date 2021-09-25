@@ -30,6 +30,11 @@ package org.firstinspires.ftc.robotcore.internal.tfod;
  */
 public class TfodParameters {
 
+  /**
+   * Whether the model is a TensorFlow2 model.
+   */
+  public final boolean isModelTensorFlow2;
+
   /** Whether the model is quantized or not. True indicates the model is quantized. */
   public final boolean isModelQuantized;
 
@@ -130,6 +135,7 @@ public class TfodParameters {
 
   // Private constructor to force clients to use the Builder and get proper argument verification
   private TfodParameters(
+      boolean isModelTensorFlow2,
       boolean isModelQuantized,
       int inputSize,
       int numInterpreterThreads,
@@ -143,6 +149,7 @@ public class TfodParameters {
       float trackerMarginalCorrelation,
       float trackerMinCorrelation,
       boolean trackerDisable) {
+    this.isModelTensorFlow2 = isModelTensorFlow2;
     this.isModelQuantized = isModelQuantized;
     this.inputSize = inputSize;
     this.numInterpreterThreads = numInterpreterThreads;
@@ -160,6 +167,7 @@ public class TfodParameters {
 
   public static class Builder {
 
+    private boolean isModelTensorFlow2 = false;
     private boolean isModelQuantized = true;
     private int inputSize = 300; // px
 
@@ -186,6 +194,11 @@ public class TfodParameters {
     public Builder(boolean isModelQuantized, int inputSize) {
       this.isModelQuantized = isModelQuantized;
       this.inputSize = inputSize;
+    }
+
+    public Builder tensorFlow2(boolean isModelTensorFlow2) {
+      this.isModelTensorFlow2 = isModelTensorFlow2;
+      return this;
     }
 
     public Builder numInterpreterThreads(int numInterpreterThreads) {
@@ -263,6 +276,7 @@ public class TfodParameters {
 
     public TfodParameters build() {
       return new TfodParameters(
+          isModelTensorFlow2,
           isModelQuantized,
           inputSize,
           numInterpreterThreads,

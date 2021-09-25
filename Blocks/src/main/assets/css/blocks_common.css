@@ -196,6 +196,46 @@ a.help {
   cursor: pointer;
 }
 
+.invalid_project_name {
+  font-family: sans-serif;
+  font-weight: bold;
+  cursor: not-allowed;
+  position: relative;
+  display: inline-block;
+}
+
+.invalid_project_name .tooltiptext {
+  visibility: hidden;
+  width: 250px;
+  background-color: LemonChiffon;
+  color: Black;
+  text-align: left;
+  border: 2px solid Sienna;
+  border-radius: 6px;
+  padding: 5px 5px;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  top: -7px;
+  left: 100%;
+}
+
+.invalid_project_name .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -8px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent Sienna transparent transparent;
+}
+
+.invalid_project_name:hover .tooltiptext {
+  visibility: visible;
+}
+
 .not_bold {
   font-weight: normal;
 }

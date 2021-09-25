@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link WifiDirectChannelAndDescription} maintains human readable descriptions of Wifi Direct
+ * {@link WifiDirectChannelAndDescription} maintains human readable descriptions of Wi-Fi Direct
  * channel names
  */
 @SuppressWarnings("WeakerAccess")

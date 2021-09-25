@@ -39,7 +39,9 @@ import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
 import org.firstinspires.ftc.onbotjava.RegisterWebHandler;
 import org.firstinspires.ftc.onbotjava.StandardResponses;
 
+import org.firstinspires.ftc.onbotjava.ExternalLibraries;
 import org.firstinspires.ftc.onbotjava.OnBotJavaManager;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
 
 import java.io.File;
@@ -53,11 +55,12 @@ public class FetchFileTree implements WebHandler {
     /**
      * <p>Called with {@link OnBotJavaProgrammingMode#URI_FILE_TREE}</p>
      * <p>
-     * <p>Generates a listing of files in the {@link OnBotJavaManager#srcDir} and
-     * {@link OnBotJavaManager#jarDir}. </p>
-     * {@link OnBotJavaManager#jarDir}
+     * <p>Generates a listing of files in the {@link OnBotJavaManager#srcDir} as well as external
+     * library files that have been uploaded.</p>
+     * <p>
+     * <p>Also include a boolean for whether external libraries are allowed.</p>
      *
-     * @return This returns the file tree in JSON, with the src and jar directories separate fields
+     * @return This returns the file tree in JSON
      */
     private NanoHTTPD.Response projectTree() {
     /*
@@ -68,19 +71,12 @@ public class FetchFileTree implements WebHandler {
         File srcDir = OnBotJavaManager.srcDir;
         if (!srcDir.isDirectory()) srcDir.mkdirs();
         ArrayList<String> srcList = new ArrayList<>();
-    /*
-    *      <li>jars: (optional) Any externally-compiled jar src can be placed in this
-    *                directory. They will be installed in the system, much as the .java source
-    *                src are after they have been compiled.</li>
-     */
-        final String jarPath = OnBotJavaManager.jarDir.getAbsolutePath();
-        File jarDir = OnBotJavaManager.jarDir.getAbsoluteFile();
-        if (!jarDir.isDirectory()) jarDir.mkdirs();
-        ArrayList<String> jarList = new ArrayList<>();
         OnBotJavaFileSystemUtils.searchForFiles(srcPath, srcDir, srcList, true);
-        OnBotJavaFileSystemUtils.searchForFiles(jarPath, jarDir, jarList, true);
 
-        return StandardResponses.successfulRequest(new FileTree(srcList, jarList));
+        // External library files.
+        List<String> extLibList = ExternalLibraries.getInstance().getExternalLibrariesNames();
+
+        return StandardResponses.successfulRequest(new FileTree(srcList, extLibList));
     }
 
     @Override
@@ -89,12 +85,17 @@ public class FetchFileTree implements WebHandler {
     }
 
     private static class FileTree {
-        final List<String> src;
-        final List<String> jars;
+        final boolean allowExternalLibraries;
+        final List<String> src = new ArrayList<>();
 
-        private FileTree(List<String> src, List<String> jars) {
-            this.src = src;
-            this.jars = jars;
+        private FileTree(List<String> src, List<String> extLibList) {
+            this.allowExternalLibraries = OnBotJavaManager.ALLOW_EXTERNAL_LIBRARIES;
+            this.src.addAll(src);
+            if (OnBotJavaManager.ALLOW_EXTERNAL_LIBRARIES) {
+                for (String lib : extLibList) {
+                    this.src.add(OnBotJavaManager.EXTERNAL_LIBRARIES + '/' + lib);
+                }
+            }
         }
     }
 }

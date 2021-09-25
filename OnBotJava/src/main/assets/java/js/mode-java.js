@@ -1014,7 +1014,7 @@ oop.inherits(Mode, JavaScriptMode);
             if (currentTokens.length > 0)
                 env.ftcLangTools.currentTokens = currentTokens;
 
-            if (env.settings.get('autoImportEnabled')) {
+            if (data.annotations.length === 0 && env.settings.get('autoImportEnabled')) {
                 var importDetectionDone = false;
                 var nextImportLine = 1;
                 var noOtherImports = true;

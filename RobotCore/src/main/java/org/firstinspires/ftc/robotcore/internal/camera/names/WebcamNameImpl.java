@@ -35,7 +35,6 @@ package org.firstinspires.ftc.robotcore.internal.camera.names;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
@@ -62,7 +61,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerInternal;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiCameraCharacteristics;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiCameraCharacteristicsBuilder;
-import org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject.LibUsbDevice;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject.UvcDevice;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject.UvcStreamingInterface;
 import org.firstinspires.ftc.robotcore.internal.collections.MutableReference;
@@ -655,7 +653,12 @@ public class WebcamNameImpl extends CameraNameImplBase implements WebcamNameInte
         {
         return helper != null
             ? helper.getGlobalWarning()
-            : "";
+            : null;
+        }
+
+    @Override public boolean shouldTriggerWarningSound()
+        {
+        return true;
         }
 
     @Override public void suppressGlobalWarning(boolean suppress)

@@ -32,6 +32,15 @@ goog.provide('Blockly.FtcJava.lists');
 goog.require('Blockly.FtcJava');
 
 
+Blockly.FtcJava.getOutputType_lists_ = function(block) {
+  switch (block.type) {
+    case 'lists_length':
+    case 'lists_indexOf':
+      return 'int';
+  }
+  return false;
+};
+
 Blockly.FtcJava['lists_create_empty'] = function(block) {
   // Create an empty list.
   Blockly.FtcJava.generateImport_('ArrayList');

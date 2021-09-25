@@ -626,7 +626,7 @@ public class HardwareDeviceManager implements DeviceManager {
   @Override
   public RobotCoreLynxModule createLynxModule(RobotCoreLynxUsbDevice lynxUsbDevice, int moduleAddress, boolean isParent, String name) {
     RobotLog.v("Creating Lynx Module - mod=%d parent=%s", moduleAddress, Boolean.toString(isParent));
-    return new LynxModule((LynxUsbDevice)lynxUsbDevice, moduleAddress, isParent);
+    return new LynxModule((LynxUsbDevice)lynxUsbDevice, moduleAddress, isParent, true);
   }
 
   @Override

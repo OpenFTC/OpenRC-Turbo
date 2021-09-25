@@ -50,9 +50,28 @@
                 newFolder: function () {
                     parent.showPrompt('Enter the new folder name', env.tools.selectedLocation($scope.newFile.file.location), function(location) {
                         if (location === null) return;
+                        if (location.indexOf("/") === -1) {
+                            if (confirm(
+                                "Did you want to create this folder under the default package (" +
+                                $scope.settings.defaultPackage + ")?"
+                            )) {
+                                location = $scope.settings.defaultPackage.replace(".", "/") + "/" + location;
+                            }
+                        }
                         $scope.newFile.file.location = location;
                         if (location.lastIndexOf('/') !== location.length - 1) location += '/';
                         if (location.indexOf('/') === 0) location = location.substr(1);
+                        var fullFolderLocation = 'src/' + location;
+                        if (env.trees.findInSourceFiles(fullFolderLocation) === env.errors.FILE_NOT_DIRECTORY) {
+                            parent.confirm("You cannot create a folder inside a file. Try a different location.");
+                            return;
+                        } else if (env.trees.findInSourceFiles(fullFolderLocation) !== env.errors.FILE_NOT_FOUND) {
+                            parent.confirm(
+                                "That folder already exists. Folder names have to be unique, so if you still want to " +
+                                "make that folder, try again with a unique and different name."
+                            );
+                            return;
+                        }
                         var fileNewUri = env.urls.URI_FILE_NEW + '?' + env.urls.REQUEST_KEY_FILE + '=' + '/src/' + location;
                         var dataString = env.urls.REQUEST_KEY_NEW + '=1';
                         $.post(fileNewUri, dataString).fail(function () {
@@ -65,6 +84,9 @@
                     env.setup.projectView(function () {
                         function filterFolders(tree) {
                             var newTree = tree.filter(function (value) {
+                                if (value.folder && value.parentId === undefined && value.text == "ExternalLibraries") {
+                                    return false;
+                                }
                                 return value.folder;
                             });
                             newTree.forEach(function (value) {
@@ -75,7 +97,9 @@
                             return newTree;
                         }
 
-                        var parameters = env.trees.defaultParameters(filterFolders(env.trees.srcFiles.slice(0)), function (event, node) {
+                        // We need a deep-copy of the tree listing for filter folders
+                        var srcFiles = angular.fromJson(angular.toJson(env.trees.srcFiles));
+                        var parameters = env.trees.defaultParameters(filterFolders(srcFiles), function (event, node) {
                             var location = node.parentFile.substr('src/'.length) + node.file;
                             console.log('User selected location: ' + location);
                             $scope.newFile.file.location = location;
@@ -114,10 +138,11 @@
             $scope.code = "";
             $scope.codeError = null;
             $scope.projectViewHasNodesSelected = false;
+
             env.loadError = false;
             $scope.offline = false;
 
-            $scope.tabs = {
+            env.tabs = $scope.tabs = {
                 active: null,
                 documentIdToTab: function documentIdToTab(docId) {
                     if (docId === '') {
@@ -283,7 +308,7 @@
                                line: Number.parseInt(target.attr('data-obj-line')),
                                col: Number.parseInt(target.attr('data-obj-col')) - 1,
                            };
-                           var newTab = $scope.tabs.documentIdToTab(target.html())
+                           var newTab = $scope.tabs.documentIdToTab('/src/' + target.html())
                            $scope.tabs.switch(newTab);
                        });
                    });
@@ -452,15 +477,24 @@
                         setupEditorWithData('Connect to the Robot Controller to see this file', env.editor);
                         configureEditorLang('.md', env.editor);
                     }
-                } else if (document.URL.indexOf(env.urls.URI_JAVA_EDITOR) + env.urls.URI_JAVA_EDITOR.length !== document.URL.length || ((documentId !== '') && !documentId.startsWith('?'))) {
-                    var fetchLocation = env.urls.URI_FILE_GET + '?' + env.urls.REQUEST_KEY_FILE + '=' + documentId;
-                    loadFromUrlAddress(fetchLocation);
-                    var fileName = documentId.substring(documentId.lastIndexOf("/") + 1);
-                    if (typeof setDocumentTitle === 'undefined') {
-                        document.title = fileName + " | FTC Code Editor";
-                        console.warn('util.js not loaded correctly');
+                } else if (
+                    document.URL.indexOf(env.urls.URI_JAVA_EDITOR) + env.urls.URI_JAVA_EDITOR.length !== document.URL.length ||
+                    ((documentId !== '') && !documentId.startsWith('?'))
+                ) {
+                    if (documentId === '') {
+                        configureEditorToDefaults();
+                        env.loadError = true;
+                        configureEditorLang('.md', env.editor);
                     } else {
-                        setDocumentTitle(fileName + ' | FTC Code Editor');
+                        var fetchLocation = env.urls.URI_FILE_GET + '?' + env.urls.REQUEST_KEY_FILE + '=' + documentId;
+                        loadFromUrlAddress(fetchLocation);
+                        var fileName = documentId.substring(documentId.lastIndexOf("/") + 1);
+                        if (typeof setDocumentTitle === 'undefined') {
+                            document.title = fileName + " | FTC Code Editor";
+                            console.warn('util.js not loaded correctly');
+                        } else {
+                            setDocumentTitle(fileName + ' | FTC Code Editor');
+                        }
                     }
                 } else {
                     configureEditorToDefaults();
@@ -664,7 +698,16 @@
                 };
 
                 env.trees.callbacks.projectView.nodeSelected = env.trees.callbacks.projectView.nodeUnselected = function() {
-                    $scope.projectViewHasNodesSelected = $('#file-tree').treeview('getSelected', 0).length !== 0;
+                    var externalLibrariesSelected = false;
+                    var fileTree = $('#file-tree').treeview('getSelected', 0);
+                    if (fileTree.length !== 0) {
+                        fileTree.forEach(function(value) {
+                            if (value.folder && value.parentId === undefined && value.text == "ExternalLibraries") {
+                                externalLibrariesSelected = true;
+                            }
+                        });
+                    }
+                    $scope.projectViewHasNodesSelected = fileTree.length !== 0 && !externalLibrariesSelected;
                     updateEditorToolboxDisabledStates();
                 };
                 updateEditorToolboxDisabledStates();
@@ -708,17 +751,40 @@
                             console.log(angular.toJson($scope.newFile));
                         }
 
+                        var $new = $('#new-file-modal');
                         var file = $scope.newFile.file;
                         if (!file.name || file.name === '') {
-                            console.error('An attempt has been made to create a file with no name');
+                            parent.confirm("You need to specify a file name to create a new file");
+                            entryGuard = false;
+                            $new.one('click', '#new-file-okay', okayF);
                             return;
                         }
                         var name = file.name + '.' + file.ext;
                         var location = file.location;
                         if (location.lastIndexOf('/') !== location.length - 1) location += '/';
                         if (location.indexOf('/') === 0) location = location.substr(1);
-                        var editorUri = env.urls.URI_JAVA_EDITOR + '?/src/' + location + name;
-                        var fileNewUri = env.urls.URI_FILE_NEW + '?' + env.urls.REQUEST_KEY_FILE + '=/src/' + location + name;
+                        var fullFilePath = "src/" + location + name;
+                        var currentNode = env.trees.findInSourceFiles(fullFilePath);
+                        if (currentNode !== env.errors.FILE_NOT_FOUND) {
+                            if (currentNode === env.errors.FILE_NOT_DIRECTORY) {
+                                parent.confirm(
+                                    "The new file must be inside a directory, but this operation would attempt " +
+                                    " to create file inside another file. Try again with a different location."
+                                )
+                                entryGuard = false;
+                                $new.one('click', '#new-file-okay', okayF);
+                                return;
+                            } else {
+                                if (!parent.confirm("This file already exists. Do you want to replace it?")) {
+                                    entryGuard = false;
+                                    $new.one('click', '#new-file-okay', okayF);
+                                    return;
+                                }
+                            }
+                        }
+
+                        var editorUri = env.urls.URI_JAVA_EDITOR + '?/' + fullFilePath;
+                        var fileNewUri = env.urls.URI_FILE_NEW + '?' + env.urls.REQUEST_KEY_FILE + '=/' + fullFilePath;
                         var template = $scope.newFile.hasOwnProperty('template') ? $scope.newFile.template : 'none';
                         var opModeType = $scope.newFile.hasOwnProperty('type') ? $scope.newFile.type : 'none';
                         var opModeDisable = $scope.newFile.hasOwnProperty('disabled') ? $scope.newFile.disabled : false;
@@ -737,13 +803,12 @@
                             console.log(dataString);
                         }
 
-                        var $new = $('#new-file-modal');
                         $new.modal('hide');
 
                         if (file.ext === '') {
                             alert('The file name specified does not have an extension. Please include an extension, and' +
                                 ' try again.');
-                            $new.modal('show').one('#new-file-okay', okayF);
+                            $new.modal('show').one('click', '#new-file-okay', okayF);
                             return;
                         }
 
@@ -768,6 +833,7 @@
                     };
 
                     $scope.newFile.regenerateLocationPicker();
+                    entryGuard = false;
                     $('#new-file-modal').modal('show')
                         .one('click', '#new-file-okay', okayF);
                 },
@@ -827,7 +893,13 @@
                     var fileTree = $('#file-tree').treeview('getSelected', 0);
                     var filesToDelete = [];
                     var deleteSelf = false;
+                    var deleteAar = false
                     fileTree.forEach(function (value) {
+                        // Don't let the user delete the ExternalLibraries folder.
+                        if (value.folder && value.parentId === undefined && value.text == "ExternalLibraries") {
+                          return;
+                        }
+
                         var fileName = value.file;
 
                         // Check if we are going to delete the current file
@@ -837,6 +909,11 @@
                             $scope.changed = false;
                             $scope.editor.setReadOnly(true);
                             $scope.editor.session.setUndoManager(new ace.UndoManager());
+                        }
+
+                        // Check if we are deleting an aar.
+                        if (fileName.endsWith('.aar')) {
+                          deleteAar = true;
                         }
 
                         filesToDelete.push(value.parentFile + fileName);
@@ -851,45 +928,103 @@
                     else
                         message = "Are you sure you want to delete " + filesToDelete.length + " files?";
 
+                    var succeeded = function() {
+                      console.log("delete finished!");
+                      if (deleteAar) {
+                        $('#deleted-aar-modal').modal('show').one('click', '#deleted-aar-close', function() {
+                          $('#deleted-aar-modal').modal('hide');
+                        });
+                      }
+                    };
+                    var failed = function() {
+                      if (!opt.silent)
+                        alert("Delete failed!");
+                    };
+                    var always = function () {
+                      console.log(deleteData);
+                      if (deleteSelf) {
+                        if (typeof opt.callback === 'function') {
+                          opt.callback(deleteSelf);
+                        } else {
+                          window.location = env.urls.URI_JAVA_EDITOR;
+                        }
+                      } else {
+                        env.setup.projectView();
+                      }
+                    };
+
                     if (filesToDelete.length > 0 && (opt.silent || window.confirm(message))) {
                         var deleteData = env.urls.REQUEST_KEY_DELETE + '=' + JSON.stringify(filesToDelete);
-                        return $.post(env.urls.URI_FILE_DELETE, deleteData, function () {
-                            console.log("delete finished!");
-                        }).fail(function () {
-                            if (!opt.silent)
-                                alert("Delete failed!");
-                        }).always(function () {
-                            console.log(deleteData);
-                            if (deleteSelf) {
-                                if (typeof opt.callback === 'function') {
-                                    opt.callback(deleteSelf);
-                                } else {
-                                    window.location = env.urls.URI_JAVA_EDITOR;
-                                }
-                            } else {
-                                env.setup.projectView();
-                            }
-                        });
+                        return $.post(env.urls.URI_FILE_DELETE, deleteData, succeeded).fail(failed).always(always);
                     }
 
                     return null;
                 },
                 filesSelect: function (files) {
+                    if (!files) {
+                        console.log("no files selected")
+                        return;
+                    }
+                    if (!env.allowExternalLibraries) {
+                      for (var i = 0; i < files.length; i++) {
+                        var file = files.item(i);
+                        if (file.name.endsWith('.jar') || file.name.endsWith('.aar')) {
+                          var message = file.name + ' cannot be uploaded. Using external libraries requires Android 7.0 or above.';
+                          console.log(message);
+                          alert(message);
+                          return;
+                        }
+                      }
+                    }
                     console.log(files);
-                    var alwaysCallback = function () {
+                    var countDown = files.length;
+                    var uploadingFilesModalShown = false;
+                    var alwaysCallback = function() {
                         env.setup.projectView();
+                        countDown--;
+                        if (countDown == 0) {
+                            if (uploadingFilesModalShown) {
+                                setTimeout(function() {
+                                  $('#uploading-files-please-wait').collapse('hide');
+                                  $('#uploading-files-close').collapse('show');
+                                  $('#uploading-files-modal').one('click', '#uploading-files-close', function () {
+                                      $('#uploading-files-modal').modal('hide');
+                                      uploadingFilesModalShown = false;
+                                  });
+                                }, 10);
+                            }
+                        }
+                    };
+                    var succeeded = function(file) {
+                      return function() {
+                          alwaysCallback(file);
+                      };
                     };
                     var failed = function(file) {
-                        return function () {
+                        return function() {
+                            // An alert is already shown in util.js.
                             console.log(file.name + ' failed to upload.');
-                            alwaysCallback();
+                            alwaysCallback(file);
                         };
                     };
 
                     for (var i = 0; i < files.length; i++) {
                         var file = files.item(i);
+                        var succeededCallback = succeeded(file);
                         var failedCallback = failed(file);
-                        uploadFile(file, env.urls.URI_FILE_UPLOAD, alwaysCallback, failedCallback);
+                        uploadFile(file, env.urls.URI_FILE_UPLOAD, false, succeededCallback, failedCallback);
+                        if (file.name.endsWith('.jar') || file.name.endsWith('.aar')) {
+                            if (!uploadingFilesModalShown) {
+                              $('#uploading-files-modal').modal({
+                                  backdrop: 'static',
+                                  keyboard: false
+                              })
+                              $('#uploading-files-please-wait').collapse('show');
+                              $('#uploading-files-close').collapse('hide');
+                              $('#uploading-files-modal').modal('show');
+                              uploadingFilesModalShown = true;
+                            }
+                        }
                     }
                 },
                 minimizePane: function () {
@@ -1030,6 +1165,7 @@
                 upload: function () {
                     $('#upload-button').tooltip('hide');
                     var $file = $('#file-upload-form');
+                    $file[0].value = $file[0].defaultValue;
                     $file.attr('action', env.urls.URI_FILE_UPLOAD);
                     $file.click();
                 }

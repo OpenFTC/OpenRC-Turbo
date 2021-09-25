@@ -96,7 +96,7 @@ public class FtcAdvancedRCSettingsActivity extends ThemedActivity
                 prefLynxFirmwareUpdateMode.setSummary(R.string.summaryLynxFirmwareUpdateCH);
                 }
 
-            // TODO(CHv1): Update this channel changer to work for both Wifi Direct and the CH
+            // TODO(CHv1): Update this channel changer to work for both Wi-Fi Direct and the CH
 
             // If we're not connected to RC, then disable ALL controls on this screen
             if (!clientConnected)
@@ -108,7 +108,7 @@ public class FtcAdvancedRCSettingsActivity extends ThemedActivity
                 }
 
             // TODO(Noah): At the next Robocol bump, replace this with a special connected_to_control_hub shared pref
-            // Disable WiFi Direct settings when managing a Control Hub
+            // Disable Wi-Fi Direct settings when managing a Control Hub
             boolean changingControlHubSettings = (remoteConfigure && LynxConstants.isRevControlHub()) ||
                     (clientConnected && !preferencesHelper.readBoolean(getString(R.string.pref_wifip2p_remote_channel_change_works), false));
             prefChangeChannel.setEnabled(!changingControlHubSettings);

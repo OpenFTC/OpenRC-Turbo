@@ -81,7 +81,7 @@ public class SoftApAssistant extends NetworkConnection {
   public synchronized static SoftApAssistant getSoftApAssistant(Context context) {
     if (softApAssistant == null) softApAssistant = new SoftApAssistant(context);
 
-    // Set up the intent filter for wifi direct
+    // Set up the intent filter for Wi-Fi Direct
     intentFilter = new IntentFilter();
     intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
     intentFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
@@ -242,7 +242,7 @@ public class SoftApAssistant extends NetworkConnection {
   public void connect(String ssid, String password) {
     this.ssid = ssid;
     this.password = password;
-    // setup a wifi configuration
+    // setup a Wi-Fi configuration
     WifiConfiguration wifiConfig = buildConfig(String.format("\"%s\"", ssid), String.format("\"%s\"", password));
 
     WifiInfo wifiInfo = wifiManager.getConnectionInfo();

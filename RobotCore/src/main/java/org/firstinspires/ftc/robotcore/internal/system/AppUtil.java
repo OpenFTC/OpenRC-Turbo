@@ -65,9 +65,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.threetenabp.AndroidThreeTen;
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
+import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.util.WeakReferenceSet;
@@ -85,6 +88,11 @@ import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.FtcWebSocketMessage;
 import org.firstinspires.ftc.robotcore.internal.webserver.websockets.WebSocketManager;
+import org.threeten.bp.Month;
+import org.threeten.bp.Year;
+import org.threeten.bp.YearMonth;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.format.DateTimeParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -92,7 +100,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
@@ -185,7 +194,7 @@ public class AppUtil
         return InstanceHolder.theInstance;
         }
 
-    public static Context getDefContext()
+    public static Application getDefContext()
         {
         return getInstance().getApplication();
         }
@@ -209,6 +218,7 @@ public class AppUtil
     private @Nullable WebSocketManager webSocketManager;
     @SuppressWarnings("ConstantConditions")
     private UsbManager usbManager;
+    private @Nullable DateTimeFormatter iso8601DateFormat;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -243,6 +253,7 @@ public class AppUtil
         usbFileSystemRoot = null;
         getUsbFileSystemRoot();
         AppAliveNotifier.getInstance().onAppStartup();
+        AndroidThreeTen.init(application);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -612,6 +623,33 @@ public class AppUtil
     public interface UsbFileSystemRootListener
         {
         void onUsbFileSystemRootChanged(String usbFileSystemRoot);
+        }
+
+    public static String computeMd5(File file) throws NoSuchAlgorithmException, IOException
+        {
+        InputStream inputStream = new FileInputStream(file);
+        try {
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            byte[] buffer = new byte[256];
+            for (;;)
+                {
+                int cbRead = inputStream.read(buffer);
+                if (cbRead < 0)
+                    break;
+                digest.update(buffer, 0, cbRead);
+                }
+            byte[] hash = digest.digest();
+            StringBuilder result = new StringBuilder();
+            for (int ib = 0; ib < hash.length; ib++)
+                {
+                result.append(String.format(Locale.ROOT, "%02x", hash[ib]));
+                }
+            return result.toString();
+            }
+        finally
+            {
+            inputStream.close();
+            }
         }
 
     //----------------------------------------------------------------------------------------------
@@ -1539,12 +1577,82 @@ public class AppUtil
     // Date and time
     //----------------------------------------------------------------------------------------------
 
-    public SimpleDateFormat getIso8601DateFormat()
+    public DateTimeFormatter getIso8601DateTimeFormatter()
         {
-        // From https://en.wikipedia.org/wiki/ISO_8601
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return formatter;
+        if (iso8601DateFormat == null)
+            {
+            // From https://en.wikipedia.org/wiki/ISO_8601
+            iso8601DateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US);
+            }
+        return iso8601DateFormat;
+        }
+
+    public YearMonth getYearMonthFromIso8601(String timeString)
+        {
+        try
+            {
+            return YearMonth.parse(timeString, getIso8601DateTimeFormatter());
+            }
+        catch (DateTimeParseException e)
+            {
+            RobotLog.vv(TAG, e, "Failed to parse the year and month from string", timeString);
+            return YearMonth.of(1, 1);
+            }
+        }
+
+    public YearMonth getLocalSdkBuildMonth()
+        {
+        return getYearMonthFromIso8601(BuildConfig.SDK_BUILD_TIME);
+        }
+
+    /**
+     * Converts a specific month to the FTC season that was active during that month. The FTC season
+     * is represented as the year it began in.
+     *
+     * For example, September 2021 will return 2021, but August 2021 will return 2020.
+     */
+    public Year getFtcSeasonYear(YearMonth month)
+        {
+        if (month.getMonth().getValue() >= Month.SEPTEMBER.getValue())
+            {
+            return Year.of(month.getYear());
+            }
+        else
+            {
+            return Year.of(month.getYear() - 1);
+            }
+        }
+
+    public boolean appIsObsolete(YearMonth sdkBuildMonth)
+        {
+        // Calculate minimum SDK release date:
+        //
+        // The FTC kickoff release comes out sometime in September. If it's currently October or
+        // later, than any versions older than September 1st of this year should be considered obsolete.
+        //
+        // On the other hand, if it's not October yet, then any versions older than September 1st
+        // of _last_ year should be considered obsolete.
+        //
+        // We use separate logic from getFtcSeasonYear() because we don't want to show the warning
+        // until October, as the SDK isn't released on September 1st.
+
+        YearMonth minimumMonth;
+        YearMonth currentMonth = YearMonth.now();
+        if (currentMonth.getMonth().getValue() >= Month.OCTOBER.getValue())
+            {
+            minimumMonth = YearMonth.of(currentMonth.getYear(), Month.SEPTEMBER);
+            }
+        else
+            {
+            minimumMonth = YearMonth.of(currentMonth.getYear() - 1, Month.SEPTEMBER);
+            }
+
+        return sdkBuildMonth.isBefore(minimumMonth);
+        }
+
+    public boolean localAppIsObsolete()
+        {
+        return appIsObsolete(getLocalSdkBuildMonth());
         }
 
     /**
@@ -1562,17 +1670,30 @@ public class AppUtil
      * kernel/security/commoncap.c. On the Control Hub, that has been disabled. Note that no error
      * is reported on failure.
      *
+     * UPDATE: on recent Android versions, calling this actually crashes the app instead of
+     * just failing silently: https://source.android.com/devices/tech/debug/native-crash#seccomp
+     *
+     *      The seccomp system (specifically seccomp-bpf) restricts access to system calls.
+     *      For more information about seccomp for platform developers, see the blog post
+     *      Seccomp filter in Android O. A thread that calls a restricted system call will
+     *      receive a SIGSYS signal with code SYS_SECCOMP.
+     *
+     * Therefore, we only even *attempt* this call if we're on a Control Hub
+     *
      * Note that this attempts to set the current time for the whole system, not just this process.
      */
     public void setWallClockTime(long millis)
         {
-        try
+        if (Device.isRevControlHub())
             {
-            nativeSetCurrentTimeMillis(millis);
-            }
-        catch (UnsatisfiedLinkError e)
-            {
-            //ignored
+                try
+                {
+                    nativeSetCurrentTimeMillis(millis);
+                }
+                catch (UnsatisfiedLinkError e)
+                {
+                    //ignored
+                }
             }
         }
 
@@ -1591,9 +1712,9 @@ public class AppUtil
         {
         synchronized (timeLock)
             {
-            boolean timeCurrentlySane = isSaneWalkClockTime(getWallClockTime());
+            boolean timeCurrentlySane = isSaneWallClockTime(getWallClockTime());
             boolean acceptableTimezone = (timezone != null && !timezone.isEmpty());
-            if (!timeCurrentlySane && isSaneWalkClockTime(timeMillis) && acceptableTimezone)
+            if (!timeCurrentlySane && isSaneWallClockTime(timeMillis) && acceptableTimezone)
                 {
                 setWallClockTime(timeMillis);
                 setTimeZone(timezone);
@@ -1626,7 +1747,7 @@ public class AppUtil
      * What we're really trying to do here is to detect systems that have no battery-backed-up
      * clock on board. Those, on boot, will start counting from the Unix epoch, which is in 1970.
      */
-    public boolean isSaneWalkClockTime(long millis)
+    public boolean isSaneWallClockTime(long millis)
         {
         GregorianCalendar calendar = new GregorianCalendar();
         calendar.setTimeInMillis(millis);

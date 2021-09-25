@@ -20,12 +20,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
+import android.text.TextUtils;
 import com.google.ftcresearch.tfod.util.ImageUtils;
 import com.google.ftcresearch.tfod.util.Size;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -34,7 +35,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-import org.tensorflow.lite.Interpreter;
 
 /**
  * Class to indefinitely read frames and return the most recent recognitions via a callback.
@@ -48,7 +48,7 @@ import org.tensorflow.lite.Interpreter;
  * @author Vasu Agrawal
  * @author lizlooney@google.com (Liz Looney)
  */
-class TfodFrameManager implements Runnable {
+abstract class TfodFrameManager implements Runnable {
 
   private static final String TAG = "TfodFrameManager";
   private static final Paint paint = new Paint(); // Used to draw recognitions without tracker
@@ -56,19 +56,18 @@ class TfodFrameManager implements Runnable {
 
   static {
     paint.setColor(Color.RED);
-    paint.setStyle(Paint.Style.STROKE);
-    paint.setStrokeWidth(10);
+    paint.setStyle(Style.STROKE);
+    paint.setStrokeWidth(12.0f);
     zoomPaint.setColor(Color.WHITE);
     zoomPaint.setAlpha(128);
-    zoomPaint.setStyle(Paint.Style.FILL);
+    zoomPaint.setStyle(Style.FILL);
   }
 
   // Parameters passed in to the constructor
   private final FrameGenerator frameGenerator;
-  private final CameraInformation cameraInformation;
-  private final List<Interpreter> interpreters;
-  private final List<String> labels;
-  private final TfodParameters params;
+  protected final CameraInformation cameraInformation;
+  protected final List<String> labels;
+  protected final TfodParameters params;
   private final Zoom zoom;
   private final AnnotatedFrameCallback tfodCallback;
 
@@ -79,12 +78,6 @@ class TfodFrameManager implements Runnable {
   private final ExecutorService executor;
   private final RollingAverage averageInferenceTime;
 
-  // Output locations for the interpreters, so we're not constantly reallocating
-  private final List<float[][][]> outputLocations = new ArrayList<>();
-  private final List<float[][]> outputClasses = new ArrayList<>();
-  private final List<float[][]> outputScores = new ArrayList<>();
-  private final List<float[]> numDetections = new ArrayList<>();
-
   private final Queue<Integer> availableIds = new ConcurrentLinkedQueue<>();
   private long lastSubmittedFrameTimeNanos;
 
@@ -94,16 +87,16 @@ class TfodFrameManager implements Runnable {
   private final MultiBoxTracker tracker;
   private volatile boolean active;
 
-  TfodFrameManager(
+  private final BorderedText borderedText;
+
+  protected TfodFrameManager(
       FrameGenerator frameGenerator,
-      List<Interpreter> interpreters,
       List<String> labels,
       TfodParameters params,
       Zoom zoom,
       AnnotatedFrameCallback tfodCallback) {
     this.frameGenerator = frameGenerator;
     this.cameraInformation = frameGenerator.getCameraInformation();
-    this.interpreters = interpreters;
     this.labels = labels;
     this.params = params;
     this.zoom = zoom;
@@ -118,19 +111,12 @@ class TfodFrameManager implements Runnable {
     averageInferenceTime = new RollingAverage(params.timingBufferSize);
     tracker = params.trackerDisable ? null : new MultiBoxTracker(params);
 
-    // Create the output arrays for the different interpreters
+    // Mark all of the object detectors as available.
     for (int i = 0; i < params.numExecutorThreads; i++) {
-      outputLocations.add(new float[1][params.maxNumDetections][4]);
-      outputClasses.add(new float[1][params.maxNumDetections]);
-      outputScores.add(new float[1][params.maxNumDetections]);
-      numDetections.add(new float[1]);
-    }
-
-    // Mark all of the interpreters as available.
-    for (int i = 0; i < params.numExecutorThreads; i++) {
-      //Log.d(TAG, "Adding interpreter: " + i);
       availableIds.add(i);
     }
+
+    borderedText = new BorderedText(60);
 
     // TODO(vasuagrawal): Do one inference task and get an inference time to use as a seed.
     // Make sure one inference task is done here before doing in the executor, so that we can
@@ -205,29 +191,22 @@ class TfodFrameManager implements Runnable {
     }
   }
 
-  private void submitRecognitionTask(final AnnotatedYuvRgbFrame annotatedFrame) {
-    // See if there's an interpreter available to handle this frame.
-    final Integer interpreterId = availableIds.poll();
+  protected abstract Runnable createTask(AnnotatedYuvRgbFrame annotatedFrame, int id,
+      double zoomMagnification, double zoomAspectRatio,
+      AnnotatedFrameCallback annotatedFrameCallback);
 
-    if (interpreterId != null) { // There's actually an available interpreter, we will use it.
+  private void submitRecognitionTask(final AnnotatedYuvRgbFrame annotatedFrame) {
+    // See if there's an object detector available to handle this frame.
+    final Integer id = availableIds.poll();
+
+    if (id != null) { // There's an available object detector. We will use it.
       double zoomMagnification;
       double zoomAspectRatio;
       synchronized (zoom) {
         zoomMagnification = zoom.magnification;
         zoomAspectRatio = zoom.aspectRatio;
       }
-      RecognizeImageRunnable task = new RecognizeImageRunnable(
-          annotatedFrame,
-          cameraInformation,
-          interpreters.get(interpreterId),
-          params,
-          zoomMagnification,
-          zoomAspectRatio,
-          labels,
-          outputLocations.get(interpreterId),
-          outputClasses.get(interpreterId),
-          outputScores.get(interpreterId),
-          numDetections.get(interpreterId),
+      Runnable task = createTask(annotatedFrame, id, zoomMagnification, zoomAspectRatio,
           new AnnotatedFrameCallback() {
             @Override
             public void onResult(AnnotatedYuvRgbFrame frame) {
@@ -236,7 +215,7 @@ class TfodFrameManager implements Runnable {
               long endTimeNanos = System.nanoTime();
               long elapsedNanos = endTimeNanos - annotatedFrame.getFrameTimeNanos();
               long elapsedMs = TimeUnit.MILLISECONDS.convert(elapsedNanos, TimeUnit.NANOSECONDS);
-              //Log.i(annotatedFrame.getTag(), "TfodFrameManager - interpreter [" + interpreterId + "] Ran for " + elapsedMs + " ms");
+              //Log.i(annotatedFrame.getTag(), "TfodFrameManager - object detector [" + id + "] Ran for " + elapsedMs + " ms");
 
               averageInferenceTime.add(elapsedNanos);
               //Log.i(
@@ -248,17 +227,18 @@ class TfodFrameManager implements Runnable {
 
               receiveNewRecognitions(annotatedFrame);
 
-              // Finally, mark the interpreter as available.
-              availableIds.add(interpreterId);
+              // Finally, mark the object detector as available.
+              availableIds.add(id);
             }
           });
 
-      //Log.i(annotatedFrame.getTag(), "TfodFrameManager.submitRecognitionTask - submitting recognition task with interpreter [" + interpreterId + "]");
+      //Log.i(annotatedFrame.getTag(), "TfodFrameManager.submitRecognitionTask - " +
+      //   "submitting recognition task with object detector [" + id + "]");
       lastSubmittedFrameTimeNanos = annotatedFrame.getFrameTimeNanos();
       executor.submit(task);
     } else {
       // TODO(vasuagrawal): Add this to the statistics made available in the future (dropped frames)
-      //Log.d(annotatedFrame.getTag(), "TfodFrameManager.submitRecognitionTask - no available interpreters");
+      //Log.d(annotatedFrame.getTag(), "TfodFrameManager.submitRecognitionTask - no available object detectors");
     }
   }
 
@@ -301,13 +281,13 @@ class TfodFrameManager implements Runnable {
   }
 
   /**
-   * Constantly get frames, (maybe) pass them to an interpreter and through a tracker.
+   * Constantly get frames, (maybe) pass them to an object detector and through a tracker.
    *
    * <p>First, a frame is pulled from the frameGenerator. If enough time has elapsed since the last
    * time a frame was submitted {@see TfodFrameManager::enoughInterFrameTimeElapsed}, the current
-   * frame gets submitted to an available interpreter (if any). Furthermore, every frame is passed
+   * frame gets submitted to an available object detector (if any). Furthermore, every frame is passed
    * through the tracker, which is used to help interpolate recognitions between outputs from
-   * interpreters, as well as to compensate for the latency of running the network. Finally, after
+   * object detectors, as well as to compensate for the latency of running the network. Finally, after
    * passing the frame through the tracker, the most recent list of recognitions (what the tracker
    * currently believes) is returned through the callback.
    */
@@ -341,8 +321,8 @@ class TfodFrameManager implements Runnable {
 
       // Then determine if we've waited long enough to submit the frame
       if (enoughInterFrameTimeElapsed(frame.getFrameTimeNanos())) {
-        //Log.i(frame.getTag(), "TfodFrameManager.run - trying to submit recognition task
-        //(pending interpreter)");
+        //Log.i(frame.getTag(), "TfodFrameManager.run - trying to submit recognition task " +
+        //    "(pending object detector)");
         Timer frameTimer = new Timer(frame.getTag());
         frameTimer.start("TfodFrameManager.run - submitting recognition task");
         submitRecognitionTask(annotatedFrame);
@@ -421,7 +401,14 @@ class TfodFrameManager implements Runnable {
       if (annotatedFrame != null) {
         for (Recognition recognition : annotatedFrame.getRecognitions()) {
           RecognitionImpl recognitionImpl = (RecognitionImpl) recognition;
-          canvas.drawRect(recognitionImpl.getLocation(), paint);
+          RectF location = recognitionImpl.getLocation();
+          canvas.drawRect(location, paint);
+
+          final String labelString =
+              !TextUtils.isEmpty(recognition.getLabel())
+              ? String.format("%s %.2f", recognition.getLabel(), recognition.getConfidence())
+              : String.format("%.2f", recognition.getConfidence());
+          borderedText.drawText(canvas, location.left, location.bottom, labelString);
         }
       }
     }

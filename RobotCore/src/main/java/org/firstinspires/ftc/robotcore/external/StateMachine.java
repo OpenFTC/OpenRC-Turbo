@@ -49,6 +49,7 @@ import java.util.HashMap;
 public class StateMachine {
 
     private final static String TAG = "StateMachine";
+    private final static boolean DEBUG = false;
 
     protected State currentState;
     protected HashMap<State, ArrayList<StateTransition>> stateGraph;
@@ -140,7 +141,9 @@ public class StateMachine {
         ArrayList<StateTransition> edges = stateGraph.get(currentState);
 
         if (edges == null) {
-            RobotLog.vv(TAG, "State with no transitions: " + currentState.toString());
+            if (DEBUG) {
+                RobotLog.vv(TAG, "State with no transitions: " + currentState.toString());
+            }
             return null;
         }
 

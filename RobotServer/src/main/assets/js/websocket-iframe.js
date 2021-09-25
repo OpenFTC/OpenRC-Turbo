@@ -70,6 +70,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // WebSocketManager. You'd just need to make sure to call finish() on it when closing the pane.
 
 const WEBSOCKET_LIB = {
+    isWebSocketConnected: parent.WEBSOCKET_CORE.isWebSocketConnected,
     WebSocketMessage: parent.WEBSOCKET_CORE.WebSocketMessage,
     webSocketManager: new parent.WEBSOCKET_CORE.WebSocketManager()
 }

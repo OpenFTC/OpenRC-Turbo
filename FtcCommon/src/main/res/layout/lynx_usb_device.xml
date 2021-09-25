@@ -30,10 +30,11 @@
             android:layout_height="wrap_content"
             android:hint="@string/name_prompt_text"
             android:inputType="text"
+            android:imeOptions="actionDone|flagNoExtractUi"
             android:maxLength="200"
             android:text="@string/filler_text"
             android:textSize="18sp"
-            android:textStyle="bold"></EditText>
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/serialNumber"

@@ -36,7 +36,7 @@
         </div>
     </div>
     <div class="bordered-text-block" id="id_network_settings_block">
-        <h1>WiFi Settings</h1>
+        <h1>Wi-Fi Settings</h1>
         <form class="indented">
             <div class="form-group">
                 <label for="id_rc_name">Name</label>
@@ -57,39 +57,44 @@
                 </div>
             </div>
             <div class="form-group" id="id_wifi_band_group">
-                <label>WiFi Band</label>
+                <label>Wi-Fi Band</label>
                 <br>
                 <label class="radio-inline">
                     <input type="radio" name="wifiBand" id="id_wifi_band_24" value="band_24" onclick="updateChannelList();">2.4 GHz
                 </label>
                 <label class="radio-inline">
-                    <input type="radio" name="wifiBand" id="id_wifi_band_5" value="band_5" onclick = "updateChannelList();">5 GHz
+                    <input type="radio" name="wifiBand" id="id_wifi_band_5" value="band_5" onclick="updateChannelList();">5 GHz
                 </label>
                 <span class="help-block">
-                    The 5 GHz WiFi band is highly recommended, unless you need to connect older devices that only support 2.4 GHz WiFi.
+                    The 5 GHz Wi-Fi band is highly recommended, unless you need to connect older devices that only support 2.4 GHz Wi-Fi.
                 </span>
             </div>
             <div class="form-group">
-                <label for="id_ap_channel">WiFi Channel</label>
-                <select id="id_ap_channel" class="form-control" style="max-width: 150px"></select>
+                <label for="id_ap_channel">Wi-Fi Channel</label>
+                <select id="id_ap_channel" class="form-control" style="max-width: 150px; margin-bottom: 10px;" onchange="updateApSettingsButton();"></select>
                 <div class="checkbox" id="id_show_overlapping_channels">
                     <label>
-                        <input type="checkbox" id="id_show_overlapping_channels_checkbox" onclick="updateChannelList()">
+                        <input type="checkbox" id="id_show_overlapping_channels_checkbox" onclick="updateChannelList('overlappingChannelsCheckbox')">
                         Show overlapping channels (not recommended)
                     </label>
                 </div>
+                <div id="id_submit_network_settings_warning" class="sized-input alert alert-danger" role="alert" style="display:inline-block; margin-bottom:0;">
+                    Please select a Wi-Fi channel from the dropdown menu
+                </div>
             </div>
         </form>
-        <button id="id_submit_network_settings_button" class="aligned-select-button" onclick="onSubmitNetworkSettings()">Apply WiFi Settings</button>
+        <button id="id_submit_network_settings_button" class="aligned-select-button btn btn-primary" disabled title="Not connected to robot" onclick="onSubmitNetworkSettings()">
+            Apply Wi-Fi Settings
+        </button>
         <div id="id_control_hub_wifi_warnings">
             <span class="help-block">
-            You will need to reconnect to the new WiFi network after changing the Control Hub's name and/or password.
+            You will need to reconnect to the new Wi-Fi network after changing the Control Hub's name and/or password.
             </span>
             <span class="help-block" style="margin-bottom:0; max-width:700px">
                 If you are unable to connect to the Control Hub's network after switching to the 5 GHz band,
-                you can perform a WiFi factory reset by holding down the Control Hub's button while you
+                you can perform a Wi-Fi factory reset by holding down the Control Hub's button while you
                 turn it on, until you see a rapid sequence of color changes on the Control Hub's light.
-                The WiFi network name and password will be reset to their default values, and the WiFi band will be set to 2.4 GHz.
+                The Wi-Fi network name and password will be reset to their default values, and the Wi-Fi band will be set to 2.4 GHz.
             </span>
         </div>
     </div>
@@ -220,6 +225,9 @@
     var appUpdateRequiresReboot = false;
     var mostRecentUploadIdentifier;
     var allAvailableChannels;
+    let currentChannel;
+    let currentlyOn2_4Ghz = false;
+    let currentlyOn5Ghz = false;
     var isControlHub;
     var originalName;
     var originalPassword;
@@ -301,12 +309,21 @@
         }
     }
 
+    function onWebSocketConnected() {
+        updateApSettingsButton();
+    }
+
+    function onWebSocketDisconnected() {
+        dismissProgress();
+        updateApSettingsButton();
+    }
+
     WEBSOCKET_LIB.webSocketManager.subscribeToNamespace(CH_UPDATER_NAMESPACE);
     WEBSOCKET_LIB.webSocketManager.subscribeToNamespace(PROGRESS_NAMESPACE);
     WEBSOCKET_LIB.webSocketManager.registerTypeHandler(CH_UPDATER_NAMESPACE, "notification", handleUpdaterNotification);
     WEBSOCKET_LIB.webSocketManager.registerTypeHandler(PROGRESS_NAMESPACE, "showProgress", handleShowProgress);
     WEBSOCKET_LIB.webSocketManager.registerTypeHandler(PROGRESS_NAMESPACE, "dismissProgress", dismissProgress)
-    WEBSOCKET_LIB.webSocketManager.registerConnectionStateListeners(function(){}, dismissProgress);
+    WEBSOCKET_LIB.webSocketManager.registerConnectionStateListeners(onWebSocketConnected, onWebSocketDisconnected);
 
     var initUpload = function (idInput, idFeedback, idButton, ext, idAction, options) {
         if (typeof options === 'undefined') options = {};
@@ -435,7 +452,7 @@
         if (useUploadedFile) {
             var url = URI_UPLOAD_EXPANSION_HUB_FIRMWARE;
             showUploadBlocker();
-            uploadFile(uploadedFile, url,
+            uploadFile(uploadedFile, url, true,
                 function(xhr, e) {
                     uploadSuccess(uploadedFile, xhr, e);
                     fwUpdateFilename = xhr.responseText; // response contains uploaded filename
@@ -520,7 +537,7 @@
         console.log("updateApk() name=" + file.name);
         var url = URI_UPDATE_CONTROL_HUB_APK;
         showUploadBlocker();
-        uploadFile(file, url,
+        uploadFile(file, url, true,
             function(xhr, e) {
                 if (appUpdateRequiresReboot) {
                     uploadSuccess(file, xhr, e);
@@ -556,7 +573,7 @@
         console.log("uploadWebcamCalibration() name=" + file.name);
         var url = URI_UPLOAD_WEBCAM_CALIBRATION_FILE;
         showUploadBlocker();
-        uploadFile(file, url,
+        uploadFile(file, url, true,
             function(xhr, e) {
                 uploadSuccess(file, xhr, e);
                 showToast('id_webcam_calibration_upload_complete', 'Webcam Calibration upload complete');
@@ -570,7 +587,7 @@
         console.log("uploadTfliteModel() name=" + file.name);
         var url = URI_UPLOAD_TFLITE_MODEL_FILE;
         showUploadBlocker();
-        uploadFile(file, url,
+        uploadFile(file, url, true,
             function(xhr, e) {
                 uploadSuccess(file, xhr, e);
                 showToast('id_tflite_model_upload_complete', 'TensorFlow Lite model upload complete');
@@ -584,7 +601,7 @@
         console.log("uploadOta() name=" + file.name);
         var url = URI_UPLOAD_CONTROL_HUB_OTA;
         showUploadBlocker();
-        uploadFile(file, url,
+        uploadFile(file, url, true,
             function(xhr, e) {
                 bindToControlHubUpdaterTransaction(xhr);
             },
@@ -599,6 +616,7 @@
         var newPw = document.getElementById("id_ap_new_password").value;
         var confirmPw = document.getElementById("id_ap_confirmed_password").value;
         var newChannelName = document.getElementById("id_ap_channel").value;
+        const newChannelIs5Ghz = document.getElementById("id_wifi_band_5").checked;
         if (newName.length < 2 || newName.length > 32) {
             alert("RC Name must be between 2 and 32 chars");
         } else if (newName.match(/\s/) != null) {
@@ -608,7 +626,7 @@
         } else if (newPw && newPw.localeCompare(confirmPw) !== 0) {
             alert("New password and the confirmation password are different");
         } else {
-            console.log("newName=" + newName + " newPw= " + newPw + " newChannelName=" + newChannelName);
+            console.log("newName=" + newName + " newPw=" + newPw + " newChannelName=" + newChannelName);
             var xhr = new XMLHttpRequest();
             var params = PARAM_NAME + '=' + encodeURIComponent(newName);
             if (newPw) {
@@ -621,12 +639,11 @@
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        window.setTimeout(function() {
-                            refreshRCInfo();
-                        }, 200); // Give the settings a chance to apply
-                    } else if (xhr.status === 0) {
-                        // This indicates that we've already disconnected from the network.
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        // Either the settings application succeeded, or we were disconnected from the network before we got a response.
+                        currentChannel = newChannelName;
+                        currentlyOn5Ghz = newChannelIs5Ghz;
+                        currentlyOn2_4Ghz = !newChannelIs5Ghz;
                     } else {
                         console.log("Network settings failed to apply. Error code: " + xhr.status + " Error text: " + xhr.responseText);
                         var error = "The network settings failed to apply";
@@ -643,12 +660,12 @@
                 let nameChanged = originalName !== newName;
                 let passwordChanged = originalPassword !== newPw;
                 if (nameChanged && passwordChanged) {
-                    alert("The Control Hub's name and password have been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to connect to the new network.");
+                    alert("The Control Hub's name and password have been changed. If you are connected to the Control Hub via Wi-Fi, you have been disconnected. You will need to connect to the new network.");
                 } else if (nameChanged) {
-                    alert("The Control Hub's name has been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to connect to the new network.");
+                    alert("The Control Hub's name has been changed. If you are connected to the Control Hub via Wi-Fi, you have been disconnected. You will need to connect to the new network.");
                 } else if (passwordChanged) {
                     // If the password changed but not the name, the user needs to "forget" the old network before reconnecting.
-                    alert("The Control Hub's password has been changed. If you are connected to the Control Hub via WiFi, you have been disconnected. You will need to \"forget\" the network, and then connect to it again.");
+                    alert("The Control Hub's password has been changed. If you are connected to the Control Hub via Wi-Fi, you have been disconnected. You will need to \"forget\" the network, and then connect to it again.");
                 }
             }
         }
@@ -666,10 +683,44 @@
         }
     }
 
-    var updateChannelList = function (channelNameToSelect) {
+    function updateApSettingsButton() {
+        const apSettingsButton = document.getElementById("id_submit_network_settings_button");
+        const selectSpecificChannelWarning = document.getElementById("id_submit_network_settings_warning");
+        const channelDropdown = document.getElementById("id_ap_channel");
+
+        let disableApSettingsButtonBecauseOfDisconnection = false;
+        let showChannelWarningInsteadOfButton = false;
+
+        // Determine our desired state
+        if (!WEBSOCKET_LIB.isWebSocketConnected()) {
+            disableApSettingsButtonBecauseOfDisconnection = true;
+        } else if (!channelDropdown.value) {
+            showChannelWarningInsteadOfButton = true;
+        }
+
+        // Update the UI accordingly
+        if (showChannelWarningInsteadOfButton) {
+            apSettingsButton.style.display = 'none';
+            selectSpecificChannelWarning.style.display = 'inline-block';
+        } else {
+            apSettingsButton.style.display = 'inline-block';
+            selectSpecificChannelWarning.style.display = 'none';
+
+            if (disableApSettingsButtonBecauseOfDisconnection) {
+                apSettingsButton.disabled = true;
+                apSettingsButton.title = 'Not connected to robot';
+            } else {
+                apSettingsButton.disabled = false;
+                apSettingsButton.title = '';
+            }
+        }
+    }
+
+    var updateChannelList = function (reason) {
         var show5GhzChannels = document.getElementById("id_wifi_band_5").checked;
         var showOverlappingChannels = document.getElementById("id_show_overlapping_channels_checkbox").checked;
         var channelDropdown = document.getElementById("id_ap_channel");
+        const previousChannelSelection = channelDropdown.value;
         hideElement(document.getElementById("id_show_overlapping_channels"), show5GhzChannels);
         channelDropdown.innerText = '';
         allAvailableChannels.forEach(function(channel) {
@@ -686,22 +737,29 @@
             }
         });
 
-        if (channelNameToSelect) {
-            channelDropdown.value = channelNameToSelect;
+        if (reason === 'overlappingChannelsCheckbox') {
+            // When the user checks the overlapping channels checkbox, we want to restore the
+            // previous selection (if possible), not the current channel we're broadcasting on.
+            channelDropdown.value = previousChannelSelection;
         } else {
-            channelDropdown.value = '';
+            if ((show5GhzChannels && currentlyOn5Ghz) || (!show5GhzChannels && currentlyOn2_4Ghz)) {
+                channelDropdown.value = currentChannel;
+            } else {
+                channelDropdown.value = '';
+            }
         }
+        updateApSettingsButton();
     }
 
-    var selectBand = function (select5GHzBand) {
-        if (select5GHzBand) {
+    var selectBand = function (select5GhzBand) {
+        if (select5GhzBand) {
             document.getElementById("id_wifi_band_5").checked = true;
         } else {
             document.getElementById("id_wifi_band_24").checked = true;
         }
     }
 
-    var refreshRCInfo = function () {
+    function refreshRCInfo() {
         loadRcInfo(function (rcInfo) {
             if (rcInfo) {
                 scaleTextInDocumentBody(rcInfo);
@@ -728,21 +786,29 @@
                 originalPassword = rcInfo.passphrase;
 
                 let select5GhzBand = false;
-                let currentChannel = "";
                 if (rcInfo.currentChannel.name !== "UNKNOWN") {
                     currentChannel = rcInfo.currentChannel.name;
                     if (rcInfo.currentChannel.band === "BAND_5_GHZ") {
+                        currentlyOn5Ghz = true;
+                        currentlyOn2_4Ghz = false;
                         select5GhzBand = true;
+                    } else {
+                        currentlyOn2_4Ghz = true;
+                        currentlyOn5Ghz = false;
                     }
                     if (rcInfo.currentChannel.overlapsWithOtherChannels === true) {
                         document.getElementById("id_show_overlapping_channels_checkbox").checked = true;
                     }
-                } else if (rcInfo.supports5GhzAp) {
-                    select5GhzBand = true;
+                } else {
+                    currentlyOn2_4Ghz = false;
+                    currentlyOn5Ghz = false;
+                    currentChannel = undefined;
+                    if (rcInfo.supports5GhzAp) {
+                        select5GhzBand = true;
+                    }
                 }
                 selectBand(select5GhzBand);
                 updateChannelList();
-                document.getElementById("id_ap_channel").value = currentChannel;
 
                 document.getElementById("id_rc_version").textContent = rcInfo.rcVersion;
                 document.getElementById("id_control_hub_os_version").textContent = rcInfo.chOsVersion;
@@ -768,8 +834,6 @@
                     appUpdateRequiresReboot = true;
                     $('#id_action_apk').html('Update &amp; Reboot');
                 }
-            } else {
-                document.getElementById("id_rc_name").value = '(name)';
             }
         });
     };

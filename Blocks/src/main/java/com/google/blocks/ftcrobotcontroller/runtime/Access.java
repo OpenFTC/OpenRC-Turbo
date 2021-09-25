@@ -23,6 +23,7 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
@@ -50,6 +51,7 @@ abstract class Access {
   protected final BlocksOpMode blocksOpMode;
   private final String identifier;
   protected final String blockFirstName;
+  private final Set<String> warningsReported = new HashSet<>();
 
   protected Access(BlocksOpMode blocksOpMode, String identifier, String blockFirstName) {
     this.blocksOpMode = blocksOpMode;
@@ -213,7 +215,10 @@ abstract class Access {
   private final void reportWarning(String format, Object... args) {
     String message = String.format(format, args);
     RobotLog.ww("Blocks", message);
-    RobotLog.addGlobalWarningMessage(message);
+    // Don't repeat identical warnings.
+    if (warningsReported.add(message)) {
+      RobotLog.addGlobalWarningMessage(message);
+    }
   }
 
   private final String getTypeFromClass(Class clazz) {

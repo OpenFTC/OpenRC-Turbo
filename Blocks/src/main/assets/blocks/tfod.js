@@ -39,17 +39,123 @@ function tfod_initialize_FtcJava(block, className, vuforiaClassName) {
   var vuforiaIdentifier = Blockly.FtcJava.importDeclareAssign_(block, null, vuforiaClassName);
   var minimumConfidence = Blockly.FtcJava.valueToCode(
       block, 'MINIMUM_CONFIDENCE', Blockly.FtcJava.ORDER_COMMA);
-  if (isNaN(minimumConfidence)) {
-    minimumConfidence = '(float) (' + minimumConfidence + ')';
-  } else {
-    minimumConfidence = minimumConfidence + 'F';
-  }
   var useObjectTracker = Blockly.FtcJava.valueToCode(
       block, 'USE_OBJECT_TRACKER', Blockly.FtcJava.ORDER_COMMA);
   var enableCameraMonitoring = Blockly.FtcJava.valueToCode(
       block, 'ENABLE_CAMERA_MONITORING', Blockly.FtcJava.ORDER_COMMA);
   return identifier + '.initialize(' + vuforiaIdentifier + ', ' +
       minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ');\n';
+}
+
+
+function tfodCustomModel_initialize_withIsModelTensorFlow2_JavaScript(block, identifier, vuforiaIdentifier) {
+  var minimumConfidence = Blockly.JavaScript.valueToCode(
+      block, 'MINIMUM_CONFIDENCE', Blockly.JavaScript.ORDER_COMMA);
+  var useObjectTracker = Blockly.JavaScript.valueToCode(
+      block, 'USE_OBJECT_TRACKER', Blockly.JavaScript.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.JavaScript.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.JavaScript.ORDER_COMMA);
+  var isModelTensorFlow2 = Blockly.JavaScript.valueToCode(
+      block, 'IS_MODEL_TENSORFLOW_2', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.initializeWithIsModelTensorFlow2(' + vuforiaIdentifier + ', ' +
+      minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ', ' + isModelTensorFlow2 + ');\n';
+}
+
+function tfodCustomModel_initialize_withIsModelTensorFlow2_FtcJava(block, className, vuforiaClassName) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var vuforiaIdentifier = Blockly.FtcJava.importDeclareAssign_(block, null, vuforiaClassName);
+  var minimumConfidence = Blockly.FtcJava.valueToCode(
+      block, 'MINIMUM_CONFIDENCE', Blockly.FtcJava.ORDER_COMMA);
+  var useObjectTracker = Blockly.FtcJava.valueToCode(
+      block, 'USE_OBJECT_TRACKER', Blockly.FtcJava.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.FtcJava.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.FtcJava.ORDER_COMMA);
+  var isModelTensorFlow2 = Blockly.FtcJava.valueToCode(
+      block, 'IS_MODEL_TENSORFLOW_2', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.initializeWithIsModelTensorFlow2(' + vuforiaIdentifier + ', ' +
+      minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ', ' + isModelTensorFlow2 + ');\n';
+}
+
+function tfodCustomModel_initialize_withAllArgs_JavaScript(block, identifier, vuforiaIdentifier) {
+  var minimumConfidence = Blockly.JavaScript.valueToCode(
+      block, 'MINIMUM_CONFIDENCE', Blockly.JavaScript.ORDER_COMMA);
+  var useObjectTracker = Blockly.JavaScript.valueToCode(
+      block, 'USE_OBJECT_TRACKER', Blockly.JavaScript.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.JavaScript.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.JavaScript.ORDER_COMMA);
+  var isModelTensorFlow2 = Blockly.JavaScript.valueToCode(
+      block, 'IS_MODEL_TENSORFLOW_2', Blockly.JavaScript.ORDER_COMMA);
+  var isModelQuantized = Blockly.JavaScript.valueToCode(
+      block, 'IS_MODEL_QUANTIZED', Blockly.JavaScript.ORDER_COMMA);
+  var inputSize = Blockly.JavaScript.valueToCode(
+      block, 'INPUT_SIZE', Blockly.JavaScript.ORDER_COMMA);
+  var numInterpreterThreads = Blockly.JavaScript.valueToCode(
+      block, 'NUM_INTERPRETER_THREADS', Blockly.JavaScript.ORDER_COMMA);
+  var numExecutorThreads = Blockly.JavaScript.valueToCode(
+      block, 'NUM_EXECUTOR_THREADS', Blockly.JavaScript.ORDER_COMMA);
+  var maxNumDetections = Blockly.JavaScript.valueToCode(
+      block, 'MAX_NUM_DETECTIONS', Blockly.JavaScript.ORDER_COMMA);
+  var timingBufferSize = Blockly.JavaScript.valueToCode(
+      block, 'TIMING_BUFFER_SIZE', Blockly.JavaScript.ORDER_COMMA);
+  var maxFrameRate = Blockly.JavaScript.valueToCode(
+      block, 'MAX_FRAME_RATE', Blockly.JavaScript.ORDER_COMMA);
+  var trackerMaxOverlap = Blockly.JavaScript.valueToCode(
+      block, 'TRACKER_MAX_OVERLAP', Blockly.JavaScript.ORDER_COMMA);
+  var trackerMinSize = Blockly.JavaScript.valueToCode(
+      block, 'TRACKER_MIN_SIZE', Blockly.JavaScript.ORDER_COMMA);
+  var trackerMarginalCorrelation = Blockly.JavaScript.valueToCode(
+      block, 'TRACKER_MARGINAL_CORRELATION', Blockly.JavaScript.ORDER_COMMA);
+  var trackerMinCorrelation = Blockly.JavaScript.valueToCode(
+      block, 'TRACKER_MIN_CORRELATION', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.initializeWithAllArgs(' + vuforiaIdentifier + ', ' +
+      minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ', ' +
+      isModelTensorFlow2 + ', ' + isModelQuantized + ', ' + inputSize + ', ' +
+      numInterpreterThreads + ', ' + numExecutorThreads + ', ' +
+      maxNumDetections + ', ' + timingBufferSize + ', ' + maxFrameRate + ', ' +
+      trackerMaxOverlap + ', ' + trackerMinSize + ', ' +
+      trackerMarginalCorrelation + ', ' + trackerMinCorrelation + ');\n';
+}
+
+function tfodCustomModel_initialize_withAllArgs_FtcJava(block, className, vuforiaClassName) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var vuforiaIdentifier = Blockly.FtcJava.importDeclareAssign_(block, null, vuforiaClassName);
+  var minimumConfidence = Blockly.FtcJava.valueToCode(
+      block, 'MINIMUM_CONFIDENCE', Blockly.FtcJava.ORDER_COMMA);
+  var useObjectTracker = Blockly.FtcJava.valueToCode(
+      block, 'USE_OBJECT_TRACKER', Blockly.FtcJava.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.FtcJava.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.FtcJava.ORDER_COMMA);
+  var isModelTensorFlow2 = Blockly.FtcJava.valueToCode(
+      block, 'IS_MODEL_TENSORFLOW_2', Blockly.FtcJava.ORDER_COMMA);
+  var isModelQuantized = Blockly.FtcJava.valueToCode(
+      block, 'IS_MODEL_QUANTIZED', Blockly.FtcJava.ORDER_COMMA);
+  var inputSize = Blockly.FtcJava.valueToCode(
+      block, 'INPUT_SIZE', Blockly.FtcJava.ORDER_COMMA);
+  var numInterpreterThreads = Blockly.FtcJava.valueToCode(
+      block, 'NUM_INTERPRETER_THREADS', Blockly.FtcJava.ORDER_COMMA);
+  var numExecutorThreads = Blockly.FtcJava.valueToCode(
+      block, 'NUM_EXECUTOR_THREADS', Blockly.FtcJava.ORDER_COMMA);
+  var maxNumDetections = Blockly.FtcJava.valueToCode(
+      block, 'MAX_NUM_DETECTIONS', Blockly.FtcJava.ORDER_COMMA);
+  var timingBufferSize = Blockly.FtcJava.valueToCode(
+      block, 'TIMING_BUFFER_SIZE', Blockly.FtcJava.ORDER_COMMA);
+  var maxFrameRate = Blockly.FtcJava.valueToCode(
+      block, 'MAX_FRAME_RATE', Blockly.FtcJava.ORDER_COMMA);
+  var trackerMaxOverlap = Blockly.FtcJava.valueToCode(
+      block, 'TRACKER_MAX_OVERLAP', Blockly.FtcJava.ORDER_COMMA);
+  var trackerMinSize = Blockly.FtcJava.valueToCode(
+      block, 'TRACKER_MIN_SIZE', Blockly.FtcJava.ORDER_COMMA);
+  var trackerMarginalCorrelation = Blockly.FtcJava.valueToCode(
+      block, 'TRACKER_MARGINAL_CORRELATION', Blockly.FtcJava.ORDER_COMMA);
+  var trackerMinCorrelation = Blockly.FtcJava.valueToCode(
+      block, 'TRACKER_MIN_CORRELATION', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.initializeWithAllArgs(' + vuforiaIdentifier + ', ' +
+      minimumConfidence + ', ' + useObjectTracker + ', ' + enableCameraMonitoring + ', ' +
+      isModelTensorFlow2 + ', ' + isModelQuantized + ', ' + inputSize + ', ' +
+      numInterpreterThreads + ', ' + numExecutorThreads + ', ' +
+      maxNumDetections + ', ' + timingBufferSize + ', ' + maxFrameRate + ', ' +
+      trackerMaxOverlap + ', ' + trackerMinSize + ', ' +
+      trackerMarginalCorrelation + ', ' + trackerMinCorrelation + ');\n';
 }
 
 function tfod_activate_JavaScript(block, identifier) {

@@ -355,7 +355,7 @@ public class UvcContext extends NativeObject
                     // Check for UVC compatibility using java
                     if (isUvcCompatible(usbDevice))
                         {
-                        RobotLog.dd(TAG, "found webcam: usbPath=%s vid=%d pid=%d serial=%s product=%s",
+                        RobotLog.dd(TAG, "found webcam: usbPath=%s vid=0x%X pid=0x%X serial=%s product=%s",
                                 usbDevice.getDeviceName(),
                                 usbDevice.getVendorId(),
                                 usbDevice.getProductId(),

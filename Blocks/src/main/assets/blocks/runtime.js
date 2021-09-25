@@ -87,8 +87,42 @@ function callJava(miscIdentifierForJavaScript, returnType, accessMethod, convert
     }
   }
   var newArgs = Array.prototype.slice.call(extraParameters);
-  newArgs.unshift(methodLookupString, JSON.stringify(newRest))
-  while (newArgs.length < 23) {
+  newArgs.unshift(methodLookupString, JSON.stringify(newRest));
+  while (newArgs.length < 23) { // MiscAccess.callJava, callJava_boolean, and callJava_String have 23 args
+    newArgs.push(null);
+  }
+  var result = miscIdentifierForJavaScript[accessMethod].apply(miscIdentifierForJavaScript, newArgs);
+  switch (convertReturnValue) {
+    case 'Number':
+      result = Number(result);
+      break;
+  }
+  return result;
+}
+
+
+function callHardware(miscIdentifierForJavaScript, returnType, accessMethod, convertReturnValue,
+    deviceName, methodLookupString) {
+  // According to
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+  // Javascript rest parameters (the ... parameter) is not available until Chrome 47.
+  // The Dragonboard's WebView is based on Chrome 44, so we can't use rest parameters.
+  // Get the extra parameters the old-fashioned way.
+  var numNamedArgs = callHardware.length;
+  var extraParameters = [];
+  for (var i = numNamedArgs; i < arguments.length; i++) {
+    extraParameters[i - numNamedArgs] = arguments[i]
+  }
+
+  var newRest = Array.prototype.slice.call(extraParameters);
+  for (var i = 0; i < newRest.length; i++) {
+    if (typeof newRest[i] == 'number') {
+      newRest[i] = String(newRest[i]);
+    }
+  }
+  var newArgs = Array.prototype.slice.call(extraParameters);
+  newArgs.unshift(deviceName, methodLookupString, JSON.stringify(newRest));
+  while (newArgs.length < 24) { // MiscAccess.callHardware, callHardware_boolean, and callHardware_String have 24 args
     newArgs.push(null);
   }
   var result = miscIdentifierForJavaScript[accessMethod].apply(miscIdentifierForJavaScript, newArgs);

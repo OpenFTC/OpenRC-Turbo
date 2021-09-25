@@ -54,9 +54,16 @@ public class RobocolConfig {
    * ROBOCOL_VERSION controls the compatibility of the network protocol between driver station
    * and network controller. If that protocol changes in a non-backward-compatible way, increment
    * this constant to ensure incompatible apps do not attempt to communicate with each other.
+   *
+   * The value MUST be between 0 and 255. We store it as an integer, and not as a byte, so that we
+   * can reliably determine which of two Robocol versions is more recent by doing & 0xFF
+   *
+   * In the unlikely event that we hit 255 and run out of numbers, versions 12-99 can be used, as
+   * they were skipped over previously, during the time of the separate "lynx" fork for the
+   * Expansion Hub.
    */
 
-  public static final byte ROBOCOL_VERSION = 121;
+  public static final int ROBOCOL_VERSION = 121; // MUST be in the 0-255 range
 
   // The actual max packet size is the min of this value and whatever the OS says we can use
   public static final int MAX_MAX_PACKET_SIZE = 65520;  // + 16 bytes overhead == 64k
@@ -103,7 +110,7 @@ public class RobocolConfig {
   }
 
   /**
-   * Find a bind address that is in the Wifi P2P subnet. If no bind address
+   * Find a bind address that is in the Wi-Fi P2P subnet. If no bind address
    * can be found, return the loopback address.
    *
    * @param destAddress destination address

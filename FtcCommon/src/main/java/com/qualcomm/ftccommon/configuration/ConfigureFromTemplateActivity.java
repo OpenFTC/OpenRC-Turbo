@@ -47,16 +47,16 @@ import com.qualcomm.robotcore.hardware.ScannedDevices;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.robocol.Command;
-import com.qualcomm.robotcore.robocol.RobocolDatagram;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
-import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.text.Collator;
 import java.util.Collections;
@@ -72,7 +72,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link ConfigureFromTemplateActivity} allows one to add a configuration to your
  * robot by instantiating from a list of templates.
  */
-public class ConfigureFromTemplateActivity extends EditActivity implements RecvLoopRunnable.RecvLoopCallback
+public class ConfigureFromTemplateActivity extends EditActivity
     {
     //----------------------------------------------------------------------------------------------
     // State
@@ -90,6 +90,7 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
     protected ViewGroup                 feedbackAnchor;
     protected Map<String,String>        remoteTemplates             = new ConcurrentHashMap<String,String>();
     protected final Deque<StringProcessor> receivedConfigProcessors = new LinkedList<StringProcessor>();
+    protected final RecvLoopRunnable.RecvLoopCallback commandCallback = new CommandCallback();
 
     //----------------------------------------------------------------------------------------------
     // Life Cycle
@@ -105,7 +106,7 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
 
         if (remoteConfigure)
             {
-            networkConnectionHandler.pushReceiveLoopCallback(this);
+            networkConnectionHandler.pushReceiveLoopCallback(commandCallback);
             }
 
         usbScanManager = new USBScanManager(context, remoteConfigure);
@@ -161,7 +162,7 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
         this.usbScanManager = null;
         if (remoteConfigure)
             {
-            networkConnectionHandler.removeReceiveLoopCallback(this);
+            networkConnectionHandler.removeReceiveLoopCallback(commandCallback);
             }
         }
 
@@ -351,22 +352,14 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
             }
         else
             {
-            processor.processTemplate(templateMeta, templateMeta.getXml());
+            try {
+                processor.processTemplate(templateMeta, templateMeta.getXml());
+                }
+            catch (FileNotFoundException | XmlPullParserException e)
+                {
+                RobotLog.ee(TAG, e, "Failed to get template XML parser");
+                }
             }
-        }
-
-    protected CallbackResult handleCommandRequestParticularConfigurationResp(String config) throws RobotCoreException
-        {
-        StringProcessor processor = null;
-        synchronized (receivedConfigProcessors)
-            {
-            processor = receivedConfigProcessors.pollFirst();
-            }
-        if (processor != null)
-            {
-            processor.processString(config);
-            }
-        return CallbackResult.HANDLED;
         }
 
     protected XmlPullParser xmlPullParserFromString(String string)
@@ -420,41 +413,44 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
     // Network listener
     //----------------------------------------------------------------------------------------------
 
-    @Override
-    public CallbackResult commandEvent(Command command)
+    private class CommandCallback extends RecvLoopRunnable.DegenerateCallback
         {
-        CallbackResult result = CallbackResult.NOT_HANDLED;
-        try
+        @Override
+        public CallbackResult commandEvent(Command command) throws RobotCoreException
             {
-            String name = command.getName();
-            String extra = command.getExtra();
+            CallbackResult result = CallbackResult.NOT_HANDLED;
+            try
+                {
+                String name = command.getName();
+                String extra = command.getExtra();
 
-            if (name.equals(CommandList.CMD_SCAN_RESP))
-                {
-                result = handleCommandScanResp(extra);
+                if (name.equals(CommandList.CMD_SCAN_RESP))
+                    {
+                    result = handleCommandScanResp(extra);
+                    }
+                else if (name.equals(CommandList.CMD_REQUEST_CONFIGURATIONS_RESP))
+                    {
+                    result = handleCommandRequestConfigurationsResp(extra);
+                    }
+                else if (name.equals(CommandList.CMD_REQUEST_CONFIGURATION_TEMPLATES_RESP))
+                    {
+                    result = handleCommandRequestTemplatesResp(extra);
+                    }
+                else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP))
+                    {
+                    result = handleCommandRequestParticularConfigurationResp(extra);
+                    }
+                else if (name.equals(CommandList.CMD_NOTIFY_ACTIVE_CONFIGURATION))
+                    {
+                    result = handleCommandNotifyActiveConfig(extra);
+                    }
                 }
-            else if (name.equals(CommandList.CMD_REQUEST_CONFIGURATIONS_RESP))
+            catch (RobotCoreException e)
                 {
-                result = handleCommandRequestConfigurationsResp(extra);
+                RobotLog.logStackTrace(e);
                 }
-            else if (name.equals(CommandList.CMD_REQUEST_CONFIGURATION_TEMPLATES_RESP))
-                {
-                result = handleCommandRequestTemplatesResp(extra);
-                }
-            else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP))
-                {
-                result = handleCommandRequestParticularConfigurationResp(extra);
-                }
-            else if (name.equals(CommandList.CMD_NOTIFY_ACTIVE_CONFIGURATION))
-                {
-                result = handleCommandNotifyActiveConfig(extra);
-                }
+            return result;
             }
-        catch (RobotCoreException e)
-            {
-            RobotLog.logStacktrace(e);
-            }
-        return result;
         }
 
     private CallbackResult handleCommandScanResp(String extra) throws RobotCoreException
@@ -464,45 +460,18 @@ public class ConfigureFromTemplateActivity extends EditActivity implements RecvL
         return CallbackResult.HANDLED_CONTINUE;  // someone else in the chain might want the same result
         }
 
-    @Override
-    public CallbackResult packetReceived(RobocolDatagram packet)
+    private CallbackResult handleCommandRequestParticularConfigurationResp(String config) throws RobotCoreException
         {
-        return CallbackResult.NOT_HANDLED;
+        StringProcessor processor = null;
+        synchronized (receivedConfigProcessors)
+            {
+            processor = receivedConfigProcessors.pollFirst();
+            }
+        if (processor != null)
+            {
+            processor.processString(config);
+            }
+        return CallbackResult.HANDLED;
         }
 
-    @Override
-    public CallbackResult peerDiscoveryEvent(RobocolDatagram packet)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
-
-    @Override
-    public CallbackResult heartbeatEvent(RobocolDatagram packet, long tReceived)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
-
-    @Override
-    public CallbackResult telemetryEvent(RobocolDatagram packet)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
-
-    @Override
-    public CallbackResult gamepadEvent(RobocolDatagram packet)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
-
-    @Override
-    public CallbackResult emptyEvent(RobocolDatagram packet)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
-
-    @Override
-    public CallbackResult reportGlobalError(String error, boolean recoverable)
-        {
-        return CallbackResult.NOT_HANDLED;
-        }
     }

@@ -304,7 +304,8 @@ public class UsbConstants
     public static final int PRODUCT_ID_MICROSOFT_LIFECAM_HD_3000 = 2064;    // aka 0x810
     public static final int PRODUCT_ID_MICROSOFT_XBOX360_WIRED = 0x028E;
 
-    public static final int PRODUCT_ID_SONY_GAMEPAD_PS4 = 0x09CC;
+    public static final int PRODUCT_ID_SONY_DUALSHOCK_4_GEN_1 = 0x05C4;
+    public static final int PRODUCT_ID_SONY_DUALSHOCK_4_GEN_2 = 0x09CC;
 
     /** Some cameras return really meaningless names */
     public static final List<String> manufacturerNamesToIgnore = Arrays.asList("generic");

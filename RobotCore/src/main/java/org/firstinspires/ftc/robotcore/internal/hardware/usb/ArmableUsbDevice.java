@@ -179,6 +179,12 @@ public abstract class ArmableUsbDevice implements RobotUsbModule, GlobalWarningS
             }
         }
 
+    @Override
+    public boolean shouldTriggerWarningSound()
+        {
+        return true;
+        }
+
     /** subclass hook for more complicated warning message structure */
     protected String composeGlobalWarning()
         {

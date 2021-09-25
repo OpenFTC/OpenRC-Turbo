@@ -70,6 +70,7 @@ public abstract class UserConfigurationType implements ConfigurationType, Serial
     private @Expose                String[] xmlTagAliases;
     private @Expose                boolean builtIn = false;
     private @Expose                boolean isOnBotJava;
+    private @Expose                boolean isExternalLibraries;
     private @Expose @NonNull       ControlSystem[] compatibleControlSystems = {MODERN_ROBOTICS, REV_HUB};
     private @Expose                boolean isDeprecated;
 
@@ -82,6 +83,7 @@ public abstract class UserConfigurationType implements ConfigurationType, Serial
         this.flavor = flavor;
         this.xmlTag = xmlTag;
         this.isOnBotJava = OnBotJavaDeterminer.isOnBotJava(clazz);
+        this.isExternalLibraries = OnBotJavaDeterminer.isExternalLibraries(clazz);
         this.isDeprecated = clazz.isAnnotationPresent(Deprecated.class);
         }
 
@@ -180,6 +182,11 @@ public abstract class UserConfigurationType implements ConfigurationType, Serial
     public boolean isOnBotJava()
         {
         return isOnBotJava;
+        }
+
+    public boolean isExternalLibraries()
+        {
+        return isExternalLibraries;
         }
 
     /**

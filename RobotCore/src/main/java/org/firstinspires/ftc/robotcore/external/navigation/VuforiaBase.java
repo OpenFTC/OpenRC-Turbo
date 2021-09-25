@@ -143,17 +143,53 @@ public abstract class VuforiaBase {
   public void initialize(String vuforiaLicenseKey, CameraDirection cameraDirection,
       boolean useExtendedTracking, boolean enableCameraMonitoring,
       CameraMonitorFeedback cameraMonitorFeedback,
-      float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
+      float dx, float dy, float dz,
+      AxesOrder axesOrder, float firstAngle, float secondAngle, float thirdAngle,
       boolean useCompetitionFieldTargetLocations) {
     Parameters parameters = createParametersWithoutCamera(vuforiaLicenseKey,
         useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback);
     parameters.cameraDirection = cameraDirection;
-    initialize(parameters, dx, dy, dz, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
+    initialize(parameters, dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
   }
 
   /**
    * Initializes Vuforia, with a CameraName.
    */
+  public void initialize(String vuforiaLicenseKey, CameraName cameraName, String webcamCalibrationFilename,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, CameraMonitorFeedback cameraMonitorFeedback,
+      float dx, float dy, float dz,
+      AxesOrder axesOrder, float firstAngle, float secondAngle, float thirdAngle,
+      boolean useCompetitionFieldTargetLocations) {
+    Parameters parameters = createParametersWithoutCamera(vuforiaLicenseKey,
+        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback);
+    parameters.cameraName = cameraName;
+    if (!TextUtils.isEmpty(webcamCalibrationFilename)) {
+      parameters.addWebcamCalibrationFile(webcamCalibrationFilename);
+    }
+    initialize(parameters, dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
+  }
+
+  /**
+   * Initializes Vuforia, with a CameraDirection.
+   * @deprecated Using initialize that takes AxesOrder is a better choice.
+   */
+  @Deprecated
+  public void initialize(String vuforiaLicenseKey, CameraDirection cameraDirection,
+      boolean useExtendedTracking, boolean enableCameraMonitoring,
+      CameraMonitorFeedback cameraMonitorFeedback,
+      float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
+      boolean useCompetitionFieldTargetLocations) {
+    Parameters parameters = createParametersWithoutCamera(vuforiaLicenseKey,
+        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback);
+    parameters.cameraDirection = cameraDirection;
+    initialize(parameters, dx, dy, dz, AxesOrder.XYZ, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
+  }
+
+  /**
+   * Initializes Vuforia, with a CameraName.
+   * @deprecated Using initialize that takes AxesOrder is a better choice.
+   */
+  @Deprecated
   public void initialize(String vuforiaLicenseKey, CameraName cameraName, String webcamCalibrationFilename,
       boolean useExtendedTracking, boolean enableCameraMonitoring, CameraMonitorFeedback cameraMonitorFeedback,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle, boolean useCompetitionFieldTargetLocations) {
@@ -163,16 +199,17 @@ public abstract class VuforiaBase {
     if (!TextUtils.isEmpty(webcamCalibrationFilename)) {
       parameters.addWebcamCalibrationFile(webcamCalibrationFilename);
     }
-    initialize(parameters, dx, dy, dz, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
+    initialize(parameters, dx, dy, dz, AxesOrder.XYZ, xAngle, yAngle, zAngle, useCompetitionFieldTargetLocations);
   }
 
   private void initialize(final Parameters parameters,
-      float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
+      float dx, float dy, float dz,
+      AxesOrder axesOrder, float firstAngle, float secondAngle, float thirdAngle,
       boolean useCompetitionFieldTargetLocations) {
     OpenGLMatrix locationOnRobot = OpenGLMatrix
         .translation(dx, dy, dz)
         .multiplied(Orientation.getRotationMatrix(
-            AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES, xAngle, yAngle, zAngle));
+            AxesReference.EXTRINSIC, axesOrder, AngleUnit.DEGREES, firstAngle, secondAngle, thirdAngle));
 
     Looper looper = Looper.myLooper();
     if (looper != null && !looper.equals(Looper.getMainLooper())) {

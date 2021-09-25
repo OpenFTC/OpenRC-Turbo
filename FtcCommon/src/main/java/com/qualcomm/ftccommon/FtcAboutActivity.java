@@ -14,6 +14,7 @@ import androidx.annotation.StringRes;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolConfig;
+import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.util.Version;
@@ -26,13 +27,13 @@ import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.format.DateTimeFormatter;
+import org.threeten.bp.format.DateTimeParseException;
+import org.threeten.bp.format.FormatStyle;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -89,7 +90,14 @@ public class FtcAboutActivity extends ThemedActivity
         info.libVersion = Version.getLibraryVersion();
         info.buildTime = getBuildTime();
         info.networkProtocolVersion = String.format(Locale.US, "v%d", RobocolConfig.ROBOCOL_VERSION);
-        info.osVersion = LynxConstants.getControlHubOsVersion();
+        if (Device.isRevControlHub())
+            {
+            info.osVersion = LynxConstants.getControlHubOsVersion();
+            }
+        else if (Device.isRevDriverHub())
+            {
+            info.osVersion = LynxConstants.getDriverHubOsVersion();
+            }
 
         NetworkConnection networkConnection = NetworkConnectionHandler.getInstance().getNetworkConnection();
         if (networkConnection != null)
@@ -117,7 +125,6 @@ public class FtcAboutActivity extends ThemedActivity
         return appVersion;
         }
 
-    private static final SimpleDateFormat iso860ZuluFormatter822 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ROOT);
     private static String buildTimeFromBuildConfig = null;
 
     public static void setBuildTimeFromBuildConfig(String buildTime)
@@ -129,15 +136,11 @@ public class FtcAboutActivity extends ThemedActivity
         {
         try
             {
-            Date buildTime = iso860ZuluFormatter822.parse(buildTimeFromBuildConfig);
-            if (buildTime != null)
-                {
-                DateFormat formatter = SimpleDateFormat.getInstance();
-                formatter.setTimeZone(TimeZone.getDefault());
-                return formatter.format(buildTime);
-                }
+            LocalDateTime buildTime = LocalDateTime.parse(buildTimeFromBuildConfig, AppUtil.getInstance().getIso8601DateTimeFormatter());
+            DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withZone(ZoneId.systemDefault());
+            return formatter.format(buildTime);
             }
-        catch (ParseException e)
+        catch (DateTimeParseException e)
             {
             RobotLog.ee(TAG, e, "exception determining build time");
             }
@@ -210,18 +213,22 @@ public class FtcAboutActivity extends ThemedActivity
             PreferenceCategory prefAppCategory = (PreferenceCategory) findPreference(getString(R.string.pref_app_category));
             prefAppCategory.setTitle(remoteConfigure ? R.string.prefcat_about_ds : R.string.prefcat_about_rc);
 
+            if (Device.isRevControlHub() || Device.isRevDriverHub())
+                {
+                String title = Device.isRevControlHub()
+                        ? getString(R.string.about_ch_os_version)
+                        : getString(R.string.about_dh_os_version);
+                Preference osVersionPreference = new Preference(getPreferenceScreen().getContext());
+                osVersionPreference.setTitle(title);
+                osVersionPreference.setKey(getString(R.string.pref_os_version));
+                prefAppCategory.addPreference(osVersionPreference);
+                }
+
             if (remoteConfigure)
                 {
                 addPreferencesFromResource(com.qualcomm.ftccommon.R.xml.ftc_about_activity_rc);
                 Preference prefAppCategoryRc = findPreference(getString(R.string.pref_app_category_rc));
                 prefAppCategoryRc.setTitle(R.string.prefcat_about_rc);
-                }
-            else if (LynxConstants.getControlHubOsVersion() != null)
-                {
-                Preference osVersionPreference = new Preference(getPreferenceScreen().getContext());
-                osVersionPreference.setTitle(getString(R.string.about_ch_os_version));
-                osVersionPreference.setKey(getString(R.string.pref_os_version));
-                prefAppCategory.addPreference(osVersionPreference);
                 }
 
             refreshAllUnavailable();

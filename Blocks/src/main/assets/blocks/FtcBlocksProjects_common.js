@@ -44,13 +44,13 @@ function initializeFtcBlocksProjects() {
       newScript.setAttribute('type', 'text/javascript');
       newScript.innerHTML = jsHardware;
       document.getElementsByTagName('head').item(0).appendChild(newScript);
+
+      initializeProjects();
+      initializeSamples();
     } else  {
       alert(errorMessage);
     }
   });
-
-  initializeProjects();
-  initializeSamples();
 }
 
 function resize() {
@@ -105,6 +105,8 @@ function initializeSamples() {
         option.value = JSON.stringify(sample);
         select.appendChild(option);
       }
+      // Now we can enable the Create New Op Mode  button.
+      document.getElementById('newProjectButton').disabled = false;
     } else {
       console.log(errorMessage);
     }
@@ -182,8 +184,15 @@ function sortProjectsAndFillTable() {
     tdTrash.innerHTML = '<input type="checkbox" id="checkbox_' + i + '" onclick="projectCheckChanged(' + i + ')">';
 
     var tdName = tr.insertCell(-1);
-    tdName.innerHTML = '<div class="project_name" onclick="openProject(' + i + ')">' +
-        projects[i].escapedName + '</div>';
+    if (isValidProjectName(projects[i].name) &&
+        containsAtLeastOneAlphanumeric(projects[i].name) &&
+        !containsAmpersand(projects[i].name)) {
+      tdName.innerHTML = '<div class="project_name" onclick="openProject(' + i + ')">' +
+          projects[i].escapedName + '</div>';
+    } else {
+      tdName.innerHTML = '<div class="invalid_project_name">' +
+          projects[i].escapedName + '&nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltiptext">This Op Mode must be renamed.</span></div>';
+    }
 
     var tdDateModified = tr.insertCell(-1);
     tdDateModified.innerHTML = formatTimestamp(projects[i].dateModifiedMillis);
@@ -263,9 +272,14 @@ function cancelNewProjectNameDialog() {
 function okNewProjectNameDialog() {
   // Validate name for legal characters and for existing project names.
   var newProjectName = document.getElementById('newProjectName').value;
-  if (!isValidProjectName(newProjectName)) {
+  if (!isValidProjectName(newProjectName) || containsAmpersand(newProjectName)) {
     document.getElementById('newProjectNameError').innerHTML =
-        'The project name must only contains alphanumeric<br>characters and !$%&\'()+,-.;=@[]^_{}~.';
+        'The project name must only contain alphanumeric<br>characters and !$%\'()+,-.;=@[]^_{}~.';
+    return;
+  }
+  if (!containsAtLeastOneAlphanumeric(newProjectName)) {
+    document.getElementById('newProjectNameError').innerHTML =
+        'The project name must contain at least one alphanumeric character.';
     return;
   }
   var nameClash = false;

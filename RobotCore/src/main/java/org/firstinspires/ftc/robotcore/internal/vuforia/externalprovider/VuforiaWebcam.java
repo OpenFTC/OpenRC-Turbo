@@ -1234,7 +1234,6 @@ public class VuforiaWebcam implements VuforiaWebcamInternal, VuforiaWebcamNative
     protected native void nativePostVuforiaDeinit();
 
     protected native void nativeNoteAndroidVuforiaExternalFormatMapping(long pointer, int uvcFrameFormat, int vuforiaExternal);
-    protected native void nativeNoteCameraIntrinsics(long pointer, float[] intrinsicsData);
     protected native void nativeDeliverFrameToVuforiaUvc(long pointer, long pointerCameraCallback, long pointerUvcFrame, long exposureTime, float[] cameraInstrinsicsArray);
     protected native void nativeDeliverFrameToVuforiaVuforia(long pointer, long pointerCameraCallback, long pointerVuforiaFrame, float[] cameraInstrinsicsArray);
     }

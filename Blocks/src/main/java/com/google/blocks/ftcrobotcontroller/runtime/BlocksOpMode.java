@@ -128,7 +128,7 @@ public final class BlocksOpMode extends LinearOpMode {
     }
   }
 
-  // TODO(lizlooney): Consider changeing existing code in *Access.java that catches exception to
+  // TODO(lizlooney): Consider changing existing code in *Access.java that catches exception to
   // call throwException instead of reportWarning.
   void throwException(Exception e) {
     String errorMessage = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
@@ -424,7 +424,7 @@ public final class BlocksOpMode extends LinearOpMode {
     javascriptInterfaces.put(Identifier.MATRIX_F.identifierForJavaScript,
         new MatrixFAccess(this, Identifier.MATRIX_F.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.MISC.identifierForJavaScript,
-        new MiscAccess(this, Identifier.MISC.identifierForJavaScript));
+        new MiscAccess(this, Identifier.MISC.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.NAVIGATION.identifierForJavaScript,
         new NavigationAccess(this, Identifier.NAVIGATION.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.OPEN_GL_MATRIX.identifierForJavaScript,
@@ -439,6 +439,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new QuaternionAccess(this, Identifier.QUATERNION.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.RANGE.identifierForJavaScript,
         new RangeAccess(this, Identifier.RANGE.identifierForJavaScript));
+    javascriptInterfaces.put(Identifier.RUMBLE_EFFECT.identifierForJavaScript,
+        new RumbleEffectAccess(this, Identifier.RUMBLE_EFFECT.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.SYSTEM.identifierForJavaScript,
         new SystemAccess(this, Identifier.SYSTEM.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.TELEMETRY.identifierForJavaScript,

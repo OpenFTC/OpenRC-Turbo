@@ -109,20 +109,12 @@ public class RunOnBoot extends BroadcastReceiver
                 {
                 onRobotControllerBoot();
                 }
-            else if (AppUtil.getInstance().isDriverStation())
-                {
-                onDriverStationBoot();
-                }
             }
         else
             {
             if (AppUtil.getInstance().isRobotController())
                 {
                 onRobotControllerPostBoot();
-                }
-            else if (AppUtil.getInstance().isDriverStation())
-                {
-                onDriverStationPostBoot();
                 }
             }
         }
@@ -153,16 +145,6 @@ public class RunOnBoot extends BroadcastReceiver
     protected void onRobotControllerPostBoot()
         {
         noteAndroidBoardPresenceAndExitIfNoRC();
-        }
-
-    protected void onDriverStationBoot()
-        {
-        PreferenceRemoterDS.getInstance().onPhoneBoot();
-        }
-
-    protected void onDriverStationPostBoot()
-        {
-        // Nothing to do
         }
 
     //----------------------------------------------------------------------------------------------
@@ -199,7 +181,7 @@ public class RunOnBoot extends BroadcastReceiver
             result = !preferencesHelper.readBoolean(context.getString(R.string.pref_autostarted_robot_controller), false);
             }
 
-        RobotLog.vv(TAG, "shouldAutoLauchRobotController() result=%s", result);
+        RobotLog.vv(TAG, "shouldAutoLaunchRobotController() result=%s", result);
         return result;
         }
 

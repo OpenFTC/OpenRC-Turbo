@@ -110,7 +110,6 @@ import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
-import com.qualcomm.hardware.lynx.LynxUsbDeviceImpl;
 import com.qualcomm.robotcore.eventloop.EventLoop;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
@@ -123,9 +122,7 @@ import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ConfigurationTypeManager;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
-import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
 import com.qualcomm.robotcore.robocol.Command;
-import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.ThreadPool;
@@ -146,17 +143,17 @@ import org.firstinspires.ftc.robotcore.internal.network.WifiDirectGroupName;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectPersistentGroupManager;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaBuildLocker;
 import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
-import org.firstinspires.ftc.robotcore.internal.stellaris.FlashLoaderManager;
-import org.firstinspires.ftc.robotcore.internal.stellaris.FlashLoaderProtocolException;
 import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.inspection.InspectionState;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,7 +161,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -419,6 +415,7 @@ public abstract class FtcEventLoopBase implements EventLoop
 
     protected void checkForChangedOpModes()
         {
+        boolean needToSendUIState = false;
         if (registeredOpModes.getOnBotJavaChanged())
             {
             OnBotJavaBuildLocker.lockBuildExclusiveWhile(new Runnable()
@@ -429,13 +426,25 @@ public abstract class FtcEventLoopBase implements EventLoop
                         registeredOpModes.registerOnBotJavaOpModes();
                         }
                 });
-            sendUIState();
+            needToSendUIState = true;
+            }
+
+        if (registeredOpModes.getExternalLibrariesChanged())
+            {
+            registeredOpModes.clearExternalLibrariesChanged(); // clear first so we err on side of registering too often rather than too infrequently
+            registeredOpModes.registerExternalLibrariesOpModes();
+            needToSendUIState = true;
             }
 
         if (registeredOpModes.getBlocksOpModesChanged())
             {
             registeredOpModes.clearBlocksOpModesChanged(); // clear first so we err on side of registering too often rather than too infrequently
             registeredOpModes.registerInstanceOpModes();
+            needToSendUIState = true;
+            }
+
+        if (needToSendUIState)
+            {
             sendUIState();
             }
         }
@@ -479,9 +488,9 @@ public abstract class FtcEventLoopBase implements EventLoop
             RobotLog.vv(FtcConfigurationActivity.TAG, "FtcEventLoop: handleCommandRequestParticularConfigFile, data: " + xmlData);
             networkConnectionHandler.sendCommand(new Command(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP, xmlData));
             }
-        catch (RobotCoreException e)
+        catch (RobotCoreException | FileNotFoundException | XmlPullParserException e)
             {
-            RobotLog.logStackTrace(e);
+            RobotLog.ee(TAG, e, "Failed to get and/or parse the requested configuration file");
             }
         }
 
@@ -525,7 +534,7 @@ public abstract class FtcEventLoopBase implements EventLoop
         }
 
     /**
-     * Serialize the list of remembered Wifi Direct groups and send it to the driver station
+     * Serialize the list of remembered Wi-Fi Direct groups and send it to the driver station
      */
     protected void handleCommandRequestRememberedGroups()
         {
@@ -806,7 +815,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                         // *our* address. At the same time, we'd like to talk to the lynx module on
                         // lynxUsbDevice while it's already open, just for a moment. Finally, be aware
                         // that when we're talking to a bricked hub that discovery comes back empty.
-                        LynxModuleMetaList lynxModuleMetas = lynxUsbDevice.discoverModules();
+                        LynxModuleMetaList lynxModuleMetas = lynxUsbDevice.discoverModules(false);
 
                         // Find *our* module address in the metadata, if we can. Further, if there
                         // were states or configurations that a module might be in which it was ineligible
@@ -844,7 +853,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                         if (okToUpdateFirmware && foundParent)
                             {
                             try {
-                                talkToParentLynxModule(scanManager.getDeviceManager(), lynxUsbDevice, usbModule.getModuleAddress(), new Consumer<LynxModule>()
+                                lynxUsbDevice.performSystemOperationOnConnectedModule(usbModule.getModuleAddress(), true, new Consumer<LynxModule>()
                                     {
                                     @Override public void accept(LynxModule lynxModule)
                                         {
@@ -858,7 +867,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                                         }
                                     });
                                 }
-                            catch (RobotCoreException|LynxNackException e)
+                            catch (RobotCoreException e)
                                 {
                                 RobotLog.ee(TAG, e, "exception retrieving fw version; ignoring");
                                 }
@@ -911,7 +920,9 @@ public abstract class FtcEventLoopBase implements EventLoop
                             {
                             LynxUsbDevice lynxUsbDevice = (LynxUsbDevice)deviceManager.createLynxUsbDevice(addressChange.serialNumber, null);
                             try {
-                                talkToParentLynxModule(deviceManager, lynxUsbDevice, addressChange.oldAddress, new Consumer<LynxModule>()
+                                // The isParent parameter is currently passed in as true because the address change activity
+                                // does not allow changing the module number of a child module, even though I think that would be possible.
+                                lynxUsbDevice.performSystemOperationOnConnectedModule(addressChange.oldAddress, true, new Consumer<LynxModule>()
                                     {
                                     @Override public void accept(LynxModule lynxModule)
                                         {
@@ -920,7 +931,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                                         }
                                     });
                                 }
-                            catch (RobotCoreException|LynxNackException e)
+                            catch (RobotCoreException e)
                                 {
                                 RobotLog.ee(TAG, e, "failure during module address change");
                                 AppUtil.getInstance().showToast(UILocation.BOTH, activityContext.getString(R.string.toastLynxAddressChangeFailed, addressChange.serialNumber));
@@ -933,7 +944,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                                 }
                             }
                         }
-                    catch (RobotCoreException|LynxNackException ignored)
+                    catch (RobotCoreException ignored)
                         {
                         }
                     finally
@@ -947,33 +958,6 @@ public abstract class FtcEventLoopBase implements EventLoop
                     }
                 }
             });
-        }
-
-    protected void talkToParentLynxModule(DeviceManager deviceManager, LynxUsbDevice lynxUsbDevice, int moduleAddress, Consumer<LynxModule> consumer) throws RobotCoreException, InterruptedException, LynxNackException
-        {
-        // Two cases: (a) the usb device is already alive and running, having been opened
-        // in the hwmap: just ask it for the module (b) the device is not in the hw map and
-        // so not really open: create our own temporary LynxModule
-
-        LynxModule lynxModule = lynxUsbDevice.getConfiguredModule(moduleAddress);
-        if (lynxModule != null)
-            {
-            consumer.accept(lynxModule);
-            }
-        else
-            {
-            lynxModule = (LynxModule)deviceManager.createLynxModule(lynxUsbDevice, moduleAddress, true, null);
-            lynxModule.setUserModule(false);
-            lynxUsbDevice.addConfiguredModule(lynxModule);
-            try {
-                consumer.accept(lynxModule);
-                }
-            finally
-                {
-                lynxModule.removeAsConfigured();
-                lynxModule.close();
-                }
-            }
         }
 
     protected void handleCommandGetCandidateLynxFirmwareImages(Command commandRequest)
@@ -1155,7 +1139,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                     try {
                         Thread.sleep(4000);
                     } catch (InterruptedException e) {
-                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming WiFi reset");
+                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming Wi-Fi reset");
                         Thread.currentThread().interrupt();
                     }
                     embeddedModule.popPattern();
@@ -1189,7 +1173,7 @@ public abstract class FtcEventLoopBase implements EventLoop
                     try {
                         Thread.sleep(6000);
                     } catch (InterruptedException e) {
-                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming WiFi band switch");
+                        RobotLog.ee(TAG, e, "Thread interrupted while visually confirming Wi-Fi band switch");
                         Thread.currentThread().interrupt();
                     }
                     embeddedModule.popPattern();

@@ -169,10 +169,17 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         assertOpen();
         delegate.noteMissingModule(module, moduleName);
         }
-    @Override public void addConfiguredModule(LynxModule module) throws RobotCoreException, InterruptedException, LynxNackException
+
+    @Override public void performSystemOperationOnConnectedModule(int moduleAddress, boolean isParent, @Nullable Consumer<LynxModule> moduleConsumer) throws RobotCoreException, InterruptedException
         {
         assertOpen();
-        delegate.addConfiguredModule(module);
+        delegate.performSystemOperationOnConnectedModule(moduleAddress, isParent, moduleConsumer);
+        }
+
+    @Override public LynxModule addConfiguredModule(LynxModule module) throws RobotCoreException, InterruptedException
+        {
+        assertOpen();
+        return delegate.addConfiguredModule(module);
         }
     @Nullable public LynxModule getConfiguredModule(int moduleAddress)
         {
@@ -184,10 +191,10 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         assertOpen();
         delegate.removeConfiguredModule(module);
         }
-    @Override public LynxModuleMetaList discoverModules() throws RobotCoreException, InterruptedException
+    @Override public LynxModuleMetaList discoverModules(boolean checkForImus) throws RobotCoreException, InterruptedException
         {
         assertOpen();
-        return delegate.discoverModules();
+        return delegate.discoverModules(checkForImus);
         }
     @Override public void acquireNetworkTransmissionLock(@NonNull LynxMessage message) throws InterruptedException
         {
@@ -329,6 +336,13 @@ public class LynxUsbDeviceDelegate implements LynxUsbDevice, HardwareDeviceClose
         assertOpen();
         return delegate.getGlobalWarning();
         }
+
+    @Override
+    public boolean shouldTriggerWarningSound()
+        {
+        return delegate.shouldTriggerWarningSound();
+        }
+
     @Override public void suppressGlobalWarning(boolean suppress)
         {
         assertOpen();

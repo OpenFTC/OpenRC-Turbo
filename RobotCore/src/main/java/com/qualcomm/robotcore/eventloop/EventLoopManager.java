@@ -55,10 +55,10 @@ import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler
 import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
-import java.net.InetAddress;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -119,15 +119,17 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
   private final         Set<SyncdDevice>      syncdDevices              = new CopyOnWriteArraySet<SyncdDevice>(); // Would be nice if this held weak references
   private final         Command[]             commandRecvCache          = new Command[MAX_COMMAND_CACHE];
   private               int                   commandRecvCachePosition  = 0;
-  private               InetAddress           remoteAddr;
   private final         Object                refreshSystemTelemetryLock  = new Object();
   private               String                lastSystemTelemetryMessage  = null;
   private               String                lastSystemTelemetryKey      = null;
   private               long                  lastSystemTelemetryNanoTime = 0;
+  private volatile      boolean               displayingRobocolMismatchError = false;
+  private final PeerDiscovery normalPeerDiscoveryResponse = PeerDiscovery.forTransmission(PeerDiscovery.PeerType.PEER);
+  private final PeerDiscovery anotherDsConnectedPeerDiscoveryResponse = PeerDiscovery.forTransmission(PeerDiscovery.PeerType.NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION);
   private final @NonNull Context              context;
   private final @NonNull EventLoopManagerClient eventLoopManagerClient;
-  private               AppUtil               appUtil = AppUtil.getInstance();
-  private               NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
+  private final @NonNull AppUtil               appUtil = AppUtil.getInstance();
+  private final @NonNull NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
 
   //------------------------------------------------------------------------------------------------
   // Construction
@@ -308,6 +310,20 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
             String errorMsg = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
             RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + errorMsg);
             throw new RobotCoreException("EventLoop Exception in loop(): %s", errorMsg);
+          } catch (NoClassDefFoundError e) {
+            // Check whether the class that isn't found is part of an external library. If so, it
+            // is handled the same as Exception above.
+            OnBotJavaHelper onBotJavaHelper = eventLoopManagerClient.getOnBotJavaHelper();
+            if (onBotJavaHelper != null && onBotJavaHelper.isExternalLibrariesError(e)) {
+              RobotLog.ee(TAG, e, "Event loop threw an exception");
+
+              // display error message. it will get reported to DS in the RobotCoreException handler below
+              String errorMsg = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
+              RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + errorMsg);
+              throw new RobotCoreException("EventLoop Exception in loop(): %s", errorMsg);
+            }
+            // Otherwise, don't handle it.
+            throw e;
           }
         }
       } catch (InterruptedException e) {
@@ -369,7 +385,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
       long   now = System.nanoTime();
 
       String errorMessage   = RobotLog.getGlobalErrorMsg();
-      String warningMessage = RobotLog.getGlobalWarningMessage();
+      String warningMessage = RobotLog.getGlobalWarningMessage().message;
 
       // Figure out what things *should* like
       if (!errorMessage.isEmpty()) {
@@ -450,7 +466,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
     // see also similar code in the driver station startup logic
     if (networkConnectionHandler.isNetworkConnected()) {
-      // spoof a wifi direct event. Some devices won't send this event out,
+      // spoof a Wi-Fi Direct event. Some devices won't send this event out,
       // so to complete our setup, we will spoof it to get all the necessary information.
       RobotLog.vv(RobocolDatagram.TAG, "Spoofing a Network Connection event...");
       onNetworkConnectionEvent(NetworkConnection.NetworkEvent.CONNECTION_INFO_AVAILABLE);
@@ -651,11 +667,13 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
   }
 
   @Override
-  public CallbackResult heartbeatEvent(RobocolDatagram packet, long tReceived) throws RobotCoreException  {
+  public CallbackResult heartbeatEvent(RobocolDatagram packet) throws RobotCoreException  {
 
     Heartbeat currentHeartbeat = new Heartbeat();
     currentHeartbeat.fromByteArray(packet.getData());
     currentHeartbeat.setRobotState(state);
+
+    ClockWarningSource.getInstance().onDsHeartbeatReceived(currentHeartbeat);
 
     /**
      * We've just received an indication of our partner's time. On the Control Hub, our partner's time
@@ -663,7 +681,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
      */
     if (!receivedTimeFromCurrentPeer) {
       long theirMillis = currentHeartbeat.t0;
-      boolean theirSanity = appUtil.isSaneWalkClockTime(theirMillis);
+      boolean theirSanity = appUtil.isSaneWallClockTime(theirMillis);
       if (theirSanity) {
         receivedTimeFromCurrentPeer = true;
         RobotLog.vv(TAG, "Setting authoritative wall clock based on connected DS.");
@@ -674,7 +692,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
     // Build up a response packet and send it on back, providing the clock information necessary
     // to understand the clock offsets between us and our partner.
-    currentHeartbeat.t1 = tReceived;
+    currentHeartbeat.t1 = packet.getWallClockTimeMsReceived();
 
     // Keep next two lines as close together in time as possible to maximize accuracy of timing calculation
     // Also, the re-fetch of the local wall clock time is intentional, for both the accuracy reasons and the
@@ -711,39 +729,47 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
       RobotLog.i("Lost connection while main event loop not active");
     }
 
-    remoteAddr = null;
     lastHeartbeatReceived = new ElapsedTime(0);
     receivedTimeFromCurrentPeer = false; // Use the time of the next Driver Station that connects to us
   }
 
   public CallbackResult peerDiscoveryEvent(RobocolDatagram packet) throws RobotCoreException {
-    PeerDiscovery.PeerType remotePeerType;
+    PeerDiscovery response;
     if (!networkConnectionHandler.isPeerConnected() || packet.getAddress().equals(networkConnectionHandler.getCurrentPeerAddr())) {
       // We either want to be connected to this peer, or we already are.
-      remotePeerType = PeerDiscovery.PeerType.PEER;
+      response = normalPeerDiscoveryResponse;
       try {
-        networkConnectionHandler.updateConnection(packet);
+        PeerDiscovery payload = networkConnectionHandler.updateConnection(packet);
+        SoftwareVersionWarningSource.getInstance().onReceivedPeerDiscoveryFromCurrentPeer(payload);
+
+        // We successfully established a connection. Clear the robocol mismatch error, if applicable
+        if (displayingRobocolMismatchError) {
+          RobotLog.clearGlobalErrorMsg();
+          displayingRobocolMismatchError = false;
+        }
       } catch (RobotProtocolException e) {
-        RobotLog.setGlobalErrorMsg(e.getMessage());
-        RobotLog.ee(TAG, e.getMessage());// We need to continue execution and send a PeerDiscovery packet in response,
+        if (RobotLog.setGlobalErrorMsg(e.getMessage())) {
+          displayingRobocolMismatchError = true;
+        }
+        RobotLog.ee(TAG, e.getMessage());
+        // We need to continue execution and send the response PeerDiscovery packet,
         // so that the remote device can parse it and see that it is incompatible with us.
       }
     } else {
       // There is already a peer connected, and this packet is not from them.
-      remotePeerType = PeerDiscovery.PeerType.NOT_CONNECTED_DUE_TO_PREEXISTING_CONNECTION;
+      response = anotherDsConnectedPeerDiscoveryResponse;
     }
 
     // Send a second PeerDiscovery() packet in response. That will inform the fellow
     // who sent the incoming PeerDiscovery() who *we* are, what our robocol version is,
-    // and whether or not we accept their connection.
+    // and whether we accept their connection.
     //
     // We should still send a peer discovery packet even if *we* already know the client,
     // because it could be that the connection dropped (e.g., while changing other settings)
     // and the other guy (ie: DS) needs to reconnect. If we don't send this, the connection will
     // never complete. These only get sent about once per second so it's not a huge load on the network.
 
-    PeerDiscovery outgoing = new PeerDiscovery(remotePeerType);
-    RobocolDatagram outgoingDatagram = new RobocolDatagram(outgoing, packet.getAddress());
+    RobocolDatagram outgoingDatagram = new RobocolDatagram(response, packet.getAddress());
     networkConnectionHandler.sendDatagram(outgoingDatagram);
 
     return CallbackResult.HANDLED;

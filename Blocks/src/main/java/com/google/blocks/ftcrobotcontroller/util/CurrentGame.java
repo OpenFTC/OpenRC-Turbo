@@ -32,21 +32,25 @@ public class CurrentGame {
   // (In the Vuforia blocks samples, the TRACKABLE_NAME field values of
   // vuforiaCurrentGame_typedEnum_trackableName blocks should be updated.)
 
-  // CURRENT_GAME_NAME ends up in:
-  // toolbox sub-category names in TensorFlow Object Detection and Vuforia
-  // tooltip for Vuforia and TensorFlow Object Detection blocks
-  public static final String CURRENT_GAME_NAME = "Ultimate Goal";
 
+  // TFOD_CURRENT_GAME_NAME ends up in:
+  // toolbox sub-category names in TensorFlow Object Detection
+  // tooltip for TensorFlow Object Detection blocks
+  public static final String TFOD_CURRENT_GAME_NAME = "Freight Frenzy";
   // TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME ends up in the label shown on TensorFlow Object Detection
   // blocks.
-  public static final String TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME = "TensorFlowObjectDetectionUltimateGoal";
+  public static final String TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME = "TensorFlowObjectDetectionFreightFrenzy";
   // TFOD_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA ends up in the java code generated for TensorFlow
   // Object Detection blocks. It must be a valid java identifier.
-  public static final String TFOD_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA = "tfodUltimateGoal";
+  public static final String TFOD_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA = "tfodFreightFrenzy";
 
+  // VUFORIA_CURRENT_GAME_NAME ends up in:
+  // toolbox sub-category names in Vuforia
+  // tooltip for Vuforia blocks
+  public static final String VUFORIA_CURRENT_GAME_NAME = "Freight Frenzy";
   // VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME ends up in the label shown on Vuforia blocks.
-  public static final String VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME = "VuforiaUltimateGoal";
+  public static final String VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME = "VuforiaFreightFrenzy";
   // VUFORIA_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA ends up in the java code generated for Vuforia
   // blocks. It must be a valid java identifier.
-  public static final String VUFORIA_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA = "vuforiaUltimateGoal";
+  public static final String VUFORIA_CURRENT_GAME_IDENTIFIER_FOR_FTCJAVA = "vuforiaFreightFrenzy";
 }

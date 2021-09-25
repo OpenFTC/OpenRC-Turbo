@@ -34,6 +34,7 @@ package org.firstinspires.ftc.robotcore.internal.opmode;
 
 import androidx.annotation.Nullable;
 
+import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
@@ -83,6 +84,7 @@ public class RegisteredOpModes implements OpModeManager
     protected volatile boolean      blocksOpModesChanged;
     protected FileModifyObserver    onBotJavaMonitor;
     protected volatile boolean      onBotJavaChanged;
+    protected volatile boolean      externalLibrariesChanged;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -101,6 +103,11 @@ public class RegisteredOpModes implements OpModeManager
                 onBotJavaChanged = true;
                 }
             });
+
+        // We don't need a monitoring system for external libraries because
+        // setExternalLibrariesChanged is called when an external library
+        // is uploaded or deleted.
+        externalLibrariesChanged = false;
 
         // Setup Blocks monitoring system
         blocksOpModesChanged = false;
@@ -134,6 +141,19 @@ public class RegisteredOpModes implements OpModeManager
     public void clearOnBotJavaChanged()
         {
         onBotJavaChanged = false;
+        }
+
+    public boolean getExternalLibrariesChanged()
+        {
+        return externalLibrariesChanged;
+        }
+    public void setExternalLibrariesChanged()
+        {
+        externalLibrariesChanged = true;
+        }
+    public void clearExternalLibrariesChanged()
+        {
+        externalLibrariesChanged = false;
         }
 
     public boolean getBlocksOpModesChanged()
@@ -222,6 +242,31 @@ public class RegisteredOpModes implements OpModeManager
                 // Add any new opmodes
                 ClassManager.getInstance().processOnBotJavaClasses();
                 AnnotatedOpModeClassFilter.getInstance().registerOnBotJavaClasses(RegisteredOpModes.this);
+                }
+            });
+        }
+
+    public void registerExternalLibrariesOpModes()
+        {
+        lockOpModesWhile(new Runnable()
+            {
+            @Override
+            public void run()
+                {
+
+                // Unregister any existing opmodes that were dynamically loaded
+                List<OpModeMetaAndClass> extant = new ArrayList<>(opModeClasses.values());
+                for (OpModeMetaAndClass opModeMetaAndClass : extant)
+                    {
+                    if (opModeMetaAndClass.isExternalLibraries())
+                        {
+                        Assert.assertTrue(opModeClasses.get(opModeMetaAndClass.meta.name) == opModeMetaAndClass);
+                        unregister(opModeMetaAndClass.meta);
+                        }
+                    }
+
+                // Add any new opmodes
+                AnnotatedOpModeClassFilter.getInstance().registerExternalLibrariesClasses(RegisteredOpModes.this);
                 }
             });
         }
@@ -354,11 +399,11 @@ public class RegisteredOpModes implements OpModeManager
         {
         if (isOpmodeRegistered(meta))
             {
-            String message = String.format("An OpMode with the name '%s' is already registered; renaming duplicate opmode", meta.name);
+            String message = String.format(AppUtil.getDefContext().getString(R.string.warningDuplicateOpMode), meta.name);
             // Show the message in the log
             RobotLog.ww(TAG, "configuration error: %s", message);
-            // Make the message appear on the driver station (only the first one will actually appear)
-            RobotLog.setGlobalWarningMessage(message);
+            // Make the message appear on the driver station
+            RobotLog.addGlobalWarningMessage(message);
             return false;
             }
         return true;

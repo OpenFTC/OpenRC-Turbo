@@ -46,8 +46,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A simple utility for manipulating Wifi Direct group names, particularly
- * names of remembered Wifi Direct groups.
+ * A simple utility for manipulating Wi-Fi Direct group names, particularly
+ * names of remembered Wi-Fi Direct groups.
  */
 @SuppressWarnings("WeakerAccess")
 public class WifiDirectGroupName implements Comparable<WifiDirectGroupName>

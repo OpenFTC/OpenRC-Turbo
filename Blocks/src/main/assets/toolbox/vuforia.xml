@@ -1,5 +1,5 @@
   <category name="Vuforia">
-    <category name="Optimized for placeholder_current_game_name">
+    <category name="Optimized for placeholder_vuforia_current_game_name">
       <placeholder_camera_vuforiaCurrentGame_initialize_withCameraDirection/>
       <placeholder_webcam_vuforiaCurrentGame_initialize_withWebcam/>
       <placeholder_switchableCamera_navigation_switchableCamera/>

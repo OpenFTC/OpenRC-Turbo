@@ -30,6 +30,293 @@
 // functionColor
 // getPropertyColor
 
+Blockly.Blocks['vuforiaCurrentGame_initialize_withCameraDirection_2'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField(vuforiaCurrentGameBlocksFirstName))
+        .appendField('.')
+        .appendField(createNonEditableField('initialize'));
+    this.appendValueInput('CAMERA_DIRECTION').setCheck('VuforiaLocalizer.CameraDirection')
+        .appendField('cameraDirection')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_EXTENDED_TRACKING').setCheck('Boolean')
+        .appendField('useExtendedTracking')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('ENABLE_CAMERA_MONITORING').setCheck('Boolean')
+        .appendField('enableCameraMonitoring')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('CAMERA_MONITOR_FEEDBACK').setCheck('VuforiaLocalizer.Parameters.CameraMonitorFeedback')
+        .appendField('cameraMonitorFeedback')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DX').setCheck('Number')
+        .appendField('phoneLocationOnRobot forward displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DY').setCheck('Number')
+        .appendField('phoneLocationOnRobot left displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DZ').setCheck('Number')
+        .appendField('phoneLocationOnRobot vertical displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('AXES_ORDER').setCheck('AxesOrder')
+        .appendField('phoneLocationOnRobot axesOrder')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('FIRST_ANGLE').setCheck('Number')
+        .appendField('phoneLocationOnRobot firstAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('SECOND_ANGLE').setCheck('Number')
+        .appendField('phoneLocationOnRobot secondAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('THIRD_ANGLE').setCheck('Number')
+        .appendField('phoneLocationOnRobot thirdAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_COMPETITION_FIELD_TARGET_LOCATIONS').setCheck('Boolean')
+        .appendField('useCompetitionFieldTargetLocations')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Initialize Vuforia for ' + vuforiaCurrentGameName + '.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'DX':
+        case 'DY':
+        case 'DZ':
+        case 'FIRST_ANGLE':
+        case 'SECOND_ANGLE':
+        case 'THIRD_ANGLE':
+          return 'float';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['vuforiaCurrentGame_initialize_withCameraDirection_2'] = function(block) {
+  var identifier = vuforiaCurrentGameIdentifierForJavaScript;
+  var cameraDirection = Blockly.JavaScript.valueToCode(
+      block, 'CAMERA_DIRECTION', Blockly.JavaScript.ORDER_COMMA);
+  var useExtendedTracking = Blockly.JavaScript.valueToCode(
+      block, 'USE_EXTENDED_TRACKING', Blockly.JavaScript.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.JavaScript.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.JavaScript.ORDER_COMMA);
+  var cameraMonitorFeedback = Blockly.JavaScript.valueToCode(
+      block, 'CAMERA_MONITOR_FEEDBACK', Blockly.JavaScript.ORDER_COMMA);
+  var dx = Blockly.JavaScript.valueToCode(
+      block, 'DX', Blockly.JavaScript.ORDER_COMMA);
+  var dy = Blockly.JavaScript.valueToCode(
+      block, 'DY', Blockly.JavaScript.ORDER_COMMA);
+  var dz = Blockly.JavaScript.valueToCode(
+      block, 'DZ', Blockly.JavaScript.ORDER_COMMA);
+  var axesOrder = Blockly.JavaScript.valueToCode(
+      block, 'AXES_ORDER', Blockly.JavaScript.ORDER_COMMA);
+  var firstAngle = Blockly.JavaScript.valueToCode(
+      block, 'FIRST_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var secondAngle = Blockly.JavaScript.valueToCode(
+      block, 'SECOND_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var thirdAngle = Blockly.JavaScript.valueToCode(
+      block, 'THIRD_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var useCompetitionFieldTargetLocations = Blockly.JavaScript.valueToCode(
+      block, 'USE_COMPETITION_FIELD_TARGET_LOCATIONS', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.initialize_withCameraDirection_2(' +
+      cameraDirection + ', ' + useExtendedTracking + ', ' +
+      enableCameraMonitoring + ', ' + cameraMonitorFeedback + ', ' +
+      dx + ', ' + dy + ', ' + dz + ', ' +
+      axesOrder + ', ' + firstAngle + ', ' + secondAngle + ', ' + thirdAngle + ', ' +
+      useCompetitionFieldTargetLocations + ');\n';
+};
+
+Blockly.FtcJava['vuforiaCurrentGame_initialize_withCameraDirection_2'] = function(block) {
+  var className = 'VuforiaCurrentGame';
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var cameraDirection = Blockly.FtcJava.valueToCode(
+      block, 'CAMERA_DIRECTION', Blockly.FtcJava.ORDER_COMMA);
+  var useExtendedTracking = Blockly.FtcJava.valueToCode(
+      block, 'USE_EXTENDED_TRACKING', Blockly.FtcJava.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.FtcJava.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.FtcJava.ORDER_COMMA);
+  var cameraMonitorFeedback = Blockly.FtcJava.valueToCode(
+      block, 'CAMERA_MONITOR_FEEDBACK', Blockly.FtcJava.ORDER_COMMA);
+  var dx = Blockly.FtcJava.valueToCode(
+      block, 'DX', Blockly.FtcJava.ORDER_COMMA);
+  var dy = Blockly.FtcJava.valueToCode(
+      block, 'DY', Blockly.FtcJava.ORDER_COMMA);
+  var dz = Blockly.FtcJava.valueToCode(
+      block, 'DZ', Blockly.FtcJava.ORDER_COMMA);
+  var axesOrder = Blockly.FtcJava.valueToCode(
+      block, 'AXES_ORDER', Blockly.FtcJava.ORDER_COMMA);
+  var firstAngle = Blockly.FtcJava.valueToCode(
+      block, 'FIRST_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var secondAngle = Blockly.FtcJava.valueToCode(
+      block, 'SECOND_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var thirdAngle = Blockly.FtcJava.valueToCode(
+      block, 'THIRD_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var useCompetitionFieldTargetLocations = Blockly.FtcJava.valueToCode(
+      block, 'USE_COMPETITION_FIELD_TARGET_LOCATIONS', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.initialize(\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + '"", // vuforiaLicenseKey\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + cameraDirection + ', // cameraDirection\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + useExtendedTracking + ', // useExtendedTracking\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + enableCameraMonitoring + ', // enableCameraMonitoring\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + cameraMonitorFeedback + ', // cameraMonitorFeedback\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dx + ', // dx\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dy + ', // dy\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dz + ', // dz\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + axesOrder + ', // axesOrder\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + firstAngle + ', // firstAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + secondAngle + ', // secondAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + thirdAngle + ', // thirdAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + useCompetitionFieldTargetLocations + '); // useCompetitionFieldTargetLocations\n';
+};
+
+Blockly.Blocks['vuforiaCurrentGame_initialize_withWebcam_2'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField(vuforiaCurrentGameBlocksFirstName))
+        .appendField('.')
+        .appendField(createNonEditableField('initialize'));
+    this.appendValueInput('CAMERA_NAME').setCheck(['CameraName', 'WebcamName', 'SwitchableCamera'])
+        .appendField('cameraName')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('WEBCAM_CALIBRATION_FILE').setCheck('String')
+        .appendField('Webcam Calibration Filename')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_EXTENDED_TRACKING').setCheck('Boolean')
+        .appendField('useExtendedTracking')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('ENABLE_CAMERA_MONITORING').setCheck('Boolean')
+        .appendField('enableCameraMonitoring')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('CAMERA_MONITOR_FEEDBACK').setCheck('VuforiaLocalizer.Parameters.CameraMonitorFeedback')
+        .appendField('cameraMonitorFeedback')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DX').setCheck('Number')
+        .appendField('cameraLocationOnRobot forward displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DY').setCheck('Number')
+        .appendField('cameraLocationOnRobot left displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('DZ').setCheck('Number')
+        .appendField('cameraLocationOnRobot vertical displacement')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('AXES_ORDER').setCheck('AxesOrder')
+        .appendField('cameraLocationOnRobot axesOrder')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('FIRST_ANGLE').setCheck('Number')
+        .appendField('cameraLocationOnRobot firstAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('SECOND_ANGLE').setCheck('Number')
+        .appendField('cameraLocationOnRobot secondAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('THIRD_ANGLE').setCheck('Number')
+        .appendField('cameraLocationOnRobot thirdAngle')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('USE_COMPETITION_FIELD_TARGET_LOCATIONS').setCheck('Boolean')
+        .appendField('useCompetitionFieldTargetLocations')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Initialize Vuforia for ' + vuforiaCurrentGameName + '.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'DX':
+        case 'DY':
+        case 'DZ':
+        case 'FIRST_ANGLE':
+        case 'SECOND_ANGLE':
+        case 'THIRD_ANGLE':
+          return 'float';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['vuforiaCurrentGame_initialize_withWebcam_2'] = function(block) {
+  var identifier = vuforiaCurrentGameIdentifierForJavaScript;
+  var cameraName = Blockly.JavaScript.valueToCode(
+      block, 'CAMERA_NAME', Blockly.JavaScript.ORDER_COMMA);
+  var webcamCalibrationFilename = Blockly.JavaScript.valueToCode(
+      block, 'WEBCAM_CALIBRATION_FILE', Blockly.JavaScript.ORDER_COMMA);
+  var useExtendedTracking = Blockly.JavaScript.valueToCode(
+      block, 'USE_EXTENDED_TRACKING', Blockly.JavaScript.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.JavaScript.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.JavaScript.ORDER_COMMA);
+  var cameraMonitorFeedback = Blockly.JavaScript.valueToCode(
+      block, 'CAMERA_MONITOR_FEEDBACK', Blockly.JavaScript.ORDER_COMMA);
+  var dx = Blockly.JavaScript.valueToCode(
+      block, 'DX', Blockly.JavaScript.ORDER_COMMA);
+  var dy = Blockly.JavaScript.valueToCode(
+      block, 'DY', Blockly.JavaScript.ORDER_COMMA);
+  var dz = Blockly.JavaScript.valueToCode(
+      block, 'DZ', Blockly.JavaScript.ORDER_COMMA);
+  var axesOrder = Blockly.JavaScript.valueToCode(
+      block, 'AXES_ORDER', Blockly.JavaScript.ORDER_COMMA);
+  var firstAngle = Blockly.JavaScript.valueToCode(
+      block, 'FIRST_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var secondAngle = Blockly.JavaScript.valueToCode(
+      block, 'SECOND_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var thirdAngle = Blockly.JavaScript.valueToCode(
+      block, 'THIRD_ANGLE', Blockly.JavaScript.ORDER_COMMA);
+  var useCompetitionFieldTargetLocations = Blockly.JavaScript.valueToCode(
+      block, 'USE_COMPETITION_FIELD_TARGET_LOCATIONS', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.initialize_withWebcam_2(' +
+      cameraName + ', ' + webcamCalibrationFilename + ', ' + useExtendedTracking + ', ' +
+      enableCameraMonitoring + ', ' + cameraMonitorFeedback + ', ' +
+      dx + ', ' + dy + ', ' + dz + ', ' +
+      axesOrder + ', ' + firstAngle + ', ' + secondAngle + ', ' + thirdAngle + ', ' +
+      useCompetitionFieldTargetLocations + ');\n';
+};
+
+Blockly.FtcJava['vuforiaCurrentGame_initialize_withWebcam_2'] = function(block) {
+  var className = 'VuforiaCurrentGame';
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, className);
+  var cameraName = Blockly.FtcJava.valueToCode(
+      block, 'CAMERA_NAME', Blockly.FtcJava.ORDER_COMMA);
+  var webcamCalibrationFilename = Blockly.FtcJava.valueToCode(
+      block, 'WEBCAM_CALIBRATION_FILE', Blockly.FtcJava.ORDER_COMMA);
+  var useExtendedTracking = Blockly.FtcJava.valueToCode(
+      block, 'USE_EXTENDED_TRACKING', Blockly.FtcJava.ORDER_COMMA);
+  var enableCameraMonitoring = Blockly.FtcJava.valueToCode(
+      block, 'ENABLE_CAMERA_MONITORING', Blockly.FtcJava.ORDER_COMMA);
+  var cameraMonitorFeedback = Blockly.FtcJava.valueToCode(
+      block, 'CAMERA_MONITOR_FEEDBACK', Blockly.FtcJava.ORDER_COMMA);
+  var dx = Blockly.FtcJava.valueToCode(
+      block, 'DX', Blockly.FtcJava.ORDER_COMMA);
+  var dy = Blockly.FtcJava.valueToCode(
+      block, 'DY', Blockly.FtcJava.ORDER_COMMA);
+  var dz = Blockly.FtcJava.valueToCode(
+      block, 'DZ', Blockly.FtcJava.ORDER_COMMA);
+  var axesOrder = Blockly.FtcJava.valueToCode(
+      block, 'AXES_ORDER', Blockly.FtcJava.ORDER_COMMA);
+  var firstAngle = Blockly.FtcJava.valueToCode(
+      block, 'FIRST_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var secondAngle = Blockly.FtcJava.valueToCode(
+      block, 'SECOND_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var thirdAngle = Blockly.FtcJava.valueToCode(
+      block, 'THIRD_ANGLE', Blockly.FtcJava.ORDER_COMMA);
+  var useCompetitionFieldTargetLocations = Blockly.FtcJava.valueToCode(
+      block, 'USE_COMPETITION_FIELD_TARGET_LOCATIONS', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.initialize(\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + '"", // vuforiaLicenseKey\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + cameraName + ', // cameraName\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + webcamCalibrationFilename + ', // webcamCalibrationFilename\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + useExtendedTracking + ', // useExtendedTracking\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + enableCameraMonitoring + ', // enableCameraMonitoring\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + cameraMonitorFeedback + ', // cameraMonitorFeedback\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dx + ', // dx\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dy + ', // dy\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + dz + ', // dz\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + axesOrder + ', // axesOrder\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + firstAngle + ', // firstAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + secondAngle + ', // secondAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + thirdAngle + ', // thirdAngle\n' +
+      Blockly.FtcJava.INDENT_CONTINUE + useCompetitionFieldTargetLocations + '); // useCompetitionFieldTargetLocations\n';
+};
+
+// Deprecated - use vuforiaCurrentGame_initialize_withCameraDirection_2
 Blockly.Blocks['vuforiaCurrentGame_initialize_withCameraDirection'] = {
   init: function() {
     this.appendDummyInput()
@@ -73,7 +360,7 @@ Blockly.Blocks['vuforiaCurrentGame_initialize_withCameraDirection'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setColour(functionColor);
-    this.setTooltip('Initialize Vuforia for ' + currentGameName + '.');
+    this.setTooltip('Initialize Vuforia for ' + vuforiaCurrentGameName + '.');
     this.getFtcJavaInputType = function(inputName) {
       switch (inputName) {
         case 'PHONE_LOCATION_ON_ROBOT_DX':
@@ -89,14 +376,17 @@ Blockly.Blocks['vuforiaCurrentGame_initialize_withCameraDirection'] = {
   }
 };
 
+// Deprecated - use vuforiaCurrentGame_initialize_withCameraDirection_2
 Blockly.JavaScript['vuforiaCurrentGame_initialize_withCameraDirection'] = function(block) {
   return vuforia_initialize_withCameraDirection_JavaScript(block, '""', vuforiaCurrentGameIdentifierForJavaScript);
 };
 
+// Deprecated - use vuforiaCurrentGame_initialize_withCameraDirection_2
 Blockly.FtcJava['vuforiaCurrentGame_initialize_withCameraDirection'] = function(block) {
   return vuforia_initialize_withCameraDirection_FtcJava(block, '""', 'VuforiaCurrentGame');
 };
 
+// Deprecated - use vuforiaCurrentGame_initialize_withWebcam_2
 Blockly.Blocks['vuforiaCurrentGame_initialize_withWebcam'] = {
   init: function() {
     this.appendDummyInput()
@@ -143,7 +433,7 @@ Blockly.Blocks['vuforiaCurrentGame_initialize_withWebcam'] = {
     this.setPreviousStatement(true);
     this.setNextStatement(true);
     this.setColour(functionColor);
-    this.setTooltip('Initialize Vuforia for ' + currentGameName + '.');
+    this.setTooltip('Initialize Vuforia for ' + vuforiaCurrentGameName + '.');
     this.getFtcJavaInputType = function(inputName) {
       switch (inputName) {
         case 'CAMERA_LOCATION_ON_ROBOT_DX':
@@ -159,10 +449,12 @@ Blockly.Blocks['vuforiaCurrentGame_initialize_withWebcam'] = {
   }
 };
 
+// Deprecated - use vuforiaCurrentGame_initialize_withWebcam_2
 Blockly.JavaScript['vuforiaCurrentGame_initialize_withWebcam'] = function(block) {
   return vuforia_initialize_withWebcam_JavaScript(block, '""', vuforiaCurrentGameIdentifierForJavaScript);
 };
 
+// Deprecated - use vuforiaCurrentGame_initialize_withWebcam_2
 Blockly.FtcJava['vuforiaCurrentGame_initialize_withWebcam'] = function(block) {
   return vuforia_initialize_withWebcam_FtcJava(block, 'VuforiaCurrentGame');
 };

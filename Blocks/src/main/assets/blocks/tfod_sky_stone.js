@@ -53,7 +53,7 @@ Blockly.Blocks['tfodSkyStone_initialize'] = {
     this.getFtcJavaInputType = function(inputName) {
       switch (inputName) {
         case 'MINIMUM_CONFIDENCE':
-          return 'double';
+          return 'float';
       }
       return '';
     };

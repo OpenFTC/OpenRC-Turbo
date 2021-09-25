@@ -31,9 +31,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package com.qualcomm.robotcore.robocol;
 
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.net.InetAddress;
 import java.util.concurrent.CountDownLatch;
@@ -77,7 +80,7 @@ public class PeerDiscoveryManager {
     */
    public PeerDiscoveryManager(RobocolDatagramSocket socket, InetAddress peerDiscoveryDevice) {
       this.socket = socket;
-      this.message = new PeerDiscovery(PeerDiscovery.PeerType.PEER);
+      this.message = PeerDiscovery.forTransmission(PeerDiscovery.PeerType.PEER);
       this.peerDiscoveryDevice = peerDiscoveryDevice;
       start();
    }

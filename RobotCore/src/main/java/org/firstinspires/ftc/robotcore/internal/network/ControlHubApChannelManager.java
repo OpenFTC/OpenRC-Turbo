@@ -91,7 +91,7 @@ public final class ControlHubApChannelManager implements ApChannelManager
      */
     private void setChannelViaBulkSettingsApi(ApChannel channel) throws InvalidNetworkSettingException
     {
-        RobotLog.vv(TAG, "Setting channel via bulk WiFi settings API: " + channel.getDisplayName());
+        RobotLog.vv(TAG, "Setting channel via bulk Wi-Fi settings API: " + channel.getDisplayName());
 
         // NetworkConnectionHandler#setNetworkSettings will call setChannel, but it will do so with
         // sendChangeToSystem set to false, which will prevent entrance back into this

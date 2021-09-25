@@ -100,7 +100,7 @@ public class FakeAndroidBoard extends AndroidBoard {
     }
 
     @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
-        RobotLog.ww(TAG, "This is not a known type of Control Hub; unable to set the WiFi AP beacon rate");
+        RobotLog.ww(TAG, "This is not a known type of Control Hub; unable to set the Wi-Fi AP beacon rate");
     }
 
     private static class FakeDigitalChannel implements DigitalChannel {

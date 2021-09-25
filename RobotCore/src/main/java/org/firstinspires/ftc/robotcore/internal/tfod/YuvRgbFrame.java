@@ -28,6 +28,7 @@ import com.google.ftcresearch.tfod.util.ImageUtils;
 import com.google.ftcresearch.tfod.util.Size;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import org.tensorflow.lite.support.image.TensorImage;
 
 /**
  * Threadsafe class to handle a frame.
@@ -58,11 +59,19 @@ class YuvRgbFrame {
   private Size luminositySize;
   private byte[] luminosityArray;
 
+  // Fields related to caching an argb8888Array.
   private final Object argb8888Lock = new Object();
   private int argb8888Size;
   private int[] argb8888Array;
   private Double argb8888ZoomMagnification;
   private Double argb8888ZoomAspectRatio;
+
+  // Fields related to caching a TensorImage.
+  private final Object tensorImageLock = new Object();
+  private int tensorImageSize;
+  private Double tensorImageZoomMagnification;
+  private Double tensorImageZoomAspectRatio;
+  private TensorImage tensorImage;
 
   /**
    * Construct a YuvRgbFrame from RGB565 data.
@@ -195,6 +204,61 @@ class YuvRgbFrame {
       argb8888ZoomMagnification = zoomMagnification;
       argb8888ZoomAspectRatio = zoomAspectRatio;
       return argb8888Array;
+    }
+  }
+
+  TensorImage getTensorImage(int newSize, double zoomMagnification, double zoomAspectRatio) {
+    synchronized (tensorImageLock) {
+      if (newSize == tensorImageSize &&
+          tensorImageZoomMagnification != null &&
+          Zoom.areEqual(zoomMagnification, tensorImageZoomMagnification) &&
+          tensorImageZoomAspectRatio != null &&
+          Zoom.areEqual(zoomAspectRatio, tensorImageZoomAspectRatio)) {
+        return tensorImage;
+      }
+      if (tensorImageSize != 0) {
+        Log.w(TAG, "getTensorImage called for multiple sizes " +
+            tensorImageSize + " and " + newSize);
+      }
+      if (tensorImageZoomMagnification != null) {
+        Log.w(TAG, "getTensorImage called for multiple zoom magnifications " +
+            tensorImageZoomMagnification + " and " + zoomMagnification);
+      }
+      if (tensorImageZoomAspectRatio != null) {
+        Log.w(TAG, "getTensorImage called for multiple zoom aspect ratios " +
+            tensorImageZoomAspectRatio + " and " + zoomAspectRatio);
+      }
+
+      Timer timer = new Timer(tag);
+      timer.start("YuvRgbFrame.getArgb8888Bitmap");
+
+      Bitmap rgb565Bitmap;
+      if (Zoom.isZoomed(zoomMagnification)) {
+        Rect rect = Zoom.getZoomArea(zoomMagnification, zoomAspectRatio, size.width, size.height);
+        rgb565Bitmap = Bitmap.createBitmap(this.rgb565Bitmap,
+            rect.left, rect.top, rect.width(), rect.height());
+      } else {
+        rgb565Bitmap = this.rgb565Bitmap;
+      }
+
+      // Scale rgb565Bitmap to the new size.
+      Bitmap rgb565ScaledBitmap = Bitmap.createScaledBitmap(rgb565Bitmap, newSize, newSize, false);
+      rgb565Bitmap = null;
+
+      // Convert to ARGB_8888.
+      Bitmap argb8888ScaledBitmap = rgb565ScaledBitmap.copy(Bitmap.Config.ARGB_8888, false);
+      rgb565ScaledBitmap = null;
+
+      timer.end();
+
+      TensorImage tensorImage = TensorImage.fromBitmap(argb8888ScaledBitmap);
+
+      // Save it in case we are asked for it again.
+      this.tensorImage = tensorImage;
+      tensorImageSize = newSize;
+      tensorImageZoomMagnification = zoomMagnification;
+      tensorImageZoomAspectRatio = zoomAspectRatio;
+      return tensorImage;
     }
   }
 

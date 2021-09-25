@@ -170,7 +170,7 @@
                     <input type="file" method="post" enctype="multipart/form-data"
                            onchange="angular.element(this).scope().tools.filesSelect(files)"
                            id="file-upload-form" name="file-upload" multiple
-                           accept=".java,.jar,.txt,.md,text-plain,text/x-java-source,application/java-archive"
+                           accept=".java,.jar,.aar,.txt,.md,text-plain,text/x-java-source,application/java-archive"
                            style="display: none"/>
                     <li ng-click="tools.upload()">
                         <a class="nav-item nav-link" href="javascript:void(0)"
@@ -327,6 +327,47 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="new-file-okay" ng-disabled="newFileForm.$invalid">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Uploading Files Modal -->
+    <div class="modal fade hidden-print" id="uploading-files-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Uploading Files</h4>
+                </div>
+                <div class="modal-body">
+                    <p>The file(s) you are uploading must be processed for FTC.</p>
+                    <p>For small files, this may take a few seconds. For large files, this may take
+                      several minutes.</p>
+                    <p>The Close button will appear when the files have been processed.</p>
+                    <p>If the file(s) contain a hardware device class, you must restart the robot
+                      controller before using the class.</p>
+                </div>
+                <div class="modal-footer">
+                    <p id="uploading-files-please-wait" class="collapse pull-center">Please wait.</p>
+                    <button id="uploading-files-close" class="collapse pull-right" type="button"
+                         class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Deleted aar Modal -->
+    <div class="modal fade hidden-print" id="deleted-aar-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">.aar File Deleted</h4>
+                </div>
+                <div class="modal-body">
+                    <p>If the .aar file contained native code, you should restart the robot
+                      controller before continuing.</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="deleted-aar-close" class="collapse pull-right" type="button"
+                         class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

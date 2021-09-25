@@ -32,6 +32,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.robotcore.util;
 
+import androidx.annotation.Nullable;
+
 /**
  * Instances of this interface can be registered with RobotLog as dynamic
  * generators of robot warning messages.
@@ -42,14 +44,21 @@ public interface GlobalWarningSource
     {
     /**
      * Returns the current warning associated with this warning source. If the source currently
-     * has no warning to contribute, it should return an empty string.
+     * has no warning to contribute, it should return null or an empty string.
      *
      * @return the current warning associated with this warning source
      */
-    String getGlobalWarning();
+    @Nullable String getGlobalWarning();
 
     /**
-     * Suppress or desupress the contributions of warnings by this source. If warnings are
+     * Returns true if the current warning (if any) is severe enough to warrant playing a warning
+     * sound. If the source has no critical warning, this should return false. If getGlobalWarning()
+     * returns null or a blank string, the value returned here will be ignored.
+     */
+    boolean shouldTriggerWarningSound();
+
+    /**
+     * Suppress or de-suppress the contributions of warnings by this source. If warnings are
      * suppressed, {@link #getGlobalWarning()} will always return an empty string. Internally,
      * a supression count is maintained which is incremented if 'suppress' is true and decremented
      * if it is false. The initial value of the count is zero; suppression is in effect if the

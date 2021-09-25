@@ -72,6 +72,9 @@ public class ProjectsUtil {
 
   public static final String TAG = "ProjectsUtil";
 
+  // NOTE(lizlooney): Do not change VALID_PROJECT_REGEX or the method isValidProjectName because
+  // making it stricter will make it so that existing projects whose names are no longer valid will
+  // not show up in the list of blocks projects and the user won't be able to rename them.
   public static final String VALID_PROJECT_REGEX =
       "^[a-zA-Z0-9 \\!\\#\\$\\%\\&\\'\\(\\)\\+\\,\\-\\.\\;\\=\\@\\[\\]\\^_\\{\\}\\~]+$";
   private static final String XML_END_TAG = "</xml>";
@@ -202,7 +205,7 @@ public class ProjectsUtil {
           String sampleName = filename.substring(0, filename.length() - BLOCKS_BLK_EXT.length());
           if (!sampleName.equals(DEFAULT_BLOCKS_SAMPLE_NAME)) {
             String blkFileContent = readSample(sampleName, hardwareItemMap);
-            Set<Capability> requestedCapabilities = getRequestedCapabilities(blkFileContent);
+            Set<Capability> requestedCapabilities = getRequestedCapabilities(sampleName, blkFileContent);
             // TODO(lizlooney): Consider adding required hardware.
             jsonSamples
                 .append(delimiter)
@@ -249,7 +252,7 @@ public class ProjectsUtil {
   /**
    * Returns the set of capabilities used by the given blocks content.
    */
-  private static Set<Capability> getRequestedCapabilities(String blkFileContent) {
+  private static Set<Capability> getRequestedCapabilities(String sampleName, String blkFileContent) {
     Set<Capability> requestedCapabilities = new LinkedHashSet<>();
     // The order here is important. If any of these capabilities is not supported by the robot
     // configuration, we will show the warning associated with the first missing capability.
@@ -262,8 +265,12 @@ public class ProjectsUtil {
     if (blkFileContent.contains("<block type=\"navigation_switchableCamera")) {
       requestedCapabilities.add(Capability.SWITCHABLE_CAMERA);
     }
-    if (blkFileContent.contains("_initialize_withWebcam")) {
-      requestedCapabilities.add(Capability.WEBCAM);
+    // ConceptTensorFlowObjectDetectionCustomModel includes _initialize_withWebcam and
+    // _initialize_withCameraDirection blocks. We don't show the warning for missing webcam.
+    if (!sampleName.equals("ConceptTensorFlowObjectDetectionCustomModel")) {
+      if (blkFileContent.contains("_initialize_withWebcam")) {
+        requestedCapabilities.add(Capability.WEBCAM);
+      }
     }
     if (blkFileContent.contains("_initialize_withCameraDirection")) {
       requestedCapabilities.add(Capability.CAMERA);

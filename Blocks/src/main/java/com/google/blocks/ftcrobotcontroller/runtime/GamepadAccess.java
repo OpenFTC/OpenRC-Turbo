@@ -19,6 +19,7 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 import android.webkit.JavascriptInterface;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Gamepad.RumbleEffect;
 
 /**
  * A class that provides JavaScript access to a {@link Gamepad}.
@@ -354,6 +355,72 @@ class GamepadAccess extends Access {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpadFinger1")
+  public boolean getTouchpadFinger1() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger1");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_1;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpad_finger_1_x")
+  public float getTouchpadFinger1X() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger1X");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_1_x;
+    }
+    return 0f;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpad_finger_1_y")
+  public float getTouchpadFinger1Y() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger1Y");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_1_y;
+    }
+    return 0f;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpadFinger2")
+  public boolean getTouchpadFinger2() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger2");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_2;
+    }
+    return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpad_finger_2_x")
+  public float getTouchpadFinger2X() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger2X");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_2_x;
+    }
+    return 0f;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {Gamepad.class}, fieldName = "touchpad_finger_2_y")
+  public float getTouchpadFinger2Y() {
+    startBlockExecution(BlockType.GETTER, ".TouchpadFinger2Y");
+    if (gamepad != null) {
+      return gamepad.touchpad_finger_2_y;
+    }
+    return 0f;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
   @Block(classes = {Gamepad.class}, fieldName = "triangle")
   public boolean getTriangle() {
     startBlockExecution(BlockType.GETTER, ".Triangle");
@@ -361,5 +428,65 @@ class GamepadAccess extends Access {
       return gamepad.triangle;
     }
     return false;
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void rumble_with1(int millis) {
+    startBlockExecution(BlockType.FUNCTION, ".rumble");
+    if (gamepad != null) {
+      gamepad.rumble(millis);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void rumble_with3(double rumble1, double rumble2, int millis) {
+    startBlockExecution(BlockType.FUNCTION, ".rumble");
+    if (gamepad != null) {
+      gamepad.rumble(rumble1, rumble2, millis);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void stopRumble() {
+    startBlockExecution(BlockType.FUNCTION, ".stopRumble");
+    if (gamepad != null) {
+      gamepad.stopRumble();
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void rumbleBlips(int count) {
+    startBlockExecution(BlockType.FUNCTION, ".rumbleBlips");
+    if (gamepad != null) {
+      gamepad.rumbleBlips(count);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public boolean isRumbling() {
+    startBlockExecution(BlockType.FUNCTION, ".isRumbling");
+    if (gamepad != null) {
+      return gamepad.isRumbling();
+    }
+    return false;
+  }
+
+  private RumbleEffect checkRumbleEffect(Object rumbleEffectArg) {
+    return checkArg(rumbleEffectArg, RumbleEffect.class, "rumbleEffect");
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public void runRumbleEffect(Object rumbleEffectArg) {
+    startBlockExecution(BlockType.FUNCTION, ".runRumbleEffect");
+    RumbleEffect rumbleEffect = checkRumbleEffect(rumbleEffectArg);
+    if (gamepad != null && rumbleEffect != null) {
+      gamepad.runRumbleEffect(rumbleEffect);
+    }
   }
 }

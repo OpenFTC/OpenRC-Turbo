@@ -121,25 +121,16 @@ public class RcInspectionActivity extends InspectionActivity
         return true;
         }
 
+    @Override
+    protected boolean inspectingRemoteDevice()
+        {
+        return remoteConfigure;
+        }
+
     @Override protected boolean useMenu()
         {
         // When we're remote configuring, the only thing on the menu is something
         // that will simply make the RC inaccessible. So we don't bother.
         return !remoteConfigure;
-        }
-
-    @Override protected boolean validateAppsInstalled(InspectionState state)
-        {
-        // Driver Station cannot be installed
-        if (state.isDriverStationInstalled())
-            {
-            return false;
-            }
-
-        // RobotController required
-        else
-            {
-            return state.isRobotControllerInstalled();
-            }
         }
     }

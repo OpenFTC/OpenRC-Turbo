@@ -16,8 +16,9 @@
 
 package com.google.blocks.ftcrobotcontroller.hardware;
 
-import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.CURRENT_GAME_NAME;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.ProjectsUtil.escapeSingleQuotes;
 
@@ -36,12 +37,26 @@ import com.google.blocks.ftcrobotcontroller.util.ToolboxIcon;
 import com.google.blocks.ftcrobotcontroller.util.ToolboxUtil;
 import com.qualcomm.ftccommon.configuration.RobotConfigFile;
 import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CompassSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IrSeekerSensor;
+import com.qualcomm.robotcore.hardware.MotorControlAlgorithm;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
+import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
+import com.qualcomm.robotcore.robot.RobotState;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,13 +80,23 @@ import org.firstinspires.ftc.robotcore.external.ExportToBlocks;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool;
 import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Axis;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+import org.firstinspires.ftc.robotcore.external.navigation.TempUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaSkyStone;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodCurrentGame;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodRoverRuckus;
 import org.firstinspires.ftc.robotcore.external.tfod.TfodSkyStone;
 import org.firstinspires.ftc.robotcore.internal.opmode.BlocksClassFilter;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
 import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -176,7 +201,9 @@ public class HardwareUtil {
 
     Set<String> additionalReservedWordsForFtcJava = new HashSet<>();
     Set<String> methodLookupStrings = new HashSet<>();
-    String toolbox = generateToolbox(hardwareItemMap, capabilities, assetManager, additionalReservedWordsForFtcJava, methodLookupStrings)
+    String toolbox = generateToolbox(hardwareItemMap, capabilities, assetManager,
+        additionalReservedWordsForFtcJava, methodLookupStrings, jsHardware);
+    toolbox = toolbox
         .replace("\n", " ")
         .replaceAll("\\> +\\<", "><");
     // The toolbox is added at the end, because it makes it easier to troubleshoot problems with
@@ -197,8 +224,9 @@ public class HardwareUtil {
     jsHardware.append("];\n\n");
 
     jsHardware
-        .append("var currentGameName = '").append(escapeSingleQuotes(CURRENT_GAME_NAME)).append("';\n")
+        .append("var tfodCurrentGameName = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_NAME)).append("';\n")
         .append("var tfodCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
+        .append("var vuforiaCurrentGameName = '").append(escapeSingleQuotes(VUFORIA_CURRENT_GAME_NAME)).append("';\n")
         .append("var vuforiaCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
         .append("\n");
 
@@ -594,7 +622,10 @@ public class HardwareUtil {
         .append("  Blockly.JavaScript.addReservedWords('telemetrySpeak');\n")
         .append("  Blockly.JavaScript.addReservedWords('callJava');\n")
         .append("  Blockly.JavaScript.addReservedWords('callJava_boolean');\n")
-        .append("  Blockly.JavaScript.addReservedWords('callJava_String');\n");
+        .append("  Blockly.JavaScript.addReservedWords('callJava_String');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callHardware');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callHardware_boolean');\n")
+        .append("  Blockly.JavaScript.addReservedWords('callHardware_String');\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware
           .append("  Blockly.JavaScript.addReservedWords('")
@@ -629,7 +660,7 @@ public class HardwareUtil {
         .append("}\n\n");
 
     jsHardware
-        .append("function getIdentifierForFtcJava(identifier) {\n")
+        .append("function getHardwareItemIdentifierForFtcJava(identifier) {\n")
         .append("  switch (identifier) {\n");
     Set<String> set = new HashSet<>();
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
@@ -665,7 +696,7 @@ public class HardwareUtil {
     }
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware
-          .append("  Blockly.FtcJava.addReservedWords(getIdentifierForFtcJava('")
+          .append("  Blockly.FtcJava.addReservedWords(getHardwareItemIdentifierForFtcJava('")
           .append(hardwareItem.identifier).append("'));\n");
     }
     for (Identifier identifier : Identifier.values()) {
@@ -837,7 +868,8 @@ public class HardwareUtil {
   private static String generateToolbox(HardwareItemMap hardwareItemMap,
       Map<Capability, Boolean> capabilities, AssetManager assetManager,
       Set<String> additionalReservedWordsForFtcJava,
-      Set<String> methodLookupStrings) throws IOException {
+      Set<String> methodLookupStrings,
+      StringBuilder jsHardware) throws IOException {
     StringBuilder xmlToolbox = new StringBuilder();
     xmlToolbox.append("<xml id=\"toolbox\" style=\"display: none\">\n");
 
@@ -874,18 +906,168 @@ public class HardwareUtil {
 
     addAndroidCategoriesToToolbox(xmlToolbox, assetManager);
 
+    addExportedHardware(xmlToolbox, additionalReservedWordsForFtcJava, methodLookupStrings, jsHardware);
+
+    addExportedStaticMethods(xmlToolbox, additionalReservedWordsForFtcJava, methodLookupStrings);
+
     if (assetManager != null) {
       addAssetWithPlaceholders(xmlToolbox, assetManager, capabilities, "toolbox/utilities.xml");
       addAsset(xmlToolbox, assetManager, "toolbox/misc.xml");
     }
 
-    Map<Class, Set<Method>> methodsByClass = BlocksClassFilter.getInstance().getMethodsByClass();
+    xmlToolbox.append("</xml>");
+    return xmlToolbox.toString();
+  }
+
+  private static void addExportedHardware(StringBuilder xmlToolbox,
+      Set<String> additionalReservedWordsForFtcJava,
+      Set<String> methodLookupStrings,
+      StringBuilder jsHardware) {
+    Map<Class<? extends HardwareDevice>, Set<Method>> methodsByClass = BlocksClassFilter.getInstance().getHardwareMethodsByClass();
+    if (methodsByClass.isEmpty()) {
+      return;
+    }
+
+    OpModeManagerImpl opModeManagerImpl = OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().getRootActivity());
+    if (opModeManagerImpl == null) {
+      RobotLog.w("Fetching blocks toolbox: Unable to get OpModeManagerImpl");
+      return;
+    }
+
+    // We need to wait for the robot to be running in order to get an accurate HardwareMap.
+    long startTime = System.nanoTime();
+    while (opModeManagerImpl.getRobotState() != RobotState.RUNNING) {
+      if (System.nanoTime() - startTime < 60_000_000_000L) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      } else {
+        return;
+      }
+    }
+
+    HardwareMap hardwareMap = OpModeManagerImpl.getOpModeManagerOfActivity(AppUtil.getInstance().getRootActivity()).getHardwareMap();
+    if (hardwareMap == null) {
+      RobotLog.w("Fetching blocks toolbox: Unable to get HardwareMap");
+      return;
+    }
+
+    boolean addedParentCategory = false;
+    for (Map.Entry<Class<? extends HardwareDevice>, Set<Method>> entry : methodsByClass.entrySet()) {
+      Class<? extends HardwareDevice> clazz = entry.getKey();
+
+      // Check if the hardware map contains any of this class.
+      List<HardwareDevice> devices = hardwareMap.getAll(clazz);
+      if (devices.isEmpty()) {
+        continue;
+      }
+
+      if (!addedParentCategory) {
+        xmlToolbox.append("<category name=\"Additional Hardware\">\n");
+        addedParentCategory = true;
+      }
+
+      DeviceProperties deviceProperties = clazz.getAnnotation(DeviceProperties.class);
+      String createDropdownFunctionName = processDeviceNames(
+          jsHardware, deviceProperties, hardwareMap, devices);
+
+      String fullClassName = clazz.getName();
+      String className = fullClassName;
+      if (className.startsWith("org.firstinspires.ftc.teamcode.") && className.lastIndexOf('.') == 30) {
+        className = className.substring(31);
+        additionalReservedWordsForFtcJava.add(className);
+      }
+
+      xmlToolbox.append("<category name=\"").append(deviceProperties.name()).append("\">\n");
+      Set<Method> methods = entry.getValue();
+      for (Method method : methods) {
+        ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
+        if (exportToBlocks == null) {
+          continue;
+        }
+        String returnType = method.getReturnType().getName();
+        String blockType = returnType.equals("void") ? "misc_callHardware_noReturn" : "misc_callHardware_return";
+        String methodName = method.getName();
+        Class[] parameterTypes = method.getParameterTypes();
+        int color = exportToBlocks.color();
+        String comment = exportToBlocks.comment();
+        String tooltip = exportToBlocks.tooltip();
+        String methodLookupString = BlocksClassFilter.getLookupString(method);
+        methodLookupStrings.add(methodLookupString);
+        xmlToolbox
+            .append("<block type=\"").append(blockType).append("\">\n")
+            .append("<field name=\"METHOD_NAME\">").append(methodName).append("</field>")
+            .append("<mutation")
+            .append(" createDropdownFunctionName=\"").append(createDropdownFunctionName).append("\"")
+            .append(" methodLookupString=\"").append(methodLookupString).append("\"")
+            .append(" fullClassName=\"").append(fullClassName).append("\"")
+            .append(" simpleName=\"").append(clazz.getSimpleName()).append("\"")
+            .append(" parameterCount=\"").append(parameterTypes.length).append("\"")
+            .append(" returnType=\"").append(returnType).append("\"")
+            .append(" color=\"").append(color).append("\"")
+            .append(" heading=\"\"")
+            .append(" comment=\"").append(comment).append("\"")
+            .append(" tooltip=\"").append(tooltip).append("\"")
+            .append(" accessMethod=\"").append(accessMethod(true, method.getReturnType())).append("\"")
+            .append(" convertReturnValue=\"").append(convertReturnValue(method.getReturnType())).append("\"");
+        processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method));
+        // Note that processMethodArguments terminates the mutation and block tags.
+      }
+      xmlToolbox.append("</category>\n");
+    }
+    if (addedParentCategory) {
+      xmlToolbox.append("</category>\n");
+    }
+  }
+
+  private static String processDeviceNames(StringBuilder jsHardware, DeviceProperties deviceProperties,
+      HardwareMap hardwareMap, List<HardwareDevice> devices) {
+    // Make a name for the function. Start the device's xmlTag.
+    StringBuilder sb = new StringBuilder();
+    String xmlTag = deviceProperties.xmlTag();
+    for (int i = 0; i < xmlTag.length(); i++) {
+      char ch = xmlTag.charAt(i);
+      if (Character.isJavaIdentifierPart(ch)) {
+        sb.append(ch);
+      } else {
+        sb.append('_');
+      }
+    }
+    String functionName = sb.toString();
+
+    jsHardware
+        .append("function ").append(functionName).append("() {\n")
+        .append("  var CHOICES = [\n");
+    for (HardwareDevice hardwareDevice : devices) {
+      String deviceName = HardwareItemMap.getDeviceName(hardwareMap, hardwareDevice);
+      if (deviceName != null) {
+        String escapedDeviceName = escapeSingleQuotes(deviceName);
+        jsHardware
+            .append("      ['").append(escapedDeviceName).append("', '")
+            .append(escapedDeviceName).append("'],\n");
+      }
+    }
+    jsHardware
+        .append("  ];\n")
+        .append("  return createFieldDropdown(CHOICES);\n")
+        .append("}\n\n");
+
+    return functionName;
+  }
+
+  private static void addExportedStaticMethods(StringBuilder xmlToolbox,
+      Set<String> additionalReservedWordsForFtcJava,
+      Set<String> methodLookupStrings) {
+    Map<Class, Set<Method>> methodsByClass = BlocksClassFilter.getInstance().getStaticMethodsByClass();
     if (!methodsByClass.isEmpty()) {
       xmlToolbox.append("<category name=\"Java Classes\">\n");
       for (Map.Entry<Class, Set<Method>> entry : methodsByClass.entrySet()) {
         Class clazz = entry.getKey();
-        String className = clazz.getName();
-        if (className.startsWith("org.firstinspires.ftc.teamcode.")) {
+        String fullClassName = clazz.getName();
+        String className = fullClassName;
+        if (className.startsWith("org.firstinspires.ftc.teamcode.") && className.lastIndexOf('.') == 30) {
           className = className.substring(31);
           additionalReservedWordsForFtcJava.add(className);
         }
@@ -901,9 +1083,10 @@ public class HardwareUtil {
           String blockType = returnType.equals("void") ? "misc_callJava_noReturn" : "misc_callJava_return";
           String methodName = method.getName();
           Class[] parameterTypes = method.getParameterTypes();
+          int color = exportToBlocks.color();
+          String heading = exportToBlocks.heading();
           String comment = exportToBlocks.comment();
           String tooltip = exportToBlocks.tooltip();
-          String[] parameterLabels = getParameterLabels(method);
           String methodLookupString = BlocksClassFilter.getLookupString(method);
           methodLookupStrings.add(methodLookupString);
           xmlToolbox
@@ -912,70 +1095,124 @@ public class HardwareUtil {
               .append("<field name=\"METHOD_NAME\">").append(methodName).append("</field>")
               .append("<mutation")
               .append(" methodLookupString=\"").append(methodLookupString).append("\"")
+              .append(" fullClassName=\"").append(fullClassName).append("\"")
+              .append(" simpleName=\"").append(clazz.getSimpleName()).append("\"")
               .append(" parameterCount=\"").append(parameterTypes.length).append("\"")
               .append(" returnType=\"").append(returnType).append("\"")
+              .append(" color=\"").append(color).append("\"")
+              .append(" heading=\"").append(heading).append("\"")
               .append(" comment=\"").append(comment).append("\"")
               .append(" tooltip=\"").append(tooltip).append("\"")
-              .append(" accessMethod=\"").append(accessMethod(method.getReturnType())).append("\"")
+              .append(" accessMethod=\"").append(accessMethod(false, method.getReturnType())).append("\"")
               .append(" convertReturnValue=\"").append(convertReturnValue(method.getReturnType())).append("\"");
-          StringBuilder argValues = new StringBuilder();
-          int i = 0;
-          List<String> gamepads = new ArrayList<>();
-          for (Class parameterType : parameterTypes) {
-            xmlToolbox.append(" argLabel").append(i).append("=\"").append(parameterLabels[i]).append("\"");
-            String argType = parameterType.getName();
-            xmlToolbox.append(" argType").append(i).append("=\"").append(argType).append("\"");
-            String argAuto = parameterProvidedAutomatically(parameterType, parameterLabels[i], gamepads);
-            xmlToolbox.append(" argAuto").append(i).append("=\"").append(argAuto != null ? argAuto : "").append("\"");
-            if (argAuto != null) {
-              // No socket if parameter is provided automatically.
-            } else if (argType.equals("boolean")
-                || argType.equals("java.lang.Boolean")) {
-              argValues
-                  .append("<value name=\"ARG" + i + "\">")
-                  .append(ToolboxUtil.makeBooleanShadow(false))
-                  .append("</value>\n");
-            } else if (argType.equals("char")
-                || argType.equals("java.lang.Character")
-                || argType.equals("java.lang.String")) {
-              argValues
-                  .append("<value name=\"ARG" + i + "\">")
-                  .append(ToolboxUtil.makeTextShadow("A"))
-                  .append("</value>\n");
-            } else if (argType.equals("byte")
-                || argType.equals("java.lang.Byte")
-                || argType.equals("short")
-                || argType.equals("java.lang.Short")
-                || argType.equals("int")
-                || argType.equals("java.lang.Integer")
-                || argType.equals("long")
-                || argType.equals("java.lang.Long")
-                || argType.equals("float")
-                || argType.equals("java.lang.Float")
-                || argType.equals("double")
-                || argType.equals("java.lang.Double")) {
-              argValues
-                  .append("<value name=\"ARG" + i + "\">")
-                  .append(ToolboxUtil.makeNumberShadow(0))
-                  .append("</value>\n");
-            } else {
-              // Leave other sockets empty?
-            }
-            i++;
-          }
-          xmlToolbox
-              .append("/>"); // end of mutation
-          xmlToolbox
-              .append(argValues)
-              .append("</block>\n");
+          processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method));
+          // Note that processMethodArguments terminates the mutation and block tags.
         }
         xmlToolbox.append("</category>\n");
       }
       xmlToolbox.append("</category>\n");
     }
+  }
 
-    xmlToolbox.append("</xml>");
-    return xmlToolbox.toString();
+  private static void processMethodArguments(StringBuilder xmlToolbox, Class[] parameterTypes, String[] parameterLabels) {
+    StringBuilder argValues = new StringBuilder();
+    int i = 0;
+    List<String> gamepads = new ArrayList<>();
+    for (Class parameterType : parameterTypes) {
+      xmlToolbox.append(" argLabel").append(i).append("=\"").append(parameterLabels[i]).append("\"");
+      String argType = parameterType.getName();
+      xmlToolbox.append(" argType").append(i).append("=\"").append(argType).append("\"");
+      String argAuto = parameterProvidedAutomatically(parameterType, parameterLabels[i], gamepads);
+      xmlToolbox.append(" argAuto").append(i).append("=\"").append(argAuto != null ? argAuto : "").append("\"");
+
+      String shadow = null;
+      if (argAuto != null) {
+        // No socket if parameter is provided automatically.
+      } else if (argType.equals("boolean")
+          || argType.equals("java.lang.Boolean")) {
+        shadow = ToolboxUtil.makeBooleanShadow(false);
+      } else if (argType.equals("char")
+          || argType.equals("java.lang.Character")
+          || argType.equals("java.lang.String")) {
+        shadow = ToolboxUtil.makeTextShadow("A");
+      } else if (argType.equals("byte")
+          || argType.equals("java.lang.Byte")
+          || argType.equals("short")
+          || argType.equals("java.lang.Short")
+          || argType.equals("int")
+          || argType.equals("java.lang.Integer")
+          || argType.equals("long")
+          || argType.equals("java.lang.Long")
+          || argType.equals("float")
+          || argType.equals("java.lang.Float")
+          || argType.equals("double")
+          || argType.equals("java.lang.Double")) {
+        shadow = ToolboxUtil.makeNumberShadow(0);
+      } else if (argType.equals(RelicRecoveryVuMark.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("vuMarks", "relicRecoveryVuMark");
+      } else if (argType.equals(DigitalChannel.Mode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("digitalChannel", "mode");
+      } else if (argType.equals(Servo.Direction.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("servo", "direction");
+      } else if (argType.equals(CompassSensor.CompassMode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("compassSensor", "compassMode");
+      } else if (argType.equals(AngleUnit.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "angleUnit");
+      } else if (argType.equals(AxesOrder.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axesOrder");
+      } else if (argType.equals(AxesReference.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axesReference");
+      } else if (argType.equals(VuforiaLocalizer.CameraDirection.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "cameraDirection");
+      } else if (argType.equals(VuforiaLocalizer.Parameters.CameraMonitorFeedback.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "cameraMonitorFeedback");
+      } else if (argType.equals(DistanceUnit.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "distanceUnit");
+      } else if (argType.equals(TempUnit.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "tempUnit");
+      } else if (argType.equals(Axis.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axis");
+      } else if (argType.equals(CurrentUnit.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "currentUnit");
+      } else if (argType.equals(ModernRoboticsI2cGyro.HeadingMode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("gyroSensor", "headingMode");
+      } else if (argType.equals(ElapsedTime.Resolution.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("elapsedTime2", "resolution");
+      } else if (argType.equals(IrSeekerSensor.Mode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("irSeekerSensor", "mode");
+      } else if (argType.equals(DcMotor.RunMode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "runMode");
+      } else if (argType.equals(DcMotorSimple.Direction.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "direction");
+      } else if (argType.equals(DcMotor.ZeroPowerBehavior.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "zeroPowerBehavior");
+      } else if (argType.equals(MotorControlAlgorithm.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("pidfCoefficients", "motorControlAlgorithm");
+      } else if (argType.equals(ServoController.PwmStatus.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("servoController", "pwmStatus");
+      } else if (argType.equals(BNO055IMU.SystemStatus.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imu", "systemStatus");
+      } else if (argType.equals(Telemetry.DisplayFormat.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("telemetry", "displayFormat");
+      } else if (argType.equals(BNO055IMU.AccelUnit.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "accelUnit");
+      } else if (argType.equals(BNO055IMU.SensorMode.class.getName())) {
+        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "sensorMode");
+      } else {
+        // Leave other sockets empty?
+      }
+      if (shadow != null) {
+        argValues
+            .append("<value name=\"ARG" + i + "\">")
+            .append(shadow)
+            .append("</value>\n");
+      }
+      i++;
+    }
+    xmlToolbox
+        .append("/>") // end of mutation
+        .append(argValues)
+        .append("</block>\n");
   }
 
   public static String[] getParameterLabels(Method method) {
@@ -996,10 +1233,10 @@ public class HardwareUtil {
     return parameterLabels;
   }
 
-  private static String accessMethod(Class returnType) {
+  private static String accessMethod(boolean hardware, Class returnType) {
     if (returnType.equals(boolean.class) ||
         returnType.equals(Boolean.class)) {
-      return "callJava_boolean";
+      return hardware ? "callHardware_boolean" : "callJava_boolean";
     } else if (
         returnType.equals(char.class) ||
         returnType.equals(Character.class) ||
@@ -1017,9 +1254,9 @@ public class HardwareUtil {
         returnType.equals(double.class) ||
         returnType.equals(Double.class) ||
         returnType.isEnum()) {
-      return "callJava_String";
+      return hardware ? "callHardware_String" : "callJava_String";
     }
-    return "callJava";
+    return hardware ? "callHardware" : "callJava";
   }
 
   private static String convertReturnValue(Class returnType) {
@@ -1113,8 +1350,9 @@ public class HardwareUtil {
       String line = null;
       while ((line = reader.readLine()) != null) {
         line = line.trim()
-            .replace("placeholder_current_game_name", CURRENT_GAME_NAME)
+            .replace("placeholder_tfod_current_game_name", TFOD_CURRENT_GAME_NAME)
             .replace("<placeholder_tfod_current_game_labels/>", getTfodCurrentGameLabelBlocks())
+            .replace("placeholder_vuforia_current_game_name", VUFORIA_CURRENT_GAME_NAME)
             .replace("<placeholder_vuforia_current_game_trackable_names/>", getVuforiaCurrentGameTrackableNameBlocks());
 
         String prefix = "<placeholder_";

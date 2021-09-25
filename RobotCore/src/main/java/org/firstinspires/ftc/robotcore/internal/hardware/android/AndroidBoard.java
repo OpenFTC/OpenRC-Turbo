@@ -126,12 +126,12 @@ public abstract class AndroidBoard {
     public abstract File getUartLocation();
 
     /**
-     * Returns whether or not this Android board supports broadcasting a 5GHz WiFi access point
+     * Returns whether or not this Android board supports broadcasting a 5GHz Wi-Fi access point
      */
     public abstract boolean supports5GhzAp();
 
     /**
-     * Returns whether or not this Android board supports auto-selecting a 5GHz WiFi channel
+     * Returns whether or not this Android board supports auto-selecting a 5GHz Wi-Fi channel
      */
     public abstract boolean supports5GhzAutoSelection();
 
@@ -146,12 +146,12 @@ public abstract class AndroidBoard {
     public abstract boolean supportsGetChannelInfoIntent();
 
     /**
-     * Returns the current data rate of our WiFi access point beacons
+     * Returns the current data rate of our Wi-Fi access point beacons
      */
     public abstract WifiDataRate getWifiApBeaconRate();
 
     /**
-     * Set the data rate of our WiFi access point beacons
+     * Set the data rate of our Wi-Fi access point beacons
      *
      * Should fail silently if this is not possible
      */

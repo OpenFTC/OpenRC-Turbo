@@ -178,7 +178,7 @@ Blockly.FtcJava['analogOutput_setAnalogOutputMode'] = function(block) {
   var identifier = Blockly.FtcJava.importDeclareAssign_(block, 'IDENTIFIER', 'AnalogOutput');
   var mode = Blockly.FtcJava.valueToCode(
       block, 'MODE', Blockly.FtcJava.ORDER_NONE);
-  return identifier + '.setAnalogOutputMode((byte) ' + mode + ');\n';
+  return identifier + '.setAnalogOutputMode(' + mode + ');\n';
 };
 
 Blockly.Blocks['analogOutput_setAnalogOutputMode_Number'] = {

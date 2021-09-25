@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.robotcore.internal.network;
 
 /**
- * {@link WifiState} is an integer that enumerates the various possible Wifi states
+ * {@link WifiState} is an integer that enumerates the various possible Wi-Fi states
  */
 public enum WifiState
     {

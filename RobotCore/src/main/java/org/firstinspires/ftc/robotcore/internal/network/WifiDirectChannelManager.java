@@ -23,7 +23,8 @@ public class WifiDirectChannelManager implements ApChannelManager
 
             result.add(ApChannel.AUTO_2_4_GHZ);
             if (WifiUtil.is5GHzAvailable()) {
-                result.addAll(ApChannel.NON_DFS_5_GHZ_CHANNELS);
+            result.add(ApChannel.AUTO_5_GHZ);
+            result.addAll(ApChannel.NON_DFS_5_GHZ_CHANNELS);
             }
             supportedChannels = result; // update atomically
         }

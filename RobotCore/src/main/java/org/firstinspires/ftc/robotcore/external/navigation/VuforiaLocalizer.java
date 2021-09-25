@@ -174,6 +174,13 @@ public interface VuforiaLocalizer extends CameraStreamSource
     void getFrameOnce(Continuation<? extends Consumer<Frame>> frameConsumer);
 
     /**
+     * Close this VuforiaLocalizer
+     * Releases the camera, trackables, and tracker,
+     * and removes the GL surface view.
+     */
+    void close();
+
+    /**
      * (Advanced) Ensures that Vuforia exposes necessary data formats in {@link Frame}s that allows
      * {@link #convertFrameToBitmap(Frame)} to function
      */

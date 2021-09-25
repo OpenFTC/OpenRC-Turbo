@@ -38,6 +38,7 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
 
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.wifi.NetworkType;
@@ -75,21 +76,26 @@ public class InspectionState
     public String model;
     public String osVersion; // Android version (e.g. 7.1.1)
     public String controlHubOsVersion; // Control Hub OS version (e.g. 1.1.1)
+    public String driverHubOsVersion;
+    public int controlHubOsVersionNum;
+    public int driverHubOsVersionNum;
     public String firmwareVersion; // TODO(Noah): The next time we bump Robocol, send a list of firmware versions instead
     public int sdkInt;
-    public int controlHubOsVersionNum;
     public boolean airplaneModeOn;
     public boolean bluetoothOn;
     public boolean wifiEnabled;
     public boolean wifiConnected;
     public boolean wifiDirectEnabled;
     public boolean wifiDirectConnected;
+    public boolean locationEnabled;
     public String deviceName;
     public double batteryFraction;
     public String robotControllerVersion;
     public int    robotControllerVersionCode;
+    public String robotControllerBuildTime;
     public String driverStationVersion;
     public int    driverStationVersionCode;
+    public String driverStationBuildTime;
     public long    rxDataCount;
     public long    txDataCount;
     public long    bytesPerSecond;
@@ -139,6 +145,26 @@ public class InspectionState
         this.driverStationVersionCode       = getPackageVersionCode(driverStationPackage);
         this.deviceName                     = nameManager.getDeviceName();
 
+        if (AppUtil.getInstance().isDriverStation())
+            {
+            this.driverStationBuildTime = BuildConfig.SDK_BUILD_TIME;
+            }
+        if (AppUtil.getInstance().isRobotController())
+            {
+            this.robotControllerBuildTime = BuildConfig.SDK_BUILD_TIME;
+            }
+
+        if (Device.isRevDriverHub())
+            {
+            this.driverHubOsVersion = LynxConstants.getDriverHubOsVersion();
+            this.driverHubOsVersionNum = LynxConstants.getDriverHubOsVersionCode();
+            }
+        else
+            {
+            this.driverHubOsVersion = NO_VERSION;
+            this.driverHubOsVersionNum = NO_VERSION_CODE;
+            }
+
         NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
         NetworkType networkType = networkConnectionHandler.getNetworkType();
         if (networkType == NetworkType.WIRELESSAP || networkType == NetworkType.RCWIRELESSAP)
@@ -150,12 +176,12 @@ public class InspectionState
                     {
                     this.controlHubOsVersion = "unknown";
                     }
-                this.controlHubOsVersionNum = LynxConstants.getControlHubOsVersionNum();
+                this.controlHubOsVersionNum = LynxConstants.getControlHubOsVersionCode();
                 this.isDefaultPassword = PasswordManagerFactory.getInstance().isDefault();
                 this.wifiEnabled = WifiUtil.isWifiApEnabled();
                 if (this.wifiEnabled) this.wifiConnected = true;
                 }
-                else
+            else
                 {
                 this.controlHubOsVersion = NO_VERSION;
                 this.controlHubOsVersionNum = NO_VERSION_CODE;
@@ -165,12 +191,13 @@ public class InspectionState
                 }
             this.wifiDirectConnected = false;  // Not shown on inspection activity.  Why does it exist?
             }
-            else
+        else
             {
             this.wifiConnected = WifiDirectAgent.getInstance().isWifiConnected();
             this.wifiDirectEnabled = WifiDirectAgent.getInstance().isWifiDirectEnabled();
             this.wifiDirectConnected = WifiDirectAgent.getInstance().isWifiDirectConnected();
             }
+        this.locationEnabled = WifiUtil.areLocationServicesEnabled();
         this.rxDataCount = networkConnectionHandler.getRxDataCount();
         this.txDataCount = networkConnectionHandler.getTxDataCount();
         this.bytesPerSecond = networkConnectionHandler.getBytesPerSecond();

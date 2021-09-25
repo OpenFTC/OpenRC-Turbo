@@ -43,6 +43,18 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
     //----------------------------------------------------------------------------------------------
     // Reading
     //----------------------------------------------------------------------------------------------
+	
+    /**
+     * Read a single byte from the device. See {@link #readTimeStamped(int)} for a
+     * complete description.
+     *
+     * @return      the byte that was read
+     *
+     * @see #read(int)
+     * @see #readTimeStamped(int)
+     * @see I2cDeviceSynch#ensureReadWindow(I2cDeviceSynch.ReadWindow, I2cDeviceSynch.ReadWindow)
+     */
+    byte read8();
 
     /**
      * Read the byte at the indicated register. See {@link #readTimeStamped(int, int)} for a
@@ -56,6 +68,19 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
      * @see I2cDeviceSynch#ensureReadWindow(I2cDeviceSynch.ReadWindow, I2cDeviceSynch.ReadWindow)
      */
     byte read8(int ireg);
+	
+    /**
+     * Read a block of bytes from the device. See {@link #readTimeStamped(int)} for a
+     * complete description.
+     *
+     * @param creg  the number of bytes to read
+     * @return      the data which was read
+     *
+     * @see #read8()
+     * @see #readTimeStamped(int)
+     * @see I2cDeviceSynch#ensureReadWindow(I2cDeviceSynch.ReadWindow, I2cDeviceSynch.ReadWindow)
+     */
+    byte[] read(int creg);
 
     /**
      * Read a contiguous set of device I2C registers. See {@link #readTimeStamped(int, int)} for a
@@ -70,6 +95,33 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
      * @see I2cDeviceSynch#ensureReadWindow(I2cDeviceSynch.ReadWindow, I2cDeviceSynch.ReadWindow)
      */
     byte[] read(int ireg, int creg);
+	
+    /**
+     * Read a block of bytes from the device, together with a best-available
+     * timestamp of when the actual I2C read occurred. Note that this can take many tens of
+     * milliseconds to execute, and thus should not be called from the loop() thread.
+     *
+     * <p>You can always just call this method without worrying at all about
+     * {@link I2cDeviceSynch.ReadWindow read windows},
+     * that will work, but usually it is more efficient to take some thought and care as to what set
+     * of registers the I2C device controller is being set up to read, as adjusting that window
+     * of registers incurs significant extra time.</p>
+     *
+     * <p>If the current read window can't be used to read the requested registers, then
+     * a new read window will automatically be created as follows. If the current read window is non
+     * null and wholly contains the registers to read but can't be read because it is a used-up
+     * {@link com.qualcomm.robotcore.hardware.I2cDeviceSynch.ReadMode#ONLY_ONCE ReadMode#ONLY_ONCE} window,
+     * a new read fresh window will be created with the same set of registers. Otherwise, a
+     * window that exactly covers the requested set of registers will be created.</p>
+     *
+     * @param creg  the number of bytes to read
+     * @return      the data which was read, together with the timestamp
+     *
+     * @see #read(int)
+     * @see #read8()
+     * @see I2cDeviceSynch#ensureReadWindow(I2cDeviceSynch.ReadWindow, I2cDeviceSynch.ReadWindow)
+     */
+    TimestampedData readTimeStamped(int creg);
 
     /**
      * Reads and returns a contiguous set of device I2C registers, together with a best-available
@@ -102,6 +154,15 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
     //----------------------------------------------------------------------------------------------
     // Writing
     //----------------------------------------------------------------------------------------------
+	
+    /**
+     * Writes a byte to the device using {@link I2cWaitControl#ATOMIC} semantics.
+     *
+     * @param bVal      the byte which is to be written to that register
+     *
+     * @see #write(byte[], I2cWaitControl)
+     */
+    void write8(int bVal);
 
     /**
      * Writes a byte to the indicated register using {@link I2cWaitControl#ATOMIC} semantics.
@@ -112,6 +173,16 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
      * @see #write(int, byte[], I2cWaitControl)
      */
     void write8(int ireg, int bVal);
+	
+    /**
+     * Writes block of bytes to the I2C device, using
+     * {@link I2cWaitControl#ATOMIC} semantics.
+     *
+     * @param data      the data which is to be written
+     *
+     * @see #write(byte[], I2cWaitControl)
+     */
+    void write(byte[] data);
 
     /**
      * Writes data to a set of registers, beginning with the one indicated, using
@@ -123,6 +194,17 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
      * @see #write(int, byte[], I2cWaitControl)
      */
     void write(int ireg, byte[] data);
+	
+    /**
+     * Writes a single byte to the device. See also
+     * {@link #write(byte[], I2cWaitControl)}.
+     *
+     * @param bVal                  the byte which is to be written
+     * @param waitControl           controls the behavior of waiting for the completion of the write
+     *
+     * @see #write(byte[], I2cWaitControl)
+     */
+    void write8(int bVal, I2cWaitControl waitControl);
 
     /**
      * Writes a byte to the indicated register. See also
@@ -135,6 +217,18 @@ public interface I2cDeviceSynchSimple extends HardwareDevice, HardwareDeviceHeal
      * @see #write(int, byte[], I2cWaitControl)
      */
     void write8(int ireg, int bVal, I2cWaitControl waitControl);
+	
+    /**
+     * Writes a block of bytes to the I2C device. The data will be written to the I2C device in an
+     * expeditious manner. Once data is accepted by this API, it is guaranteed that (barring catastrophic
+     * failure) the data will be transmitted to the USB controller module before the I2cDeviceSync is
+     * closed. The call itself may or may block until the data has been transmitted to the USB controller
+     * module according to a caller-provided parameter.
+     *
+     * @param data                  the data which is to be written
+     * @param waitControl           controls the behavior of waiting for the completion of the write
+     */
+    void write(byte[] data, I2cWaitControl waitControl);
 
     /**
      * Writes data to a set of registers, beginning with the one indicated. The data will be

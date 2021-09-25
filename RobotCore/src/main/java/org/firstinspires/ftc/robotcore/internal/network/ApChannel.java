@@ -34,6 +34,9 @@ import androidx.annotation.NonNull;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import com.qualcomm.robotcore.wifi.NetworkType;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.IOException;
 import java.util.EnumSet;
@@ -95,8 +98,16 @@ public enum ApChannel {
     public String getDisplayName() {
         if (this == UNKNOWN) return UNKNOWN_DISPLAY_NAME;
         if (channelNum == CHANNEL_AUTO_SELECT) {
-            if (band == Band.BAND_2_4_GHZ) return "auto (2.4 GHz)";
-            else return "auto (5 GHz)";
+            if (NetworkConnectionHandler.getDefaultNetworkType(AppUtil.getDefContext()) == NetworkType.WIFIDIRECT
+                && WifiUtil.is5GHzAvailable()) {
+                return "auto (either band)";
+            }
+            if (band == Band.BAND_2_4_GHZ) {
+                return "auto (2.4 GHz)";
+            }
+            else {
+                return "auto (5 GHz)";
+            }
         }
         else return String.valueOf(channelNum);
     }

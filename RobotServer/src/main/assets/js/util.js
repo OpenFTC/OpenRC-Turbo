@@ -225,7 +225,7 @@ var makeAndroidSafeFileName = function(fileName) {
         return fileName.replace(/\W/g, '_');
 };
 
-var uploadFile = function (localFile /*a File*/, url, success, failure) {
+var uploadFile = function (localFile /*a File*/, url, force, success, failure) {
     var xhr = new XMLHttpRequest();
     var lastDotIndex = localFile.name.lastIndexOf(".");
     var base = localFile.name.substring(0, lastDotIndex);
@@ -239,10 +239,15 @@ var uploadFile = function (localFile /*a File*/, url, success, failure) {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 success(xhr);
-            }
-            else {
+            } else {
                 failure(xhr);
-                alert("Failed to upload file: " + localFile.name + "\n\n" + xhr.responseText);
+                // Make sure the response is text and not json before we show it to the user.
+                if ((xhr.responseType == '' || xhr.responseType == 'text') &&
+                        xhr.responseText && !xhr.responseText.startsWith('{')) {
+                    alert("Failed to upload file: " + localFile.name + "\n\n" + xhr.responseText);
+                } else {
+                    alert("Failed to upload file: " + localFile.name);
+                }
             }
         }
     }

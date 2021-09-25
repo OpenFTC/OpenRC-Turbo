@@ -53,7 +53,7 @@ import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import java.util.concurrent.TimeUnit;
 
 /**
- * State machine that manages the Wifi mute feature.
+ * State machine that manages the Wi-Fi mute feature.
  */
 public class WifiMuteStateMachine extends StateMachine {
 
@@ -104,7 +104,7 @@ public class WifiMuteStateMachine extends StateMachine {
     }
 
     /**
-     * State representing wifi on and the timeout watchdog is active.
+     * State representing Wi-Fi on and the timeout watchdog is active.
      */
     private class WifiOn extends WifiState {
 
@@ -135,7 +135,7 @@ public class WifiMuteStateMachine extends StateMachine {
     }
 
     /**
-     * State representing wifi off.
+     * State representing Wi-Fi off.
      */
     private class WifiOff extends WifiState {
         @Override
@@ -163,7 +163,7 @@ public class WifiMuteStateMachine extends StateMachine {
     }
 
     /**
-     * State when we are warning the user that wifi is about to be
+     * State when we are warning the user that Wi-Fi is about to be
      * turned off.
      */
     private class WifiPendingOff extends WifiState {
@@ -214,7 +214,7 @@ public class WifiMuteStateMachine extends StateMachine {
     }
 
     /**
-     * State representing wifi on and the timeout watchdog is suspended.
+     * State representing Wi-Fi on and the timeout watchdog is suspended.
      */
     private class TimeoutSuspended extends WifiState {
         @Override
@@ -441,7 +441,7 @@ public class WifiMuteStateMachine extends StateMachine {
 
     protected void enableWifi(boolean enable)
     {
-        RobotLog.ii(TAG, "Set wifi enable " + enable);
+        RobotLog.ii(TAG, "Set Wi-Fi enable " + enable);
         if (enable) {
             AppUtil.getInstance().showToast(UILocation.ONLY_LOCAL, AppUtil.getDefContext().getString(R.string.toastEnableWifi));
         } else {

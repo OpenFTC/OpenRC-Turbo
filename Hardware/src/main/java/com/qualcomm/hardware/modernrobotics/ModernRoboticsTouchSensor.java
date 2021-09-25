@@ -58,7 +58,6 @@ public class ModernRoboticsTouchSensor implements TouchSensor {
   public ModernRoboticsTouchSensor(DigitalChannelController digitalController, int physicalPort) {
     this.digitalController = digitalController;
     this.physicalPort = physicalPort;
-    this.digitalController.setDigitalChannelMode(physicalPort, DigitalChannel.Mode.INPUT);
   }
 
   public ModernRoboticsTouchSensor(AnalogInputController analogController, int physicalPort) {
@@ -123,6 +122,9 @@ public class ModernRoboticsTouchSensor implements TouchSensor {
 
   @Override
   public void resetDeviceConfigurationForOpMode() {
+    if (isDigital()) {
+      digitalController.setDigitalChannelMode(physicalPort, DigitalChannel.Mode.INPUT);
+    }
   }
 
   @Override

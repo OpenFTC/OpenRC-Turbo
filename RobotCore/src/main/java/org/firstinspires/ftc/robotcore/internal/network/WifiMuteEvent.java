@@ -33,7 +33,7 @@ package org.firstinspires.ftc.robotcore.internal.network;
 import org.firstinspires.ftc.robotcore.external.Event;
 
 /**
- * Event definitions for the Wifi mute feature.
+ * Event definitions for the Wi-Fi mute feature.
  */
 public enum WifiMuteEvent implements Event {
     USER_ACTIVITY,

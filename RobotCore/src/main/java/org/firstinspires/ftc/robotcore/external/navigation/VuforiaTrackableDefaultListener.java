@@ -490,10 +490,15 @@ public class VuforiaTrackableDefaultListener implements VuforiaTrackable.Listene
         synchronized (lock)
             {
             OpenGLMatrix vuforiaCameraFromTarget = getVuforiaCameraFromTarget();
-            return vuforiaCameraFromTarget==null
-                    ? null
-                    : this.getPhoneFromVuforiaCamera(currentPoseAndCamera.getCameraDirection())
-                        .multiplied(vuforiaCameraFromTarget);
+            if (vuforiaCameraFromTarget != null)
+                {
+                OpenGLMatrix matrix = getPhoneFromVuforiaCamera(currentPoseAndCamera.getCameraDirection());
+                if (matrix != null)
+                    {
+                    return matrix.multiplied(vuforiaCameraFromTarget);
+                    }
+                }
+            return null;
             }
         }
 

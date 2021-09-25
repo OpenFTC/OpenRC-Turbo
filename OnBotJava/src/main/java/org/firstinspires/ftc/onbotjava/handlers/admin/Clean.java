@@ -37,7 +37,6 @@ import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
 import org.firstinspires.ftc.onbotjava.RegisterWebHandler;
 import org.firstinspires.ftc.onbotjava.StandardResponses;
 
-import org.firstinspires.ftc.onbotjava.OnBotJavaClassLoader;
 import org.firstinspires.ftc.robotcore.internal.webserver.WebHandler;
 
 import fi.iki.elonen.NanoHTTPD;
@@ -46,7 +45,7 @@ import fi.iki.elonen.NanoHTTPD;
 public class Clean implements WebHandler {
     @Override
     public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) {
-        OnBotJavaClassLoader.fullClean();
+        // OnBotJavaClassLoader no longer has a fullClean method.
         return StandardResponses.successfulRequest();
     }
 }

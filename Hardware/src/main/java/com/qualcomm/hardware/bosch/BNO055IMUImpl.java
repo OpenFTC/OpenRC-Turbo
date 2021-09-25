@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.hardware.I2cAddrConfig;
 import com.qualcomm.robotcore.hardware.I2cController;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDeviceWithParameters;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.I2cWaitControl;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.TimestampedData;
@@ -87,6 +88,29 @@ import java.util.concurrent.TimeUnit;
 public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch, BNO055IMU.Parameters>
         implements BNO055IMU, Gyroscope, IntegratingGyroscope, I2cAddrConfig, OpModeManagerNotifier.Notifications
     {
+
+    /**
+     * The deviceClient parameter needs to already have its I2C address set.
+     */
+    public static boolean imuIsPresent(I2cDeviceSynchSimple deviceClient, boolean retryAfterWaiting)
+        {
+        byte chipId = deviceClient.read8(BNO055IMU.Register.CHIP_ID.bVal);
+        if (chipId != bCHIP_ID_VALUE && retryAfterWaiting)
+            {
+            deviceClient.waitForWriteCompletions(I2cWaitControl.WRITTEN);
+            try
+                {
+                Thread.sleep(650); // delay value is from Table 0-2 in the BNO055 specification
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                }
+            chipId = deviceClient.read8(Register.CHIP_ID.bVal);
+            }
+        return chipId == bCHIP_ID_VALUE;
+        }
+
     //------------------------------------------------------------------------------------------
     // State
     //------------------------------------------------------------------------------------------
@@ -229,11 +253,6 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // Make sure we're talking to the correct I2c address
         this.deviceClient.setI2cAddress(parameters.i2cAddr);
 
-        // We retry the initialization a few times: it's been reported to fail, intermittently,
-        // but, so far as we can tell, entirely non-deterministically. Ideally, we'd like that to
-        // never happen, but in light of our (current) inability to figure out how to prevent that,
-        // we simply retry the initialization if it seems to fail.
-
         SystemStatus expectedStatus = parameters.mode.isFusionMode() ? SystemStatus.RUNNING_FUSION : SystemStatus.RUNNING_NO_FUSION;
 
 
@@ -265,23 +284,17 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             }
 
         // Make sure we have the right device
-        byte chipId = read8(Register.CHIP_ID);
-        if (chipId != bCHIP_ID_VALUE)
+        if (!imuIsPresent(deviceClient, true))
             {
-            delayExtra(650);     // delay value is from from Table 0-2 in the BNO055 specification
-            chipId = read8(Register.CHIP_ID);
-            if (chipId != bCHIP_ID_VALUE)
-                {
-                log_e("unexpected chip: expected=%d found=%d", bCHIP_ID_VALUE, chipId);
-                return false;
-                }
+            log_e("IMU appears to not be present");
+            return false;
             }
 
         // Get us into config mode, for sure
         setSensorMode(SensorMode.CONFIG);
 
         // Reset the system, and wait for the chip id register to switch back from its reset state
-        // to the it's chip id state. This can take a very long time, some 650ms (Table 0-2, p13)
+        // to the chip id state. This can take a very long time, some 650ms (Table 0-2, p13)
         // perhaps. While in the reset state the chip id (and other registers) reads as 0xFF.
         TimestampedI2cData.suppressNewHealthWarnings(true);
         try {
@@ -289,6 +302,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             write8(Register.SYS_TRIGGER, 0x20, I2cWaitControl.WRITTEN);
             delay(400);
             RobotLog.vv("IMU", "Now polling until IMU comes out of reset. It is normal to see I2C failures below");
+            byte chipId;
             while (!isStopRequested())
                 {
                 chipId = read8(Register.CHIP_ID);
@@ -1018,7 +1032,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     // Constants
     //------------------------------------------------------------------------------------------
 
-    final static byte bCHIP_ID_VALUE = (byte)0xa0;
+    public final static byte bCHIP_ID_VALUE = (byte)0xa0;
 
     enum VECTOR
         {

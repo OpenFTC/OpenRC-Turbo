@@ -137,7 +137,7 @@ public final class WebSocketManagerImpl implements WebSocketManager {
 
     void onWebSocketConnected(FtcWebSocket webSocket) {
         // When a new WebSocket connects, ask for the current time if our clock has been reset to 1970.
-        if (!AppUtil.getInstance().isSaneWalkClockTime(AppUtil.getInstance().getWallClockTime())) {
+        if (!AppUtil.getInstance().isSaneWallClockTime(AppUtil.getInstance().getWallClockTime())) {
             ((FtcWebSocketImpl)webSocket).internalSend(new FtcWebSocketMessage(SYSTEM_NAMESPACE, REQUEST_CURRENT_TIME_MESSAGE_TYPE));
         }
     }

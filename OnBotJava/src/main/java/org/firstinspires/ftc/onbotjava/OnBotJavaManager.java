@@ -33,11 +33,22 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.onbotjava;
 
 import android.content.res.AssetManager;
+import android.os.Build;
 import androidx.annotation.Nullable;
+
+import com.android.tools.r8.CompilationFailedException;
+import com.android.tools.r8.D8;
+import com.android.tools.r8.D8Command;
 
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
+
+import dk.sgjesse.d8onandroid.D8DiagnosticsHandler;
+import dk.sgjesse.r8api.ArchiveClassFileResourceProvider;
+import dk.sgjesse.r8api.ArchiveProgramResourceProvider;
+import dk.sgjesse.r8api.AndroidDexIndexedConsumer;
+import dk.sgjesse.r8api.OrderedClassFileResourceProvider;
 
 import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.ThrowingCallable;
@@ -48,6 +59,8 @@ import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaBuildLocker;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
+import org.threeten.bp.LocalDateTime;
+import org.threeten.bp.ZoneOffset;
 
 import java.io.Closeable;
 import java.io.File;
@@ -57,13 +70,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * {@link OnBotJavaManager} is the main orchestrator of the OnBotJava build process.
@@ -127,7 +144,12 @@ public class OnBotJavaManager implements Closeable
     /** the directory into which user .java should be placed (in
      * appropriate reverse-domain subdirs for .java, as usual) */
     public static final File srcDir                 = new File(javaRoot, "/src/");
-    public static final File jarDir                 = new File(srcDir,   "/jars/");
+
+    // Support for external libraries (uploaded .jar and .aar files)
+    public static final boolean USE_D8 = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N);
+    public static final boolean ALLOW_EXTERNAL_LIBRARIES = USE_D8;
+    public static final String EXTERNAL_LIBRARIES = "/ExternalLibraries";
+    public static final File extLibDir            = new File(AppUtil.FIRST_FOLDER, EXTERNAL_LIBRARIES);
 
     public static final File controlDir             = new File(javaRoot, "/control/");
     public static final File buildRequestFile       = new File(controlDir, "buildRequest.txt");
@@ -148,7 +170,7 @@ public class OnBotJavaManager implements Closeable
 
     public static final File assetRoot              = new File("java");
     public static final String[] platformClassPathLibs = new String[] { "android.jar", "androidx-rs.jar" };
-    public static final String[] ftcClassPathLibs      = new String[] { "onbotjava-classes.jar" };
+    private static final String[] ftcClassPathLibs      = new String[] { "onbotjava-classes.jar", "desugar_jdk_libs-1.1.1.jar", "core-lambda-stubs-30.0.3.jar" };
 
     //----------------------------------------------------------------------------------------------
     // State
@@ -181,7 +203,6 @@ public class OnBotJavaManager implements Closeable
 
     public static void initialize()
         {
-        fullClean();
         ensureDirectories();
         extractAssets();
         }
@@ -190,7 +211,7 @@ public class OnBotJavaManager implements Closeable
         {
         ensureDirs(libDir);
         ensureDirs(srcDir);
-        ensureDirs(jarDir);
+        ensureDirs(extLibDir);
         ensureDirs(controlDir);
         ensureDirs(statusDir);
         ensureDirs(buildDir);
@@ -326,7 +347,6 @@ public class OnBotJavaManager implements Closeable
                             File onBotJavaDirDirectory = AppUtil.getInstance().createTempDirectory("onBotJavaJar-" + formatter.format(new Date()) + "-", "", jarsOutputDir);
                             ReadWriteFile.writeFile(currentOnBotJavaDirFile, onBotJavaDirDirectory.getAbsolutePath()); // abspath contains jarsOutputDir dependence to here
                             consolidateClassFilesToJar(onBotJavaDirDirectory);
-                            copyInputJarFiles(onBotJavaDirDirectory);
                             dexifyJarFiles(onBotJavaDirDirectory);
                             buildStatus = BuildStatus.SUCCESSFUL;
                             writeBuildStatusFile(OnBotJavaHelper.buildSuccessfulFile, "last successful build finished");
@@ -373,7 +393,7 @@ public class OnBotJavaManager implements Closeable
         // is a brief human-readable description of action, which ought
         // to be redundant with the identity of the file in which the
         // message is stored.
-        String contents = String.format(Locale.getDefault(), "%s\n%s\n", AppUtil.getInstance().getIso8601DateFormat().format(new Date()), message);
+        String contents = String.format(Locale.getDefault(), "%s\n%s\n", AppUtil.getInstance().getIso8601DateTimeFormatter().format(LocalDateTime.now().atOffset(ZoneOffset.UTC)), message);
         ReadWriteFile.writeFile(file, contents);
         }
 
@@ -392,7 +412,7 @@ public class OnBotJavaManager implements Closeable
                 AppUtil.getInstance().delete(sourceOutputDir);
 
                 // Leave the most recently built stuff so that the loader will find it
-                File curDir = getCurrentOutputJarDir();
+                File curDir = getCurrentOutputDir();
                 for (File child : AppUtil.getInstance().filesIn(jarsOutputDir))
                     {
                     if (!child.equals(curDir))
@@ -402,11 +422,6 @@ public class OnBotJavaManager implements Closeable
                     }
                 }
             });
-        }
-
-    protected static void fullClean()
-        {
-        OnBotJavaClassLoader.fullClean();
         }
 
     protected boolean compileJavaFiles()
@@ -456,23 +471,6 @@ public class OnBotJavaManager implements Closeable
             });
         }
 
-    protected void copyInputJarFiles(final File onBotJavaDirDirectory) throws IOException
-        {
-        trace("copyInputJarFiles()", new Runnable() { @Override public void run()
-            {
-            try {
-                for (File jarFile : jarDir.listFiles())
-                    {
-                    AppUtil.getInstance().copyFile(jarFile, new File(onBotJavaDirDirectory, jarFile.getName()));
-                    }
-                }
-            catch (IOException e)
-                {
-                throw new RuntimeException("exception copying .jar files", e);
-                }
-            }});
-        }
-
     protected void dexifyJarFiles(final File onBotJavaDirDirectory) throws IOException
         {
         trace("dexifyJarFiles()", new ThrowingCallable<Void, IOException>()
@@ -480,7 +478,7 @@ public class OnBotJavaManager implements Closeable
             @Override public Void call() throws IOException
                 {
                 File robotJavaJar = null;
-                for (File jarFile : getOutputJarFiles(onBotJavaDirDirectory))
+                for (File jarFile : getOutputFiles(onBotJavaDirDirectory, ".jar"))
                     {
                     // Sanity check
                     if (jarFile.getName().equals(onBotJavaJarName))
@@ -502,29 +500,33 @@ public class OnBotJavaManager implements Closeable
 
     public static List<File> getOutputJarFiles()
         {
-        return getOutputJarFiles(null);
+        return getOutputFiles(null, ".jar");
         }
-    public static List<File> getOutputJarFiles(@Nullable File onBotJavaDirDirectory)
+    public static List<File> getOutputDexFiles()
+        {
+        return getOutputFiles(null, ".dex");
+        }
+    private static List<File> getOutputFiles(@Nullable File onBotJavaDirDirectory, String extension)
         {
         List<File> result = new ArrayList<File>();
 
         // Because of dir/file 'busy' issues having to do with class (re)loading, we use a jar in a new
         // sub dir each and every time. Only the most recent such subdir is relevant. This will
         // be the lexically greatest, since we use a time-based naming scheme.
-        File currentJarDir = getCurrentOutputJarDir();
-        if (currentJarDir != null)
+        File currentOutputDir = getCurrentOutputDir();
+        if (currentOutputDir != null)
             {
             if (onBotJavaDirDirectory != null)
                 {
-                Assert.assertTrue(currentJarDir.equals(onBotJavaDirDirectory)); // sanity check
+                Assert.assertTrue(currentOutputDir.equals(onBotJavaDirDirectory)); // sanity check
                 }
-            result.addAll(AppUtil.getInstance().filesIn(currentJarDir, ".jar"));
+            result.addAll(AppUtil.getInstance().filesIn(currentOutputDir, extension));
             }
 
         return result;
         }
 
-    protected static @Nullable File getCurrentOutputJarDir()
+    private static @Nullable File getCurrentOutputDir()
         {
         // Because of dir/file 'busy' issues having to do with class (re)loading, we use a jar etc in a new
         // sub dir each and every time. Only the most recent such subdir is relevant. Be robust about
@@ -544,7 +546,7 @@ public class OnBotJavaManager implements Closeable
                 // ignore
                 }
             }
-        RobotLog.vv(TAG, "getCurrentOutputJarDir() unavailable");
+        RobotLog.vv(TAG, "getCurrentOutputDir() unavailable");
         return null;
         }
 
@@ -555,35 +557,167 @@ public class OnBotJavaManager implements Closeable
 
     protected void dexifyJarFile(File jarFile) throws RuntimeException
         {
-        // Copy the input jar to a tmp so dx doesn't try to update in place: we don't KNOW that
-        // that won't work, but we suspect that's the case
-        //
-        RobotLog.vv(TAG, "dexifying %s...", jarFile.getAbsolutePath());
-        File tmpFile = new File(jarFile.getParentFile(), UUID.randomUUID().toString() + ".jar");
-        jarFile.renameTo(tmpFile);
+        try
+            {
+            File dexFileParent = jarFile.getParentFile();
+            dexifyFiles(Collections.singleton(jarFile), dexFileParent, diagnosticListener);
+            }
+        catch (RuntimeException e)
+            {
+            RobotLog.ee(TAG, e, "Cannot finish OBJ build. Dex failed");
+            throw e;
+            }
+        }
+
+    static void dexifyFiles(Collection<File> inputFiles, final File dexFileParent,
+            OnBotJavaDiagnosticsListener diagnosticListener)
+        {
+        if (!dexFileParent.isDirectory())
+            {
+            throw new IllegalArgumentException("dexFileParent must be a directory " + dexFileParent.getAbsolutePath());
+            }
+        StringBuilder sb = new StringBuilder();
+        for (File inputFile : inputFiles)
+            {
+            sb.append(" " + inputFile.getAbsolutePath());
+            }
+        RobotLog.vv(TAG, "dexifying %s...", sb.toString());
+        // Use a zip file in a temp subdirectory for the output.
+        File tmpDir = new File(dexFileParent, UUID.randomUUID().toString());
+        tmpDir.mkdir();
+        File tmpZipFile = new File(tmpDir, "out.zip");
         try {
-            List<String> args = new ArrayList<String>();
-            args.add("--dex");
-            args.add("--keep-classes"); // keep .classes in .jar
-            args.add("--no-files");     // no classes is ok
-            args.add("--output=" + jarFile.getAbsolutePath() + "");
-            args.add("" + tmpFile.getAbsolutePath() + "");
-            //
-            DxConsole.out = diagnosticListener.getPrintStream();
-            DxConsole.err = diagnosticListener.getPrintStream();
-            Main.main(args.toArray(new String[args.size()]));
+            if (USE_D8)
+                {
+                RobotLog.vv(TAG, "using d8");
+                D8Command.Builder d8CommandBuilder = D8Command.builder(new D8DiagnosticsHandler())
+                    .setProgramConsumer(new AndroidDexIndexedConsumer(tmpZipFile));
+                // For the classpath, first add the ftcClassPathLibs, then the external libraries, then
+                // finally the platformClassPathLibs.
+                OrderedClassFileResourceProvider classpathResourceProvider = new OrderedClassFileResourceProvider();
+                for (String filename : ftcClassPathLibs)
+                    {
+                    File file = new File(OnBotJavaManager.libDir, filename);
+                    classpathResourceProvider.addClassFileResourceProvider(
+                        new ArchiveClassFileResourceProvider(file));
+                    }
+                for (File file : ExternalLibraries.getInstance().getClasspathFiles())
+                    {
+                    classpathResourceProvider.addClassFileResourceProvider(
+                        new ArchiveClassFileResourceProvider(file));
+                    }
+                for (String filename : platformClassPathLibs)
+                    {
+                    File file = new File(OnBotJavaManager.libDir, filename);
+                    classpathResourceProvider.addClassFileResourceProvider(
+                        new ArchiveClassFileResourceProvider(file));
+                    }
+                if (!classpathResourceProvider.isEmpty())
+                    {
+                    d8CommandBuilder.addClasspathResourceProvider(classpathResourceProvider);
+                    }
+                // Add the input files.
+                for (File inputFile : inputFiles)
+                    {
+                    d8CommandBuilder.addProgramResourceProvider(
+                        new ArchiveProgramResourceProvider(inputFile));
+                    }
+                D8.run(d8CommandBuilder.build());
+                classpathResourceProvider.close();
+                }
+            else
+                {
+                // For Marshmallow we use dex.
+                // TODO: Once we no longer allow Marshmallow devices, we can remove this code and
+                // lib/RobotCore/src/main/java/org/firstinspires/ftc/robotcore/internal/android/dex,
+                // lib/RobotCore/src/main/java/org/firstinspires/ftc/robotcore/internal/android/dx,
+                // lib/RobotCore/src/main/java/org/firstinspires/ftc/robotcore/internal/android/multidex.
+                RobotLog.vv(TAG, "using dx");
+                List<String> args = new ArrayList<String>();
+                args.add("--dex");
+                args.add("--no-files");     // no classes is ok
+                args.add("--output=" + tmpZipFile.getAbsolutePath());
+                for (File inputFile : inputFiles)
+                    {
+                    args.add(inputFile.getAbsolutePath());
+                    }
+                //
+                DxConsole.out = diagnosticListener.getPrintStream();
+                DxConsole.err = diagnosticListener.getPrintStream();
+                Main.main(args.toArray(new String[args.size()]));
+                }
+
+            // Unpack the output zip to get the .dex files.
+            unpackZipFile(tmpZipFile, tmpDir);
+            for (File tmpDexFile : AppUtil.getInstance().filesUnder(tmpDir, ".dex"))
+                {
+                String name = tmpDexFile.getName();
+                File destDexFile = new File(dexFileParent, name);
+                if (!tmpDexFile.renameTo(destDexFile))
+                    {
+                    throw new RuntimeException("failed to move " +
+                        tmpDexFile.getAbsolutePath() + " to " + destDexFile.getAbsolutePath());
+                    }
+                RobotLog.vv(TAG, "Wrote %s", destDexFile.getAbsolutePath());
+                }
+            }
+        catch (CompilationFailedException e)
+            {
+            diagnosticListener.getPrintStream().format(diagnosticListener.locale, "dex: CompilationFailedException: %s", e.getMessage());
+            throw new RuntimeException(e);
+            }
+        catch (IOException e)
+            {
+            diagnosticListener.getPrintStream().format(diagnosticListener.locale, "dex: IOException: %s", e.getMessage());
+            throw new RuntimeException(e);
             }
         catch (RuntimeException e)
             {
             diagnosticListener.getPrintStream().format(diagnosticListener.locale, "dex: RuntimeException: %s", e.getMessage());
-            RobotLog.ee(TAG, e, "Cannot finish OBJ build. Dex failed");
             throw e;
             }
         finally
             {
-            tmpFile.delete();
-            RobotLog.vv(TAG, "...dexifying %s", jarFile.getAbsolutePath());
+            AppUtil.getInstance().delete(tmpDir);
+            RobotLog.vv(TAG, "...dexifying %s", sb.toString());
             }
+        }
+
+    static void unpackZipFile(File file, File destDir) throws IOException
+        {
+        ZipFile zipFile = new ZipFile(file);
+        try
+            {
+            for (Enumeration<? extends ZipEntry> entries = zipFile.entries(); entries.hasMoreElements(); )
+                {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory())
+                    {
+                    continue;
+                    }
+                String entryName = entry.getName();
+
+                // Extract the file.
+                File destFile = new File(destDir, entryName);
+                destFile.getParentFile().mkdirs();
+                AppUtil.getInstance().copyStream(zipFile.getInputStream(entry), destFile);
+                }
+            }
+        finally
+            {
+            zipFile.close();
+            }
+        }
+
+    /**
+     * Returns the ClassLoader that is the parent ClassLoader for every OnBotJavaClassLoader.
+     */
+    public static ClassLoader getParentClassLoaderForOnBotJava()
+        {
+        ClassLoader extLibClassLoader = ExternalLibraries.getInstance().getClassLoader();
+        return (extLibClassLoader != null)
+            ? extLibClassLoader
+            : OnBotJavaManager.class.getClassLoader();
         }
 
     protected <VALUE, EXCEPTION_T extends IOException> VALUE trace(String message, ThrowingCallable<VALUE, EXCEPTION_T> callable) throws IOException

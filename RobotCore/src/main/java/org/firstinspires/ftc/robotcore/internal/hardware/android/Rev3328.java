@@ -112,7 +112,7 @@ public class Rev3328 extends AndroidBoard {
     }
 
     @Override public WifiDataRate getWifiApBeaconRate() {
-        if (LynxConstants.getControlHubOsVersionNum() < OS_1_1_0_VERSION_NUM) {
+        if (LynxConstants.getControlHubOsVersionCode() < OS_1_1_0_VERSION_NUM) {
             return WifiDataRate.CCK_1Mb; // OS versions prior to 1.1.0 used a 1Mb beacon rate
         }
         String rawBeaconRateString = new RunShellCommand().run("cat /sys/module/wlan/parameters/rev_beacon_rate").getOutput().trim();
@@ -120,7 +120,7 @@ public class Rev3328 extends AndroidBoard {
         try {
             rtkDataRate = RealtekWifiDataRate.fromRawValue(Integer.parseInt(rawBeaconRateString));
         } catch (RuntimeException e) {
-            RobotLog.ee(TAG, e, "Error obtaining WiFi AP beacon rate");
+            RobotLog.ee(TAG, e, "Error obtaining Wi-Fi AP beacon rate");
         }
         if (rtkDataRate == null) {
             return WifiDataRate.UNKNOWN;
@@ -129,8 +129,8 @@ public class Rev3328 extends AndroidBoard {
     }
 
     @Override public void setWifiApBeaconRate(WifiDataRate beaconRate) {
-        if (LynxConstants.getControlHubOsVersionNum() < OS_1_1_1_VERSION_NUM) {
-            RobotLog.ww(TAG, "Unable to set the WiFi AP beacon rate on Control Hub OS version" + LynxConstants.getControlHubOsVersion());
+        if (LynxConstants.getControlHubOsVersionCode() < OS_1_1_1_VERSION_NUM) {
+            RobotLog.ww(TAG, "Unable to set the Wi-Fi AP beacon rate on Control Hub OS version" + LynxConstants.getControlHubOsVersion());
             RobotLog.ww(TAG, "Control Hub OS version 1.1.1 or higher is required for this feature.");
             return;
         }
@@ -143,15 +143,15 @@ public class Rev3328 extends AndroidBoard {
     }
 
     @Override public boolean supports5GhzAutoSelection() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionCode() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean supportsBulkNetworkSettings() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionCode() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean supportsGetChannelInfoIntent() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_BETA_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionCode() >= OS_1_1_2_BETA_VERSION_NUM;
     }
 
     @Override public boolean hasControlHubUpdater() {
@@ -159,7 +159,7 @@ public class Rev3328 extends AndroidBoard {
     }
 
     @Override public boolean hasRcAppWatchdog() {
-        return LynxConstants.getControlHubOsVersionNum() >= OS_1_1_2_VERSION_NUM;
+        return LynxConstants.getControlHubOsVersionCode() >= OS_1_1_2_VERSION_NUM;
     }
 
     private enum RealtekWifiDataRate {
@@ -188,7 +188,7 @@ public class Rev3328 extends AndroidBoard {
             for (RealtekWifiDataRate rtkWifiDataRate: values()) {
                 if (rtkWifiDataRate.wifiDataRate == wifiDataRate) return rtkWifiDataRate;
             }
-            throw new IllegalArgumentException("Unsupported data rate for Realtek WiFi: " + wifiDataRate);
+            throw new IllegalArgumentException("Unsupported data rate for Realtek Wi-Fi: " + wifiDataRate);
         }
 
         public static @Nullable RealtekWifiDataRate fromRawValue(int rawValue) {

@@ -33,6 +33,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:inputType="text"
+        android:imeOptions="actionDone|flagNoExtractUi"
         android:maxLength="200"
         android:hint="@string/input_name_hint">
       </EditText>

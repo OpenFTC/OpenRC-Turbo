@@ -65,11 +65,9 @@ import com.qualcomm.robotcore.hardware.configuration.MotorControllerConfiguratio
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ServoControllerConfiguration;
 import com.qualcomm.robotcore.robocol.Command;
-import com.qualcomm.robotcore.robocol.RobocolDatagram;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 import com.qualcomm.robotcore.util.ThreadPool;
-import com.qualcomm.robotcore.wifi.NetworkConnection;
 
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
@@ -87,7 +85,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 @SuppressWarnings("WeakerAccess")
-public class FtcConfigurationActivity extends EditActivity implements RecvLoopRunnable.RecvLoopCallback, NetworkConnection.NetworkConnectionCallback {
+public class FtcConfigurationActivity extends EditActivity {
 
   //------------------------------------------------------------------------------------------------
   // State
@@ -105,6 +103,8 @@ public class FtcConfigurationActivity extends EditActivity implements RecvLoopRu
   protected Semaphore feedbackPosted = new Semaphore(0);
   protected long msSaveSplashDelay = 1000;
   protected NetworkConnectionHandler networkConnectionHandler = NetworkConnectionHandler.getInstance();
+  protected final RecvLoopRunnable.RecvLoopCallback commandCallback = new CommandCallback();
+
 
   //------------------------------------------------------------------------------------------------
   // Life cycle
@@ -139,8 +139,7 @@ public class FtcConfigurationActivity extends EditActivity implements RecvLoopRu
     super.onStart();
 
     if (remoteConfigure) {
-      networkConnectionHandler.pushNetworkConnectionCallback(this);
-      networkConnectionHandler.pushReceiveLoopCallback(this);
+      networkConnectionHandler.pushReceiveLoopCallback(commandCallback);
     }
 
     if (!remoteConfigure) {
@@ -182,8 +181,7 @@ public class FtcConfigurationActivity extends EditActivity implements RecvLoopRu
   protected void onStop() {
     super.onStop();
     if (remoteConfigure) {
-      networkConnectionHandler.removeNetworkConnectionCallback(this);
-      networkConnectionHandler.removeReceiveLoopCallback(this);
+      networkConnectionHandler.removeReceiveLoopCallback(commandCallback);
     }
   }
 
@@ -783,64 +781,24 @@ public class FtcConfigurationActivity extends EditActivity implements RecvLoopRu
     return CallbackResult.HANDLED;
   }
 
-  @Override
-  public CallbackResult commandEvent(Command command) {
-    CallbackResult result = CallbackResult.NOT_HANDLED;
-    try {
-      String name = command.getName();
-      String extra = command.getExtra();
+  private class CommandCallback extends RecvLoopRunnable.DegenerateCallback {
+    @Override public CallbackResult commandEvent(Command command) throws RobotCoreException {
+      CallbackResult result = CallbackResult.NOT_HANDLED;
+      try {
+        String name = command.getName();
+        String extra = command.getExtra();
 
-      if (name.equals(CommandList.CMD_SCAN_RESP)) {
-        result = handleCommandScanResp(extra);
-      } else if (name.equals(CommandList.CMD_DISCOVER_LYNX_MODULES_RESP)) {
-        result = handleCommandDiscoverLynxModulesResp(extra);
-      } else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP)) {
-        result = handleCommandRequestParticularConfigurationResp(extra);
+        if (name.equals(CommandList.CMD_SCAN_RESP)) {
+          result = handleCommandScanResp(extra);
+        } else if (name.equals(CommandList.CMD_DISCOVER_LYNX_MODULES_RESP)) {
+          result = handleCommandDiscoverLynxModulesResp(extra);
+        } else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP)) {
+          result = handleCommandRequestParticularConfigurationResp(extra);
+        }
+      } catch (RobotCoreException e) {
+        RobotLog.logStacktrace(e);
       }
-    } catch (RobotCoreException e) {
-      RobotLog.logStacktrace(e);
+      return result;
     }
-    return result;
   }
-
-  @Override
-  public CallbackResult onNetworkConnectionEvent(NetworkConnection.NetworkEvent event) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult packetReceived(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult peerDiscoveryEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult heartbeatEvent(RobocolDatagram packet, long tReceived) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult telemetryEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult gamepadEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult emptyEvent(RobocolDatagram packet) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
-  @Override
-  public CallbackResult reportGlobalError(String error, boolean recoverable) {
-    return CallbackResult.NOT_HANDLED;
-  }
-
 }

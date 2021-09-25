@@ -353,7 +353,7 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
             }
         }
 
-    protected void close()
+    public void close()
     // Must be idempotent. Callable from ANY thread
         {
         stopAR();

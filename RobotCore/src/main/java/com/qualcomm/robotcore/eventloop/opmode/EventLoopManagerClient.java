@@ -34,6 +34,7 @@ package com.qualcomm.robotcore.eventloop.opmode;
 
 import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.util.WebServer;
+import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
 
 
 /**
@@ -44,4 +45,6 @@ public interface EventLoopManagerClient
     {
     @NonNull
     WebServer getWebServer();
+
+    OnBotJavaHelper getOnBotJavaHelper();
     }
