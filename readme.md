@@ -7,45 +7,37 @@ in which all of the source code that is normally tucked away inside the AAR file
 
 ## Legality for competition use
 
-According to the [2019-2020 Game Manual Part 1](https://www.firstinspires.org/sites/default/files/uploads/resource_library/ftc/game-manual-part-1.pdf), teams are not allowed to replace or modify the portions of the SDK which are distributed as AAR files, per `<RS09>`. This means that in its default configuration, OpenRC is **not** legal for competition.
+According to the [2021-2022 Game Manual Part 1](https://www.firstinspires.org/sites/default/files/uploads/resource_library/ftc/game-manual-part-1-traditional-events.pdf), teams are not allowed to replace or modify the portions of the SDK which are distributed as AAR files, per `<RS08>`. This means that in its default configuration, OpenRC is **not** legal for competition.
 
 **HOWEVER**, in order to address this, OpenRC has a `stock` build variant which will compile the `TeamCode` and `FtcRobotController` modules against the official, unmodified AAR files, rather than against the extracted modules.
 
 ## Device Compatibility
 
-Compatible with all legal FTC Robot Controller devices for the 2020-2021 season, including the Control Hub.
+Compatible with all legal FTC Robot Controller devices for the 2021-2022 season, including the Control Hub.
 
 ## Build variants
 
 ### Variant Descriptions
 
-Normal SDK 5.5 APK size: 42MB
+Normal SDK 7.0 APK size: 63MB
 
- - **Stock - 33.5MB APK** *(1.25x smaller)*
+ - **Stock - 52.1MB APK** *(1.2x smaller)*
      - Competition legal
      - 64-bit libs removed
 
- - **Turbo - 9.2MB APK** *(4.5x smaller)*
+ - **Turbo - 11.6MB APK** *(5.4x smaller)*
 
      *Note: If you would like to use Blocks, you will need to copy your private Vuforia key into the `Blocks/src/main/assets/CzechWolf` file*
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
 
- - **Extreme Turbo - 4.8MB APK** *(8.7x smaller)*
+ - **Extreme Turbo - 7.1MB APK** *(8.9x smaller)*
      - Vuforia native library loaded dynamically
      - Vuforia/TF datasets loaded dynamically
      - OnBotJava removed
      - Blocks removed
      - Sound files removed
-
-### Benchmarks
-
-|                            |**Nexus 5 (7.1.2)<br>Intel Centrino Advanced-N 6205 on Linux**|**Nexus 5 (7.1.2)<br>Intel Wireless 8260 on Linux**|
-|:--------------------------:|:-----------------:|:------------------:|
-|**Stock over WiFi**         |    30 sec           |  20 sec           |
-|**Turbo over WiFi**         |    13 sec           |  11 sec           |
-|**Extreme Turbo over WiFi** |    10 sec           |   8 sec           |
 
 ## Setup Process
 
@@ -53,7 +45,8 @@ Normal SDK 5.5 APK size: 42MB
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
  4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST/vision` folder on the RC's internal storage
- 5. Select your desired build variant (see the *Switching Build Variants* section)
+ 5. Also copy the Freight Frenzy game assets from [the AAR](https://repo1.maven.org/maven2/org/firstinspires/ftc/gameAssets-FreightFrenzy/1.0.0/gameAssets-FreightFrenzy-1.0.0.aar) into that same folder
+ 6. Select your desired build variant (see the *Switching Build Variants* section)
 
 ## Update Process
 
