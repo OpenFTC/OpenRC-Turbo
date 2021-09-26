@@ -15,7 +15,4 @@ dependencies {
      * Other Modules
      */
     implementation project(':FtcRobotController')
-    implementation project(':Hardware')
-    implementation project(':RobotCore')
-    implementation project(':FtcCommon')
 }

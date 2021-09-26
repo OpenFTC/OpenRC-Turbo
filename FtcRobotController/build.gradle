@@ -20,6 +20,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    ndkVersion '21.3.6528147'
 }
 
 apply from: '../moduleFlavors.gradle'
