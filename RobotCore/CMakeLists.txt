@@ -69,7 +69,7 @@ include_directories(
 add_library(Vuforia-prebuilt SHARED IMPORTED)
 set_target_properties(Vuforia-prebuilt PROPERTIES IMPORTED_LOCATION
         # For unknown reasons we cannot just use a relative path
-        ${CMAKE_CURRENT_SOURCE_DIR}/../filesForDynamicLoad/libVuforia.so)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../filesForDynamicLoad/libVuforiaReal.so)
 
 # linking libs
 target_link_libraries(

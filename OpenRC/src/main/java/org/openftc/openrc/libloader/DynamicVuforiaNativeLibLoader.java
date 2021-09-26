@@ -45,10 +45,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StreamCorruptedException;
 import java.util.concurrent.CountDownLatch;
 
 public class DynamicVuforiaNativeLibLoader
 {
+    private static final String NATIVE_LIB_FILENAME = "libVuforiaReal.so";
     private static final String NATIVE_LIB_MD5 = "cbb557fe47a78e51e4aed926b09fb73d";
     private static boolean alreadyLoaded = false;
     private static Runnable onPeerConnectedRunnable = null;
@@ -153,7 +155,7 @@ public class DynamicVuforiaNativeLibLoader
             e.printStackTrace();
 
             // No period at the end, since a semicolon may be appended by the system.
-            String globalWarningMessage = "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage";
+            String globalWarningMessage = String.format("%s was not found. Please copy it to the FIRST/vision folder on the internal storage", NATIVE_LIB_FILENAME);
             RobotLog.ee(TAG, e, globalWarningMessage);
             RobotLog.addGlobalWarningMessage(globalWarningMessage);
 
@@ -164,8 +166,8 @@ public class DynamicVuforiaNativeLibLoader
             e.printStackTrace();
 
             // No period at the end, since a semicolon may be appended by the system.
-            String globalWarningMessage = "libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
-                    "checksum does not match what is expected. Delete and re-download the file.";
+            String globalWarningMessage = String.format("%s is present in the FIRST/vision on the internal storage. However, the MD5 " +
+                    "checksum does not match what is expected. Delete and re-download the file.", NATIVE_LIB_FILENAME);
             RobotLog.ee(TAG, e, globalWarningMessage);
             RobotLog.addGlobalWarningMessage(globalWarningMessage);
 
@@ -179,9 +181,9 @@ public class DynamicVuforiaNativeLibLoader
 
     private void setupVuforiaFiles() throws VuforiaNativeLibNotFoundException, VuforiaNativeLibCorruptedException
     {
-        libInProtectedStorage = new File(rcActivity.getFilesDir() + "/extra/libVuforiaReal.so");
-        protectedExtraFolder = new File(rcActivity.getFilesDir() + "/extra/");
-        libOnSdcard = new File(Environment.getExternalStorageDirectory() + "/FIRST/libVuforia.so");
+        libInProtectedStorage = new File(String.format("%s/extra/%s", rcActivity.getFilesDir(), NATIVE_LIB_FILENAME));
+        protectedExtraFolder = new File(String.format("%s/extra", rcActivity.getFilesDir()));
+        libOnSdcard = new File(String.format("%s/FIRST/vision/%s", Environment.getExternalStorageDirectory(), NATIVE_LIB_FILENAME));
 
         /*
          * First, check to see if it exists in the protected storage
@@ -245,13 +247,13 @@ public class DynamicVuforiaNativeLibLoader
 
     private void showLibNotOnSdcardDialog()
     {
-        showErrorDialog("libVuforia.so not found!", "libVuforia.so was not found. Please copy it to the FIRST folder on the internal storage.");
+        showErrorDialog(String.format("%s not found!", NATIVE_LIB_FILENAME), String.format("%s was not found. Please copy it to the FIRST/vision folder on the internal storage.", NATIVE_LIB_FILENAME));
     }
 
     private void showLibCorruptedDialog()
     {
-        showErrorDialog("libVuforia.so corrupted!", "libVuforia.so is present in the FIRST on the internal storage. However, the MD5 " +
-                "checksum does not match what is expected. Delete and re-download the file.");
+        showErrorDialog(String.format("%s corrupted!", NATIVE_LIB_FILENAME), String.format("%s is present in the FIRST/vision on the internal storage. However, the MD5 " +
+                "checksum does not match what is expected. Delete and re-download the file.", NATIVE_LIB_FILENAME));
     }
 
     private void showErrorDialog(final String title, final String message)

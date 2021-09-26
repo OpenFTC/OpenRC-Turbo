@@ -32,7 +32,7 @@ android {
 
 
     packagingOptions {
-        exclude '/lib/armeabi-v7a/libVuforia.so'
+        exclude '/lib/armeabi-v7a/libVuforiaReal.so'
     }
 
     buildTypes {
