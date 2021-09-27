@@ -45,7 +45,7 @@ Normal SDK 7.0 APK size: 63MB
  2. Clone your fork
  3. Do `git remote add upstream https://github.com/OpenFTC/OpenRC-Turbo.git`
  4. Copy all of the files found in the `filesForDynamicLoad` folder of this repo into the `FIRST/vision` folder on the RC's internal storage
- 5. Also copy the Freight Frenzy game assets from [the AAR](https://repo1.maven.org/maven2/org/firstinspires/ftc/gameAssets-FreightFrenzy/1.0.0/gameAssets-FreightFrenzy-1.0.0.aar) into that same folder
+ 5. Also copy the Freight Frenzy game assets from [the AAR](https://repo1.maven.org/maven2/org/firstinspires/ftc/gameAssets-FreightFrenzy/1.0.0/gameAssets-FreightFrenzy-1.0.0.aar) into that same folder (you can also find them attached on the 7.0 release tag)
  6. Select your desired build variant (see the *Switching Build Variants* section)
 
 ## Update Process
