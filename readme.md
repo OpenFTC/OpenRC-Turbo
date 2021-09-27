@@ -103,6 +103,15 @@ tfod.loadModelFromFile("/sdcard/FIRST/vision/DatasetName.tflite");
 
 ## Release Notes:
 
+### 7.0A
+
+Released on 27 September 2021
+
+ - Updates to SDK v7.0
+ - Requires NDK for building
+ - Now looks for libVuforiaReal.so in the FIRST/vision folder
+ - Also requires new TF / Vuforia datasets to be downloaded from the releases page
+
 ### 6.2A
 
 Released on 27 February 2021
