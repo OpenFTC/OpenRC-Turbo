@@ -93,6 +93,7 @@ import com.qualcomm.robotcore.hardware.usb.RobotUsbDeviceImplBase;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbManager;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbManagerCombining;
 import com.qualcomm.robotcore.hardware.usb.RobotUsbModule;
+import com.qualcomm.robotcore.hardware.usb.acm.RobotUsbDeviceManagerAcm;
 import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbManagerFtdi;
 import com.qualcomm.robotcore.hardware.usb.serial.RobotUsbManagerTty;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -162,6 +163,13 @@ public class HardwareDeviceManager implements DeviceManager {
         combiner.addManager(usbManager);
         combiner.addManager(new RobotUsbManagerTty());
         usbManager = combiner;
+    }
+    else
+    {
+      RobotUsbManagerCombining combiner = new RobotUsbManagerCombining();
+      combiner.addManager(usbManager);
+      combiner.addManager(new RobotUsbDeviceManagerAcm());
+      usbManager = combiner;
     }
     return usbManager;
   }

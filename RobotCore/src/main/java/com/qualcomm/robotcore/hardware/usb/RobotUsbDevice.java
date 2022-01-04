@@ -92,9 +92,9 @@ public interface RobotUsbDevice {
     private static final Set<Integer> bcdDevicesLynx           = new HashSet<Integer>(Arrays.asList(new Integer[] { 0x1000 }));
 
     public boolean isLynxDevice() {
-      return this.vendorId == vendorIdFTDI
+      return (this.vendorId == vendorIdFTDI
               && productIdsLynx.contains(this.productId)
-              && bcdDevicesLynx.contains(this.bcdDevice & 0xFF00);
+              && bcdDevicesLynx.contains(this.bcdDevice & 0xFF00)) || (vendorId == 0x2e8a && productId == 0x000a);
     }
 
     @SuppressWarnings("ConstantConditions")
