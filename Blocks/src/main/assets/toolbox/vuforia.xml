@@ -12,6 +12,7 @@
       <block type="vuforiaCurrentGame_trackPose">
         <value name="TRACKABLE_NAME"><shadow type="vuforiaCurrentGame_typedEnum_trackableName"></shadow></value>
       </block>
+      <block type="vuforiaCurrentGame_getVuforiaLocalizer"></block>
       <placeholder_vuforia_current_game_trackable_names/>
       <block type="vuforiaTrackingResults_getProperty_String">
           <field name="PROP">Name</field>

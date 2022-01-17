@@ -104,6 +104,7 @@ public abstract class InspectionActivity extends ThemedActivity
     TextView osVersionLabel;
     LinearLayout osVersionLayout;
     LinearLayout airplaneModeLayout;
+    LinearLayout rcPasswordLayout;
     Pattern teamNoRegex;
     Future refreshFuture = null;
     int textOk = AppUtil.getColor(R.color.text_okay);
@@ -170,6 +171,7 @@ public abstract class InspectionActivity extends ThemedActivity
         osVersionLabel = findViewById(R.id.osVersionLabel);
         osVersionLayout = findViewById(R.id.osVersionLayout);
         airplaneModeLayout = findViewById(R.id.airplaneModeLayout);
+        rcPasswordLayout = findViewById(R.id.rcPasswordLayout);
 
         txtAppVersion.setText(inspectingRobotController()
             ? getString(R.string.titleInspectionReportRC)
@@ -177,8 +179,7 @@ public abstract class InspectionActivity extends ThemedActivity
 
         if (!inspectingRobotController())
             {
-            rcPassword.setVisibility(View.GONE);
-            findViewById(R.id.textViewPassword).setVisibility(View.GONE);
+            rcPasswordLayout.setVisibility(View.GONE);
             hubFirmwarePrimaryLine_layout.setVisibility(View.GONE);
             hubFirmwareExtraLineLayout.setVisibility(View.GONE);
             }
@@ -455,6 +456,11 @@ public abstract class InspectionActivity extends ThemedActivity
                 osVersionLabel.setText(R.string.driverHubOsVersionLabel);
                 refresh(osVersion, isValidDriverHubOsVersion(state), state.driverHubOsVersion);
                 }
+            }
+
+        if (!inspectingControlHub)
+            {
+            rcPasswordLayout.setVisibility(View.GONE);
             }
 
         // Only display airplane mode line on non-REV devices.

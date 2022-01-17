@@ -32,7 +32,9 @@ public class TfodCurrentGame extends TfodBase {
     "Marker",
   };
 
-  private static final boolean IS_MODEL_TENSOR_FLOW_2 = true;
+  public static final boolean IS_MODEL_TENSOR_FLOW_2 = true;
+  public static final boolean IS_MODEL_QUANTIZED = true;
+  public static final int INPUT_SIZE = 300;
 
   public TfodCurrentGame() {
     super(TFOD_MODEL_ASSET, LABELS, IS_MODEL_TENSOR_FLOW_2);

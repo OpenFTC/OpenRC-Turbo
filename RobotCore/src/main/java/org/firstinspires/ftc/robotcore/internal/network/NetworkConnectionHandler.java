@@ -103,7 +103,7 @@ public class NetworkConnectionHandler {
     protected @Nullable String connectionOwner;
     protected @Nullable String connectionOwnerPassword;
 
-    protected NetworkConnection networkConnection = null;
+    protected @Nullable NetworkConnection networkConnection = null;
     protected final NetworkConnectionCallbackChainer theNetworkConnectionCallback = new NetworkConnectionCallbackChainer();
     protected RecvLoopRunnable recvLoopRunnable;
     protected final RecvLoopCallbackChainer theRecvLoopCallback = new RecvLoopCallbackChainer();
@@ -281,7 +281,10 @@ public class NetworkConnectionHandler {
     }
 
     public void cancelConnectionSearch() {
-        networkConnection.cancelPotentialConnections();
+        NetworkConnection networkConnection = this.networkConnection;
+        if (networkConnection != null) {
+            networkConnection.cancelPotentialConnections();
+        }
     }
 
     public String getFailureReason() {

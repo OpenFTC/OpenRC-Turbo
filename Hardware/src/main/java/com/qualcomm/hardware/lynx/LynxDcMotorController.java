@@ -634,6 +634,12 @@ public class LynxDcMotorController extends LynxController implements DcMotorCont
                 }
             }
 
+        if (internalGetMotorChannelMode(motor) != DcMotor.RunMode.RUN_TO_POSITION)
+            {
+            // Calling isBusy() on a motor not in RTP mode creates NAK logspam
+            return false;
+            }
+
         try {
             LynxIsMotorAtTargetResponse response = command.sendReceive();
             return !response.isAtTarget();  // isBusy is true when motor is not at target position.

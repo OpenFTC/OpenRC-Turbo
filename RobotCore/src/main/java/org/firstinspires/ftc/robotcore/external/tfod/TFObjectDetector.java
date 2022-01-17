@@ -46,10 +46,10 @@ public interface TFObjectDetector extends CameraStreamSource {
    * Loads a TFLite model from the indicated file, which must be a .tflite file and contain the
    * full file path.
    *
-   * @param absoluteFileName the full path to the .tflite model file to load
+   * @param fileName either the name of the file that was uploaded using the Manage page or the full path to the .tflite model file
    * @param labels the labels of the objects in the model
    */
-  void loadModelFromFile(String absoluteFileName, String... labels);
+  void loadModelFromFile(String fileName, String... labels);
 
   /**
    * Activates this TFObjectDetector so it starts recognizing objects.

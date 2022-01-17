@@ -1146,6 +1146,13 @@ Blockly.FtcJava.importDeclareAssign_ = function(block, identifierFieldName, java
       rvalue = 'new ' + javaType + '()';
       needsToBeClosed = true;
       break;
+    case 'Tfod':
+      // tfodIdentifierForFtcJava is defined dynamically in
+      // HardwareUtil.fetchJavaScriptForHardware().
+      identifierForFtcJava = identifier = tfodIdentifierForFtcJava;
+      rvalue = 'new ' + javaType + '()';
+      needsToBeClosed = true;
+      break;
     case 'TfodCurrentGame':
       // tfodCurrentGameIdentifierForFtcJava is defined dynamically in
       // HardwareUtil.fetchJavaScriptForHardware().

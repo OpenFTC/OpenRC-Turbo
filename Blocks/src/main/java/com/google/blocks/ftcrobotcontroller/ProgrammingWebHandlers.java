@@ -20,7 +20,7 @@ import com.google.blocks.ftcrobotcontroller.util.ClipboardUtil;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil;
 import com.google.blocks.ftcrobotcontroller.util.OfflineBlocksUtil;
 import com.google.blocks.ftcrobotcontroller.util.ProjectsUtil;
-import com.google.blocks.ftcrobotcontroller.util.SoundsUtil;
+import com.google.blocks.ftcrobotcontroller.util.FileManager;
 import com.qualcomm.ftccommon.CommandList;
 import com.qualcomm.robotcore.robocol.Command;
 
@@ -62,6 +62,7 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
 
   private static final String URI_SERVER = "/server";
   private static final String URI_HARDWARE = "/hardware";
+  private static final String URI_FILE_MANAGER_JS = "/file_manager_js";
   private static final String URI_GET_CONFIGURATION_NAME = "/get_config_name";
   private static final String URI_FETCH_OFFLINE_BLOCKS_EDITOR = "/offline_blocks_editor";
   private static final String URI_LIST_PROJECTS = "/list";
@@ -77,15 +78,16 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
   private static final String URI_SAVE_BLOCKS_JAVA = "/save_blocks_java";
   private static final String URI_SAVE_CLIPBOARD = "/savecb";
   private static final String URI_FETCH_CLIPBOARD = "/fetch_cb";
-  private static final String URI_LIST_SOUNDS = "/list_sounds";
-  private static final String URI_SAVE_SOUND = "/save_sound";
-  private static final String URI_FETCH_SOUND = "/fetch_sound";
-  private static final String URI_FETCH_SOUND_TYPE = "/fetch_sound_type";
-  private static final String URI_RENAME_SOUND = "/rename_sound";
-  private static final String URI_COPY_SOUND = "/copy_sound";
-  private static final String URI_DELETE_SOUNDS = "/delete_sounds";
+  private static final String URI_LIST_FILES = "/list_files";
+  private static final String URI_SAVE_FILE = "/save_file";
+  private static final String URI_FETCH_FILE = "/fetch_file";
+  private static final String URI_FETCH_FILE_TYPE = "/fetch_file_type";
+  private static final String URI_RENAME_FILE = "/rename_file";
+  private static final String URI_COPY_FILE = "/copy_file";
+  private static final String URI_DELETE_FILES = "/delete_files";
   private static final String URI_RESTART_ROBOT = "/restart_robot";
   private static final String URI_COLORS = RobotControllerWebHandlers.URI_COLORS;
+  private static final String PARAM_FM_NAME = "fmname";
   private static final String PARAM_NAME = RobotControllerWebHandlers.PARAM_NAME;
   private static final String PARAM_NEW_NAME = RobotControllerWebHandlers.PARAM_NEW_NAME;
   private static final String PARAM_SAMPLE_NAME = "sample";
@@ -114,6 +116,7 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
     private Response fetchJavaScriptForServer(NanoHTTPD.IHTTPSession session) throws IOException {
       StringBuilder js = new StringBuilder();
       js.append("var URI_HARDWARE = '").append(URI_HARDWARE).append("';\n");
+      js.append("var URI_FILE_MANAGER_JS = '").append(URI_FILE_MANAGER_JS).append("';\n");
       js.append("var URI_GET_CONFIGURATION_NAME = '").append(URI_GET_CONFIGURATION_NAME).append("';\n");
       js.append("var URI_FETCH_OFFLINE_BLOCKS_EDITOR = '").append(URI_FETCH_OFFLINE_BLOCKS_EDITOR).append("';\n");
       js.append("var URI_LIST_PROJECTS = '").append(URI_LIST_PROJECTS).append("';\n");
@@ -129,14 +132,15 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
       js.append("var URI_SAVE_BLOCKS_JAVA = '").append(URI_SAVE_BLOCKS_JAVA).append("';\n");
       js.append("var URI_SAVE_CLIPBOARD = '").append(URI_SAVE_CLIPBOARD).append("';\n");
       js.append("var URI_FETCH_CLIPBOARD = '").append(URI_FETCH_CLIPBOARD).append("';\n");
-      js.append("var URI_LIST_SOUNDS = '").append(URI_LIST_SOUNDS).append("';\n");
-      js.append("var URI_SAVE_SOUND = '").append(URI_SAVE_SOUND).append("';\n");
-      js.append("var URI_FETCH_SOUND = '").append(URI_FETCH_SOUND).append("';\n");
-      js.append("var URI_FETCH_SOUND_TYPE = '").append(URI_FETCH_SOUND_TYPE).append("';\n");
-      js.append("var URI_RENAME_SOUND = '").append(URI_RENAME_SOUND).append("';\n");
-      js.append("var URI_COPY_SOUND = '").append(URI_COPY_SOUND).append("';\n");
-      js.append("var URI_DELETE_SOUNDS = '").append(URI_DELETE_SOUNDS).append("';\n");
+      js.append("var URI_LIST_FILES = '").append(URI_LIST_FILES).append("';\n");
+      js.append("var URI_SAVE_FILE = '").append(URI_SAVE_FILE).append("';\n");
+      js.append("var URI_FETCH_FILE = '").append(URI_FETCH_FILE).append("';\n");
+      js.append("var URI_FETCH_FILE_TYPE = '").append(URI_FETCH_FILE_TYPE).append("';\n");
+      js.append("var URI_RENAME_FILE = '").append(URI_RENAME_FILE).append("';\n");
+      js.append("var URI_COPY_FILE = '").append(URI_COPY_FILE).append("';\n");
+      js.append("var URI_DELETE_FILES = '").append(URI_DELETE_FILES).append("';\n");
       js.append("var URI_RESTART_ROBOT = '").append(URI_RESTART_ROBOT).append("';\n");
+      js.append("var PARAM_FM_NAME = '").append(PARAM_FM_NAME).append("';\n");
       js.append("var PARAM_NAME = '").append(PARAM_NAME).append("';\n");
       js.append("var PARAM_NEW_NAME = '").append(PARAM_NEW_NAME).append("';\n");
       js.append("var PARAM_SAMPLE_NAME = '").append(PARAM_SAMPLE_NAME).append("';\n");
@@ -501,168 +505,210 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
   }
 
   /**
-   * Fetches the names of sounds.
+   * Fetches the JavaScript code related to the file manager.
    */
-  private static class ListSounds implements WebHandler {
+  private static class FileManagerJS implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
-      return fetchSounds(session);
-    }
-
-    private Response fetchSounds(NanoHTTPD.IHTTPSession session) throws IOException {
-      String jsonSounds = SoundsUtil.fetchSounds();
-      return NoCachingWebHandler.setNoCache(session, newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, jsonSounds));
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
+      if (fmName != null) {
+        try {
+          String js = FileManager.valueOf(fmName).fetchJavaScript();
+          return NoCachingWebHandler.setNoCache(session,
+              newFixedLengthResponse(Response.Status.OK, "application/javascript", js));
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
+      }
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + " parameter is required");
     }
   }
 
   /**
-   * Saves a sound file.
+   * Fetches the names of files.
    */
-  private static class SaveSound implements WebHandler {
+  private static class ListFiles implements WebHandler {
+
+    @Override
+    public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
+      if (fmName != null) {
+        try {
+          String json = FileManager.valueOf(fmName).fetchFiles();
+          return NoCachingWebHandler.setNoCache(session,
+              newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, json));
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
+      }
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + " parameter is required");
+    }
+  }
+
+  /**
+   * Saves a file.
+   */
+  private static class SaveFile implements WebHandler {
+
+    @Override
+    public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
+      String name = getFirstNamedParameter(session, PARAM_NAME);
+      String base64Content = getFirstNamedParameter(session, PARAM_CONTENT);
+      if (fmName != null && name != null && base64Content != null) {
+        try {
+          FileManager.valueOf(fmName).saveFile(name, base64Content);
+          return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
+      }
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + ", " + PARAM_NAME + ", and " + PARAM_CONTENT +
+          " parameters are required");
+    }
+  }
+
+
+  /**
+   * Fetches the content of the file with the given name.
+   */
+  private static class FetchFile implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
       String name = getFirstNamedParameter(session, PARAM_NAME);
-      String base64Content = getFirstNamedParameter(session, PARAM_CONTENT);
-      if (name != null && base64Content != null) {
-        return saveSoundFile(name, base64Content);
-      } else {
-        return newFixedLengthResponse(
-                Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                "Bad Request: " + PARAM_NAME + " and " + PARAM_CONTENT + " parameters are required");
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
+      if (fmName != null && name != null) {
+        try {
+          String base64Content = FileManager.valueOf(fmName).fetchFileContent(name);
+          return NoCachingWebHandler.setNoCache(session,
+              newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, base64Content));
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
       }
-    }
-
-    private Response saveSoundFile(String soundName, String base64Content) throws IOException {
-      SoundsUtil.saveSoundFile(soundName, base64Content);
-      return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + " and " + PARAM_NAME + " parameters are required");
     }
   }
 
-
   /**
-   * Fetches the content of the sound file with the given sound name.
+   * Fetches the mime type of the file with the given name.
    */
-  private static class FetchSound implements WebHandler {
+  private static class FetchFileType implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
       String name = getFirstNamedParameter(session, PARAM_NAME);
       if (name != null) {
-        return fetchSoundFileContent(session, name);
-      } else {
-        return newFixedLengthResponse(
-                Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                "Bad Request: " + PARAM_NAME + " parameter is required");
-      }
-    }
-
-    private Response fetchSoundFileContent(NanoHTTPD.IHTTPSession session, String soundName) throws IOException {
-      String base64Content = SoundsUtil.fetchSoundFileContent(soundName);
-      return NoCachingWebHandler.setNoCache(session, newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, base64Content));
-    }
-  }
-
-  /**
-   * Fetches the mime type of the sound file with the given sound name.
-   */
-  private static class FetchSoundType implements WebHandler {
-
-    @Override
-    public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
-      String name = getFirstNamedParameter(session, PARAM_NAME);
-        if (name != null) {
-          return fetchSoundFileMimeType(session, name);
-        } else {
-          return newFixedLengthResponse(
-                  Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                  "Bad Request: " + PARAM_NAME + " parameter is required");
+        String mimeType = MimeTypesUtil.determineMimeType(name);
+        if (mimeType == null) {
+          mimeType = "";
         }
-    }
-
-    private Response fetchSoundFileMimeType(NanoHTTPD.IHTTPSession session, String soundName) throws IOException {
-      String mimeType = MimeTypesUtil.determineMimeType(soundName);
-      if (mimeType == null) {
-        mimeType = "";
+        return NoCachingWebHandler.setNoCache(session,
+            newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, mimeType));
       }
-      return NoCachingWebHandler.setNoCache(session, newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, mimeType));
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_NAME + " parameter is required");
     }
   }
 
 
   /**
-   * Renames the given sound.
+   * Renames the given file.
    */
-  private static class RenameSound implements WebHandler {
+  private static class RenameFile implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
       String oldName = getFirstNamedParameter(session, PARAM_NAME);
       String newName = getFirstNamedParameter(session, PARAM_NEW_NAME);
-      if (oldName != null && newName != null) {
-        return renameSound(oldName, newName);
-      } else {
-        return newFixedLengthResponse(
-                Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                "Bad Request: " + PARAM_NAME + " and " + PARAM_NEW_NAME + " parameters are required");
+      if (fmName != null && oldName != null && newName != null) {
+        try {
+          FileManager.valueOf(fmName).renameFile(oldName, newName);
+          return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
       }
-    }
-
-    private Response renameSound(String oldSoundName, String newSoundName)
-            throws IOException {
-      SoundsUtil.renameSound(oldSoundName, newSoundName);
-      return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + ", " + PARAM_NAME + ", and " + PARAM_NEW_NAME +
+          " parameters are required");
     }
   }
 
 
   /**
-   * Copies the given sound.
+   * Copies the given file.
    */
-  private static class CopySound implements WebHandler {
+  private static class CopyFile implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
       String oldName = getFirstNamedParameter(session, PARAM_NAME);
       String newName = getFirstNamedParameter(session, PARAM_NEW_NAME);
-      if (oldName != null && newName != null) {
-        return copySound(oldName, newName);
-      } else {
-        return newFixedLengthResponse(
-                Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                "Bad Request: " + PARAM_NAME + " and " + PARAM_NEW_NAME + " parameters are required");
+      if (fmName != null && oldName != null && newName != null) {
+        try {
+          FileManager.valueOf(fmName).copyFile(oldName, newName);
+          return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
       }
-    }
-
-    private Response copySound(String oldSoundName, String newSoundName)
-            throws IOException {
-      SoundsUtil.copySound(oldSoundName, newSoundName);
-      return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + ", " + PARAM_NAME + ", and " + PARAM_NEW_NAME +
+          " parameters are required");
     }
   }
 
   /**
-   * Deletes the sounds with the given names.
+   * Deletes the files with the given names.
    */
-  private static class DeleteSounds implements WebHandler {
+  private static class DeleteFiles implements WebHandler {
 
     @Override
     public Response getResponse(NanoHTTPD.IHTTPSession session) throws IOException, NanoHTTPD.ResponseException {
-      String names = getFirstNamedParameter(session, PARAM_NAME);
-      if (names != null) {
-        return deleteSounds(names);
-      } else {
-        return newFixedLengthResponse(
-                Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
-                "Bad Request: " + PARAM_NAME + " parameter is required");
+      String fmName = getFirstNamedParameter(session, PARAM_FM_NAME);
+      String starDelimitedNames = getFirstNamedParameter(session, PARAM_NAME);
+      if (fmName != null && starDelimitedNames != null) {
+        try {
+          String[] names = starDelimitedNames.split("\\*");
+          FileManager.valueOf(fmName).deleteFiles(names);
+          return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+        } catch (Exception e) {
+          e.printStackTrace();
+          return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+              "Internal Error");
+        }
       }
-    }
-
-    private Response deleteSounds(String starDelimitedSoundNames) {
-      String[] soundNames = starDelimitedSoundNames.split("\\*");
-      SoundsUtil.deleteSounds(soundNames);
-      return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, "");
+      return newFixedLengthResponse(
+          Response.Status.BAD_REQUEST, NanoHTTPD.MIME_PLAINTEXT,
+          "Bad Request: " + PARAM_FM_NAME + " and " + PARAM_NAME + " parameters are required");
     }
   }
 
@@ -702,6 +748,7 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
     manager.register(URI_NAV_BLOCKS_OLD,   new RobotControllerWebHandlers.Redirection("/"));
     manager.register(URI_SERVER,           decorateWithLogging(new Server()));
     manager.register(URI_HARDWARE,         decorateWithLogging(new Hardware()));
+    manager.register(URI_FILE_MANAGER_JS,  decorateWithLogging(decorateWithParms(new FileManagerJS())));
     manager.register(URI_GET_CONFIGURATION_NAME, decorateWithLogging(decorateWithParms(new GetConfigurationName())));
     manager.register(URI_FETCH_OFFLINE_BLOCKS_EDITOR, decorateWithLogging(new FetchOfflineBlocksEditor()));
     manager.register(URI_LIST_PROJECTS,    decorateWithLogging(new ListProjects()));
@@ -717,13 +764,13 @@ public class ProgrammingWebHandlers implements ProgrammingMode {
     manager.register(URI_SAVE_BLOCKS_JAVA, decorateWithLogging(decorateWithParms(new SaveBlocksJava())));
     manager.register(URI_SAVE_CLIPBOARD,   decorateWithLogging(decorateWithParms(new SaveClipboard())));
     manager.register(URI_FETCH_CLIPBOARD,  decorateWithLogging(new FetchClipboard()));
-    manager.register(URI_LIST_SOUNDS,      decorateWithLogging(new ListSounds()));
-    manager.register(URI_SAVE_SOUND,       decorateWithLogging(decorateWithParms(new SaveSound())));
-    manager.register(URI_FETCH_SOUND,      decorateWithLogging(decorateWithParms(new FetchSound())));
-    manager.register(URI_FETCH_SOUND_TYPE, decorateWithLogging(decorateWithParms(new FetchSoundType())));
-    manager.register(URI_RENAME_SOUND,     decorateWithLogging(decorateWithParms(new RenameSound())));
-    manager.register(URI_COPY_SOUND,       decorateWithLogging(decorateWithParms(new CopySound())));
-    manager.register(URI_DELETE_SOUNDS,    decorateWithLogging(decorateWithParms(new DeleteSounds())));
+    manager.register(URI_LIST_FILES,       decorateWithLogging(decorateWithParms(new ListFiles())));
+    manager.register(URI_SAVE_FILE,        decorateWithLogging(decorateWithParms(new SaveFile())));
+    manager.register(URI_FETCH_FILE,       decorateWithLogging(decorateWithParms(new FetchFile())));
+    manager.register(URI_FETCH_FILE_TYPE,  decorateWithLogging(decorateWithParms(new FetchFileType())));
+    manager.register(URI_RENAME_FILE,      decorateWithLogging(decorateWithParms(new RenameFile())));
+    manager.register(URI_COPY_FILE,        decorateWithLogging(decorateWithParms(new CopyFile())));
+    manager.register(URI_DELETE_FILES ,    decorateWithLogging(decorateWithParms(new DeleteFiles())));
     manager.register(URI_RESTART_ROBOT,    decorateWithLogging(new RestartRobot()));
     manager.register(URI_COLORS,           decorateWithLogging(manager.getRegisteredHandler(URI_COLORS)));
     manager.register(RobotControllerWebHandlers.URI_RC_CONFIG,  new RobotControllerConfiguration());

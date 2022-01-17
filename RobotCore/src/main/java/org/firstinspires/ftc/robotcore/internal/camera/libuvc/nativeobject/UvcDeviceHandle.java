@@ -55,6 +55,7 @@ import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiExposure
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiFocusControl;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiPtzControl;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiGainControl;
+import org.firstinspires.ftc.robotcore.internal.camera.libuvc.api.UvcApiWhiteBalanceControl;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.constants.UvcAutoExposureMode;
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.constants.UvcFrameFormat;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;
@@ -209,6 +210,7 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
         cameraControls.add(new UvcApiExposureControl(this));
         cameraControls.add(new UvcApiPtzControl(this));
         cameraControls.add(new UvcApiGainControl(this));
+        cameraControls.add(new UvcApiWhiteBalanceControl(this));
         }
 
     @Override public @Nullable <T extends CameraControl> T getControl(Class<T> controlType)
@@ -473,6 +475,48 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
             return nativeGetAePriority(pointer);
             }
         }
+    public int getMinWhiteBalanceTemperature()
+        {
+        synchronized (lock)
+            {
+            return nativeGetMinWhiteBalanceTemperature(pointer);
+            }
+        }
+    public int getMaxWhiteBalanceTemperature()
+        {
+        synchronized (lock)
+            {
+            return nativeGetMaxWhiteBalanceTemperature(pointer);
+            }
+        }
+    public boolean setWhiteBalanceTemperature(int temperature)
+        {
+        synchronized (lock)
+            {
+            return nativeSetWhiteBalanceTemperature(pointer, temperature);
+            }
+        }
+    public int getWhiteBalanceTemperature()
+        {
+        synchronized (lock)
+            {
+            return nativeGetWhiteBalanceTemperature(pointer);
+            }
+        }
+    public int getWhiteBalanceMode()
+        {
+        synchronized (lock)
+            {
+            return nativeGetWhiteBalanceMode(pointer);
+            }
+        }
+    public boolean setWhiteBalanceMode(int mode)
+        {
+        synchronized (lock)
+            {
+            return nativeSetWhiteBalanceMode(pointer, mode);
+            }
+        }
 
     //----------------------------------------------------------------------------------------------
     // Camera interface : state transitions
@@ -715,4 +759,11 @@ public class UvcDeviceHandle extends NativeObject<UvcDevice> implements RefCount
     protected native static int nativeGetMinGain(long pointer);
     protected native static int nativeGetGain(long pointer);
     protected native static boolean nativeSetGain(long pointer, int gain);
+
+    protected native static int nativeGetMinWhiteBalanceTemperature(long pointer);
+    protected native static int nativeGetMaxWhiteBalanceTemperature(long pointer);
+    protected native static int nativeGetWhiteBalanceTemperature(long pointer);
+    protected native static boolean nativeSetWhiteBalanceTemperature(long pointer, int temperature);
+    protected native static int nativeGetWhiteBalanceMode(long pointer);
+    protected native static boolean nativeSetWhiteBalanceMode(long pointer, int mode);
     }

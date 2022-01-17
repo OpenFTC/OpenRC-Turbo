@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Michael Hoogasian
+ * Copyright (c) 2021 Michael Hoogasian
  *
  * All rights reserved.
  *
@@ -37,42 +37,39 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.PtzControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.WhiteBalanceControl;
 import org.firstinspires.ftc.robotcore.internal.system.Tracer;
 
 /**
- * A {@link PtzControl} that caches state from another PTZ control
+ * A {@link WhiteBalanceControl} that caches state from another WhiteBalance control
  */
 @SuppressWarnings("WeakerAccess")
-public class CachingPtzControl implements PtzControl, DelegatingCameraControl
+public class CachingWhiteBalanceControl implements WhiteBalanceControl, DelegatingCameraControl
 {
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
 
-    public static final String TAG = "CachingPtzControl";
+    public static final String TAG = "CachingWhiteBalanceControl";
     public String getTag() { return TAG; }
     public static boolean TRACE = true;
     protected Tracer tracer = Tracer.create(getTag(), TRACE);
 
-    public static boolean isUnknownZoom(int zoom) { return zoom < 0; }
-    public static boolean isUnknownPanTilt(PanTiltHolder holder) { return holder == null; }
+    public static boolean isUnknownTemperature(int temperature) { return temperature == unknownTemperature; }
 
     protected final Object lock = new Object();
     protected Camera camera = null;
-    protected @NonNull PtzControl delegatedPtzControl;
-    protected final PtzControl fakePtzControl;
+    protected @NonNull WhiteBalanceControl delegatedWhiteBalanceControl;
+    protected final WhiteBalanceControl fakeWhiteBalanceControl;
 
-    protected int unknownZoom = -1;
+    protected static final int unknownTemperature = -1;
 
-    protected int minZoom = unknownZoom;
-    protected int maxZoom = unknownZoom;
-    protected int zoom = unknownZoom;
-
-    protected PanTiltHolder maxPanTilt = null;
-    protected PanTiltHolder minPanTilt = null;
-    protected PanTiltHolder panTilt = null;
-    protected PanTiltHolder fakePanTilt = new PanTiltHolder();
+    protected int minTemperature = unknownTemperature;
+    protected int maxTemperature = unknownTemperature;
+    protected int temperature = unknownTemperature;
+    protected Mode mode = null;
 
     protected boolean limitsInitialized = false;
 
@@ -80,82 +77,49 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public CachingPtzControl()
+    public CachingWhiteBalanceControl()
     {
-        fakePtzControl = new PtzControl()
+        fakeWhiteBalanceControl = new WhiteBalanceControl()
         {
             @Override
-            public PanTiltHolder getPanTilt()
+            public int getWhiteBalanceTemperature()
             {
-                if(!isUnknownPanTilt(panTilt))
-                {
-                    return panTilt;
-                }
-                else
-                {
-                    return fakePanTilt;
-                }
+                return temperature;
             }
 
             @Override
-            public boolean setPanTilt(PanTiltHolder panTiltHolder)
+            public boolean setWhiteBalanceTemperature(int temperature)
             {
                 return false;
             }
 
             @Override
-            public PanTiltHolder getMinPanTilt()
+            public Mode getMode()
             {
-                if(!isUnknownPanTilt(minPanTilt))
-                {
-                    return minPanTilt;
-                }
-                else
-                {
-                    return fakePanTilt;
-                }
+                return Mode.UNKNOWN;
             }
 
             @Override
-            public PanTiltHolder getMaxPanTilt()
-            {
-                if(!isUnknownPanTilt(maxPanTilt))
-                {
-                    return maxPanTilt;
-                }
-                else
-                {
-                    return fakePanTilt;
-                }
-            }
-
-            @Override
-            public int getZoom()
-            {
-                return zoom;
-            }
-
-            @Override
-            public boolean setZoom(int zoom)
+            public boolean setMode(Mode mode)
             {
                 return false;
             }
 
             @Override
-            public int getMinZoom()
+            public int getMinWhiteBalanceTemperature()
             {
-                return minZoom;
+                return minTemperature;
             }
 
             @Override
-            public int getMaxZoom()
+            public int getMaxWhiteBalanceTemperature()
             {
-                return maxZoom;
+                return maxTemperature;
             }
         };
 
 
-        delegatedPtzControl = fakePtzControl;
+        delegatedWhiteBalanceControl = fakeWhiteBalanceControl;
     }
 
     @Override public void onCameraChanged(@Nullable Camera newCamera)
@@ -168,15 +132,15 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
                 if (camera != null)
                 {
                     //noinspection ConstantConditions
-                    delegatedPtzControl = camera.getControl(PtzControl.class);
-                    if (delegatedPtzControl == null)
+                    delegatedWhiteBalanceControl = camera.getControl(WhiteBalanceControl.class);
+                    if (delegatedWhiteBalanceControl == null)
                     {
-                        delegatedPtzControl = fakePtzControl;
+                        delegatedWhiteBalanceControl = fakeWhiteBalanceControl;
                     }
                     if (!limitsInitialized)
                     {
                         initializeLimits();
-                        if (delegatedPtzControl != fakePtzControl)
+                        if (delegatedWhiteBalanceControl != fakeWhiteBalanceControl)
                         {
                             limitsInitialized = true;
                         }
@@ -186,7 +150,7 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
                 }
                 else
                 {
-                    delegatedPtzControl = fakePtzControl;
+                    delegatedWhiteBalanceControl = fakeWhiteBalanceControl;
                 }
             }
         }
@@ -198,21 +162,15 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
 
     protected void write()
     {
-        if (!isUnknownZoom(zoom))
+        if (!isUnknownTemperature(temperature))
         {
-            delegatedPtzControl.setZoom(zoom);
-        }
-
-        if(!isUnknownPanTilt(panTilt))
-        {
-            delegatedPtzControl.setPanTilt(panTilt);
+            delegatedWhiteBalanceControl.setWhiteBalanceTemperature(temperature);
         }
     }
 
     protected void read()
     {
-        zoom = delegatedPtzControl.getZoom();
-        panTilt = delegatedPtzControl.getPanTilt();
+        temperature = delegatedWhiteBalanceControl.getWhiteBalanceTemperature();
 
         if (!limitsInitialized)
         {
@@ -224,33 +182,35 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
 
     void initializeLimits()
     {
-        minZoom = delegatedPtzControl.getMinZoom();
-        maxZoom = delegatedPtzControl.getMaxZoom();
-
-        minPanTilt = delegatedPtzControl.getMinPanTilt();
-        maxPanTilt = delegatedPtzControl.getMaxPanTilt();
+        minTemperature = delegatedWhiteBalanceControl.getMinWhiteBalanceTemperature();
+        maxTemperature = delegatedWhiteBalanceControl.getMaxWhiteBalanceTemperature();
     }
 
     @Override
-    public PanTiltHolder getPanTilt()
+    public int getWhiteBalanceTemperature()
     {
         synchronized (lock)
         {
-            panTilt = delegatedPtzControl.getPanTilt();
-            return panTilt;
+            temperature = delegatedWhiteBalanceControl.getWhiteBalanceTemperature();
+            return temperature;
         }
     }
 
     @Override
-    public boolean setPanTilt(PanTiltHolder newPanTilt)
+    public boolean setWhiteBalanceTemperature(int whiteBalanceTemperature)
     {
-        if (newPanTilt != null)
+        if (whiteBalanceTemperature >= minTemperature && whiteBalanceTemperature <= maxTemperature)
         {
             synchronized (lock)
             {
-                if (delegatedPtzControl.setPanTilt(newPanTilt))
+                /*if(mode != Mode.MANUAL)
                 {
-                    panTilt = newPanTilt;
+                    return false;
+                }*/
+
+                if (delegatedWhiteBalanceControl.setWhiteBalanceTemperature(whiteBalanceTemperature))
+                {
+                    temperature = whiteBalanceTemperature;
                     return true;
                 }
             }
@@ -260,54 +220,41 @@ public class CachingPtzControl implements PtzControl, DelegatingCameraControl
     }
 
     @Override
-    public PanTiltHolder getMinPanTilt()
-    {
-        return minPanTilt;
-    }
-
-    @Override
-    public PanTiltHolder getMaxPanTilt()
-    {
-        return maxPanTilt;
-    }
-
-    @Override
-    public int getZoom()
+    public Mode getMode()
     {
         synchronized (lock)
         {
-            zoom = delegatedPtzControl.getZoom();
-            return zoom;
+            mode = delegatedWhiteBalanceControl.getMode();
+            return mode;
         }
     }
 
     @Override
-    public boolean setZoom(int newZoom)
+    public boolean setMode(Mode newMode)
     {
-        if (newZoom >= 0)
+        synchronized (lock)
         {
-            synchronized (lock)
+            if (delegatedWhiteBalanceControl.setMode(newMode))
             {
-                if (delegatedPtzControl.setZoom(newZoom))
-                {
-                    zoom = newZoom;
-                    return true;
-                }
+                mode = newMode;
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
-
-        return false;
     }
 
     @Override
-    public int getMinZoom()
+    public int getMinWhiteBalanceTemperature()
     {
-        return minZoom;
+        return minTemperature;
     }
 
     @Override
-    public int getMaxZoom()
+    public int getMaxWhiteBalanceTemperature()
     {
-        return maxZoom;
+        return maxTemperature;
     }
 }

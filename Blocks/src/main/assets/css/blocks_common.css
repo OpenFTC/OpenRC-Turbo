@@ -54,7 +54,7 @@ input[type=text], select {
   padding: 1px;
 }
 
-.my_projects_td, .my_sounds_td {
+.my_projects_td, .my_files_td {
   color: white;
   padding: 5px;
   font-weight: bold;
@@ -84,7 +84,7 @@ input[type=text], select {
   vertical-align: middle;
 }
 
-.project_tr, .sound_tr {
+.project_tr, .file_tr {
   border-bottom: 1pt solid white;
 }
 
@@ -168,6 +168,10 @@ input[type=text], select {
   background-color: #fefefe;
 }
 
+body.waitCursor *{
+  cursor: wait !important;
+}
+
 /* Text formatting rules */
 
 a.help {
@@ -190,7 +194,7 @@ a.help {
   color: red;
 }
 
-.project_name, .sound_name {
+.project_name, .file_name {
   font-family: sans-serif;
   font-weight: bold;
   cursor: pointer;

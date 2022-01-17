@@ -140,17 +140,16 @@
             <p id="id_webcam_calibration_upload_complete" class="text-ok"></p>
         </div>
     </div>
-    <div id="id_upload_tflite_model">
-        <h1>Upload TensorFlow Lite Model File</h1>
-        <p>Upload a TensorFlow Lite model file.</p>
+    <div id="id_manage_tflite_models">
+        <h1>Manage TensorFlow Lite Models</h1>
         <div>
-            <p>
-                <input id="id_input_file_tflite_model" type="file" class="hidden hidden-input-file">
-                <input id="id_tflite_model_feedback" readonly class="upload-feedback" type="text" value="(tflite_model)">
-                    <button id="id_tflite_model_button" class="aligned-select-button" >Select TensorflowLite Model File...</button>
-                <button id="id_action_tflite_model" class="aligned-action-button" onclick="uploadTfliteModel();">Upload</button>
-            </p>
-            <p id="id_tflite_model_upload_complete" class="text-ok"></p>
+            <a href="/?page=/FtcTFLiteModels.html" target="_blank">Manage TensorFlow Lite Models</a>
+        </div>
+    </div>
+    <div id="id_manage_sounds">
+        <h1>Manage Sounds</h1>
+        <div>
+            <a href="/?page=/FtcSounds.html" target="_blank">Manage Sounds</a>
         </div>
     </div>
     <div id="id_update_control_hub_operating_system">
@@ -375,9 +374,6 @@
     $('#id_id_webcam_calibration_upload_complete').hide();
     initUpload('id_input_file_webcam_calibration', 'id_webcam_calibration_feedback', 'id_webcam_calibration_button', '.xml', 'id_action_webcam_calibration');
 
-    $('#id_id_tflite_model_upload_complete').hide();
-    initUpload('id_input_file_tflite_model', 'id_tflite_model_feedback', 'id_tflite_model_button', '.tflite', 'id_action_tflite_model');
-
     var showUploadBlocker = function(text) {
         if (!text) {
             text = "Please wait while upload finishes";
@@ -577,20 +573,6 @@
             function(xhr, e) {
                 uploadSuccess(file, xhr, e);
                 showToast('id_webcam_calibration_upload_complete', 'Webcam Calibration upload complete');
-            },
-            function(xhr, e) { uploadFailure(file, xhr, e); });
-    }
-
-    var uploadTfliteModel = function () {
-        var feedback = document.getElementById('id_tflite_model_feedback');
-        var file = feedback.dataFile;
-        console.log("uploadTfliteModel() name=" + file.name);
-        var url = URI_UPLOAD_TFLITE_MODEL_FILE;
-        showUploadBlocker();
-        uploadFile(file, url, true,
-            function(xhr, e) {
-                uploadSuccess(file, xhr, e);
-                showToast('id_tflite_model_upload_complete', 'TensorFlow Lite model upload complete');
             },
             function(xhr, e) { uploadFailure(file, xhr, e); });
     }

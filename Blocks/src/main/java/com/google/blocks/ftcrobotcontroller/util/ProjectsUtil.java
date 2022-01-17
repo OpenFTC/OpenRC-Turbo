@@ -385,6 +385,42 @@ public class ProjectsUtil {
    * Upgrades the given blocks content based on the given {@link HardwareItemMap}.
    */
   private static String upgradeBlocks(String blkContent, HardwareItemMap hardwareItemMap) {
+    // In previous versions, there were separate blocks with block type prefixes tfodCurrentGame_
+    // and tfodCustomModel_. Now TensorFlow blocks have the block type prefix tfod_.
+    // All tfodCurrentGame_ blocks can safely be renamed tfod_.
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCurrentGame_",
+        "<block type=\"tfod_");
+    // Some tfodCustomModel_ blocks can safely be renamed tfod_.
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_activate",
+        "<block type=\"tfod_activate");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_deactivate",
+        "<block type=\"tfod_deactivate");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_setClippingMargins",
+        "<block type=\"tfod_setClippingMargins");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_setZoom",
+        "<block type=\"tfod_setZoom");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_getRecognitions",
+        "<block type=\"tfod_getRecognitions");
+    // Some tfodCustomModel_ blocks can safely be renamed tfodLegacy_.
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_setModelFromAsset",
+        "<block type=\"tfodLegacy_setModelFromAsset");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_setModelFromFile",
+        "<block type=\"tfodLegacy_setModelFromFile");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_initialize_withIsModelTensorFlow2",
+        "<block type=\"tfodLegacy_initialize_withIsModelTensorFlow2");
+    blkContent = blkContent.replace(
+        "<block type=\"tfodCustomModel_initialize_withAllArgs",
+        "<block type=\"tfodLegacy_initialize_withAllArgs");
+
     // In previous versions, block type prefix bno055imu_ was adafruitBNO055IMU_.
     blkContent = blkContent.replace(
         "<block type=\"adafruitBNO055IMU_",

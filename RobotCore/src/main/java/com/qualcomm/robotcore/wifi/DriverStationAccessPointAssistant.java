@@ -140,26 +140,33 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
             }
 
             if (wifiNetworkCallback == null) {
-                wifiNetworkCallback = new ConnectivityManager.NetworkCallback() {
-                    @Override
-                    public void onAvailable(@NonNull Network network) {
-                        onWiFiNetworkConnected(network);
-                    }
+                try {
+                    wifiNetworkCallback = new ConnectivityManager.NetworkCallback() {
+                        @Override
+                        public void onAvailable(@NonNull Network network) {
+                            onWiFiNetworkConnected(network);
+                        }
 
-                    @Override
-                    public void onLost(@NonNull Network network) {
-                        onWiFiNetworkDisconnected(network);
-                    }
+                        @Override
+                        public void onLost(@NonNull Network network) {
+                            onWiFiNetworkDisconnected(network);
+                        }
 
-                    @Override
-                    public void onUnavailable() {
-                        RobotLog.ee(TAG, "connectivityManager.requestNetwork() failed");
-                    }
-                };
-                NetworkRequest wifiNetworkRequest = new NetworkRequest.Builder()
-                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                    .build();
-                connectivityManager.requestNetwork(wifiNetworkRequest, wifiNetworkCallback);
+                        @Override
+                        public void onUnavailable() {
+                            RobotLog.ee(TAG, "connectivityManager.requestNetwork() failed");
+                        }
+                    };
+                    NetworkRequest wifiNetworkRequest = new NetworkRequest.Builder()
+                            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                            .build();
+                  connectivityManager.requestNetwork(wifiNetworkRequest, wifiNetworkCallback);
+                } catch (RuntimeException e) {
+                    // We need this code to run again if this method gets called again
+                    wifiNetworkCallback = null;
+                    // Ultimately, exceptions here should be handled at a higher level, so we rethrow
+                    throw e;
+                }
             }
         }
     }
@@ -181,7 +188,11 @@ public class DriverStationAccessPointAssistant extends AccessPointAssistant {
                 // Since wifiNetworkCallback won't get notified past this point if our currently
                 // bound network goes away, it's important that we unbind it now
                 connectivityManager.bindProcessToNetwork(null);
-                connectivityManager.unregisterNetworkCallback(wifiNetworkCallback);
+                try {
+                    connectivityManager.unregisterNetworkCallback(wifiNetworkCallback);
+                } catch (RuntimeException e) {
+                    RobotLog.ww(TAG, "Unable to unregister network callback (it may have never been registered)");
+                }
                 wifiNetworkCallback = null;
             }
         }

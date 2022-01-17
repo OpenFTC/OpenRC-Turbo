@@ -17,6 +17,7 @@
 package com.google.blocks.ftcrobotcontroller.hardware;
 
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_NAME;
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_NAME_NO_SPACES;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME;
@@ -31,7 +32,6 @@ import com.google.blocks.ftcrobotcontroller.util.AvailableTtsLocalesProvider;
 import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
 import com.google.blocks.ftcrobotcontroller.util.ProjectsUtil;
-import com.google.blocks.ftcrobotcontroller.util.SoundsUtil;
 import com.google.blocks.ftcrobotcontroller.util.ToolboxFolder;
 import com.google.blocks.ftcrobotcontroller.util.ToolboxIcon;
 import com.google.blocks.ftcrobotcontroller.util.ToolboxUtil;
@@ -225,6 +225,7 @@ public class HardwareUtil {
 
     jsHardware
         .append("var tfodCurrentGameName = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_NAME)).append("';\n")
+        .append("var tfodCurrentGameNameNoSpaces = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_NAME_NO_SPACES)).append("';\n")
         .append("var tfodCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(TFOD_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
         .append("var vuforiaCurrentGameName = '").append(escapeSingleQuotes(VUFORIA_CURRENT_GAME_NAME)).append("';\n")
         .append("var vuforiaCurrentGameBlocksFirstName = '").append(escapeSingleQuotes(VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME)).append("';\n")
@@ -243,14 +244,6 @@ public class HardwareUtil {
         .append("function isValidProjectName(projectName) {\n")
         .append("  if (projectName) {\n")
         .append("    return /").append(ProjectsUtil.VALID_PROJECT_REGEX).append("/.test(projectName);\n")
-        .append("  }\n")
-        .append("  return false;\n")
-        .append("}\n\n");
-
-    jsHardware
-        .append("function isValidSoundName(soundName) {\n")
-        .append("  if (soundName) {\n")
-        .append("    return /").append(SoundsUtil.VALID_SOUND_REGEX).append("/.test(soundName);\n")
         .append("  }\n")
         .append("  return false;\n")
         .append("}\n\n");

@@ -5,7 +5,7 @@
 <variable id="C-j=_t;@/fsV)+=e~^La">recognitions</variable>
 <variable id="A7n%5a@8jC6}[rgS1GS8">index</variable>
 </variables>
-<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" editable="false" x="0" y="0">
+<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" editable="false" x="22" y="5">
 <field name="NAME">runOpMode</field>
 <comment pinned="false" h="32" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
@@ -82,10 +82,12 @@
 </shadow>
 </value>
 <next>
+<block type="tfod_useDefaultModel" id="#@q|IU6]pUTbQ$$n,*a#">
+<next>
 <block type="comment" id="{f-nucs}ixJh2%x:J{bE">
 <field name="COMMENT">Set min confidence threshold to 0.7</field>
 <next>
-<block type="tfodCurrentGame_initialize" id="S?6y8$gBQja5ehCJI6Pi">
+<block type="tfod_initialize" id="S?6y8$gBQja5ehCJI6Pi">
 <value name="MINIMUM_CONFIDENCE">
 <shadow type="math_number" id="iXlEJA=*Aq^$z~;?.MCb">
 <field name="NUM">0.7</field>
@@ -105,13 +107,13 @@
 <block type="comment" id="6]yP0{L.V#v3^DJf|2r=">
 <field name="COMMENT">Initialize TFOD before waitForStart.</field>
 <next>
-<block type="tfodCurrentGame_activate" id="/B7!WNQ].FmwKj=}jsb|">
-<comment pinned="false" h="99" w="252">Init TFOD here so the object detection labels are visible in the Camera Stream preview window on the Driver Station.</comment>
+<block type="tfod_activate" id="/B7!WNQ].FmwKj=}jsb|">
+<comment pinned="false" h="121" w="220">Activate TFOD here so the object detection labels are visible in the Camera Stream preview window on the Driver Station.</comment>
 <next>
 <block type="comment" id=")fKii]4w!FY{pg5CmS{x">
 <field name="COMMENT">Enable following block to zoom in on target.</field>
 <next>
-<block type="tfodCurrentGame_setZoom" id="aB1GwzHR*MIIKAnQObG!">
+<block type="tfod_setZoom" id="aB1GwzHR*MIIKAnQObG!">
 <value name="MAGNIFICATION">
 <shadow type="math_number" id="$|tmDEP2DSJ6saa+-BMd">
 <field name="NUM">2.5</field>
@@ -185,7 +187,7 @@
 <field name="VAR" id="C-j=_t;@/fsV)+=e~^La">recognitions</field>
 <comment pinned="false" h="66" w="177">Get a list of recognitions from TFOD.</comment>
 <value name="VALUE">
-<block type="tfodCurrentGame_getRecognitions" id="%d}Eg`]Tl,|WPcgQ%t)3"/>
+<block type="tfod_getRecognitions" id="%d}Eg`]Tl,|WPcgQ%t)3"/>
 </value>
 <next>
 <block type="controls_if" id="ca@sg0@jzk|H6L@P2e^L">
@@ -307,7 +309,9 @@
 <block type="comment" id="x3Da[L*)xMh=3e7zy7*{">
 <field name="COMMENT">Deactivate TFOD.</field>
 <next>
-<block type="tfodCurrentGame_deactivate" id=")#LnjM-c3n?~scY$Z!@Y"/>
+<block type="tfod_deactivate" id=")#LnjM-c3n?~scY$Z!@Y"/>
+</next>
+</block>
 </next>
 </block>
 </next>
@@ -342,7 +346,7 @@
 </block>
 </statement>
 </block>
-<block type="procedures_defnoreturn" id=")21zCFQOO-Q6a!/Wu4LO" x="28" y="1532">
+<block type="procedures_defnoreturn" id=")21zCFQOO-Q6a!/Wu4LO" x="21" y="1615">
 <mutation>
 <arg name="i" varid="ZHu7]h(iKQ-7Q9eq/q3X"/>
 </mutation>
