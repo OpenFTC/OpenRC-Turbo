@@ -643,7 +643,7 @@ function checkBlock(block, missingHardware) {
           'This block is optimized for Rover Ruckus (2018-2019) and will not work correctly ' +
           'for other FTC games.\n\n' +
           'Please replace this block with the corresponding one from the ' +
-          'Optimized for ' + tfodCurrentGameName + ' toolbox category.');
+          'TensorFlow Object Detection toolbox category.');
     } else if (block.type == 'misc_callJava_return' ||
         block.type == 'misc_callJava_noReturn' ||
         block.type == 'misc_callHardware_return' ||

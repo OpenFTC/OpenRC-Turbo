@@ -67,7 +67,7 @@ public class LynxGetServoEnableCommand extends LynxDekaInterfaceCommand<LynxGetS
     public LynxGetServoEnableCommand(LynxModuleIntf module, int channelZ)
         {
         this(module);
-        LynxConstants.validatePwmChannelZ(channelZ);
+        LynxConstants.validateServoChannelZ(channelZ);
         this.channel = (byte)channelZ;
         }
 

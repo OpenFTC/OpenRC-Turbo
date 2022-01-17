@@ -38,6 +38,7 @@
     </string-array>
     <string-array name="wifi_direct_channels">
         <item>Auto – device selects channel|0</item>
+        <!-- 2.4GHz -->
         <item>Channel   1 – 2.412 GHz|1</item>
         <item>Channel   2 – 2.417 GHz|2</item>
         <item>Channel   3 – 2.422 GHz|3</item>
@@ -49,6 +50,7 @@
         <item>Channel   9 – 2.452 GHz|9</item>
         <item>Channel  10 – 2.457 GHz|10</item>
         <item>Channel  11 – 2.462 GHz|11</item>
+        <!-- 5GHz -->
         <item>Channel  36 – 5.180 GHz|36</item>
         <item>Channel  40 – 5.200 GHz|40</item>
         <item>Channel  44 – 5.220 GHz|44</item>
@@ -57,6 +59,7 @@
         <item>Channel 153 – 5.765 GHz|153</item>
         <item>Channel 157 – 5.785 GHz|157</item>
         <item>Channel 161 – 5.805 GHz|161</item>
+        <item>Channel 165 – 5.825 GHz|165</item>
     </string-array>
     <attr format="color" name="backgroundAlmostDark"/>
     <attr format="color" name="backgroundDark"/>
@@ -264,6 +267,13 @@
     <string name="deviceDisplayNameUnknownUSBDevice">unknown USB device [%s]</string>
     <string name="device_name_format_ds">0000-%s-DS</string>
     <string name="device_name_format_rc">0000-%s-RC</string>
+    <string name="dialogEnableModifyingSettingsMessage">
+        The original release of Android 6.0 has a bug preventing correct operation of the Driver
+        Station app. You can work around this bug by granting the ability to "modify system settings"
+        to the Driver Station app.
+        \n\nTapping "OK" will take you to the system settings screen that will allow you to do this.
+    </string>
+    <string name="dialogEnableModifyingSettingsTitle">Enable modifying system settings</string>
     <string name="dialogMessagePleaseWait">Please wait...</string>
     <string name="displayNameMatrixMotorController">Matrix Motor Controller</string>
     <string name="displayNameMatrixServoController">Matrix Servo Controller</string>

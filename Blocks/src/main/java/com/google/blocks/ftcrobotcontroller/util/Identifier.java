@@ -87,6 +87,8 @@ public enum Identifier {
       null, null),
   TEMPERATURE("temperatureAccess", "temperatureIdentifierForJavaScript",
       null, null),
+  TFOD("tfodAccess", "tfodIdentifierForJavaScript",
+      "tfod", "tfodIdentifierForFtcJava"),
   TFOD_CUSTOM_MODEL("tfodCustomModelAccess", "tfodCustomModelIdentifierForJavaScript",
       "tfodCustomModel", "tfodCustomModelIdentifierForFtcJava"),
   TFOD_CURRENT_GAME("tfodCurrentGameAccess", "tfodCurrentGameIdentifierForJavaScript",

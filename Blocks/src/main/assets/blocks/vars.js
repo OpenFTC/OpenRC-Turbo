@@ -252,6 +252,18 @@ function knownTypeToClassName(type) {
     case 'ReadWriteFile':
     case 'RobotLog':
       return 'com.qualcomm.robotcore.util.' + type;
+    case 'Boolean':
+    case 'Byte':
+    case 'Character':
+    case 'Double':
+    case 'Float':
+    case 'Integer':
+    case 'Long':
+    case 'Number':
+    case 'Object':
+    case 'Short':
+    case 'String':
+      return 'java.lang.' + type;
     case 'ArrayList':
     case 'Collections':
     case 'List':
@@ -307,6 +319,7 @@ function knownTypeToClassName(type) {
     case 'AppUtil':
       return 'org.firstinspires.ftc.robotcore.internal.system.' + type;
     case 'Recognition':
+    case 'Tfod':
     case 'TfodBase':
     case 'TfodCurrentGame':
     case 'TfodCustomModel':

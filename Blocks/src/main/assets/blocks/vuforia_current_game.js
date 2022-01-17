@@ -578,6 +578,30 @@ Blockly.FtcJava['vuforiaCurrentGame_trackPose'] = function(block) {
   return vuforia_trackPose_FtcJava(block, 'VuforiaCurrentGame');
 };
 
+Blockly.Blocks['vuforiaCurrentGame_getVuforiaLocalizer'] = {
+  init: function() {
+    this.setOutput(true, 'VuforiaLocalizer');
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createNonEditableField(vuforiaCurrentGameBlocksFirstName))
+        .appendField('.')
+        .appendField(createNonEditableField('getVuforiaLocalizer'));
+    this.setColour(functionColor);
+    this.setTooltip('Returns the VuforiaLocalizer.');
+  }
+};
+
+Blockly.JavaScript['vuforiaCurrentGame_getVuforiaLocalizer'] = function(block) {
+  var code = vuforiaCurrentGameIdentifierForJavaScript + '.getVuforiaLocalizer()';
+  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.FtcJava['vuforiaCurrentGame_getVuforiaLocalizer'] = function(block) {
+  var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'VuforiaCurrentGame');
+  var code = identifier + '.getVuforiaLocalizer()';
+  return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
 Blockly.Blocks['vuforiaCurrentGame_typedEnum_trackableName'] = {
   init: function() {
     this.setOutput(true, 'String');

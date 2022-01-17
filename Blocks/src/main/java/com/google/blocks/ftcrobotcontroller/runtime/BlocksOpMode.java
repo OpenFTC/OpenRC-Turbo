@@ -447,6 +447,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new TelemetryAccess(this, Identifier.TELEMETRY.identifierForJavaScript, telemetry));
     javascriptInterfaces.put(Identifier.TEMPERATURE.identifierForJavaScript,
         new TemperatureAccess(this, Identifier.TEMPERATURE.identifierForJavaScript));
+    javascriptInterfaces.put(Identifier.TFOD.identifierForJavaScript,
+        new TfodAccess(this, Identifier.TFOD.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_CURRENT_GAME.identifierForJavaScript,
         new TfodCurrentGameAccess(this, Identifier.TFOD_CURRENT_GAME.identifierForJavaScript, hardwareMap));
     javascriptInterfaces.put(Identifier.TFOD_CUSTOM_MODEL.identifierForJavaScript,

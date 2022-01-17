@@ -695,7 +695,7 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDevi
     return result;
     }
 
-JNIEXPORT jlong JNICALL
+JNIEXPORT jboolean JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetExposure(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer, jlong nsExposure)
     {
     FTC_TRACE_VERBOSE();
@@ -715,6 +715,171 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDevi
         }
     return jboolean(success ? JNI_TRUE : JNI_FALSE);
     }
+
+//--------------------------------------------------------------------------------------------------
+// White balance controls
+//--------------------------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetMinWhiteBalanceTemperature(JNIEnv* env, jclass type, jlong pointer)
+    {
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t temperature = 0;
+
+    if(ptrUvcDeviceHandle != NULL)
+        {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_white_balance_temperature(ptrUvcDeviceHandle, &temperature, UVC_GET_MIN);
+        if (result != UVC_SUCCESS)
+            {
+                LOGE("Failed to get min white balance temperature : error %d", static_cast<int>(result));
+            }
+        }
+
+    return temperature;
+    }
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetMaxWhiteBalanceTemperature(JNIEnv* env, jclass type, jlong pointer)
+{
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t temperature = 0;
+
+    if(ptrUvcDeviceHandle != NULL)
+    {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_white_balance_temperature(ptrUvcDeviceHandle, &temperature, UVC_GET_MAX);
+        if (result != UVC_SUCCESS)
+        {
+            LOGE("Failed to get max white balance temperature : error %d", static_cast<int>(result));
+        }
+    }
+
+    return temperature;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetWhiteBalanceTemperature(JNIEnv* env, jclass type, jlong pointer, jint temperature)
+{
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    if(ptrUvcDeviceHandle != NULL)
+    {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_set_white_balance_temperature(ptrUvcDeviceHandle, temperature);
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to set white balance temperature : error %d", static_cast<int>(result));
+            return false;
+            }
+
+        return true;
+    }
+
+    return false;
+}
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetWhiteBalanceTemperature(JNIEnv* env, jclass type, jlong pointer)
+{
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint16_t temperature = 0;
+
+    if(ptrUvcDeviceHandle != NULL)
+    {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_white_balance_temperature(ptrUvcDeviceHandle, &temperature, UVC_GET_CUR);
+        if (result != UVC_SUCCESS)
+        {
+            LOGE("Failed to get current white balance temperature : error %d", static_cast<int>(result));
+        }
+    }
+
+    return temperature;
+}
+
+namespace Java_WhiteBalanceControl_Mode /* If you change this order, remember to update WhiteBalanceControl.java! */
+{
+    enum
+    {
+        UNKNOWN, // 0
+        AUTO,    // 1
+        MANUAL   // 2
+    };
+}
+
+namespace UVC_WhiteBalanceMode
+{
+    enum
+    {
+        MANUAL, // 0
+        AUTO    // 1
+    };
+}
+
+JNIEXPORT jint JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeGetWhiteBalanceMode(JNIEnv* env, jclass type, jlong pointer)
+{
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    uint8_t mode = Java_WhiteBalanceControl_Mode::UNKNOWN;
+
+    if(ptrUvcDeviceHandle != NULL)
+    {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        uvc_error_t result = uvc_get_white_balance_temperature_auto(ptrUvcDeviceHandle, &mode, UVC_GET_CUR);
+        if (result != UVC_SUCCESS)
+            {
+            LOGE("Failed to get current white balance mode : error %d", static_cast<int>(result));
+            return Java_WhiteBalanceControl_Mode::UNKNOWN;
+            }
+
+        return mode == UVC_WhiteBalanceMode::AUTO ? Java_WhiteBalanceControl_Mode::AUTO : Java_WhiteBalanceControl_Mode::MANUAL;
+    }
+
+    return Java_WhiteBalanceControl_Mode::UNKNOWN;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcDeviceHandle_nativeSetWhiteBalanceMode(JNIEnv* env, jclass type, jlong pointer, jint mode)
+{
+    FTC_TRACE();
+    uvc_device_handle_t* ptrUvcDeviceHandle = (uvc_device_handle_t*) pointer;
+
+    if(ptrUvcDeviceHandle != NULL)
+    {
+        NATIVE_API_ONE_CALLER_VERBOSE();
+
+        if(mode == Java_WhiteBalanceControl_Mode::AUTO || mode == Java_WhiteBalanceControl_Mode::MANUAL)
+        {
+            uint8_t uvcMode = (mode == Java_WhiteBalanceControl_Mode::AUTO ? UVC_WhiteBalanceMode::AUTO : UVC_WhiteBalanceMode::MANUAL);
+            uvc_error_t result = uvc_set_white_balance_temperature_auto(ptrUvcDeviceHandle, uvcMode);
+            if (result != UVC_SUCCESS)
+            {
+                LOGE("Failed to set white balance mode : error %d", static_cast<int>(result));
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 //--------------------------------------------------------------------------------------------------
 // Gain Controls

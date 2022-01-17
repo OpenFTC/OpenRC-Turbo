@@ -23,6 +23,7 @@ import android.webkit.JavascriptInterface;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.Parameters.CameraMonitorFeedback;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaBase;
@@ -212,5 +213,17 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       reportInvalidArg("name", vuforiaBase.printTrackableNames());
     }
     return vuforiaBase.emptyTrackingResults(name).toJson();
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public VuforiaLocalizer getVuforiaLocalizer() {
+    startBlockExecution(BlockType.FUNCTION, ".getVuforiaLocalizer");
+    try {
+      return vuforiaBase.getVuforiaLocalizer();
+    } catch (IllegalStateException e) {
+      reportWarning(e.getMessage());
+    }
+    return null;
   }
 }

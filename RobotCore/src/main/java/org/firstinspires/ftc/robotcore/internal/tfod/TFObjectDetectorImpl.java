@@ -19,6 +19,7 @@ package org.firstinspires.ftc.robotcore.internal.tfod;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static org.firstinspires.ftc.robotcore.internal.system.AppUtil.TFLITE_MODELS_DIR;
 
 import android.app.Activity;
 import android.content.res.AssetFileDescriptor;
@@ -256,10 +257,16 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
   }
 
   @Override
-  public void loadModelFromFile(String absoluteFileName, String... labels) {
+  public void loadModelFromFile(String fileName, String... labels) {
     try {
-      File file = new File(absoluteFileName);
-      try (FileInputStream fis = new FileInputStream(absoluteFileName)) {
+      File file = new File(TFLITE_MODELS_DIR, fileName);
+      if (file.exists()) {
+        fileName = file.getAbsolutePath();
+      } else {
+        file = new File(fileName);
+      }
+
+      try (FileInputStream fis = new FileInputStream(fileName)) {
         initialize(fis, 0, file.length(), labels);
       }
     } catch (IOException e) {

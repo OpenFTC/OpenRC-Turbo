@@ -678,15 +678,18 @@ public class Gamepad extends RobocolParsableBase {
     for (int id : deviceIds) {
       InputDevice device = InputDevice.getDevice(id);
 
-      int source = device.getSources();
-      if ((source & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-          || (source & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+      /* getDevice might return null (observed on Moto G2) */
+      if (device != null) {
+        int source = device.getSources();
+        if ((source & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+                || (source & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
 
-        // null mDeviceWhitelist means all devices are valid
-        // non-null mDeviceWhitelist means only use devices in mDeviceWhitelist
-        if (deviceWhitelist == null
-            || deviceWhitelist.contains(new DeviceId(device.getVendorId(), device.getProductId()))) {
-          gameControllerDeviceIdCache.add(id);
+          // null mDeviceWhitelist means all devices are valid
+          // non-null mDeviceWhitelist means only use devices in mDeviceWhitelist
+          if (deviceWhitelist == null
+                  || deviceWhitelist.contains(new DeviceId(device.getVendorId(), device.getProductId()))) {
+            gameControllerDeviceIdCache.add(id);
+          }
         }
       }
     }
