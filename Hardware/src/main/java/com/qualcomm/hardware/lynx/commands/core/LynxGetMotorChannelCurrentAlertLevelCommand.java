@@ -60,8 +60,7 @@ public class LynxGetMotorChannelCurrentAlertLevelCommand extends LynxDekaInterfa
 
     public LynxGetMotorChannelCurrentAlertLevelCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorChannelCurrentAlertLevelResponse(module);
+        super(module, new LynxGetMotorChannelCurrentAlertLevelResponse(module));
         }
 
     public LynxGetMotorChannelCurrentAlertLevelCommand(LynxModuleIntf module, int motorZ)
@@ -78,12 +77,6 @@ public class LynxGetMotorChannelCurrentAlertLevelCommand extends LynxDekaInterfa
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorChannelCurrentAlertLevelResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

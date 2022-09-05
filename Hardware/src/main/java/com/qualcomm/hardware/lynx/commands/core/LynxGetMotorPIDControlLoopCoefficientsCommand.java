@@ -64,8 +64,7 @@ public class LynxGetMotorPIDControlLoopCoefficientsCommand extends LynxDekaInter
 
     public LynxGetMotorPIDControlLoopCoefficientsCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorPIDControlLoopCoefficientsResponse(module);
+        super(module, new LynxGetMotorPIDControlLoopCoefficientsResponse(module));
         }
 
     public LynxGetMotorPIDControlLoopCoefficientsCommand(LynxModuleIntf module, int motorZ, DcMotor.RunMode mode)
@@ -88,12 +87,6 @@ public class LynxGetMotorPIDControlLoopCoefficientsCommand extends LynxDekaInter
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorPIDControlLoopCoefficientsResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

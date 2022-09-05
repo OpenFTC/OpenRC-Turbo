@@ -33,7 +33,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package org.firstinspires.inspection;
 
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -47,10 +46,10 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.Device;
-import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
@@ -87,10 +86,11 @@ public abstract class InspectionActivity extends ThemedActivity
 
     private static final String notApplicable = "N/A";
     private static final String notInstalled = "Not installed";
+    private static final String installed = "Installed";
     private static final String fwUnavailable = "firmware version unavailable";
     private static final String fwMismatch = "mismatched";
 
-    private final boolean remoteConfigure = appUtil.isDriverStation();
+    protected final boolean remoteConfigure = appUtil.isDriverStation() && inspectingRobotController();
 
     ValidatedInspectionItem airplaneMode, bluetooth, location, rcPassword, wifiEnabled, wifiConnected,
             wifiName, androidVersion, isRCInstalled, rcMatchesDSVersion, isDSInstalled, osVersion,
@@ -112,9 +112,6 @@ public abstract class InspectionActivity extends ThemedActivity
     int textError = AppUtil.getColor(R.color.text_error);
     StartResult nameManagerStartResult = new StartResult();
     private boolean properWifiConnectedState;
-
-    protected static final int RC_MIN_VERSIONCODE = 42; // Corresponds to RC 7.0
-    protected static final int DS_MIN_VERSIONCODE = 42; // Corresponds to DS 7.0
 
     class ValidatedInspectionItem
         {
@@ -197,30 +194,25 @@ public abstract class InspectionActivity extends ThemedActivity
         teamNoRegex = Pattern.compile("^\\d{1,5}(-\\w)?-(RC|DS)\\z", Pattern.CASE_INSENSITIVE);
 
         ImageButton buttonMenu = findViewById(R.id.menu_buttons);
-        if (useMenu())
+
+        buttonMenu.setOnClickListener(new View.OnClickListener()
             {
-            buttonMenu.setOnClickListener(new View.OnClickListener()
+            @Override
+            public void onClick(View v)
                 {
-                @Override
-                public void onClick(View v)
+                PopupMenu popupMenu = new PopupMenu(InspectionActivity.this, v);
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
                     {
-                    PopupMenu popupMenu = new PopupMenu(InspectionActivity.this, v);
-                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                        @Override
-                        public boolean onMenuItemClick(MenuItem item) {
-                            return onOptionsItemSelected(item); // Delegate to the handler for the hardware menu button
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item)
+                        {
+                        return onOptionsItemSelected(item); // Delegate to the handler for the hardware menu button
                         }
                     });
-                    popupMenu.inflate(R.menu.main_menu);
-                    popupMenu.show();
-                    }
-                });
-            }
-        else
-            {
-            buttonMenu.setEnabled(false);
-            buttonMenu.setVisibility(View.INVISIBLE);
-            }
+                popupMenu.inflate(getMenu());
+                popupMenu.show();
+                }
+            });
 
         DeviceNameManagerFactory.getInstance().start(nameManagerStartResult);
 
@@ -268,7 +260,7 @@ public abstract class InspectionActivity extends ThemedActivity
     public boolean onCreateOptionsMenu(Menu menu)
         {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
+        inflater.inflate(R.menu.inspection_menu_rcds_local, menu);
         return true;
         }
 
@@ -300,6 +292,17 @@ public abstract class InspectionActivity extends ThemedActivity
                 NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_DISCONNECT_FROM_WIFI_DIRECT));
                 }
             return true;
+            }
+        else if (id == R.id.disable_bluetooth)
+            {
+            if (remoteConfigure)
+                {
+                NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_DISABLE_BLUETOOTH));
+                }
+            else
+                {
+                AppUtil.getInstance().setBluetoothEnabled(false);
+                }
             }
 
         return super.onOptionsItemSelected(item);
@@ -475,47 +478,36 @@ public abstract class InspectionActivity extends ThemedActivity
             refresh(airplaneMode, state.airplaneModeOn == true, state.airplaneModeOn ? "Enabled" : "Disabled");
             }
 
+        boolean appIsObsolete = appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.appBuildTime));;
+
         // check the installed apps.
         if(inspectingRobotController())
             {
-            boolean rcIsObsolete = state.robotControllerBuildTime == null
-                    || appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.robotControllerBuildTime));
-            boolean validRcState = InspectionState.isPackageInstalled(state.robotControllerVersion) &&
-                    state.robotControllerVersionCode >= RC_MIN_VERSIONCODE &&
-                    !rcIsObsolete;
-            refresh(isRCInstalled,
-                    validRcState,
-                    state.robotControllerVersion.isEmpty() ? notInstalled : state.robotControllerVersion);
+            boolean validRcState = state.robotControllerInstalled &&
+                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
+                    !appIsObsolete;
+            refresh(isRCInstalled, validRcState, state.appVersionString);
             refresh(isDSInstalled,
-                    InspectionState.isPackageInstalled(state.driverStationVersion) == false,
-                    state.driverStationVersion.isEmpty() ? notInstalled : state.driverStationVersion);
+                    !state.driverStationInstalled,
+                    state.driverStationInstalled ? installed : notInstalled);
             if (inspectingRemoteDevice())
                 {
-                try
-                    {
-                    int ownVersionCode = AppUtil.getDefContext().getPackageManager().getPackageInfo(AppUtil.getDefContext().getPackageName(), 0).versionCode;
-                    boolean codesMatch = state.robotControllerVersionCode == ownVersionCode;
-                    refresh(rcMatchesDSVersion, codesMatch, codesMatch ? "Yes" : "No");
-                    }
-                catch (PackageManager.NameNotFoundException e)
-                    {
-                    RobotLog.ee(TAG, "Unable to get our own version code (should never happen");
-                    }
+                boolean versionsMatch = state.majorAppVersion == BuildConfig.SDK_MAJOR_VERSION &&
+                                        state.minorAppVersion == BuildConfig.SDK_MINOR_VERSION;
+                refresh(rcMatchesDSVersion,
+                        versionsMatch,
+                        versionsMatch ? "Yes" : getString(R.string.dsVersionMismatch, BuildConfig.SDK_MAJOR_VERSION, BuildConfig.SDK_MINOR_VERSION));
                 }
             }
-        else
+        else // Inspecting driver station
             {
-            boolean dsIsObsolete = state.driverStationBuildTime == null
-                    || appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.driverStationBuildTime));
-            boolean validDsState = InspectionState.isPackageInstalled(state.driverStationVersion) &&
-                    state.driverStationVersionCode >= DS_MIN_VERSIONCODE &&
-                    !dsIsObsolete;
-            refresh(isDSInstalled,
-                    validDsState,
-                    state.driverStationVersion.isEmpty() ? notInstalled : state.driverStationVersion);
+            boolean validDsState = state.driverStationInstalled &&
+                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
+                    !appIsObsolete;
+            refresh(isDSInstalled, validDsState, state.appVersionString);
             refresh(isRCInstalled,
-                    InspectionState.isPackageInstalled(state.robotControllerVersion) == false,
-                    state.robotControllerVersion.isEmpty() ? notInstalled : state.robotControllerVersion);
+                    !state.robotControllerInstalled,
+                    state.robotControllerInstalled ? installed : notInstalled);
             }
         }
 
@@ -564,7 +556,7 @@ public abstract class InspectionActivity extends ThemedActivity
     //----------------------------------------------------------------------------------------------
     protected abstract boolean inspectingRobotController();
     protected abstract boolean inspectingRemoteDevice();
-    protected abstract boolean useMenu();
+    protected abstract int getMenu();
 
     //----------------------------------------------------------------------------------------------
     // Utility

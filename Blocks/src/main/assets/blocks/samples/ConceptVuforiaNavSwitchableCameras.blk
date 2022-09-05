@@ -12,9 +12,9 @@
 <variable id="|RX@0yH!W}g7-GDnzqn[">newRightBumper</variable>
 <variable id="{]~kbEWmbW]Z@~_NlaB4">activeCamera</variable>
 </variables>
-<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" editable="false" x="-593" y="-182">
+<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" x="-593" y="-182">
 <field name="NAME">runOpMode</field>
-<comment pinned="false" h="32" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
+<comment pinned="false" h="45" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
 <block type="comment" id="Lc#BFtj*NTB48YL;eBl.">
 <field name="COMMENT">Initialize Vuforia</field>

@@ -66,15 +66,18 @@ public class Rev3328 extends AndroidBoard {
 
     // GPIO pins
     private static final DigitalChannel ANDROID_BOARD_IS_PRESENT_PIN =
-            new GpioPin(50, true, GpioPin.Active.LOW, ANDROID_BOARD_IS_PRESENT_PIN_NAME);
+            GpioPin.createOutput(50, true, GpioPin.Active.LOW, ANDROID_BOARD_IS_PRESENT_PIN_NAME);
 
-    private static final DigitalChannel USER_BUTTON_PIN = new GpioPin(51, USER_BUTTON_PIN_NAME);
+    private static final DigitalChannel USER_BUTTON_PIN = GpioPin.createInput(51, GpioPin.Active.HIGH, USER_BUTTON_PIN_NAME);
 
     private static final DigitalChannel PROGRAMMING_PIN =
-            new GpioPin(66, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
+            GpioPin.createOutput(66, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
 
     private static final DigitalChannel LYNX_MODULE_RESET_PIN =
-            new GpioPin(87, false, GpioPin.Active.LOW, LYNX_MODULE_RESET_PIN_NAME);
+            GpioPin.createOutput(87, false, GpioPin.Active.LOW, LYNX_MODULE_RESET_PIN_NAME);
+
+    private static final DigitalChannel BHI_260_QUATERNION_REGISTER_FREEZE_PIN =
+            GpioPin.createOutput(47, false, GpioPin.Active.LOW, BHI_260_QUATERNION_REGISTER_FREEZE_PIN_NAME);
 
     // UART file
     private static final File UART_FILE = new File("/dev/ttyS1");
@@ -104,6 +107,11 @@ public class Rev3328 extends AndroidBoard {
     @Override
     public DigitalChannel getUserButtonPin() {
         return USER_BUTTON_PIN;
+    }
+
+    @Override
+    public DigitalChannel getBhi260QuatRegFreezePin() {
+        return BHI_260_QUATERNION_REGISTER_FREEZE_PIN;
     }
 
     @Override

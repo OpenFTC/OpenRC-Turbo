@@ -34,187 +34,272 @@ class VectorFAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int getLength(Object vectorArg) {
-    startBlockExecution(BlockType.GETTER, ".Length");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.length();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Length");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.length();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getMagnitude(Object vectorArg) {
-    startBlockExecution(BlockType.GETTER, ".Magnitude");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.magnitude();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Magnitude");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.magnitude();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VectorF create(int length) {
-    startBlockExecution(BlockType.CREATE, "");
-    return VectorF.length(length);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return VectorF.length(length);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float get(Object vectorArg, int index) {
-    startBlockExecution(BlockType.FUNCTION, ".get");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.get(index);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".get");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.get(index);
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void put(Object vectorArg, int index, float value) {
-    startBlockExecution(BlockType.FUNCTION, ".put");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      vector.put(index, value);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".put");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        vector.put(index, value);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object vectorArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VectorF normalized3D(Object vectorArg) {
-    startBlockExecution(BlockType.FUNCTION, ".normalized3D");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.normalized3D();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".normalized3D");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.normalized3D();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float dotProduct(Object vector1Arg, Object vector2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".dotProduct");
-    VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
-    VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
-    if (vector1 != null && vector2 != null) {
-      return vector1.dotProduct(vector2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".dotProduct");
+      VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
+      VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
+      if (vector1 != null && vector2 != null) {
+        return vector1.dotProduct(vector2);
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public MatrixF multiplied(Object vectorArg, Object matrixArg) {
-    startBlockExecution(BlockType.FUNCTION, ".multiplied");
-    VectorF vector = checkVectorF(vectorArg);
-    MatrixF matrix = checkMatrixF(matrixArg);
-    if (vector != null && matrix != null) {
-      return vector.multiplied(matrix);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".multiplied");
+      VectorF vector = checkVectorF(vectorArg);
+      MatrixF matrix = checkMatrixF(matrixArg);
+      if (vector != null && matrix != null) {
+        return vector.multiplied(matrix);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public MatrixF added_withMatrix(Object vectorArg, Object matrixArg) {
-    startBlockExecution(BlockType.FUNCTION, ".added");
-    VectorF vector = checkVectorF(vectorArg);
-    MatrixF matrix = checkMatrixF(matrixArg);
-    if (vector != null && matrix != null) {
-      return vector.added(matrix);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".added");
+      VectorF vector = checkVectorF(vectorArg);
+      MatrixF matrix = checkMatrixF(matrixArg);
+      if (vector != null && matrix != null) {
+        return vector.added(matrix);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VectorF added_withVector(Object vector1Arg, Object vector2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".added");
-    VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
-    VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
-    if (vector1 != null && vector2 != null) {
-      return vector1.added(vector2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".added");
+      VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
+      VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
+      if (vector1 != null && vector2 != null) {
+        return vector1.added(vector2);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void add_withVector(Object vector1Arg, Object vector2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".add");
-    VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
-    VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
-    if (vector1 != null && vector2 != null) {
-      vector1.add(vector2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".add");
+      VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
+      VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
+      if (vector1 != null && vector2 != null) {
+        vector1.add(vector2);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public MatrixF subtracted_withMatrix(Object vectorArg, Object matrixArg) {
-    startBlockExecution(BlockType.FUNCTION, ".subtracted");
-    VectorF vector = checkVectorF(vectorArg);
-    MatrixF matrix = checkMatrixF(matrixArg);
-    if (vector != null && matrix != null) {
-      return vector.subtracted(matrix);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".subtracted");
+      VectorF vector = checkVectorF(vectorArg);
+      MatrixF matrix = checkMatrixF(matrixArg);
+      if (vector != null && matrix != null) {
+        return vector.subtracted(matrix);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VectorF subtracted_withVector(Object vector1Arg, Object vector2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".subtracted");
-    VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
-    VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
-    if (vector1 != null && vector2 != null) {
-      return vector1.subtracted(vector2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".subtracted");
+      VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
+      VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
+      if (vector1 != null && vector2 != null) {
+        return vector1.subtracted(vector2);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void subtract_withVector(Object vector1Arg, Object vector2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".subtract");
-    VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
-    VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
-    if (vector1 != null && vector2 != null) {
-      vector1.subtract(vector2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".subtract");
+      VectorF vector1 = checkArg(vector1Arg, VectorF.class, "vector1");
+      VectorF vector2 = checkArg(vector2Arg, VectorF.class, "vector2");
+      if (vector1 != null && vector2 != null) {
+        vector1.subtract(vector2);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VectorF multiplied_withScale(Object vectorArg, float scale) {
-    startBlockExecution(BlockType.FUNCTION, ".multiplied");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      return vector.multiplied(scale);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".multiplied");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        return vector.multiplied(scale);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void multiply_withScale(Object vectorArg, float scale) {
-    startBlockExecution(BlockType.FUNCTION, ".multiply");
-    VectorF vector = checkVectorF(vectorArg);
-    if (vector != null) {
-      vector.multiply(scale);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".multiply");
+      VectorF vector = checkVectorF(vectorArg);
+      if (vector != null) {
+        vector.multiply(scale);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

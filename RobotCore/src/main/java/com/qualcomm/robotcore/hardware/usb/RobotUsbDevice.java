@@ -88,16 +88,8 @@ public interface RobotUsbDevice {
 
     // See also device_filter.xml
     private static final int vendorIdFTDI = UsbConstants.VENDOR_ID_FTDI;
-    private static final Set<Integer> productIdsModernRobotics = new HashSet<Integer>(Arrays.asList(new Integer[] { 0x6001 }));
-    private static final Set<Integer> bcdDevicesModernRobotics = new HashSet<Integer>(Arrays.asList(new Integer[] { 0x0600 }));
     private static final Set<Integer> productIdsLynx           = new HashSet<Integer>(Arrays.asList(new Integer[] { 0x6015 }));
     private static final Set<Integer> bcdDevicesLynx           = new HashSet<Integer>(Arrays.asList(new Integer[] { 0x1000 }));
-
-    public boolean isModernRoboticsDevice() {
-      return this.vendorId == vendorIdFTDI
-              && productIdsModernRobotics.contains(this.productId)
-              && bcdDevicesModernRobotics.contains(this.bcdDevice & 0xFF00);
-    }
 
     public boolean isLynxDevice() {
       return this.vendorId == vendorIdFTDI

@@ -45,96 +45,146 @@ class AndroidSoundPoolAccess extends Access {
   @SuppressWarnings({"unused", "deprecation"})
   @JavascriptInterface
   public void initialize() {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    androidSoundPool.initialize(SoundPlayer.getInstance());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      androidSoundPool.initialize(SoundPlayer.getInstance());
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean preloadSound(String soundName) {
-    startBlockExecution(BlockType.FUNCTION, ".preloadSound");
     try {
-      if (androidSoundPool.preloadSound(soundName))  {
-        return true;
+      startBlockExecution(BlockType.FUNCTION, ".preloadSound");
+      try {
+        if (androidSoundPool.preloadSound(soundName))  {
+          return true;
+        }
+        reportWarning("Failed to preload " + soundName);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
       }
-      reportWarning("Failed to preload " + soundName);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      return false;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return false;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void play(String soundName) {
-    startBlockExecution(BlockType.FUNCTION, ".play");
     try {
-      if (!androidSoundPool.play(soundName))  {
-        reportWarning("Failed to load " + soundName);
+      startBlockExecution(BlockType.FUNCTION, ".play");
+      try {
+        if (!androidSoundPool.play(soundName))  {
+          reportWarning("Failed to load " + soundName);
+        }
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
       }
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings({"unused"})
   @JavascriptInterface
   public void stop() {
-    startBlockExecution(BlockType.FUNCTION, ".stop");
-    androidSoundPool.stop();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".stop");
+      androidSoundPool.stop();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getVolume() {
-    startBlockExecution(BlockType.GETTER, ".Volume");
-    return androidSoundPool.getVolume();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Volume");
+      return androidSoundPool.getVolume();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setVolume(float volume) {
-    startBlockExecution(BlockType.SETTER, ".Volume");
-    if (volume >= 0.0f && volume <= 1.0f) {
-      androidSoundPool.setVolume(volume);
-    } else {
-      reportInvalidArg("", "a number between 0.0 and 1.0");
+    try {
+      startBlockExecution(BlockType.SETTER, ".Volume");
+      if (volume >= 0.0f && volume <= 1.0f) {
+        androidSoundPool.setVolume(volume);
+      } else {
+        reportInvalidArg("", "a number between 0.0 and 1.0");
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getRate() {
-    startBlockExecution(BlockType.GETTER, ".Rate");
-    return androidSoundPool.getRate();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Rate");
+      return androidSoundPool.getRate();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setRate(float rate) {
-    startBlockExecution(BlockType.SETTER, ".Rate");
-    if (rate >= 0.5f && rate <= 2.0f) {
-      androidSoundPool.setRate(rate);
-    } else {
-      reportInvalidArg("", "a number between 0.5 and 2.0");
+    try {
+      startBlockExecution(BlockType.SETTER, ".Rate");
+      if (rate >= 0.5f && rate <= 2.0f) {
+        androidSoundPool.setRate(rate);
+      } else {
+        reportInvalidArg("", "a number between 0.5 and 2.0");
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int getLoop() {
-    startBlockExecution(BlockType.GETTER, ".Loop");
-    return androidSoundPool.getLoop();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Loop");
+      return androidSoundPool.getLoop();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setLoop(int loop) {
-    startBlockExecution(BlockType.SETTER, ".Loop");
-    if (loop >= -1) {
-      androidSoundPool.setLoop(loop);
-    } else {
-      reportInvalidArg("", "a number greater than or equal to -1");
+    try {
+      startBlockExecution(BlockType.SETTER, ".Loop");
+      if (loop >= -1) {
+        androidSoundPool.setLoop(loop);
+      } else {
+        reportInvalidArg("", "a number greater than or equal to -1");
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

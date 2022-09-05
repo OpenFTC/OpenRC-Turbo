@@ -44,20 +44,20 @@ public class LynxModuleMeta
     {
     protected int moduleAddress;
     protected boolean isParent;
-    @Nullable protected volatile Boolean hasImu; // The boxed type is used because hasImu should be null until we check for an IMU
+    @Nullable protected volatile ImuType imuType;
 
     public LynxModuleMeta(int moduleAddress, boolean isParent)
         {
         this.moduleAddress = moduleAddress;
         this.isParent = isParent;
-        this.hasImu = null;
+        this.imuType = ImuType.UNKNOWN;
         }
 
     public LynxModuleMeta(LynxModuleMeta him)
         {
         this.moduleAddress = him.getModuleAddress();
         this.isParent = him.isParent();
-        this.hasImu = him.hasImu;
+        this.imuType = him.imuType;
         }
 
     public int getModuleAddress()
@@ -70,22 +70,20 @@ public class LynxModuleMeta
         return isParent;
         }
 
-    /**
-     * @return true if an IMU is known to be present, false if it is known to not be present,null if
-     *         it is not known if an IMU is present on the device or not.
-     */
-    @Nullable public Boolean hasImu()
+    @Nullable public ImuType imuType()
         {
-        return hasImu;
+        return imuType;
         }
 
-    public void setHasImu(boolean hasImu)
+    public void setImuType(ImuType imuType)
         {
-        this.hasImu = hasImu;
+        this.imuType = imuType;
         }
 
     @Override public String toString()
         {
-        return Misc.formatForUser("LynxModuleMeta(#%d,%b,%b)", moduleAddress, isParent, hasImu);
+        return Misc.formatForUser("LynxModuleMeta(#%d,%b,ImuType.%s)", moduleAddress, isParent, imuType);
         }
+
+    public enum ImuType { UNKNOWN, NONE, BNO055, BHI260 }
     }

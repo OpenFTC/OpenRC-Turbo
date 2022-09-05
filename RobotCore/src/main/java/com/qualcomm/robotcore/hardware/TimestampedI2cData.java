@@ -32,16 +32,13 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.robotcore.hardware;
 
-import androidx.annotation.Nullable;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * {@link TimestampedI2cData} extends {@link TimestampedData} so as to provide an indication
  * of the I2c source from which the data was retrieved.
  */
 public class TimestampedI2cData extends TimestampedData
     {
+
     //----------------------------------------------------------------------------------------------
     // State
     //----------------------------------------------------------------------------------------------
@@ -52,9 +49,6 @@ public class TimestampedI2cData extends TimestampedData
     /** the starting register address from which the data was retrieved */
     public int      register;
 
-    /** internal: keeps track of */
-    protected static AtomicInteger healthStatusSuppressionCount = new AtomicInteger(0);
-
     //----------------------------------------------------------------------------------------------
     // Fake data / device health management
     //----------------------------------------------------------------------------------------------
@@ -63,41 +57,13 @@ public class TimestampedI2cData extends TimestampedData
      * Creates and returns fake I2C data for use in situations where data must be returned but actual
      * data is unavailable. Optionally, records that the device in question is having difficulties.
      */
-    public static TimestampedI2cData makeFakeData(@Nullable Object deviceHavingProblems, I2cAddr i2cAddr, int ireg, int creg)
+    public static TimestampedI2cData makeFakeData(I2cAddr i2cAddr, int ireg, int creg)
         {
-        if (healthStatusSuppressionCount.get() == 0)
-            {
-            if (deviceHavingProblems != null && deviceHavingProblems instanceof HardwareDeviceHealth)
-                {
-                ((HardwareDeviceHealth) deviceHavingProblems).setHealthStatus(HardwareDeviceHealth.HealthStatus.UNHEALTHY);
-                }
-            }
-
         TimestampedI2cData result = new TimestampedI2cData();
         result.data     = new byte[creg];       // all zeros
         result.nanoTime = System.nanoTime();
         result.i2cAddr  = i2cAddr;
         result.register = ireg;
         return result;
-        }
-
-    public static void suppressNewHealthWarningsWhile(Runnable runnable)
-        {
-        healthStatusSuppressionCount.getAndIncrement();
-        try {
-            runnable.run();
-            }
-        finally
-            {
-            healthStatusSuppressionCount.getAndDecrement();
-            }
-        }
-
-    public static void suppressNewHealthWarnings(boolean suppress)
-        {
-        if (suppress)
-            healthStatusSuppressionCount.getAndIncrement();
-        else
-            healthStatusSuppressionCount.getAndDecrement();
         }
     }

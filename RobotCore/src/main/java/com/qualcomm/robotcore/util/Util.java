@@ -32,8 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 package com.qualcomm.robotcore.util;
 
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+
+import org.firstinspires.ftc.robotcore.external.Predicate;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
@@ -140,5 +144,13 @@ public class Util {
     if (string.length() == 0)
       return false;
     return true;
+  }
+
+  public static void forEachInFolder(@NonNull File folder, boolean recursive, Predicate<File> action) throws FileNotFoundException {
+    if (!folder.isDirectory()) throw new FileNotFoundException("not a directory");
+    for (File file : folder.listFiles()) {
+      if (recursive && file.isDirectory()) forEachInFolder(file, true, action);
+      action.test(file);
+    }
   }
 }

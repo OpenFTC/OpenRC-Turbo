@@ -38,28 +38,43 @@ class RumbleEffectAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public RumbleEffect.Builder createBuilder() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new RumbleEffect.Builder();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new RumbleEffect.Builder();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void addStep(Object rumbleEffectBuilderArg, double rumble1, double rumble2, int millis) {
-    startBlockExecution(BlockType.FUNCTION, ".addStep");
-    RumbleEffect.Builder rumbleEffectBuilder = checkRumbleEffectBuilder(rumbleEffectBuilderArg);
-    if (rumbleEffectBuilder != null) {
-      rumbleEffectBuilder.addStep(rumble1, rumble2, millis);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".addStep");
+      RumbleEffect.Builder rumbleEffectBuilder = checkRumbleEffectBuilder(rumbleEffectBuilderArg);
+      if (rumbleEffectBuilder != null) {
+        rumbleEffectBuilder.addStep(rumble1, rumble2, millis);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public RumbleEffect build(Object rumbleEffectBuilderArg) {
-    startBlockExecution(BlockType.FUNCTION, ".build");
-    RumbleEffect.Builder rumbleEffectBuilder = checkRumbleEffectBuilder(rumbleEffectBuilderArg);
-    if (rumbleEffectBuilder != null) {
-      return rumbleEffectBuilder.build();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".build");
+      RumbleEffect.Builder rumbleEffectBuilder = checkRumbleEffectBuilder(rumbleEffectBuilderArg);
+      if (rumbleEffectBuilder != null) {
+        return rumbleEffectBuilder.build();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

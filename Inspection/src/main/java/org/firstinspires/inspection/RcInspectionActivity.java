@@ -49,8 +49,6 @@ public class RcInspectionActivity extends InspectionActivity
     // State
     //----------------------------------------------------------------------------------------------
 
-    final boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
-
     final RecvLoopRunnable.RecvLoopCallback recvLoopCallback = new RecvLoopRunnable.DegenerateCallback()
         {
         @Override public CallbackResult commandEvent(Command command) throws RobotCoreException
@@ -119,10 +117,10 @@ public class RcInspectionActivity extends InspectionActivity
         return remoteConfigure;
         }
 
-    @Override protected boolean useMenu()
+    @Override protected int getMenu()
         {
-        // When we're remote configuring, the only thing on the menu is something
-        // that will simply make the RC inaccessible. So we don't bother.
-        return !remoteConfigure;
+        // We only ever remotely configure an RC, so if we're doing a remote configure, then we
+        // know we need to use the RC remote menu
+        return remoteConfigure ? R.menu.inspection_menu_rc_remote : R.menu.inspection_menu_rcds_local;
         }
     }

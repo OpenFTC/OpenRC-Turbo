@@ -42,10 +42,15 @@ class CRServoAccess extends HardwareAccess<CRServo> {
   @JavascriptInterface
   @Block(classes = {CRServoImpl.class}, methodName = "setDirection")
   public void setDirection(String directionString) {
-    startBlockExecution(BlockType.SETTER, ".Direction");
-    Direction direction = checkArg(directionString, Direction.class, "");
-    if (direction != null) {
-      crServo.setDirection(direction);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Direction");
+      Direction direction = checkArg(directionString, Direction.class, "");
+      if (direction != null) {
+        crServo.setDirection(direction);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -53,27 +58,42 @@ class CRServoAccess extends HardwareAccess<CRServo> {
   @JavascriptInterface
   @Block(classes = {CRServoImpl.class}, methodName = "getDirection")
   public String getDirection() {
-    startBlockExecution(BlockType.GETTER, ".Direction");
-    Direction direction = crServo.getDirection();
-    if (direction != null) {
-      return direction.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Direction");
+      Direction direction = crServo.getDirection();
+      if (direction != null) {
+        return direction.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {CRServoImpl.class}, methodName = "setPower")
   public void setPower(double power) {
-    startBlockExecution(BlockType.SETTER, ".Power");
-    crServo.setPower(power);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Power");
+      crServo.setPower(power);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {CRServoImpl.class}, methodName = "getPower")
   public double getPower() {
-    startBlockExecution(BlockType.GETTER, ".Power");
-    return crServo.getPower();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Power");
+      return crServo.getPower();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

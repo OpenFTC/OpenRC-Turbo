@@ -38,125 +38,185 @@ class ElapsedTimeAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public ElapsedTime create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new ElapsedTime();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new ElapsedTime();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public ElapsedTime create_withStartTime(long startTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    return new ElapsedTime(startTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new ElapsedTime(startTime);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public ElapsedTime create_withResolution(String resolutionString) {
-    startBlockExecution(BlockType.CREATE, "");
-    Resolution resolution = checkArg(resolutionString, Resolution.class, "resolution");
-    if (resolution != null) {
-      return new ElapsedTime(resolution);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      Resolution resolution = checkArg(resolutionString, Resolution.class, "resolution");
+      if (resolution != null) {
+        return new ElapsedTime(resolution);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getStartTime(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".StartTime");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.startTime();
+    try {
+      startBlockExecution(BlockType.GETTER, ".StartTime");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.startTime();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getTime(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".Time");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.time();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Time");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.time();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getSeconds(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".Seconds");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.seconds();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Seconds");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.seconds();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getMilliseconds(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".Milliseconds");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.milliseconds();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Milliseconds");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.milliseconds();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getResolution(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".Resolution");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      Resolution resolution = elapsedTime.getResolution();
-      if (resolution != null) {
-        return resolution.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Resolution");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        Resolution resolution = elapsedTime.getResolution();
+        if (resolution != null) {
+          return resolution.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAsText(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.GETTER, ".AsText");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AsText");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void reset(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.FUNCTION, ".reset");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      elapsedTime.reset();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".reset");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        elapsedTime.reset();
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void log(Object elapsedTimeArg, String label) {
-    startBlockExecution(BlockType.FUNCTION, ".log");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      elapsedTime.log(label);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".log");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        elapsedTime.log(label);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object elapsedTimeArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
-    if (elapsedTime != null) {
-      return elapsedTime.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      ElapsedTime elapsedTime = checkElapsedTime(elapsedTimeArg);
+      if (elapsedTime != null) {
+        return elapsedTime.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 }

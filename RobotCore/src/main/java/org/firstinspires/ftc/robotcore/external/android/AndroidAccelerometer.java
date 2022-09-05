@@ -34,15 +34,22 @@ import androidx.annotation.NonNull;
  * @author lizlooney@google.com (Liz Looney)
  */
 public class AndroidAccelerometer implements SensorEventListener {
-  @SuppressWarnings("ConstantConditions")
-  @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
-
   private volatile boolean listening;
   private volatile long timestamp;
   private volatile float x; // Acceleration minus Gx on the x-axis, in SI units (m/s^2).
   private volatile float y; // Acceleration minus Gx on the y-axis, in SI units (m/s^2).
   private volatile float z; // Acceleration minus Gx on the z-axis, in SI units (m/s^2).
   private volatile DistanceUnit distanceUnit = DistanceUnit.METER;
+
+  // The __sensorManager field should not be accessed directly. Use sensorManager() instead.
+  private volatile SensorManager __sensorManager;
+
+  private SensorManager sensorManager() {
+    if (__sensorManager == null) {
+      __sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+    }
+    return __sensorManager;
+  }
 
   // SensorEventListener methods
 
@@ -110,18 +117,15 @@ public class AndroidAccelerometer implements SensorEventListener {
    * Returns an Acceleration object representing acceleration in X, Y and Z axes.
    */
   public Acceleration getAcceleration() {
-    if (timestamp != 0) {
-      return new Acceleration(DistanceUnit.METER, x, y, z, timestamp)
-          .toUnit(distanceUnit);
-    }
-    return null;
+    return new Acceleration(DistanceUnit.METER, x, y, z, timestamp)
+        .toUnit(distanceUnit);
   }
 
   /**
    * Returns true if the Android device has a accelerometer.
    */
   public boolean isAvailable() {
-    return !sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
+    return !sensorManager().getSensorList(Sensor.TYPE_ACCELEROMETER).isEmpty();
   }
 
   /**
@@ -129,6 +133,7 @@ public class AndroidAccelerometer implements SensorEventListener {
    */
   public void startListening() {
     if (!listening) {
+      SensorManager sensorManager = sensorManager();
       Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
       sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
       listening = true;
@@ -140,7 +145,7 @@ public class AndroidAccelerometer implements SensorEventListener {
    */
   public void stopListening() {
     if (listening) {
-      sensorManager.unregisterListener(this);
+      sensorManager().unregisterListener(this);
       listening = false;
       timestamp = 0;
     }

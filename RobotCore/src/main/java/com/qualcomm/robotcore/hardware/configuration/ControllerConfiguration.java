@@ -87,11 +87,6 @@ public abstract class ControllerConfiguration<ITEM_T extends DeviceConfiguration
 
   public static @Nullable ControllerConfiguration forType(String name, @NonNull SerialNumber serialNumber, ConfigurationType type) {
 
-    if (type==BuiltInConfigurationType.DEVICE_INTERFACE_MODULE)  return new DeviceInterfaceModuleConfiguration(name, serialNumber);
-    if (type==BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER) return new LegacyModuleControllerConfiguration(name, new LinkedList<DeviceConfiguration>(), serialNumber);
-    if (type==BuiltInConfigurationType.MATRIX_CONTROLLER)        return new MatrixControllerConfiguration(name, new LinkedList<DeviceConfiguration>(), new LinkedList<DeviceConfiguration>(), serialNumber);
-    if (type==BuiltInConfigurationType.MOTOR_CONTROLLER)         return new MotorControllerConfiguration(name, new LinkedList<DeviceConfiguration>(), serialNumber);
-    if (type==BuiltInConfigurationType.SERVO_CONTROLLER)         return new ServoControllerConfiguration(name, new LinkedList<DeviceConfiguration>(), serialNumber);
     if (type==BuiltInConfigurationType.LYNX_USB_DEVICE)          return new LynxUsbDeviceConfiguration(name, new LinkedList<LynxModuleConfiguration>(), serialNumber);
     if (type==BuiltInConfigurationType.LYNX_MODULE)              return new LynxModuleConfiguration(name);  // unclear if necessary
     if (type==BuiltInConfigurationType.WEBCAM)                   return new WebcamConfiguration(name, serialNumber);

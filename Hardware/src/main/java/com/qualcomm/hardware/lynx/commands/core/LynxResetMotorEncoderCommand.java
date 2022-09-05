@@ -73,13 +73,6 @@ public class LynxResetMotorEncoderCommand extends LynxDekaInterfaceCommand<LynxR
     //----------------------------------------------------------------------------------------------
 
     @Override
-    public boolean isResponseExpected()
-        {
-        return false;
-        }
-
-
-    @Override
     public byte[] toPayloadByteArray()
         {
         ByteBuffer buffer = ByteBuffer.allocate(cbPayload).order(LynxDatagram.LYNX_ENDIAN);

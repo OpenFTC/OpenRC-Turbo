@@ -82,15 +82,7 @@ public class WriteXMLFileHandler {
       for (ControllerConfiguration controllerConfiguration : deviceControllerConfigurations) {
 
         ConfigurationType type = controllerConfiguration.getConfigurationType();
-        if (type == BuiltInConfigurationType.MOTOR_CONTROLLER) {
-          writeController((MotorControllerConfiguration)controllerConfiguration, true);
-        } else if (type == BuiltInConfigurationType.SERVO_CONTROLLER) {
-          writeController((ServoControllerConfiguration)controllerConfiguration, true);
-        } else if (type == BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER) {
-          writeLegacyModuleController((LegacyModuleControllerConfiguration)controllerConfiguration);
-        } else if (type == BuiltInConfigurationType.DEVICE_INTERFACE_MODULE) {
-          writeDeviceInterfaceModule((DeviceInterfaceModuleConfiguration)controllerConfiguration);
-        } else if (type == BuiltInConfigurationType.LYNX_USB_DEVICE) {
+        if (type == BuiltInConfigurationType.LYNX_USB_DEVICE) {
           writeLynxUSBDevice((LynxUsbDeviceConfiguration)controllerConfiguration);
         } else if (type == BuiltInConfigurationType.WEBCAM) {
           writeWebcam((WebcamConfiguration) controllerConfiguration);
@@ -114,51 +106,6 @@ public class WriteXMLFileHandler {
         names.add(name);
       }
     }
-  }
-
-  private void writeDeviceInterfaceModule(final DeviceInterfaceModuleConfiguration controller) throws IOException {
-    writeUsbController(controller, null, new ThrowingRunnable<IOException>() {
-      @Override public void run() throws IOException {
-          DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration = (DeviceInterfaceModuleConfiguration) controller;
-
-          for (DeviceConfiguration device : deviceInterfaceModuleConfiguration.getPwmOutputs()) {
-            writeDeviceNameAndPort(device);
-          }
-
-          for (DeviceConfiguration device : deviceInterfaceModuleConfiguration.getI2cDevices()) {
-            writeDeviceNameAndPort(device);
-          }
-
-          for (DeviceConfiguration device : deviceInterfaceModuleConfiguration.getAnalogInputDevices()) {
-            writeDeviceNameAndPort(device);
-          }
-
-          for (DeviceConfiguration device : deviceInterfaceModuleConfiguration.getDigitalDevices()) {
-            writeDeviceNameAndPort(device);
-          }
-
-          for (DeviceConfiguration device : deviceInterfaceModuleConfiguration.getAnalogOutputDevices()) {
-            writeDeviceNameAndPort(device);
-          }
-        }
-      });
-  }
-
-  private void writeLegacyModuleController(final LegacyModuleControllerConfiguration controller) throws IOException {
-    writeUsbController(controller, null, new ThrowingRunnable<IOException>() {
-      @Override public void run() throws IOException {
-          // step through the list of attached devices,
-          for (DeviceConfiguration device : controller.getDevices()) {
-            ConfigurationType type = device.getConfigurationType();
-            if (type == BuiltInConfigurationType.MOTOR_CONTROLLER)        { writeController((MotorControllerConfiguration)device, false);
-            } else if (type == BuiltInConfigurationType.SERVO_CONTROLLER) { writeController((ServoControllerConfiguration)device, false);
-            } else if (type == BuiltInConfigurationType.MATRIX_CONTROLLER){ writeController((MatrixControllerConfiguration)device, false);
-            } else {
-              writeDeviceNameAndPort(device);
-            }
-          }
-        }
-      });
   }
 
   private void writeWebcam(final WebcamConfiguration controller) throws IOException {
@@ -230,18 +177,7 @@ public class WriteXMLFileHandler {
             for (DeviceConfiguration device : moduleConfiguration.getI2cDevices()) {
               writeDeviceNameAndPort(device);
             }
-          }
-
-          else if(controller.getConfigurationType() == BuiltInConfigurationType.MATRIX_CONTROLLER) {
-            for (DeviceConfiguration device : ((MatrixControllerConfiguration) controller).getMotors()) {
-              writeDeviceNameAndPort(device);
-            }
-            for (DeviceConfiguration device : ((MatrixControllerConfiguration) controller).getServos()) {
-              writeDeviceNameAndPort(device);
-            }
-          }
-
-          else {
+          } else {
             for (DeviceConfiguration device : controller.getDevices()) {
               writeDeviceNameAndPort(device);
             }

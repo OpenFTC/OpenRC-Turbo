@@ -60,8 +60,7 @@ public class LynxGetDIODirectionCommand extends LynxDekaInterfaceCommand<LynxGet
 
     public LynxGetDIODirectionCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetDIODirectionResponse(module);
+        super(module, new LynxGetDIODirectionResponse(module));
         }
 
     public LynxGetDIODirectionCommand(LynxModuleIntf module, int pin)
@@ -78,12 +77,6 @@ public class LynxGetDIODirectionCommand extends LynxDekaInterfaceCommand<LynxGet
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetDIODirectionResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

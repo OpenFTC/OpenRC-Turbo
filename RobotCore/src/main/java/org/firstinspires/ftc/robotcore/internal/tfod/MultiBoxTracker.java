@@ -25,14 +25,17 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Pair;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.google.ftcresearch.tfod.tracking.ObjectTracker;
+import com.google.ftcresearch.tfod.tracking.ObjectTracker.TrackedObject;
 import com.google.ftcresearch.tfod.util.ImageUtils;
+import com.google.ftcresearch.tfod.util.Size;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.internal.tfod.LabeledObject.CoordinateSystem;
 
 /**
  * A tracker wrapping ObjectTracker that also handles non-max suppression and matching existing
@@ -58,298 +61,118 @@ public class MultiBoxTracker {
     Color.parseColor("#AA33AA"),
     Color.parseColor("#0D0068")
   };
-
-  private final TfodParameters params;
-
-  private final Queue<Integer> availableColors = new LinkedList<Integer>();
-
-  private ObjectTracker objectTracker;
-
-  final List<Pair<Float, RectF>> screenRects = new LinkedList<Pair<Float, RectF>>();
-
-  private static class TrackedRecognition {
-    ObjectTracker.TrackedObject trackedObject;
-    RectF location;
-    float detectionConfidence;
-    int color;
-    String title;
-  }
-
-  private final List<TrackedRecognition> trackedObjects = new LinkedList<TrackedRecognition>();
-
-  private final Paint boxPaint = new Paint();
-
-  private final BorderedText borderedText;
-
-  private Matrix frameToCanvasMatrix;
-
-  private int frameWidth;
-  private int frameHeight;
-
-  private int sensorOrientation;
-
-  private CameraInformation cameraInformation;
-
-  public MultiBoxTracker(TfodParameters params) {
-    this.params = params;
-
-    for (final int color : COLORS) {
-      availableColors.add(color);
-    }
-
+  private static final Paint boxPaint = new Paint();
+  static {
     boxPaint.setColor(Color.RED);
     boxPaint.setStyle(Style.STROKE);
     boxPaint.setStrokeWidth(12.0f);
     boxPaint.setStrokeCap(Cap.ROUND);
     boxPaint.setStrokeJoin(Join.ROUND);
     boxPaint.setStrokeMiter(100);
-
-    borderedText = new BorderedText(60);
   }
 
-  private Matrix getFrameToCanvasMatrix() {
-    return frameToCanvasMatrix;
-  }
+  private final TfodParameters params;
+  private final Size trackerSize;
 
-  public synchronized void drawDebug(final Canvas canvas) {
-    final Paint textPaint = new Paint();
-    textPaint.setColor(Color.WHITE);
-    textPaint.setTextSize(60.0f);
+  private final Queue<Integer> availableColors = new LinkedList<Integer>();
 
-    final Paint boxPaint = new Paint();
-    boxPaint.setColor(Color.MAGENTA);
-    boxPaint.setStrokeWidth(4.0f);
-    boxPaint.setAlpha(200);
-    boxPaint.setStyle(Style.STROKE);
+  private final ObjectTracker objectTracker;
 
-    for (final Pair<Float, RectF> detection : screenRects) {
-      final RectF rect = detection.second;
-      canvas.drawRect(rect, boxPaint);
-      String text = String.format("%.2f", detection.first);
-      canvas.drawText(text, rect.left, rect.top, textPaint);
-      borderedText.drawText(canvas, rect.centerX(), rect.centerY(), text);
+  private final List<TrackedRecognition> trackedRecognitions = new LinkedList<TrackedRecognition>();
+
+  public MultiBoxTracker(TfodParameters params, Size trackerSize) {
+    this.params = params;
+    this.trackerSize = trackerSize;
+
+    for (int color : COLORS) {
+      availableColors.add(color);
     }
 
+    ObjectTracker.clearInstance();
+    objectTracker = ObjectTracker.getInstance(trackerSize.width, trackerSize.height, trackerSize.width /* rowStride */, true);
     if (objectTracker == null) {
-      Log.w(TAG, "skipping drawing debug because object tracker is null");
-      return;
+      Log.e(TAG, "Object tracking support not found.");
     }
+  }
 
-    Matrix matrix = getFrameToCanvasMatrix();
-    if (matrix == null) {
-      Log.w(TAG, "Should be returning here, making identity instead");
-      // Use the identity matrix to ensure that the correlations actually get drawn.
-      matrix = new Matrix();
+  private synchronized List<LabeledObject> getLabeledObjects() {
+    List<LabeledObject> labeledObjects = new ArrayList<>();
+    for (TrackedRecognition trackedRecognition : trackedRecognitions) {
+      RectF location = trackedRecognition.getCurrentPosition();
+      labeledObjects.add(new LabeledObject(trackedRecognition.labeledObject,
+          CoordinateSystem.TRACKER,
+          location.left, location.top, location.right, location.bottom));
     }
+    return labeledObjects;
+  }
 
-    // Draw correlations.
-    for (final TrackedRecognition recognition : trackedObjects) {
-      final ObjectTracker.TrackedObject trackedObject = recognition.trackedObject;
+  public synchronized List<LabeledObject> onFrame(long timestamp, byte[] frame) {
+    if (objectTracker != null) {
+      // Pass the frame to the object tracker.
+      objectTracker.nextFrame(frame, null, timestamp, null, true);
 
-      final RectF trackedPos = trackedObject.getTrackedPositionInPreviewFrame();
+      // Clean up any objects not worth tracking any more.
+      LinkedList<TrackedRecognition> copyList = new LinkedList<TrackedRecognition>(trackedRecognitions);
+      for (TrackedRecognition trackedRecognition : copyList) {
+        TrackedObject trackedObject = trackedRecognition.trackedObject;
+        float correlation = trackedObject.getCurrentCorrelation();
+        if (correlation < params.trackerMinCorrelation) {
+          trackedObject.stopTracking();
+          trackedRecognitions.remove(trackedRecognition);
 
-      if (matrix.mapRect(trackedPos)) {
-        final String labelString = String.format("%.2f", trackedObject.getCurrentCorrelation());
-        borderedText.drawText(canvas, trackedPos.right, trackedPos.bottom, labelString);
+          availableColors.add(trackedRecognition.color);
+        }
       }
     }
 
-    objectTracker.drawDebug(canvas, matrix);
+    return getLabeledObjects();
   }
 
-  public synchronized void trackResults(
-      final List<Recognition> results, final byte[] frame, final long timestamp) {
-    //Log.i(TAG, String.format("Processing %d results from %d", results.size(), timestamp));
-    processResults(timestamp, results, frame);
-  }
-
-  public synchronized void draw(final Canvas canvas) {
-    final boolean rotated = sensorOrientation % 180 == 90;
-    final float multiplier =
-        Math.min(
-            canvas.getHeight() / (float) (rotated ? frameWidth : frameHeight),
-            canvas.getWidth() / (float) (rotated ? frameHeight : frameWidth));
-    frameToCanvasMatrix =
-        ImageUtils.getTransformationMatrix(
-            frameWidth,
-            frameHeight,
-            (int) (multiplier * (rotated ? frameHeight : frameWidth)),
-            (int) (multiplier * (rotated ? frameWidth : frameHeight)),
-            sensorOrientation,
-            false);
-    for (final TrackedRecognition recognition : trackedObjects) {
-      final RectF trackedPos =
-          (objectTracker != null)
-              ? recognition.trackedObject.getTrackedPositionInPreviewFrame()
-              : new RectF(recognition.location);
-
-      getFrameToCanvasMatrix().mapRect(trackedPos);
-      boxPaint.setColor(recognition.color);
-
-      final float cornerSize = Math.min(trackedPos.width(), trackedPos.height()) / 8.0f;
-      canvas.drawRoundRect(trackedPos, cornerSize, cornerSize, boxPaint);
-
-      final String labelString =
-          !TextUtils.isEmpty(recognition.title)
-              ? String.format("%s %.2f", recognition.title, recognition.detectionConfidence)
-              : String.format("%.2f", recognition.detectionConfidence);
-      borderedText.drawText(canvas, trackedPos.left + cornerSize, trackedPos.bottom, labelString);
-    }
-  }
-
-  public synchronized void printResults() {
-    for (final TrackedRecognition recognition : trackedObjects) {
-      final RectF trackedPos =
-          (objectTracker != null)
-              ? recognition.trackedObject.getTrackedPositionInPreviewFrame()
-              : new RectF(recognition.location);
-      //Log.i(TAG, "Tracked rect:" + trackedPos);
-    }
-  }
-
-  public synchronized List<Recognition> getRecognitions() {
-    List<Recognition> recognitions = new ArrayList<>();
-    for (final TrackedRecognition recognition : trackedObjects) {
-      final RectF trackedPos =
-          (objectTracker != null)
-              ? recognition.trackedObject.getTrackedPositionInPreviewFrame()
-              : new RectF(recognition.location);
-      recognitions.add(
-          new RecognitionImpl(cameraInformation, recognition.title, recognition.detectionConfidence, trackedPos));
-    }
-
-    return recognitions;
-  }
-
-  private boolean initialized = false;
-
-  public synchronized void onFrame(
-      final int w,
-      final int h,
-      final int rowStride,
-      final int sensorOrientation,
-      final byte[] frame,
-      final long timestamp,
-      final CameraInformation cameraInformation) {
-    if (objectTracker == null && !initialized) {
-      ObjectTracker.clearInstance();
-
-      //Log.i(TAG, String.format("Initializing ObjectTracker: %dx%d", w, h));
-      objectTracker = ObjectTracker.getInstance(w, h, rowStride, true);
-      frameWidth = w;
-      frameHeight = h;
-      this.sensorOrientation = sensorOrientation;
-      this.cameraInformation = cameraInformation;
-      initialized = true;
-
-      if (objectTracker == null) {
-        String message =
-            "Object tracking support not found. "
-                + "See tensorflow/examples/android/README.md for details.";
-        //Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-        Log.e(TAG, message);
-      }
-    }
-
-    if (objectTracker == null) {
-      return;
-    }
-
-    objectTracker.nextFrame(frame, null, timestamp, null, true);
-
-    // Clean up any objects not worth tracking any more.
-    final LinkedList<TrackedRecognition> copyList =
-        new LinkedList<TrackedRecognition>(trackedObjects);
-    for (final TrackedRecognition recognition : copyList) {
-      final ObjectTracker.TrackedObject trackedObject = recognition.trackedObject;
-      final float correlation = trackedObject.getCurrentCorrelation();
-      if (correlation < params.trackerMinCorrelation) {
-        //Log.v(TAG, String.format("Removing tracked object %s because NCC is %.2f", trackedObject, correlation));
-        trackedObject.stopTracking();
-        trackedObjects.remove(recognition);
-
-        availableColors.add(recognition.color);
-      }
-    }
-  }
-
-  private void processResults(
-      final long timestamp, final List<Recognition> results, final byte[] originalFrame) {
-    final List<Pair<Float, RecognitionImpl>> rectsToTrack = new LinkedList<Pair<Float, RecognitionImpl>>();
-
-    screenRects.clear();
-    final Matrix rgbFrameToScreen = new Matrix(getFrameToCanvasMatrix());
-
-    for (final Recognition result : results) {
-      RecognitionImpl recognitionImpl = (RecognitionImpl) result;
-      if (recognitionImpl.getLocation() == null) {
-        continue;
-      }
-      final RectF detectionFrameRect = new RectF(recognitionImpl.getLocation());
-
-      final RectF detectionScreenRect = new RectF();
-      rgbFrameToScreen.mapRect(detectionScreenRect, detectionFrameRect);
-
-      //Log.v(TAG,
-      //    "Result! Frame: " + recognitionImpl.getLocation() + " mapped to screen:" + detectionScreenRect);
-
-      screenRects.add(new Pair<Float, RectF>(result.getConfidence(), detectionScreenRect));
-
-      if (detectionFrameRect.width() < params.trackerMinSize
-          || detectionFrameRect.height() < params.trackerMinSize) {
-        Log.w(TAG, "Degenerate rectangle! " + detectionFrameRect);
+  public synchronized List<LabeledObject> onResultsFromRecognizer(long timestamp,
+      List<LabeledObject> labeledObjectsFromRecognizer, byte[] frame) {
+    List<LabeledObject> labeledObjects = new LinkedList<>();
+    for (LabeledObject labeledObject : labeledObjectsFromRecognizer) {
+      if (labeledObject.width() < params.trackerMinSize ||
+          labeledObject.height() < params.trackerMinSize) {
+        // Degenerate rectangle!
         continue;
       }
 
-      rectsToTrack.add(new Pair<Float, RecognitionImpl>(result.getConfidence(), recognitionImpl));
-    }
-
-    if (rectsToTrack.isEmpty()) {
-      //Log.v(TAG, "Nothing to track, aborting.");
-      return;
+      labeledObjects.add(labeledObject);
     }
 
     if (objectTracker == null) {
-      trackedObjects.clear();
-      for (final Pair<Float, RecognitionImpl> potential : rectsToTrack) {
-        final TrackedRecognition trackedRecognition = new TrackedRecognition();
-        trackedRecognition.detectionConfidence = potential.first;
-        trackedRecognition.location = new RectF(potential.second.getLocation());
-        trackedRecognition.trackedObject = null;
-        trackedRecognition.title = potential.second.getLabel();
-        trackedRecognition.color = COLORS[trackedObjects.size()];
-        trackedObjects.add(trackedRecognition);
+      // No tracking support. Just create TrackedRecognitions from the LabeledObjects.
+      trackedRecognitions.clear();
+      for (LabeledObject labeledObject : labeledObjects) {
+        int color = COLORS[trackedRecognitions.size()];
+        TrackedRecognition trackedRecognition = new TrackedRecognition(labeledObject, color, null);
+        trackedRecognitions.add(trackedRecognition);
 
-        if (trackedObjects.size() >= COLORS.length) {
+        if (trackedRecognitions.size() >= COLORS.length) {
           break;
         }
       }
-      return;
+    } else {
+      for (LabeledObject labeledObject : labeledObjects) {
+        handleDetection(frame, timestamp, labeledObject);
+      }
     }
 
-    //Log.i(TAG, String.format("%d rects to track", rectsToTrack.size()));
-    for (final Pair<Float, RecognitionImpl> potential : rectsToTrack) {
-      handleDetection(originalFrame, timestamp, potential);
-    }
+    return getLabeledObjects();
   }
 
-  private void handleDetection(
-      final byte[] frameCopy, final long timestamp, final Pair<Float, RecognitionImpl> potential) {
-    final ObjectTracker.TrackedObject potentialObject =
-        objectTracker.trackObject(potential.second.getLocation(), timestamp, frameCopy);
+  private void handleDetection(byte[] frame, long timestamp, LabeledObject labeledObject) {
+    labeledObject.checkCoordinateSystem(CoordinateSystem.TRACKER);
+    TrackedObject potentialTrackedObject =
+        objectTracker.trackObject(labeledObject.getLocation(), timestamp, frame);
 
-    final float potentialCorrelation = potentialObject.getCurrentCorrelation();
-    //Log.v(TAG, String.format(
-    //    "Tracked object went from %s to %s with correlation %.2f",
-    //    potential.second, potentialObject.getTrackedPositionInPreviewFrame(), potentialCorrelation));
-
-    if (potentialCorrelation < params.trackerMarginalCorrelation) {
-      //Log.v(TAG, String.format("Correlation too low to begin tracking %s.", potentialObject));
-      potentialObject.stopTracking();
+    if (potentialTrackedObject.getCurrentCorrelation() < params.trackerMarginalCorrelation) {
+      potentialTrackedObject.stopTracking();
       return;
     }
 
-    final List<TrackedRecognition> removeList = new LinkedList<TrackedRecognition>();
+    List<TrackedRecognition> removeList = new LinkedList<TrackedRecognition>();
 
     float maxIntersect = 0.0f;
 
@@ -359,25 +182,25 @@ public class MultiBoxTracker {
 
     // Look for intersections that will be overridden by this object or an intersection that would
     // prevent this one from being placed.
-    for (final TrackedRecognition trackedRecognition : trackedObjects) {
-      final RectF a = trackedRecognition.trackedObject.getTrackedPositionInPreviewFrame();
-      final RectF b = potentialObject.getTrackedPositionInPreviewFrame();
-      final RectF intersection = new RectF();
-      final boolean intersects = intersection.setIntersect(a, b);
+    for (TrackedRecognition trackedRecognition : trackedRecognitions) {
+      RectF a = trackedRecognition.getCurrentPosition();
+      RectF b = getTrackedPosition(potentialTrackedObject);
+      RectF intersection = new RectF();
+      boolean intersects = intersection.setIntersect(a, b);
 
-      final float intersectArea = intersection.width() * intersection.height();
-      final float totalArea = a.width() * a.height() + b.width() * b.height() - intersectArea;
-      final float intersectOverUnion = intersectArea / totalArea;
+      float intersectArea = intersection.width() * intersection.height();
+      float totalArea = a.width() * a.height() + b.width() * b.height() - intersectArea;
+      float intersectOverUnion = intersectArea / totalArea;
 
       // If there is an intersection with this currently tracked box above the maximum overlap
       // percentage allowed, either the new recognition needs to be dismissed or the old
       // recognition needs to be removed and possibly replaced with the new one.
       if (intersects && intersectOverUnion > params.trackerMaxOverlap) {
-        if (potential.first < trackedRecognition.detectionConfidence
-            && trackedRecognition.trackedObject.getCurrentCorrelation() > params.trackerMarginalCorrelation) {
+        if (labeledObject.confidence < trackedRecognition.labeledObject.confidence &&
+            trackedRecognition.trackedObject.getCurrentCorrelation() > params.trackerMarginalCorrelation) {
           // If track for the existing object is still going strong and the detection score was
           // good, reject this new object.
-          potentialObject.stopTracking();
+          potentialTrackedObject.stopTracking();
           return;
         } else {
           removeList.add(trackedRecognition);
@@ -393,61 +216,84 @@ public class MultiBoxTracker {
     }
 
     // If we're already tracking the max object and no intersections were found to bump off,
-    // pick the worst current tracked object to remove, if it's also worse than this candidate
+    // pick the worst current tracked object to remove, if it's also worse than this labeled
     // object.
     if (availableColors.isEmpty() && removeList.isEmpty()) {
-      for (final TrackedRecognition candidate : trackedObjects) {
-        if (candidate.detectionConfidence < potential.first) {
-          if (recogToReplace == null
-              || candidate.detectionConfidence < recogToReplace.detectionConfidence) {
+      for (TrackedRecognition candidate : trackedRecognitions) {
+        if (candidate.labeledObject.confidence < labeledObject.confidence) {
+          if (recogToReplace == null ||
+              candidate.labeledObject.confidence < recogToReplace.labeledObject.confidence) {
             // Save it so that we use this color for the new object.
             recogToReplace = candidate;
           }
         }
       }
       if (recogToReplace != null) {
-        //Log.v(TAG, "Found non-intersecting object to remove.");
         removeList.add(recogToReplace);
-      } else {
-        //Log.v(TAG, "No non-intersecting object found to remove");
       }
     }
 
     // Remove everything that got intersected.
-    for (final TrackedRecognition trackedRecognition : removeList) {
-      //Log.v(TAG, String.format(
-      //    "Removing tracked object %s with detection confidence %.2f, correlation %.2f",
-      //    trackedRecognition.trackedObject,
-      //    trackedRecognition.detectionConfidence,
-      //    trackedRecognition.trackedObject.getCurrentCorrelation()));
+    for (TrackedRecognition trackedRecognition : removeList) {
       trackedRecognition.trackedObject.stopTracking();
-      trackedObjects.remove(trackedRecognition);
+      trackedRecognitions.remove(trackedRecognition);
       if (trackedRecognition != recogToReplace) {
         availableColors.add(trackedRecognition.color);
       }
     }
 
     if (recogToReplace == null && availableColors.isEmpty()) {
-      Log.e(TAG, "No room to track this object, aborting.");
-      potentialObject.stopTracking();
+      // No room to track this object, aborting.
+      potentialTrackedObject.stopTracking();
       return;
     }
 
-    // Finally safe to say we can track this object.
-    //Log.v(TAG, String.format(
-    //    "Tracking object %s (%s) with detection confidence %.2f at position %s",
-    //    potentialObject,
-    //    potential.second.getLabel(),
-    //    potential.first,
-    //    potential.second.getLocation()));
-    final TrackedRecognition trackedRecognition = new TrackedRecognition();
-    trackedRecognition.detectionConfidence = potential.first;
-    trackedRecognition.trackedObject = potentialObject;
-    trackedRecognition.title = potential.second.getLabel();
-
+    // We can track this object.
     // Use the color from a replaced object before taking one from the color queue.
-    trackedRecognition.color =
-        recogToReplace != null ? recogToReplace.color : availableColors.poll();
-    trackedObjects.add(trackedRecognition);
+    int color = (recogToReplace != null)
+        ? recogToReplace.color
+        : availableColors.poll();
+    TrackedRecognition trackedRecognition = new TrackedRecognition(labeledObject, color, potentialTrackedObject);
+    trackedRecognitions.add(trackedRecognition);
+  }
+
+  public synchronized void draw(Canvas canvas, BorderedText borderedText, Matrix matrix) {
+    for (TrackedRecognition trackedRecognition : trackedRecognitions) {
+      RectF trackedPos = trackedRecognition.getCurrentPosition();
+      matrix.mapRect(trackedPos);
+      boxPaint.setColor(trackedRecognition.color);
+
+      float cornerSize = Math.min(trackedPos.width(), trackedPos.height()) / 8.0f;
+      canvas.drawRoundRect(trackedPos, cornerSize, cornerSize, boxPaint);
+
+      String labelString = !TextUtils.isEmpty(trackedRecognition.labeledObject.label)
+          ? String.format("%s %.2f", trackedRecognition.labeledObject.label, trackedRecognition.labeledObject.confidence)
+          : String.format("%.2f", trackedRecognition.labeledObject.confidence);
+      borderedText.drawText(canvas, trackedPos.left + cornerSize, trackedPos.bottom, labelString);
+    }
+  }
+
+  private static RectF getTrackedPosition(TrackedObject trackedObject) {
+    return new RectF(trackedObject.getTrackedPositionInPreviewFrame());
+  }
+
+  private static class TrackedRecognition {
+    private final @NonNull LabeledObject labeledObject;
+    private final int color;
+    private final @Nullable TrackedObject trackedObject;
+
+    private TrackedRecognition(@NonNull LabeledObject labeledObject, int color,
+        @Nullable TrackedObject trackedObject) {
+      this.labeledObject = labeledObject;
+      this.color = color;
+      this.trackedObject = trackedObject;
+    }
+
+    RectF getCurrentPosition() {
+      if (trackedObject != null) {
+        return getTrackedPosition(trackedObject);
+      }
+      return labeledObject.getLocation();
+    }
   }
 }

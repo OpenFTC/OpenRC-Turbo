@@ -37,18 +37,6 @@ class Zoom {
     }
   }
 
-  boolean isZoomed() {
-    return isZoomed(magnification);
-  }
-
-  static boolean isZoomed(double magnification) {
-    return !areEqual(magnification, 1.0);
-  }
-
-  Rect getZoomArea(int frameWidth, int frameHeight) {
-    return getZoomArea(magnification, aspectRatio, frameWidth, frameHeight);
-  }
-
   static Rect getZoomArea(double magnification, double aspectRatio, int frameWidth, int frameHeight) {
     // TODO(lizlooney): Figure out what to do if the rectangle ends up wider or taller than the
     // frame. I think that might happen if the frame is rotated.
@@ -59,9 +47,5 @@ class Zoom {
     return new Rect(
         (int) Math.round(left), (int) Math.round(top),
         (int) Math.round(left + centerWidth), (int) Math.round(top + centerHeight));
-  }
-
-  static boolean areEqual(double a, double b) {
-    return Math.abs(a - b) <= 0.0001;
   }
 }

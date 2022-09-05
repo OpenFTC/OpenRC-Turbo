@@ -60,8 +60,7 @@ public class LynxGetMotorTargetPositionCommand extends LynxDekaInterfaceCommand<
 
     public LynxGetMotorTargetPositionCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorTargetPositionResponse(module);
+        super(module, new LynxGetMotorTargetPositionResponse(module));
         }
 
     public LynxGetMotorTargetPositionCommand(LynxModuleIntf module, int motorZ)
@@ -78,12 +77,6 @@ public class LynxGetMotorTargetPositionCommand extends LynxDekaInterfaceCommand<
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorTargetPositionResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

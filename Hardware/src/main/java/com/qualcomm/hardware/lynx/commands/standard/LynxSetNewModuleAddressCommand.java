@@ -71,12 +71,6 @@ public class LynxSetNewModuleAddressCommand extends LynxStandardCommand<LynxAck>
         }
 
     @Override
-    public boolean isResponseExpected()
-        {
-        return false;
-        }
-
-    @Override
     public int getCommandNumber()
         {
         return getStandardCommandNumber();

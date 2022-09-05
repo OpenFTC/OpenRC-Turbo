@@ -20,6 +20,10 @@
  * @author lizlooney@google.com (Liz Looney)
  */
 
+// The following are defined via WebView.addJavascriptInterface in BlocksOpMode.java.
+// blocksOpMode
+// telemetry
+
 function callRunOpMode() {
   blocksOpMode.scriptStarting();
   try {
@@ -132,4 +136,36 @@ function callHardware(miscIdentifierForJavaScript, returnType, accessMethod, con
       break;
   }
   return result;
+}
+
+function listLength(miscIdentifierForJavaScript, o) {
+  // If o is a javascript array or string, just return o.length.
+  switch (typeof o) {
+    case 'object':
+      if (o instanceof Array) {
+        return o.length;
+      }
+      break;
+    case 'string':
+      return o.length;
+  }
+
+  // Otherwise, pass o to the Java helper function.
+  return miscIdentifierForJavaScript.listLength(o);
+}
+
+function listIsEmpty(miscIdentifierForJavaScript, o) {
+  // If o is a javascript array or string, just return o.length == 0.
+  switch (typeof o) {
+    case 'object':
+      if (o instanceof Array) {
+        return o.length == 0;
+      }
+      break;
+    case 'string':
+      return o.length == 0;
+  }
+
+  // Otherwise, pass o to the Java helper function.
+  return miscIdentifierForJavaScript.listIsEmpty(o);
 }

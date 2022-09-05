@@ -48,13 +48,18 @@ class VuforiaTrackableDefaultListenerAccess extends Access {
   public void setPhoneInformation(
       Object vuforiaTrackableDefaultListenerArg, Object phoneLocationOnRobotArg,
       String cameraDirectionString) {
-    startBlockExecution(BlockType.FUNCTION, ".setPhoneInformation");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    OpenGLMatrix phoneLocationOnRobot = checkOpenGLMatrix(phoneLocationOnRobotArg);
-    CameraDirection cameraDirection = checkVuforiaLocalizerCameraDirection(cameraDirectionString);
-    if (vuforiaTrackableDefaultListener != null && phoneLocationOnRobot != null && cameraDirection != null) {
-      vuforiaTrackableDefaultListener.setPhoneInformation(phoneLocationOnRobot, cameraDirection);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setPhoneInformation");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      OpenGLMatrix phoneLocationOnRobot = checkOpenGLMatrix(phoneLocationOnRobotArg);
+      CameraDirection cameraDirection = checkVuforiaLocalizerCameraDirection(cameraDirectionString);
+      if (vuforiaTrackableDefaultListener != null && phoneLocationOnRobot != null && cameraDirection != null) {
+        vuforiaTrackableDefaultListener.setPhoneInformation(phoneLocationOnRobot, cameraDirection);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -62,61 +67,86 @@ class VuforiaTrackableDefaultListenerAccess extends Access {
   @JavascriptInterface
   public void setCameraLocationOnRobot(
       Object vuforiaTrackableDefaultListenerArg, String cameraNameString, Object cameraLocationOnRobotArg) {
-    startBlockExecution(BlockType.FUNCTION, ".setCameraLocationOnRobot");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
-    OpenGLMatrix cameraLocationOnRobot = checkOpenGLMatrix(cameraLocationOnRobotArg);
-    if (vuforiaTrackableDefaultListener != null && cameraName != null && cameraLocationOnRobot != null) {
-      vuforiaTrackableDefaultListener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setCameraLocationOnRobot");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
+      OpenGLMatrix cameraLocationOnRobot = checkOpenGLMatrix(cameraLocationOnRobotArg);
+      if (vuforiaTrackableDefaultListener != null && cameraName != null && cameraLocationOnRobot != null) {
+        vuforiaTrackableDefaultListener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isVisible(Object vuforiaTrackableDefaultListenerArg) {
-    startBlockExecution(BlockType.FUNCTION, ".isVisible");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    if (vuforiaTrackableDefaultListener != null) {
-      return vuforiaTrackableDefaultListener.isVisible();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isVisible");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      if (vuforiaTrackableDefaultListener != null) {
+        return vuforiaTrackableDefaultListener.isVisible();
+      }
+      return false;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return false;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix getUpdatedRobotLocation(Object vuforiaTrackableDefaultListenerArg) {
-    startBlockExecution(BlockType.FUNCTION, ".getUpdatedRobotLocation");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    if (vuforiaTrackableDefaultListener != null) {
-      return vuforiaTrackableDefaultListener.getUpdatedRobotLocation();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getUpdatedRobotLocation");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      if (vuforiaTrackableDefaultListener != null) {
+        return vuforiaTrackableDefaultListener.getUpdatedRobotLocation();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix getPose(Object vuforiaTrackableDefaultListenerArg) {
-    startBlockExecution(BlockType.FUNCTION, ".getPose");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    if (vuforiaTrackableDefaultListener != null) {
-      return vuforiaTrackableDefaultListener.getPose();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getPose");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      if (vuforiaTrackableDefaultListener != null) {
+        return vuforiaTrackableDefaultListener.getPose();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getRelicRecoveryVuMark(Object vuforiaTrackableDefaultListenerArg) {
-    startBlockExecution(BlockType.FUNCTION, ".getRelicRecoveryVuMark");
-    VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
-        vuforiaTrackableDefaultListenerArg);
-    if (vuforiaTrackableDefaultListener != null) {
-      return RelicRecoveryVuMark.from(vuforiaTrackableDefaultListener).toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getRelicRecoveryVuMark");
+      VuforiaTrackableDefaultListener vuforiaTrackableDefaultListener = checkVuforiaTrackableDefaultListener(
+          vuforiaTrackableDefaultListenerArg);
+      if (vuforiaTrackableDefaultListener != null) {
+        return RelicRecoveryVuMark.from(vuforiaTrackableDefaultListener).toString();
+      }
+      return RelicRecoveryVuMark.UNKNOWN.toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return RelicRecoveryVuMark.UNKNOWN.toString();
   }
 }

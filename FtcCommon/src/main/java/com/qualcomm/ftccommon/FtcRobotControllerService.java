@@ -200,7 +200,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
 
     void awaitUSB() throws InterruptedException {
       updateRobotStatus(RobotStatus.SCANNING_USB);
-      AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
+      AppAliveNotifier.getInstance().notifyAppAlive(); // Make sure we don't trip the CH OS watchdog
       /*
        * Give android a chance to finish scanning for USB devices before
        * we create our robot object.
@@ -213,7 +213,7 @@ public class FtcRobotControllerService extends Service implements NetworkConnect
        * TODO: should be reviewed
        */
        Thread.sleep(USB_WAIT);
-       AppAliveNotifier.getInstance().onEventLoopIteration(); // Make sure we don't trip the CH OS watchdog
+       AppAliveNotifier.getInstance().notifyAppAlive(); // Make sure we don't trip the CH OS watchdog
     }
 
     void initializeEventLoopAndRobot() throws RobotCoreException {

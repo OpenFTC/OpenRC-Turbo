@@ -1,0 +1,329 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+<variables>
+<variable id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</variable>
+<variable id="#.`?,JsW:Rzxtf9`*INi">ledEffect</variable>
+<variable id="[p#L^r;59{Pe(Ak.adMU">lastX</variable>
+<variable id="E6-10oKs5=U9#IUg3Xfl">lastB</variable>
+<variable id=")I]dz=noyY^l4xN(6_#@">X</variable>
+<variable id="IMcvM4H[]8RL!55crq,[">B</variable>
+</variables>
+<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" x="66" y="68">
+<field name="NAME">runOpMode</field>
+<comment pinned="true" h="74.43705749511719" w="528.3203125">This OpMode shows how to use Gamepad.setLedColor and Gamepad.runLedEffect to change the color of the LED on supported gamepads.</comment>
+<statement name="STACK">
+<block type="comment" id="Lc#BFtj*NTB48YL;eBl.">
+<field name="COMMENT">First we create an LedEffect.</field>
+<next>
+<block type="procedures_callnoreturn" id="1kan8;#XKcPm`dT6zRj:">
+<mutation name="createLedEffect"/>
+<next>
+<block type="linearOpMode_waitForStart" id=":`$wN_ci`O;o6P0~.(+g">
+<next>
+<block type="controls_if" id="}Q?5mbxSO8Di;i!__6[y">
+<value name="IF0">
+<block type="linearOpMode_opModeIsActive" id=")o%YFX/#9kvv^sgXr4~5"/>
+</value>
+<statement name="DO0">
+<block type="comment" id="9LU_`9q~9kwU}L3v~#j|">
+<field name="COMMENT">We'll change the LED when the user presses X or B.</field>
+<next>
+<block type="comment" id="YYhlA7_l$ppxf^A`)E=E">
+<field name="COMMENT">Initialize variables for those buttons.</field>
+<next>
+<block type="variables_set" id="*_}RG;#CSfsBZOeWC]0R">
+<field name="VAR" id="[p#L^r;59{Pe(Ak.adMU">lastX</field>
+<value name="VALUE">
+<block type="gamepad_getProperty_Boolean" id="is@#a)PJ!FX~wxMWCv.r">
+<field name="IDENTIFIER">gamepad1</field>
+<field name="PROP">X</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+</block>
+</value>
+<next>
+<block type="variables_set" id="q@[|#.p1QkV2O%3=+,a@">
+<field name="VAR" id="E6-10oKs5=U9#IUg3Xfl">lastB</field>
+<value name="VALUE">
+<block type="gamepad_getProperty_Boolean" id="d[MJQIPBKUDBESHpmYZR">
+<field name="IDENTIFIER">gamepad1</field>
+<field name="PROP">B</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+</block>
+</value>
+<next>
+<block type="controls_whileUntil" id="^0Kagy/e+Ea{rbZPv2G6">
+<field name="MODE">WHILE</field>
+<value name="BOOL">
+<block type="linearOpMode_opModeIsActive" id="e)cr{!2VIET83s,JWC.="/>
+</value>
+<statement name="DO">
+<block type="comment" id="8!t/+etHCd*OaSJf(?pS">
+<field name="COMMENT">Get the current state of buttons X and B.</field>
+<next>
+<block type="variables_set" id="9r:Q{z4U(b2;dP~|HZ52">
+<field name="VAR" id=")I]dz=noyY^l4xN(6_#@">X</field>
+<value name="VALUE">
+<block type="gamepad_getProperty_Boolean" id="DE9.|Ea*6Rv%8[C/J}w2">
+<field name="IDENTIFIER">gamepad1</field>
+<field name="PROP">X</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+</block>
+</value>
+<next>
+<block type="variables_set" id="_kgjSPT#0})kY4YPELQC">
+<field name="VAR" id="IMcvM4H[]8RL!55crq,[">B</field>
+<value name="VALUE">
+<block type="gamepad_getProperty_Boolean" id="*8DHaza*^4TPR/5HWg-!">
+<field name="IDENTIFIER">gamepad1</field>
+<field name="PROP">B</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+</block>
+</value>
+<next>
+<block type="controls_if" id="x9Dn{D3EKPb2z|yFTK(T">
+<mutation elseif="1"/>
+<value name="IF0">
+<block type="logic_operation" id="Z=gQ3*RX%J]9+`mLN[Na" inline="false">
+<field name="OP">AND</field>
+<value name="A">
+<block type="logic_negate" id="^R6QfVtVGIpFcNS4+2Ga">
+<value name="BOOL">
+<block type="variables_get" id="4Fl,SSVgbiL0+]=vJoc1">
+<field name="VAR" id="[p#L^r;59{Pe(Ak.adMU">lastX</field>
+</block>
+</value>
+</block>
+</value>
+<value name="B">
+<block type="variables_get" id="f5[;KqT[9eB)CXMt(Blw">
+<field name="VAR" id=")I]dz=noyY^l4xN(6_#@">X</field>
+</block>
+</value>
+</block>
+</value>
+<statement name="DO0">
+<block type="comment" id="|*D-9p8|b=UN::PX^rAD">
+<field name="COMMENT">If the user presses X, set the LED color to blue</field>
+<next>
+<block type="comment" id="?:,T1y#mRsLR.PWQitto">
+<field name="COMMENT">for 1 second.</field>
+<next>
+<block type="gamepad_setLedColor" id="K9BDF[9mrk-f3mKk/$y)">
+<field name="IDENTIFIER">gamepad1</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+<value name="RED">
+<shadow type="math_number" id="2+A7k^{PmmlMcTi:%~$B">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="XX`;ZrcZxh_Y:1:2onxN">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id="mXCUcz@vnei70L%irCI-">
+<field name="NUM">1</field>
+</shadow>
+</value>
+<value name="MILLISECONDS">
+<shadow type="math_number" id="qG]@G%K-RQD4TIA*S`po">
+<field name="NUM">1000</field>
+</shadow>
+</value>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+<value name="IF1">
+<block type="logic_operation" id=",xz_v9mnWSClR+ed(wkH" inline="false">
+<field name="OP">AND</field>
+<value name="A">
+<block type="logic_negate" id="T^b4iO:YfmDk2F#Pb4YY">
+<value name="BOOL">
+<block type="variables_get" id="dDGc?*}%PE/*+PN~OWLx">
+<field name="VAR" id="E6-10oKs5=U9#IUg3Xfl">lastB</field>
+</block>
+</value>
+</block>
+</value>
+<value name="B">
+<block type="variables_get" id="L-qx}d{tWwC*^F;2M1PZ">
+<field name="VAR" id="IMcvM4H[]8RL!55crq,[">B</field>
+</block>
+</value>
+</block>
+</value>
+<statement name="DO1">
+<block type="comment" id="Lk1Dh9h56i}MiM$5R6V$">
+<field name="COMMENT">If the user presses B, run the LedEffect that we</field>
+<next>
+<block type="comment" id=":yJ;5+FN6v^anUfdhrB[">
+<field name="COMMENT">create earlier.</field>
+<next>
+<block type="gamepad_runLedEffect" id="ZHZv]@]%F=lyf#^I+|/I">
+<field name="IDENTIFIER">gamepad1</field>
+<data>{"IDENTIFIER":"gamepad1"}</data>
+<value name="LED_EFFECT">
+<block type="variables_get" id="QwO--ivhjjMV.cVv~lFg">
+<field name="VAR" id="#.`?,JsW:Rzxtf9`*INi">ledEffect</field>
+</block>
+</value>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+<next>
+<block type="variables_set" id="((Q:+NZZ%9ZZ{D=V]f`@">
+<field name="VAR" id="[p#L^r;59{Pe(Ak.adMU">lastX</field>
+<value name="VALUE">
+<block type="variables_get" id="HxB#BCymvxRJ?F]A5$jk">
+<field name="VAR" id=")I]dz=noyY^l4xN(6_#@">X</field>
+</block>
+</value>
+<next>
+<block type="variables_set" id="RPGwuslu#.#P_0sUA73)">
+<field name="VAR" id="E6-10oKs5=U9#IUg3Xfl">lastB</field>
+<value name="VALUE">
+<block type="variables_get" id="KNvM[]nAjUM6S(l-CNGY">
+<field name="VAR" id="IMcvM4H[]8RL!55crq,[">B</field>
+</block>
+</value>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+</block>
+<block type="procedures_defnoreturn" id="@LY4pjG6Pj|3t{3UO53_" x="677" y="207">
+<field name="NAME">createLedEffect</field>
+<comment pinned="true" h="101.66667175292969" w="462.49993896484375">createLedEffect uses an LedEffect.Builder to create an LedEffect that alternates between red and green. setRepeating is used to make the LedEffect keep going.</comment>
+<statement name="STACK">
+<block type="variables_set" id="mHyNbNC3_HHXL[b9/q|~">
+<field name="VAR" id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</field>
+<value name="VALUE">
+<block type="ledEffect_createBuilder" id="_)k(K#M5h~|}FU@.eV:o"/>
+</value>
+<next>
+<block type="ledEffect_addStep" id="~uPSH(s0-/gnF#CuoTfX">
+<value name="LED_EFFECT_BUILDER">
+<block type="variables_get" id="#i4EfCF~ux}Djzo~,fbG">
+<field name="VAR" id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</field>
+</block>
+</value>
+<value name="RED">
+<shadow type="math_number" id="Sjl(V`|H4UX!PPA0C4L=">
+<field name="NUM">1</field>
+</shadow>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="~Tf-[N/0%fC)NH!|5oWz">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id="dt)h.kwucRD)@1I@=.ud">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="MILLISECONDS">
+<shadow type="math_number" id="~i$A_xBxJFBi==cK_pA%">
+<field name="NUM">500</field>
+</shadow>
+</value>
+<next>
+<block type="ledEffect_addStep" id="u|{V0m;+vc;4j=w;3gO7">
+<value name="LED_EFFECT_BUILDER">
+<block type="variables_get" id="4:pJL})u6a0mZmM@4o%+">
+<field name="VAR" id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</field>
+</block>
+</value>
+<value name="RED">
+<shadow type="math_number" id="fryv*F?GZK]KO3H5dP0+">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="GREEN">
+<shadow type="math_number" id="}v?2;1~u,]lhnK~4!L%.">
+<field name="NUM">1</field>
+</shadow>
+</value>
+<value name="BLUE">
+<shadow type="math_number" id=",X?!NO@h-[_vL4W_=Tu5">
+<field name="NUM">0</field>
+</shadow>
+</value>
+<value name="MILLISECONDS">
+<shadow type="math_number" id="tD^8ABaMDbJ$Q..931FM">
+<field name="NUM">500</field>
+</shadow>
+</value>
+<next>
+<block type="ledEffect_setRepeating" id="Ci]4a1Gen4p:0vr|6}BJ">
+<value name="LED_EFFECT_BUILDER">
+<block type="variables_get" id="|?$ZWt[cINiEl}B86*[H">
+<field name="VAR" id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</field>
+</block>
+</value>
+<value name="REPEATING">
+<shadow type="logic_boolean" id="1FU:~#Vw#tLw$P-;:4Qj">
+<field name="BOOL">TRUE</field>
+</shadow>
+</value>
+<next>
+<block type="variables_set" id="^ln`8T!YEs};8CxVznDy">
+<field name="VAR" id="#.`?,JsW:Rzxtf9`*INi">ledEffect</field>
+<value name="VALUE">
+<block type="ledEffect_build" id="c#O;nHj]$lm]oB-{TbKS">
+<value name="LED_EFFECT_BUILDER">
+<block type="variables_get" id="q?$`nG-f!e(+mC8I~f.s">
+<field name="VAR" id="D)EI;6M(Z/9jD7LKnqm^">ledEffectBuilder</field>
+</block>
+</value>
+</block>
+</value>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</next>
+</block>
+</statement>
+</block>
+</xml>
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<Extra>
+<OpModeMeta flavor="TELEOP" group="" autoTransition="" />
+<Enabled value="true" />
+</Extra>

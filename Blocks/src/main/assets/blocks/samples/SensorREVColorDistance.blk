@@ -7,9 +7,9 @@
 <variable id="9ApQ8KvDslXqv}4}DDr:">saturation</variable>
 <variable id="B](w)xMp:/L@pXgq!?92">value</variable>
 </variables>
-<block type="procedures_defnoreturn" id="N5+,3)OebbE6UZcs_7Pq" deletable="false" editable="false" x="10" y="10">
+<block type="procedures_defnoreturn" id="N5+,3)OebbE6UZcs_7Pq" deletable="false" x="10" y="10">
 <field name="NAME">runOpMode</field>
-<comment pinned="false" h="80" w="160">This function is executed when this Op Mode is selected from the Driver Station.</comment>
+<comment pinned="false" h="45" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
 <block type="comment" id="W[upihAQT8!:[,2wul*s">
 <field name="COMMENT">This op mode demonstrates the color and distance features of the REV sensor.</field>

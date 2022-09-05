@@ -32,7 +32,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.robotcore.hardware.configuration;
 
-import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -165,57 +164,10 @@ public class ConfigurationUtility
         ControllerConfiguration result = null;
         switch (deviceType)
             {
-            case MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER:       result = buildNewModernMotorController(serialNumber); break;
-            case MODERN_ROBOTICS_USB_SERVO_CONTROLLER:          result = buildNewModernServoController(serialNumber); break;
-            case MODERN_ROBOTICS_USB_LEGACY_MODULE:             result = buildNewLegacyModule(serialNumber); break;
-            case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE:   result = buildNewDeviceInterfaceModule(serialNumber); break;
             case WEBCAM:                                        result = buildNewWebcam(serialNumber); break;
             case LYNX_USB_DEVICE:                               result = buildNewLynxUsbDevice(serialNumber, lynxModuleSupplier); break;
             }
         return result;
-        }
-
-    // TODO(Noah): Look into making it so that lists are never passed into DeviceConfiguration constructors
-    //  This would let us get rid of most of the buildEmptyX calls
-    public MotorControllerConfiguration buildNewModernMotorController(SerialNumber serialNumber)
-        {
-        List<DeviceConfiguration> motors = buildEmptyMotors(ModernRoboticsConstants.INITIAL_MOTOR_PORT, ModernRoboticsConstants.NUMBER_OF_MOTORS);
-        String name = createUniqueName(BuiltInConfigurationType.MOTOR_CONTROLLER, R.string.counted_motor_controller_name);
-        MotorControllerConfiguration motorController = new MotorControllerConfiguration(name, motors, serialNumber);
-        return motorController;
-        }
-
-    public ServoControllerConfiguration buildNewModernServoController(SerialNumber serialNumber)
-        {
-        List<DeviceConfiguration> servos = buildEmptyServos(ModernRoboticsConstants.INITIAL_SERVO_PORT, ModernRoboticsConstants.NUMBER_OF_SERVOS);
-        String name = createUniqueName(BuiltInConfigurationType.SERVO_CONTROLLER, R.string.counted_servo_controller_name);
-        ServoControllerConfiguration servoController = new ServoControllerConfiguration(name, servos, serialNumber);
-        return servoController;
-        }
-
-    public DeviceInterfaceModuleConfiguration buildNewDeviceInterfaceModule(SerialNumber serialNumber)
-        {
-        String name = createUniqueName(BuiltInConfigurationType.DEVICE_INTERFACE_MODULE, R.string.counted_device_interface_module_name);
-        DeviceInterfaceModuleConfiguration deviceInterfaceModule = new DeviceInterfaceModuleConfiguration(name, serialNumber);
-        deviceInterfaceModule.setPwmOutputs         (buildEmptyDevices(0, ModernRoboticsConstants.NUMBER_OF_PWM_CHANNELS,   BuiltInConfigurationType.PULSE_WIDTH_DEVICE));
-        deviceInterfaceModule.setI2cDevices         (buildEmptyDevices(0, ModernRoboticsConstants.NUMBER_OF_I2C_CHANNELS,   BuiltInConfigurationType.I2C_DEVICE));
-        deviceInterfaceModule.setAnalogInputDevices (buildEmptyDevices(0, ModernRoboticsConstants.NUMBER_OF_ANALOG_INPUTS,  BuiltInConfigurationType.NOTHING));
-        deviceInterfaceModule.setDigitalDevices     (buildEmptyDevices(0, ModernRoboticsConstants.NUMBER_OF_DIGITAL_IOS,    BuiltInConfigurationType.NOTHING));
-        deviceInterfaceModule.setAnalogOutputDevices(buildEmptyDevices(0, ModernRoboticsConstants.NUMBER_OF_ANALOG_OUTPUTS, BuiltInConfigurationType.NOTHING));
-        return deviceInterfaceModule;
-        }
-
-    public LegacyModuleControllerConfiguration buildNewLegacyModule(SerialNumber serialNumber)
-        {
-        List<DeviceConfiguration> legacies = new ArrayList<DeviceConfiguration>();
-        for (int i = 0; i < ModernRoboticsConstants.NUMBER_OF_LEGACY_MODULE_PORTS; i++)
-            {
-            DeviceConfiguration module = new DeviceConfiguration(i + 0, BuiltInConfigurationType.NOTHING);
-            legacies.add(module);
-            }
-        String name = createUniqueName(BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER, R.string.counted_legacy_module_name);
-        LegacyModuleControllerConfiguration legacyModule = new LegacyModuleControllerConfiguration(name, legacies, serialNumber);
-        return legacyModule;
         }
 
     public WebcamConfiguration buildNewWebcam(SerialNumber serialNumber)
@@ -236,19 +188,21 @@ public class ConfigurationUtility
             if (metas == null) metas = new LynxModuleMetaList(serialNumber);
             RobotLog.vv(TAG, "buildLynxUsbDevice(): discovered lynx modules: %s", metas);
 
-            Boolean parentHasImu;
+            LynxModuleMeta.ImuType parentImuType;
+
             if (metas.getParent() == null)
                 {
-                parentHasImu = false;
+                parentImuType = LynxModuleMeta.ImuType.NONE;
                 }
             else
                 {
-                // Returns null if the RC didn't report if the modules have IMUs
-                parentHasImu = metas.getParent().hasImu();
+                parentImuType = metas.getParent().imuType();
+                if (parentImuType == LynxModuleMeta.ImuType.UNKNOWN)
+                    {
+                    RobotLog.aa(TAG, "parent IMU type was UNKNOWN in buildNewLynxDevice()");
+                    parentImuType = LynxModuleMeta.ImuType.NONE;
+                    }
                 }
-
-            // If the RC didn't report if the modules have IMUs, assume that the parent does.
-            if (parentHasImu == null) { parentHasImu = true; }
 
             List<LynxModuleConfiguration> modules = new LinkedList<>();
             for (LynxModuleMeta meta : metas)
@@ -258,8 +212,8 @@ public class ConfigurationUtility
                         meta.isParent() &&
                         meta.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS;
 
-                boolean addSyntheticImu;
-                if (parentHasImu)
+                LynxModuleMeta.ImuType syntheticImuType;
+                if (parentImuType != LynxModuleMeta.ImuType.NONE)
                     {
                     // When the parent has an IMU, that's the IMU that should be used for
                     // performance reasons, so we don't want to add the synthetic IMU on any other
@@ -267,19 +221,26 @@ public class ConfigurationUtility
 
                     // Because we previously set parentHasImu to true if the RC is outdated,
                     // this branch includes that case.
-                    addSyntheticImu = meta.isParent();
+                    if (meta.isParent()) { syntheticImuType = parentImuType; }
+                    else { syntheticImuType = LynxModuleMeta.ImuType.NONE; }
                     }
                 else
                     {
                     // When the parent is known to not have an IMU, we want to add the synthetic IMU
                     // for any modules that are known to physically have one.
-                    addSyntheticImu = Boolean.TRUE.equals(meta.hasImu());
+
+                    syntheticImuType = meta.imuType();
+                    if (syntheticImuType == LynxModuleMeta.ImuType.UNKNOWN)
+                        {
+                        RobotLog.aa(TAG, "module IMU type was UNKNOWN in buildNewLynxDevice()");
+                        syntheticImuType = LynxModuleMeta.ImuType.NONE;
+                        }
                     }
 
                 modules.add(buildNewLynxModule(
                         meta.getModuleAddress(),
                         meta.isParent(),
-                        addSyntheticImu,
+                        syntheticImuType,
                         true,
                         isEmbeddedControlHubModule));
                 }
@@ -301,7 +262,12 @@ public class ConfigurationUtility
             }
         }
 
-    public LynxModuleConfiguration buildNewLynxModule(int moduleAddress, boolean isParent, boolean addSyntheticImu, boolean isEnabled, boolean isEmbeddedControlHubModule)
+    public LynxModuleConfiguration buildNewLynxModule(
+            int moduleAddress,
+            boolean isParent,
+            LynxModuleMeta.ImuType syntheticImuType,
+            boolean isEnabled,
+            boolean isEmbeddedControlHubModule)
         {
         String name;
         if (isEmbeddedControlHubModule) {
@@ -315,9 +281,19 @@ public class ConfigurationUtility
         LynxModuleConfiguration lynxModuleConfiguration = buildEmptyLynxModule(name, moduleAddress, isParent, isEnabled);
 
         // Add the embedded IMU device to the newly created configuration, if applicable
-        if (addSyntheticImu)
+        if (syntheticImuType != LynxModuleMeta.ImuType.NONE && syntheticImuType != LynxModuleMeta.ImuType.UNKNOWN)
             {
-            UserConfigurationType embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedIMUType();
+            UserConfigurationType embeddedIMUConfigurationType;
+            if (syntheticImuType == LynxModuleMeta.ImuType.BNO055)
+                {
+                embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedBNO055ImuType();
+                }
+            else if (syntheticImuType == LynxModuleMeta.ImuType.BHI260)
+                {
+                embeddedIMUConfigurationType = I2cDeviceConfigurationType.getLynxEmbeddedBHI260APImuType();
+                }
+            else throw new RuntimeException("Unrecognized embedded IMU type");
+
             Assert.assertTrue(embeddedIMUConfigurationType!=null && embeddedIMUConfigurationType.isDeviceFlavor(ConfigurationType.DeviceFlavor.I2C));
 
             String imuName = createUniqueName(embeddedIMUConfigurationType, R.string.preferred_imu_name, R.string.counted_imu_name, 1);

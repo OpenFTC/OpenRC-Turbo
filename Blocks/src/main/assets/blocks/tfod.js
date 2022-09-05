@@ -22,9 +22,12 @@
 // The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
 // vuforiaCurrentGameIdentifierForJavaScript
 // tfodIdentifierForJavaScript
+// createTfodCurrentGameLabelDropdown
+// TFOD_CURRENT_GAME_LABEL_TOOLTIPS
 // The following are defined in vars.js:
 // createNonEditableField
 // functionColor
+// getPropertyColor
 
 Blockly.Blocks['tfod_useDefaultModel'] = {
   init: function() {
@@ -585,6 +588,37 @@ Blockly.FtcJava['tfod_getRecognitions'] = function(block) {
   var identifier = Blockly.FtcJava.importDeclareAssign_(block, null, 'Tfod');
   var code = identifier + '.getRecognitions()';
   return [code, Blockly.FtcJava.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['tfod_typedEnum_label'] = {
+  init: function() {
+    this.setOutput(true, 'String');
+    this.appendDummyInput()
+        .appendField(createNonEditableField('Label'))
+        .appendField('.')
+        .appendField(createTfodCurrentGameLabelDropdown(), 'LABEL');
+    this.setColour(getPropertyColor);
+    // Assign 'this' to a variable for use in the tooltip closure below.
+    var thisBlock = this;
+    var TOOLTIPS = TFOD_CURRENT_GAME_LABEL_TOOLTIPS;
+    this.setTooltip(function() {
+      var key = thisBlock.getFieldValue('LABEL');
+      for (var i = 0; i < TOOLTIPS.length; i++) {
+        if (TOOLTIPS[i][0] == key) {
+          return TOOLTIPS[i][1];
+        }
+      }
+      return '';
+    });
+  }
+};
+
+Blockly.JavaScript['tfod_typedEnum_label'] = function(block) {
+  return tfod_typedEnum_label_JavaScript(block);
+};
+
+Blockly.FtcJava['tfod_typedEnum_label'] = function(block) {
+  return tfod_typedEnum_label_FtcJava(block);
 };
 
 // legacy blocks

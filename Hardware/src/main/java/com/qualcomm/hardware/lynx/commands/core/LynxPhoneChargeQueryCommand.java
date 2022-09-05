@@ -55,7 +55,7 @@ public class LynxPhoneChargeQueryCommand extends LynxDekaInterfaceCommand<LynxPh
 
     public LynxPhoneChargeQueryCommand(LynxModuleIntf module)
         {
-        super(module);
+        super(module, new LynxPhoneChargeQueryResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -66,13 +66,6 @@ public class LynxPhoneChargeQueryCommand extends LynxDekaInterfaceCommand<LynxPh
         {
         return LynxPhoneChargeQueryResponse.class;
         }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
-        }
-
 
     @Override
     public byte[] toPayloadByteArray()

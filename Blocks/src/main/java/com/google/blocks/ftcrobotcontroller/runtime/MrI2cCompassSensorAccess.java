@@ -42,130 +42,190 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getDirection")
   public double getDirection() {
-    startBlockExecution(BlockType.GETTER, ".Direction");
-    return mrI2cCompassSensor.getDirection();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Direction");
+      return mrI2cCompassSensor.getDirection();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "setI2cAddress")
   public void setI2cAddress7Bit(int i2cAddr7Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
-    mrI2cCompassSensor.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
+      mrI2cCompassSensor.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getI2cAddress")
   public int getI2cAddress7Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
-    I2cAddr i2cAddr = mrI2cCompassSensor.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get7Bit();
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
+      I2cAddr i2cAddr = mrI2cCompassSensor.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get7Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "setI2cAddress")
   public void setI2cAddress8Bit(int i2cAddr8Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
-    mrI2cCompassSensor.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
+      mrI2cCompassSensor.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getI2cAddress")
   public int getI2cAddress8Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
-    I2cAddr i2cAddr = mrI2cCompassSensor.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get8Bit();
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
+      I2cAddr i2cAddr = mrI2cCompassSensor.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get8Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getAcceleration")
   public double getXAccel() {
-    startBlockExecution(BlockType.GETTER, ".XAccel");
-    Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.xAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".XAccel");
+      Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.xAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getAcceleration")
   public double getYAccel() {
-    startBlockExecution(BlockType.GETTER, ".YAccel");
-    Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.yAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".YAccel");
+      Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.yAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getAcceleration")
   public double getZAccel() {
-    startBlockExecution(BlockType.GETTER, ".ZAccel");
-    Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.zAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".ZAccel");
+      Acceleration acceleration = mrI2cCompassSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.zAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getMagneticFlux")
   public double getXMagneticFlux() {
-    startBlockExecution(BlockType.GETTER, ".XMagneticFlux");
-    MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
-    if (magneticFlux != null) {
-      return magneticFlux.x;
+    try {
+      startBlockExecution(BlockType.GETTER, ".XMagneticFlux");
+      MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
+      if (magneticFlux != null) {
+        return magneticFlux.x;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getMagneticFlux")
   public double getYMagneticFlux() {
-    startBlockExecution(BlockType.GETTER, ".YMagneticFlux");
-    MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
-    if (magneticFlux != null) {
-      return magneticFlux.y;
+    try {
+      startBlockExecution(BlockType.GETTER, ".YMagneticFlux");
+      MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
+      if (magneticFlux != null) {
+        return magneticFlux.y;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "getMagneticFlux")
   public double getZMagneticFlux() {
-    startBlockExecution(BlockType.GETTER, ".ZMagneticFlux");
-    MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
-    if (magneticFlux != null) {
-      return magneticFlux.z;
+    try {
+      startBlockExecution(BlockType.GETTER, ".ZMagneticFlux");
+      MagneticFlux magneticFlux = mrI2cCompassSensor.getMagneticFlux();
+      if (magneticFlux != null) {
+        return magneticFlux.z;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "setMode")
   public void setMode(String compassModeString) {
-    startBlockExecution(BlockType.FUNCTION, ".setMode");
-    CompassMode compassMode = checkArg(compassModeString, CompassMode.class, "compassMode");
-    if (compassMode != null) {
-      mrI2cCompassSensor.setMode(compassMode);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setMode");
+      CompassMode compassMode = checkArg(compassModeString, CompassMode.class, "compassMode");
+      if (compassMode != null) {
+        mrI2cCompassSensor.setMode(compassMode);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -173,15 +233,25 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "isCalibrating")
   public boolean isCalibrating() {
-    startBlockExecution(BlockType.FUNCTION, ".isCalibrating");
-    return mrI2cCompassSensor.isCalibrating();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isCalibrating");
+      return mrI2cCompassSensor.isCalibrating();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsI2cCompassSensor.class}, methodName = "calibrationFailed")
   public boolean calibrationFailed() {
-    startBlockExecution(BlockType.FUNCTION, ".calibrationFailed");
-    return mrI2cCompassSensor.calibrationFailed();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".calibrationFailed");
+      return mrI2cCompassSensor.calibrationFailed();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

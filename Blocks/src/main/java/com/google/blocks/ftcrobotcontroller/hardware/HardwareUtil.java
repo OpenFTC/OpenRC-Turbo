@@ -22,6 +22,7 @@ import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.VUFORIA_CURRENT_GAME_BLOCKS_FIRST_NAME;
 import static com.google.blocks.ftcrobotcontroller.util.ProjectsUtil.escapeSingleQuotes;
+import static com.google.blocks.ftcrobotcontroller.util.ToolboxUtil.escapeForXml;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -117,6 +118,8 @@ public class HardwareUtil {
   private static final String ELAPSED_TIME_CATEGORY_NAME = "ElapsedTime"; // see toolbox/utilities.xml
 
   public static final String SWITCHABLE_CAMERA_NAME = "Switchable Camera";
+
+  public static final String IDENTIFIERS_USED_PREFIX = "// IDENTIFIERS_USED=";
 
   public enum Capability {
     CAMERA("camera"),
@@ -217,6 +220,9 @@ public class HardwareUtil {
         teleOpNames.add(opModeMeta.name);
       }
     }
+
+    jsHardware.append("var IDENTIFIERS_USED_PREFIX = '").append(IDENTIFIERS_USED_PREFIX).append("';\n\n");
+
     jsHardware.append("var AUTO_TRANSITION_OPTIONS = [\n");
     for (String teleOpName : teleOpNames) {
       jsHardware.append("  '").append(escapeSingleQuotes(teleOpName)).append("',\n");
@@ -618,7 +624,9 @@ public class HardwareUtil {
         .append("  Blockly.JavaScript.addReservedWords('callJava_String');\n")
         .append("  Blockly.JavaScript.addReservedWords('callHardware');\n")
         .append("  Blockly.JavaScript.addReservedWords('callHardware_boolean');\n")
-        .append("  Blockly.JavaScript.addReservedWords('callHardware_String');\n");
+        .append("  Blockly.JavaScript.addReservedWords('callHardware_String');\n")
+        .append("  Blockly.JavaScript.addReservedWords('listLength');\n")
+        .append("  Blockly.JavaScript.addReservedWords('listIsEmpty');\n");
     for (HardwareItem hardwareItem : hardwareItemMap.getAllHardwareItems()) {
       jsHardware
           .append("  Blockly.JavaScript.addReservedWords('")
@@ -846,9 +854,8 @@ public class HardwareUtil {
   private static List<HardwareItem> getHardwareItemsForDcMotorEx(List<HardwareItem> hardwareItemsForDcMotor) {
     List<HardwareItem> hardwareItemsForDcMotorEx = new ArrayList<>();
     for (HardwareItem hardwareItemForDcMotor : hardwareItemsForDcMotor) {
-      if (hardwareItemForDcMotor.hasAncestor(HardwareType.LYNX_MODULE)) {
-        hardwareItemsForDcMotorEx.add(hardwareItemForDcMotor);
-      }
+      // All allowed motors support DcMotorEx.
+      hardwareItemsForDcMotorEx.add(hardwareItemForDcMotor);
     }
     return hardwareItemsForDcMotorEx;
   }
@@ -1001,11 +1008,11 @@ public class HardwareUtil {
             .append(" returnType=\"").append(returnType).append("\"")
             .append(" color=\"").append(color).append("\"")
             .append(" heading=\"\"")
-            .append(" comment=\"").append(comment).append("\"")
-            .append(" tooltip=\"").append(tooltip).append("\"")
+            .append(" comment=\"").append(escapeForXml(comment)).append("\"")
+            .append(" tooltip=\"").append(escapeForXml(tooltip)).append("\"")
             .append(" accessMethod=\"").append(accessMethod(true, method.getReturnType())).append("\"")
             .append(" convertReturnValue=\"").append(convertReturnValue(method.getReturnType())).append("\"");
-        processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method));
+        processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method), getParameterDefaultValues(method));
         // Note that processMethodArguments terminates the mutation and block tags.
       }
       xmlToolbox.append("</category>\n");
@@ -1093,12 +1100,12 @@ public class HardwareUtil {
               .append(" parameterCount=\"").append(parameterTypes.length).append("\"")
               .append(" returnType=\"").append(returnType).append("\"")
               .append(" color=\"").append(color).append("\"")
-              .append(" heading=\"").append(heading).append("\"")
-              .append(" comment=\"").append(comment).append("\"")
-              .append(" tooltip=\"").append(tooltip).append("\"")
+              .append(" heading=\"").append(escapeForXml(heading)).append("\"")
+              .append(" comment=\"").append(escapeForXml(comment)).append("\"")
+              .append(" tooltip=\"").append(escapeForXml(tooltip)).append("\"")
               .append(" accessMethod=\"").append(accessMethod(false, method.getReturnType())).append("\"")
               .append(" convertReturnValue=\"").append(convertReturnValue(method.getReturnType())).append("\"");
-          processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method));
+          processMethodArguments(xmlToolbox, parameterTypes, getParameterLabels(method), getParameterDefaultValues(method));
           // Note that processMethodArguments terminates the mutation and block tags.
         }
         xmlToolbox.append("</category>\n");
@@ -1107,90 +1114,207 @@ public class HardwareUtil {
     }
   }
 
-  private static void processMethodArguments(StringBuilder xmlToolbox, Class[] parameterTypes, String[] parameterLabels) {
+  private static void processMethodArguments(StringBuilder xmlToolbox, Class[] parameterTypes, String[] parameterLabels,
+      String[] parameterDefaultValues) {
     StringBuilder argValues = new StringBuilder();
     int i = 0;
     List<String> gamepads = new ArrayList<>();
     for (Class parameterType : parameterTypes) {
-      xmlToolbox.append(" argLabel").append(i).append("=\"").append(parameterLabels[i]).append("\"");
+      xmlToolbox.append(" argLabel").append(i).append("=\"").append(escapeForXml(parameterLabels[i])).append("\"");
       String argType = parameterType.getName();
-      xmlToolbox.append(" argType").append(i).append("=\"").append(argType).append("\"");
+      xmlToolbox.append(" argType").append(i).append("=\"").append(escapeForXml(argType)).append("\"");
       String argAuto = parameterProvidedAutomatically(parameterType, parameterLabels[i], gamepads);
-      xmlToolbox.append(" argAuto").append(i).append("=\"").append(argAuto != null ? argAuto : "").append("\"");
+      xmlToolbox.append(" argAuto").append(i).append("=\"").append(argAuto != null ? escapeForXml(argAuto) : "").append("\"");
 
       String shadow = null;
       if (argAuto != null) {
         // No socket if parameter is provided automatically.
       } else if (argType.equals("boolean")
           || argType.equals("java.lang.Boolean")) {
-        shadow = ToolboxUtil.makeBooleanShadow(false);
+        shadow = ToolboxUtil.makeBooleanShadow(Boolean.parseBoolean(parameterDefaultValues[i]));
       } else if (argType.equals("char")
-          || argType.equals("java.lang.Character")
-          || argType.equals("java.lang.String")) {
-        shadow = ToolboxUtil.makeTextShadow("A");
+          || argType.equals("java.lang.Character")) {
+        shadow = ToolboxUtil.makeTextShadow(
+            parameterDefaultValues[i].isEmpty() ? "A" : parameterDefaultValues[i].substring(0, 1));
+      } else if (argType.equals("java.lang.String")) {
+        shadow = ToolboxUtil.makeTextShadow(parameterDefaultValues[i]);
       } else if (argType.equals("byte")
-          || argType.equals("java.lang.Byte")
-          || argType.equals("short")
-          || argType.equals("java.lang.Short")
-          || argType.equals("int")
-          || argType.equals("java.lang.Integer")
-          || argType.equals("long")
-          || argType.equals("java.lang.Long")
-          || argType.equals("float")
+          || argType.equals("java.lang.Byte")) {
+        byte defaultValue = 0;
+        if (!parameterDefaultValues[i].isEmpty()) {
+          try {
+            defaultValue = Byte.parseByte(parameterDefaultValues[i]);
+          } catch (NumberFormatException e) {
+          }
+        }
+        shadow = ToolboxUtil.makeNumberShadow(defaultValue);
+      } else if (argType.equals("short")
+          || argType.equals("java.lang.Short")) {
+        short defaultValue = 0;
+        if (!parameterDefaultValues[i].isEmpty()) {
+          try {
+            defaultValue = Short.parseShort(parameterDefaultValues[i]);
+          } catch (NumberFormatException e) {
+          }
+        }
+        shadow = ToolboxUtil.makeNumberShadow(defaultValue);
+      } else if (argType.equals("int")
+          || argType.equals("java.lang.Integer")) {
+        int defaultValue = 0;
+        if (!parameterDefaultValues[i].isEmpty()) {
+          try {
+            defaultValue = Integer.parseInt(parameterDefaultValues[i]);
+          } catch (NumberFormatException e) {
+          }
+        }
+        shadow = ToolboxUtil.makeNumberShadow(defaultValue);
+      } else if (argType.equals("long")
+          || argType.equals("java.lang.Long")) {
+        long defaultValue = 0;
+        if (!parameterDefaultValues[i].isEmpty()) {
+          try {
+            defaultValue = Long.parseLong(parameterDefaultValues[i]);
+          } catch (NumberFormatException e) {
+          }
+        }
+        shadow = ToolboxUtil.makeNumberShadow(defaultValue);
+      } else if (argType.equals("float")
           || argType.equals("java.lang.Float")
           || argType.equals("double")
           || argType.equals("java.lang.Double")) {
-        shadow = ToolboxUtil.makeNumberShadow(0);
-      } else if (argType.equals(RelicRecoveryVuMark.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("vuMarks", "relicRecoveryVuMark");
-      } else if (argType.equals(DigitalChannel.Mode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("digitalChannel", "mode");
-      } else if (argType.equals(Servo.Direction.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("servo", "direction");
-      } else if (argType.equals(CompassSensor.CompassMode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("compassSensor", "compassMode");
+        double defaultValue = 0;
+        if (!parameterDefaultValues[i].isEmpty()) {
+          try {
+            defaultValue = Double.parseDouble(parameterDefaultValues[i]);
+          } catch (NumberFormatException e) {
+          }
+        }
+        shadow = ToolboxUtil.makeNumberShadow(defaultValue);
       } else if (argType.equals(AngleUnit.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "angleUnit");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], AngleUnit.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "angleUnit")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "angleUnit", "ANGLE_UNIT", defaultValue);
       } else if (argType.equals(AxesOrder.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axesOrder");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], AxesOrder.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "axesOrder")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "axesOrder", "AXES_ORDER", defaultValue);
       } else if (argType.equals(AxesReference.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axesReference");
-      } else if (argType.equals(VuforiaLocalizer.CameraDirection.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "cameraDirection");
-      } else if (argType.equals(VuforiaLocalizer.Parameters.CameraMonitorFeedback.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "cameraMonitorFeedback");
-      } else if (argType.equals(DistanceUnit.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "distanceUnit");
-      } else if (argType.equals(TempUnit.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "tempUnit");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], AxesReference.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "axesReference")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "axesReference", "AXES_REFERENCE", defaultValue);
       } else if (argType.equals(Axis.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "axis");
-      } else if (argType.equals(CurrentUnit.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("navigation", "currentUnit");
-      } else if (argType.equals(ModernRoboticsI2cGyro.HeadingMode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("gyroSensor", "headingMode");
-      } else if (argType.equals(ElapsedTime.Resolution.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("elapsedTime2", "resolution");
-      } else if (argType.equals(IrSeekerSensor.Mode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("irSeekerSensor", "mode");
-      } else if (argType.equals(DcMotor.RunMode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "runMode");
-      } else if (argType.equals(DcMotorSimple.Direction.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "direction");
-      } else if (argType.equals(DcMotor.ZeroPowerBehavior.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("dcMotor", "zeroPowerBehavior");
-      } else if (argType.equals(MotorControlAlgorithm.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("pidfCoefficients", "motorControlAlgorithm");
-      } else if (argType.equals(ServoController.PwmStatus.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("servoController", "pwmStatus");
-      } else if (argType.equals(BNO055IMU.SystemStatus.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imu", "systemStatus");
-      } else if (argType.equals(Telemetry.DisplayFormat.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("telemetry", "displayFormat");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], Axis.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "axis")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "axis", "AXIS", defaultValue);
       } else if (argType.equals(BNO055IMU.AccelUnit.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "accelUnit");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], BNO055IMU.AccelUnit.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "accelUnit")
+            : ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "accelUnit", "ACCEL_UNIT", defaultValue);
       } else if (argType.equals(BNO055IMU.SensorMode.class.getName())) {
-        shadow = ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "sensorMode");
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], BNO055IMU.SensorMode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "sensorMode")
+            : ToolboxUtil.makeTypedEnumShadow("bno055imuParameters", "sensorMode", "SENSOR_MODE", defaultValue);
+      } else if (argType.equals(BNO055IMU.SystemStatus.class.getName())) {
+          String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], BNO055IMU.SystemStatus.class);
+          shadow = (defaultValue == null)
+              ? ToolboxUtil.makeTypedEnumShadow("bno055imu", "systemStatus")
+              : ToolboxUtil.makeTypedEnumShadow("bno055imu", "systemStatus", "SYSTEM_STATUS", defaultValue);
+      } else if (argType.equals(CompassSensor.CompassMode.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], CompassSensor.CompassMode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("compassSensor", "compassMode")
+            : ToolboxUtil.makeTypedEnumShadow("compassSensor", "compassMode", "COMPASS_MODE", defaultValue);
+      } else if (argType.equals(CurrentUnit.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], CurrentUnit.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "currentUnit")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "currentUnit", "CURRENT_UNIT", defaultValue);
+      } else if (argType.equals(DcMotor.RunMode.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], DcMotor.RunMode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("dcMotor", "runMode")
+            : ToolboxUtil.makeTypedEnumShadow("dcMotor", "runMode", "RUN_MODE", defaultValue);
+      } else if (argType.equals(DcMotor.ZeroPowerBehavior.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], DcMotor.ZeroPowerBehavior.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("dcMotor", "zeroPowerBehavior")
+            : ToolboxUtil.makeTypedEnumShadow("dcMotor", "zeroPowerBehavior", "ZERO_POWER_BEHAVIOR", defaultValue);
+      } else if (argType.equals(DcMotorSimple.Direction.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], DcMotorSimple.Direction.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("dcMotor", "direction")
+            : ToolboxUtil.makeTypedEnumShadow("dcMotor", "direction", "DIRECTION", defaultValue);
+      } else if (argType.equals(DigitalChannel.Mode.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], DigitalChannel.Mode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("digitalChannel", "mode")
+            : ToolboxUtil.makeTypedEnumShadow("digitalChannel", "mode", "MODE", defaultValue);
+      } else if (argType.equals(DistanceUnit.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], DistanceUnit.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "distanceUnit")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "distanceUnit", "DISTANCE_UNIT", defaultValue);
+      } else if (argType.equals(ElapsedTime.Resolution.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], ElapsedTime.Resolution.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("elapsedTime2", "resolution")
+            : ToolboxUtil.makeTypedEnumShadow("elapsedTime2", "resolution", "RESOLUTION", defaultValue);
+      } else if (argType.equals(IrSeekerSensor.Mode.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], IrSeekerSensor.Mode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("irSeekerSensor", "mode")
+            : ToolboxUtil.makeTypedEnumShadow("irSeekerSensor", "mode", "MODE", defaultValue);
+      } else if (argType.equals(ModernRoboticsI2cGyro.HeadingMode.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], ModernRoboticsI2cGyro.HeadingMode.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("gyroSensor", "headingMode")
+            : ToolboxUtil.makeTypedEnumShadow("gyroSensor", "headingMode", "HEADING_MODE", defaultValue);
+      } else if (argType.equals(MotorControlAlgorithm.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], MotorControlAlgorithm.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("pidfCoefficients", "motorControlAlgorithm")
+            : ToolboxUtil.makeTypedEnumShadow("pidfCoefficients", "motorControlAlgorithm", "MOTOR_CONTROL_ALGORITHM", defaultValue);
+      } else if (argType.equals(RelicRecoveryVuMark.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], RelicRecoveryVuMark.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("vuMarks", "relicRecoveryVuMark")
+            : ToolboxUtil.makeTypedEnumShadow("vuMarks", "relicRecoveryVuMark", "RELIC_RECOVERY_VU_MARK", defaultValue);
+      } else if (argType.equals(Servo.Direction.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], Servo.Direction.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("servo", "direction")
+            : ToolboxUtil.makeTypedEnumShadow("servo", "direction", "DIRECTION", defaultValue);
+      } else if (argType.equals(ServoController.PwmStatus.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], ServoController.PwmStatus.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("servoController", "pwmStatus")
+            : ToolboxUtil.makeTypedEnumShadow("servoController", "pwmStatus", "PWM_STATUS", defaultValue);
+      } else if (argType.equals(Telemetry.DisplayFormat.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], Telemetry.DisplayFormat.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("telemetry", "displayFormat")
+            : ToolboxUtil.makeTypedEnumShadow("telemetry", "displayFormat", "DISPLAY_FORMAT", defaultValue);
+      } else if (argType.equals(TempUnit.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], TempUnit.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "tempUnit")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "tempUnit", "TEMP_UNIT", defaultValue);
+      } else if (argType.equals(VuforiaLocalizer.CameraDirection.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], VuforiaLocalizer.CameraDirection.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "cameraDirection")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "cameraDirection", "CAMERA_DIRECTION", defaultValue);
+      } else if (argType.equals(VuforiaLocalizer.Parameters.CameraMonitorFeedback.class.getName())) {
+        String defaultValue = parseEnumDefaultValue(parameterDefaultValues[i], VuforiaLocalizer.Parameters.CameraMonitorFeedback.class);
+        shadow = (defaultValue == null)
+            ? ToolboxUtil.makeTypedEnumShadow("navigation", "cameraMonitorFeedback")
+            : ToolboxUtil.makeTypedEnumShadow("navigation", "cameraMonitorFeedback", "CAMERA_MONITOR_FEEDBACK", defaultValue);
       } else {
         // Leave other sockets empty?
       }
@@ -1206,6 +1330,23 @@ public class HardwareUtil {
         .append("/>") // end of mutation
         .append(argValues)
         .append("</block>\n");
+  }
+
+  private static <T extends Enum<T>> String parseEnumDefaultValue(String s, Class<T> enumClass) {
+    // First, try the string as is.
+    try {
+      Enum.valueOf(enumClass, s);
+      return s;
+    } catch (IllegalArgumentException e) {
+    }
+    // Second, try the string converted to upper case.
+    s = s.toUpperCase(Locale.ENGLISH);
+    try {
+      Enum.valueOf(enumClass, s);
+      return s;
+    } catch (IllegalArgumentException e) {
+    }
+    return null;
   }
 
   public static String[] getParameterLabels(Method method) {
@@ -1224,6 +1365,24 @@ public class HardwareUtil {
       }
     }
     return parameterLabels;
+  }
+
+  public static String[] getParameterDefaultValues(Method method) {
+    ExportToBlocks exportToBlocks = method.getAnnotation(ExportToBlocks.class);
+    String[] parameterDefaultValues;
+    if (exportToBlocks != null) {
+      parameterDefaultValues = exportToBlocks.parameterDefaultValues();
+    } else {
+      parameterDefaultValues = new String[0];
+    }
+    int length = method.getParameterTypes().length;
+    if (parameterDefaultValues.length != length) {
+      parameterDefaultValues = new String[length];
+      for (int i = 0; i < parameterDefaultValues.length; i++) {
+        parameterDefaultValues[i] = "";
+      }
+    }
+    return parameterDefaultValues;
   }
 
   private static String accessMethod(boolean hardware, Class returnType) {
@@ -1384,13 +1543,13 @@ public class HardwareUtil {
     if (TfodCurrentGame.LABELS.length <= 3) {
       for (String tfodLabel : TfodCurrentGame.LABELS) {
         tfodCurrentGameLabelBlocks
-            .append("<block type=\"tfodCurrentGame_typedEnum_label\"><field name=\"LABEL\">")
+            .append("<block type=\"tfod_typedEnum_label\"><field name=\"LABEL\">")
             .append(tfodLabel)
             .append("</field></block>\n");
       }
     } else {
       tfodCurrentGameLabelBlocks
-          .append("<block type=\"tfodCurrentGame_typedEnum_label\"></block>\n");
+          .append("<block type=\"tfod_typedEnum_label\"></block>\n");
     }
     return tfodCurrentGameLabelBlocks.toString();
   }
@@ -1483,9 +1642,6 @@ public class HardwareUtil {
           break;
         case ANALOG_INPUT:
           addAnalogInputCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
-          break;
-        case ANALOG_OUTPUT:
-          addAnalogOutputCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
           break;
         case BNO055IMU:
           addBNO055IMUCategoryToToolbox(xmlToolbox, hardwareType, hardwareItems);
@@ -1826,7 +1982,6 @@ public class HardwareUtil {
       ToolboxUtil.addDualPropertySetters(xmlToolbox, hardwareType, "TargetPosition", "Number",
           identifier1, zero,
           identifier2, zero);
-
       // Set zero power behavior for both motors.
       ToolboxUtil.addDualPropertySetters(xmlToolbox, hardwareType, "ZeroPowerBehavior", "ZeroPowerBehavior",
           identifier1, zeroPowerBehavior,
@@ -2359,7 +2514,6 @@ public class HardwareUtil {
     // com.qualcomm.robotcore.hardware
     set.add("AccelerationSensor");
     set.add("AnalogInput");
-    set.add("AnalogOutput");
     set.add("CRServo");
     set.add("ColorSensor");
     set.add("CompassSensor");
@@ -2449,6 +2603,7 @@ public class HardwareUtil {
     set.add("waitForStart");
     set.add("idle");
     set.add("sleep");
+    set.add("opModeInInit");
     set.add("opModeIsActive");
     set.add("isStarted");
     set.add("isStopRequested");
@@ -2469,7 +2624,9 @@ public class HardwareUtil {
     set.add("telemetry");
     set.add("time");
     set.add("requestOpModeStop");
+    set.add("terminateOpModeNow");
     set.add("getRuntime");
+    set.add("resetRuntime");
     set.add("resetStartTime");
     set.add("updateTelemetry");
     set.add("msStuckDetectInit");

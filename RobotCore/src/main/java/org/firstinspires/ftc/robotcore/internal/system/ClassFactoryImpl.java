@@ -35,9 +35,11 @@ package org.firstinspires.ftc.robotcore.internal.system;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraManager;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.tfod.TFObjectDetectorImpl;
+import org.firstinspires.ftc.robotcore.internal.tfod.VuforiaFrameGenerator;
 import org.firstinspires.ftc.robotcore.internal.vuforia.VuforiaLocalizerImpl;
 
 import java.lang.ref.WeakReference;
@@ -77,7 +79,12 @@ public class ClassFactoryImpl extends ClassFactory
 
     @Override public TFObjectDetector createTFObjectDetector(TFObjectDetector.Parameters parameters, VuforiaLocalizer vuforiaLocalizer)
         {
-        return new TFObjectDetectorImpl(parameters, vuforiaLocalizer);
+        return createTFObjectDetector(parameters, new VuforiaFrameGenerator(vuforiaLocalizer));
+        }
+
+    @Override public TFObjectDetector createTFObjectDetector(TFObjectDetector.Parameters parameters, FrameGenerator frameGenerator)
+        {
+        return new TFObjectDetectorImpl(parameters, frameGenerator);
         }
 
     /**

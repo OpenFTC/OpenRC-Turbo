@@ -32,7 +32,12 @@ class SystemAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long nanoTime() {
-    startBlockExecution(BlockType.FUNCTION, ".nanoTime");
-    return System.nanoTime();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".nanoTime");
+      return System.nanoTime();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

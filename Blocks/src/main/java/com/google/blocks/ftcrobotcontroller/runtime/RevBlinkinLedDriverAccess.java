@@ -40,10 +40,15 @@ class RevBlinkinLedDriverAccess extends HardwareAccess<RevBlinkinLedDriver> {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setPattern(String blinkinPatternString) {
-    startBlockExecution(BlockType.SETTER, ".Pattern");
-    BlinkinPattern blinkinPattern = checkBlinkinPattern(blinkinPatternString);
-    if (blinkinPattern != null) {
-      revBlinkinLedDriver.setPattern(blinkinPattern);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Pattern");
+      BlinkinPattern blinkinPattern = checkBlinkinPattern(blinkinPatternString);
+      if (blinkinPattern != null) {
+        revBlinkinLedDriver.setPattern(blinkinPattern);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

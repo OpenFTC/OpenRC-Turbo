@@ -90,22 +90,16 @@ public class InspectionState
     public boolean locationEnabled;
     public String deviceName;
     public double batteryFraction;
-    public String robotControllerVersion;
-    public int    robotControllerVersionCode;
-    public String robotControllerBuildTime;
-    public String driverStationVersion;
-    public int    driverStationVersionCode;
-    public String driverStationBuildTime;
+    public boolean robotControllerInstalled;
+    public boolean driverStationInstalled;
+    public String appVersionString;
+    public int majorAppVersion;
+    public int minorAppVersion;
+    public String appBuildTime;
     public long    rxDataCount;
     public long    txDataCount;
     public long    bytesPerSecond;
     public boolean isDefaultPassword;
-
-    // Legacy fields that can be removed once the Robocol version has been moved past 121
-    public String zteChannelChangeVersion = NO_VERSION;
-    public int    ztcChannelChangeVersionCode = NO_VERSION_CODE;
-    public boolean channelChangerRequired = false;
-    public boolean isAppInventorInstalled = false;
 
     //----------------------------------------------------------------------------------------------
     // Construction and initialization
@@ -139,20 +133,13 @@ public class InspectionState
         this.wifiEnabled = WifiUtil.isWifiEnabled();
         this.batteryFraction = getLocalBatteryFraction();
 
-        this.robotControllerVersion         = getPackageVersion(robotControllerPackage);
-        this.robotControllerVersionCode     = getPackageVersionCode(robotControllerPackage);
-        this.driverStationVersion           = getPackageVersion(driverStationPackage);
-        this.driverStationVersionCode       = getPackageVersionCode(driverStationPackage);
+        this.appVersionString = getPackageVersionString(AppUtil.getInstance().getApplicationId());
+        this.majorAppVersion = BuildConfig.SDK_MAJOR_VERSION;
+        this.minorAppVersion = BuildConfig.SDK_MINOR_VERSION;
+        this.appBuildTime = BuildConfig.SDK_BUILD_TIME;
+        this.driverStationInstalled = !getPackageVersionString(driverStationPackage).equals(NO_VERSION);
+        this.robotControllerInstalled = !getPackageVersionString(robotControllerPackage).equals(NO_VERSION);
         this.deviceName                     = nameManager.getDeviceName();
-
-        if (AppUtil.getInstance().isDriverStation())
-            {
-            this.driverStationBuildTime = BuildConfig.SDK_BUILD_TIME;
-            }
-        if (AppUtil.getInstance().isRobotController())
-            {
-            this.robotControllerBuildTime = BuildConfig.SDK_BUILD_TIME;
-            }
 
         if (Device.isRevDriverHub())
             {
@@ -203,17 +190,6 @@ public class InspectionState
         this.bytesPerSecond = networkConnectionHandler.getBytesPerSecond();
         }
 
-    public static boolean isPackageInstalled(String packageVersion) { return !packageVersion.equals(NO_VERSION); }
-
-    public boolean isRobotControllerInstalled()
-        {
-        return isPackageInstalled(robotControllerVersion);
-        }
-    public boolean isDriverStationInstalled()
-        {
-        return isPackageInstalled(driverStationVersion);
-        }
-
     protected double getLocalBatteryFraction()
         {
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -223,20 +199,7 @@ public class InspectionState
         return level / (double) scale;
         }
 
-    protected int getPackageVersionCode(String packageName)
-        {
-        PackageManager pm = AppUtil.getDefContext().getPackageManager();
-        try
-            {
-            return pm.getPackageInfo(packageName, PackageManager.GET_META_DATA).versionCode;
-            }
-        catch (PackageManager.NameNotFoundException e)
-            {
-            return NO_VERSION_CODE;
-            }
-        }
-
-    protected String getPackageVersion(String packageName)
+    protected String getPackageVersionString(String packageName)
         {
         PackageManager pm = AppUtil.getDefContext().getPackageManager();
         try

@@ -32,6 +32,7 @@ import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItemMap;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareType;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil;
+import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Supplier;
@@ -98,6 +99,8 @@ public class ProjectsUtil {
    * Returns the names and last modified time of existing blocks projects that have a blocks file.
    */
   public static String fetchProjectsWithBlocks() {
+    ReadWriteFile.ensureAllChangesAreCommitted(BLOCK_OPMODES_DIR);
+
     return ProjectsLockManager.lockProjectsWhile(new Supplier<String>() {
       @Override public String get() {
         File[] files = BLOCK_OPMODES_DIR.listFiles(new FilenameFilter() {
@@ -153,6 +156,8 @@ public class ProjectsUtil {
    */
   public static void fetchProjectsForOfflineBlocksEditor(
       final List<OfflineBlocksProject> offlineBlocksProjects) throws IOException {
+    ReadWriteFile.ensureAllChangesAreCommitted(BLOCK_OPMODES_DIR);
+
     ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         File[] files = BLOCK_OPMODES_DIR.listFiles(new FilenameFilter() {
@@ -316,6 +321,7 @@ public class ProjectsUtil {
       throw new IllegalArgumentException();
     }
     try {
+      ensureChangesAreCommitted(projectName);
       File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
       String blkFileContent = FileUtil.readFile(blkFile);
       // The extraXml is after the first </xml>.
@@ -360,6 +366,7 @@ public class ProjectsUtil {
     if (!isValidProjectName(projectName)) {
       throw new IllegalArgumentException();
     }
+    ensureChangesAreCommitted(projectName);
     File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
     String blkFileContent = FileUtil.readFile(blkFile);
 
@@ -385,6 +392,11 @@ public class ProjectsUtil {
    * Upgrades the given blocks content based on the given {@link HardwareItemMap}.
    */
   private static String upgradeBlocks(String blkContent, HardwareItemMap hardwareItemMap) {
+    // resetStartTime is deprecated. Use resetRuntime instead.
+    blkContent = blkContent.replace(
+        "<block type=\"linearOpMode_resetStartTime",
+        "<block type=\"linearOpMode_resetRuntime");
+
     // In previous versions, there were separate blocks with block type prefixes tfodCurrentGame_
     // and tfodCustomModel_. Now TensorFlow blocks have the block type prefix tfod_.
     // All tfodCurrentGame_ blocks can safely be renamed tfod_.
@@ -514,7 +526,16 @@ public class ProjectsUtil {
     if (!isValidProjectName(projectName)) {
       throw new IllegalArgumentException();
     }
-    return FileUtil.readFile(new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_JS_EXT));
+    ensureChangesAreCommitted(projectName);
+    File jsFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_JS_EXT);
+    return FileUtil.readFile(jsFile);
+  }
+
+  private static void ensureChangesAreCommitted(String projectName) {
+    File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
+    File jsFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_JS_EXT);
+    ReadWriteFile.ensureChangesAreCommitted(blkFile);
+    ReadWriteFile.ensureChangesAreCommitted(jsFile);
   }
 
   /**
@@ -674,41 +695,10 @@ public class ProjectsUtil {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 
-        // Before writing the new content to the files, make temporary copies of the old files,
-        // just in case the control hub is unplugged (or the Android's battery dies) while we are
-        // writing the file. We don't want the user to be left with the file empty/corrupt and the
-        // old and new content both lost.
         File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
         File jsFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_JS_EXT);
-        long timestamp = System.currentTimeMillis();
-        File blkTempBackup = null;
-        File jsTempBackup = null;
-        if (blkFile.exists()) {
-          blkTempBackup = new File(BLOCK_OPMODES_DIR, "backup_" + timestamp + "_" + projectName + BLOCKS_BLK_EXT);
-          FileUtil.copyFile(blkFile, blkTempBackup);
-        }
-        if (jsFile.exists()) {
-          jsTempBackup = new File(BLOCK_OPMODES_DIR, "backup_" + timestamp + "_" + projectName + BLOCKS_JS_EXT);
-          FileUtil.copyFile(jsFile, jsTempBackup);
-        }
-        // Break the blocks content into multiple lines so it is easier to read/diff.
-        String formattedBlkFileContent = blkFileContent
-            .replace("><", ">\n<")
-            .replace(">\n</field>", "></field>")
-            .replace("</Extra> ", "</Extra>");
-        if (!formattedBlkFileContent.endsWith("\n")) {
-          formattedBlkFileContent += "\n";
-        }
-        FileUtil.writeFile(blkFile, formattedBlkFileContent);
-        FileUtil.writeFile(jsFile, jsFileContent);
-        // Once we've written the new content to the files, we can delete the temporary copies of
-        // the old files.
-        if (blkTempBackup != null) {
-          blkTempBackup.delete();
-        }
-        if (jsTempBackup != null) {
-          jsTempBackup.delete();
-        }
+        ReadWriteFile.updateFileRequiringCommit(blkFile, blkFileContent);
+        ReadWriteFile.updateFileRequiringCommit(jsFile, jsFileContent);
         return null;
       }
     });
@@ -788,6 +778,8 @@ public class ProjectsUtil {
       throw new IllegalArgumentException();
     }
 
+    ensureChangesAreCommitted(projectName);
+
     ProjectsLockManager.lockProjectsWhile(new ThrowingCallable<Void, IOException>() {
       @Override public Void call() throws IOException {
         File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
@@ -805,24 +797,9 @@ public class ProjectsUtil {
         OpModeMeta opModeMeta = createOpModeMeta(projectName, extraXml);
 
         // Regenerate the extra xml with the enable argument.
-        final String newBlkFileContent = blocksContent +
+        String newBlkFileContent = blocksContent +
             formatExtraXml(opModeMeta.flavor, opModeMeta.group, opModeMeta.autoTransition, enable);
-        File blkTempBackup = null;
-        if (blkFile.exists()) {
-          // Before writing the new content to the file, make a temporary copy of the old file,
-          // just in case the control hub is unplugged (or the Android's battery dies) while we are
-          // writing a file. We don't want the user to be left with the file empty/corrupt and the
-          // old and new content both lost.
-          long timestamp = System.currentTimeMillis();
-          blkTempBackup = new File(BLOCK_OPMODES_DIR, "backup_" + timestamp + "_" + projectName + BLOCKS_BLK_EXT);
-          FileUtil.copyFile(blkFile, blkTempBackup);
-        }
-        FileUtil.writeFile(blkFile, newBlkFileContent);
-        // Once we've written the new content to the file, we can delete the temporary copy of
-        // the old file.
-        if (blkTempBackup != null) {
-          blkTempBackup.delete();
-        }
+        ReadWriteFile.updateFileRequiringCommit(blkFile, newBlkFileContent);
         return null;
       }
     });
@@ -910,28 +887,13 @@ public class ProjectsUtil {
       @Override public Void call() throws IOException {
         AppUtil.getInstance().ensureDirectoryExists(BLOCK_OPMODES_DIR, false);
 
-        // Before writing the new content to the files, make a temporary copy of the old file,
-        // just in case the control hub is unplugged (or the Android's battery dies) while we are
-        // writing the file. We don't want the user to be left with the file empty/corrupt and the
-        // old and new content both lost.
         int lastSlash = relativeFileName.lastIndexOf("/");
         String relativeDir = relativeFileName.substring(0, lastSlash + 1);
         String filename = relativeFileName.substring(lastSlash + 1);
         File dir = new File(BLOCK_OPMODES_DIR, "../java/src/" + relativeDir);
         dir.mkdirs();
         File javaFile = new File(dir, filename);
-        long timestamp = System.currentTimeMillis();
-        File javaTempBackup = null;
-        if (javaFile.exists()) {
-          javaTempBackup = new File(dir, "backup_" + timestamp + "_" + filename);
-          FileUtil.copyFile(javaFile, javaTempBackup);
-        }
-        FileUtil.writeFile(javaFile, javaContent);
-        // Once we've written the new content to the file, we can delete the temporary copy of
-        // the old file.
-        if (javaTempBackup != null) {
-          javaTempBackup.delete();
-        }
+        ReadWriteFile.updateFileRequiringCommit(javaFile, javaContent);
         return null;
       }
     });
@@ -1016,6 +978,7 @@ public class ProjectsUtil {
     if (!isValidProjectName(projectName)) {
       throw new IllegalArgumentException();
     }
+    ensureChangesAreCommitted(projectName);
     File blkFile = new File(BLOCK_OPMODES_DIR, projectName + BLOCKS_BLK_EXT);
     String blkFileContent = FileUtil.readFile(blkFile);
     // The extraXml is after the first </xml>.

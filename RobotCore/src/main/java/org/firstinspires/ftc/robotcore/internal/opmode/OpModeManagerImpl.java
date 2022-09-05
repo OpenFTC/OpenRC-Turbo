@@ -329,8 +329,8 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
       // work. And we can't just make the DS retransmit the gamepads when it issues a start OpMode
       // command, either: since we're using UDP we have no guarantee of command delivery order.
       // So instead we just have this little workaround...
-      activeOpMode.gamepad1.setUserForRumble(GamepadUser.ONE.id);
-      activeOpMode.gamepad2.setUserForRumble(GamepadUser.TWO.id);
+      activeOpMode.gamepad1.setUserForEffects(GamepadUser.ONE.id);
+      activeOpMode.gamepad2.setUserForEffects(GamepadUser.TWO.id);
       gamepadResetNeeded = false;
     }
 
@@ -686,9 +686,11 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
                 activeOpMode.init();
             }}, true);
     } catch (ForceStopException e) {
-        /*
+        /**
          * OpMode ran away in init() but we were able force stop him.
          * Get out of dodge with a switch to the StopRobot OpMode.
+         *
+         * (We also now use ForceStopException to support {@link OpMode#terminateOpModeNow()})
          */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;
@@ -713,9 +715,11 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
                 activeOpMode.start();
             }});
     } catch (ForceStopException e) {
-        /*
+        /**
          * OpMode ran away in start() but we were able force stop him.
          * Get out of dodge with a switch to the StopRobot OpMode.
+         *
+         * (We also now use ForceStopException to support {@link OpMode#terminateOpModeNow()})
          */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;
@@ -729,10 +733,12 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
                activeOpMode.init_loop();
            }});
    } catch (ForceStopException e) {
-       /*
+       /**
         * OpMode ran away in init_loop() but we were able force stop him.
         * Now, to avoid the same thing just happening again on the next
         * init_loop() call, we switch to the StopRobot OpMode.
+        *
+        * (We also now use ForceStopException to support {@link OpMode#terminateOpModeNow()})
         */
      initActiveOpMode(DEFAULT_OP_MODE_NAME);
      skipCallToStop = true;
@@ -748,10 +754,12 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
           activeOpMode.loop();
         }});
     } catch (ForceStopException e) {
-      /*
+      /**
        * OpMode ran away in loop() but we were able force stop him.
        * Now, to avoid the same thing just happening again on the next
        * loop() call, we switch to the StopRobot OpMode.
+       *
+       * (We also now use ForceStopException to support {@link OpMode#terminateOpModeNow()})
        */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;

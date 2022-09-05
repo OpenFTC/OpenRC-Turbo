@@ -206,10 +206,13 @@ public final class ConfigurationTypeManager implements ClassFilter
      *
      * @param deviceFlavor What type of device is being configured
      * @param controlSystem What type of control system the device is connected to. If null, we err on the side of including types.
-     * @param i2cBus Which I2C bus on the REV hub the device is connected to. Ignored if you pass anything other than DeviceFlavor.I2C and ControlSystem.REV_HUB.
+     * @param configuringControlHubParent Whether the device being configured is a Control Hub parent.
+     *                                    Ignored if you pass anything other than DeviceFlavor.I2C.
+     * @param i2cBus Which I2C bus on the REV hub the device is connected to.
+     *               Ignored if you pass anything other than DeviceFlavor.I2C and ControlSystem.REV_HUB.
      * @return The list of types that can be selected from
      */
-    public @NonNull List<ConfigurationType> getApplicableConfigTypes(ConfigurationType.DeviceFlavor deviceFlavor, @Nullable ControlSystem controlSystem, int i2cBus)
+    public @NonNull List<ConfigurationType> getApplicableConfigTypes(ConfigurationType.DeviceFlavor deviceFlavor, @Nullable ControlSystem controlSystem, boolean configuringControlHubParent, int i2cBus)
         {
         LinkedList<ConfigurationType> result = new LinkedList<>();
         for (UserConfigurationType type : mapTagToUserType.values())
@@ -217,8 +220,16 @@ public final class ConfigurationTypeManager implements ClassFilter
             if (result.contains(type)) continue; // Prevent duplicate entries which would otherwise result from XML tag aliases
             if (type.getDeviceFlavor() == deviceFlavor && (controlSystem == null || type.isCompatibleWith(controlSystem)))
                 {
-                if (type == I2cDeviceConfigurationType.getLynxEmbeddedIMUType() && controlSystem != null &&
+                // Filter out the embedded BNO055 IMU from incompatible devices
+                if (type == I2cDeviceConfigurationType.getLynxEmbeddedBNO055ImuType() && controlSystem != null &&
                         (controlSystem != ControlSystem.REV_HUB || i2cBus != LynxConstants.EMBEDDED_IMU_BUS))
+                    {
+                    continue;
+                    }
+
+                // Filter out the embedded BHI260AP IMU from incompatible devices
+                if (type == I2cDeviceConfigurationType.getLynxEmbeddedBHI260APImuType() &&
+                        (!configuringControlHubParent || i2cBus != LynxConstants.EMBEDDED_IMU_BUS))
                     {
                     continue;
                     }
@@ -238,11 +249,13 @@ public final class ConfigurationTypeManager implements ClassFilter
      *
      * @param deviceFlavor What type of device is being configured
      * @param controlSystem What type of control system the device is connected to. If null, we err on the side of including types.
+     * @param configuringControlHubParent Whether the device being configured is a Control Hub parent.
+     *                                    Ignored if you pass anything other than DeviceFlavor.I2C.
      * @return The list of types that can be selected from
      */
-    public @NonNull List<ConfigurationType> getApplicableConfigTypes(ConfigurationType.DeviceFlavor deviceFlavor, @Nullable ControlSystem controlSystem)
+    public @NonNull List<ConfigurationType> getApplicableConfigTypes(ConfigurationType.DeviceFlavor deviceFlavor, @Nullable ControlSystem controlSystem, boolean configuringControlHubParent)
         {
-        return getApplicableConfigTypes(deviceFlavor, controlSystem, 0);
+        return getApplicableConfigTypes(deviceFlavor, controlSystem, configuringControlHubParent, 0);
         }
 
     private List<BuiltInConfigurationType> getApplicableBuiltInTypes(ConfigurationType.DeviceFlavor flavor, @Nullable ControlSystem controlSystem)
@@ -250,15 +263,6 @@ public final class ConfigurationTypeManager implements ClassFilter
         List<BuiltInConfigurationType> result = new LinkedList<>();
         switch (flavor)
             {
-            case ANALOG_OUTPUT:
-                result.add(BuiltInConfigurationType.ANALOG_OUTPUT);
-                break;
-            case DIGITAL_IO:
-                if (controlSystem == null || controlSystem == ControlSystem.MODERN_ROBOTICS)
-                    {
-                    result.add(BuiltInConfigurationType.TOUCH_SENSOR);
-                    }
-                break;
             case I2C:
                 result.add(BuiltInConfigurationType.IR_SEEKER_V3);
                 result.add(BuiltInConfigurationType.ADAFRUIT_COLOR_SENSOR);
@@ -278,10 +282,6 @@ public final class ConfigurationTypeManager implements ClassFilter
         switch (flavor)
             {
             case I2C:
-                if (controlSystem == null || controlSystem == ControlSystem.MODERN_ROBOTICS)
-                    {
-                    result.add(BuiltInConfigurationType.I2C_DEVICE);
-                    }
                 result.add(BuiltInConfigurationType.I2C_DEVICE_SYNCH);
             }
         return result;
@@ -579,7 +579,6 @@ public final class ConfigurationTypeManager implements ClassFilter
 
     private void processMotorSupportAnnotations(Class<?> clazz, MotorConfigurationType motorType)
         {
-        motorType.processAnnotation(findAnnotation(clazz, ModernRoboticsMotorControllerParams.class));
         motorType.processAnnotation(findAnnotation(clazz, DistributorInfo.class));
 
         // Can't have both old and new local declarations (pick your horse!), but local definitions

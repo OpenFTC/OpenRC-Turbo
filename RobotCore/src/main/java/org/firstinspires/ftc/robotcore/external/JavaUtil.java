@@ -20,7 +20,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.View;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -298,6 +300,26 @@ public class JavaUtil {
       list.add(element);
     }
     return list;
+  }
+
+  public static int listLength(Object o) {
+    if (o != null && o.getClass().isArray()) {
+      return Array.getLength(o);
+    }
+    if (o instanceof Collection) {
+      return ((Collection) o).size();
+    }
+    return 0;
+  }
+
+  public static boolean listIsEmpty(Object o) {
+    if (o != null && o.getClass().isArray()) {
+      return Array.getLength(o) == 0;
+    }
+    if (o instanceof Collection) {
+      return ((Collection) o).isEmpty();
+    }
+    return false;
   }
 
   private static int getIndex(List list, AtMode atMode, int i) {

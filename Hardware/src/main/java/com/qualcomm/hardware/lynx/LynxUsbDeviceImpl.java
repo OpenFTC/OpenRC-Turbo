@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.R;
+import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.BNO055IMUImpl;
 import com.qualcomm.hardware.lynx.commands.LynxDatagram;
@@ -678,7 +679,8 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
      * will be the 'parent', which is the one directly USB connected. The others are accessible
      * over the RS485 bus.
      *
-     * @param checkForImus Whether we should check if each discovered module has an onboard BNO055 IMU
+     * @param checkForImus Whether we should check if each discovered module has an onboard BNO055
+     *                     IMU, and if parents have an onboard BHI260 IMU
      */
     @Override public LynxModuleMetaList discoverModules(boolean checkForImus) throws RobotCoreException, InterruptedException
         {
@@ -721,8 +723,28 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
                         public void accept(LynxModule module)
                             {
                             LynxI2cDeviceSynch rawImuI2c = LynxFirmwareVersionManager.createLynxI2cDeviceSynch(AppUtil.getDefContext(), module, 0);
-                            rawImuI2c.setI2cAddress(BNO055IMU.I2CADDR_DEFAULT);
-                            moduleMeta.setHasImu(BNO055IMUImpl.imuIsPresent(rawImuI2c, false));
+
+                            LynxModuleMeta.ImuType imuType = LynxModuleMeta.ImuType.NONE;
+
+                            // BHI260 IMUs will only ever exist on the parent module of a Control Hub
+                            if (serialNumber.isEmbedded() && module.isParent()) {
+                                if (BHI260IMU.imuIsPresent(rawImuI2c))
+                                    {
+                                    imuType = LynxModuleMeta.ImuType.BHI260;
+                                    }
+                            }
+
+                            // If we've found a BHI260 IMU, we don't need to look for a BNO055
+                            if (imuType == LynxModuleMeta.ImuType.NONE)
+                                {
+                                rawImuI2c.setI2cAddress(BNO055IMU.I2CADDR_DEFAULT);
+                                if (BNO055IMUImpl.imuIsPresent(rawImuI2c, false))
+                                    {
+                                    imuType = LynxModuleMeta.ImuType.BNO055;
+                                    }
+                                }
+
+                            moduleMeta.setImuType(imuType);
                             }
                         });
                     }
@@ -820,7 +842,7 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
             @Override public void accept(ProgressParameters value)
                 {
                 // Make sure that the CH OS watchdog doesn't trip while we're in the middle of the firmware update
-                AppAliveNotifier.getInstance().onEventLoopIteration();
+                AppAliveNotifier.getInstance().notifyAppAlive();
                 }
             });
         resetDevice(robotUsbDevice);

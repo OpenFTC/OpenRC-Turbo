@@ -20,6 +20,7 @@ import android.graphics.RectF;
 import androidx.annotation.NonNull;
 import java.util.Objects;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 
 
@@ -62,33 +63,33 @@ class RecognitionImpl implements Recognition {
         throw new IllegalArgumentException("CameraInformation.rotation must be 0, 90, 180, or 270.");
       case 0:
         frameHorizontalFocalLength = cameraInformation.horizontalFocalLength;
-        frameWidth = cameraInformation.size.width;
-        frameHeight = cameraInformation.size.height;
+        frameWidth = cameraInformation.width;
+        frameHeight = cameraInformation.height;
         break;
       case 90:
         frameHorizontalFocalLength = cameraInformation.verticalFocalLength;
-        frameWidth = cameraInformation.size.height;
-        frameHeight = cameraInformation.size.width;
+        frameWidth = cameraInformation.height;
+        frameHeight = cameraInformation.width;
         updatedLocation.left = location.top;
         updatedLocation.right = location.bottom;
-        updatedLocation.top = cameraInformation.size.width - location.right;
-        updatedLocation.bottom = cameraInformation.size.width - location.left;
+        updatedLocation.top = cameraInformation.width - location.right;
+        updatedLocation.bottom = cameraInformation.width - location.left;
         break;
       case 180:
         frameHorizontalFocalLength = cameraInformation.horizontalFocalLength;
-        frameWidth = cameraInformation.size.width;
-        frameHeight = cameraInformation.size.height;
-        updatedLocation.left = cameraInformation.size.width - location.right;
-        updatedLocation.right = cameraInformation.size.width - location.left;
-        updatedLocation.top = cameraInformation.size.height - location.bottom;
-        updatedLocation.bottom = cameraInformation.size.height - location.top;
+        frameWidth = cameraInformation.width;
+        frameHeight = cameraInformation.height;
+        updatedLocation.left = cameraInformation.width - location.right;
+        updatedLocation.right = cameraInformation.width - location.left;
+        updatedLocation.top = cameraInformation.height - location.bottom;
+        updatedLocation.bottom = cameraInformation.height - location.top;
         break;
       case 270:
         frameHorizontalFocalLength = cameraInformation.verticalFocalLength;
-        frameWidth = cameraInformation.size.height;
-        frameHeight = cameraInformation.size.width;
-        updatedLocation.left = cameraInformation.size.height - location.bottom;
-        updatedLocation.right = cameraInformation.size.height - location.top;
+        frameWidth = cameraInformation.height;
+        frameHeight = cameraInformation.width;
+        updatedLocation.left = cameraInformation.height - location.bottom;
+        updatedLocation.right = cameraInformation.height - location.top;
         updatedLocation.top = location.left;
         updatedLocation.bottom = location.right;
         break;

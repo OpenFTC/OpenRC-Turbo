@@ -142,20 +142,7 @@ public class ReadXMLFileHandler extends ConfigurationUtility {
 
         ControllerConfiguration controllerConfiguration = null;
 
-        if (configurationType == BuiltInConfigurationType.MOTOR_CONTROLLER) {
-          controllerConfiguration = new MotorControllerConfiguration();
-
-        }
-        else if (configurationType == BuiltInConfigurationType.SERVO_CONTROLLER) {
-          controllerConfiguration = new ServoControllerConfiguration();
-        }
-        else if (configurationType == BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER) {
-          controllerConfiguration = new LegacyModuleControllerConfiguration();
-        }
-        else if (configurationType == BuiltInConfigurationType.DEVICE_INTERFACE_MODULE) {
-          controllerConfiguration = new DeviceInterfaceModuleConfiguration();
-        }
-        else if (configurationType == BuiltInConfigurationType.LYNX_USB_DEVICE) {
+        if (configurationType == BuiltInConfigurationType.LYNX_USB_DEVICE) {
           controllerConfiguration = new LynxUsbDeviceConfiguration();
         }
         else if (configurationType == BuiltInConfigurationType.WEBCAM) {

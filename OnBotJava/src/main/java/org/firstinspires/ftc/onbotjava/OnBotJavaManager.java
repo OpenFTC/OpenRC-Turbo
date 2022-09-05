@@ -215,6 +215,7 @@ public class OnBotJavaManager implements Closeable
         ensureDirs(controlDir);
         ensureDirs(statusDir);
         ensureDirs(buildDir);
+        ReadWriteFile.ensureAllChangesAreCommitted(srcDir);
         }
 
     protected void ensureBuildDirs()

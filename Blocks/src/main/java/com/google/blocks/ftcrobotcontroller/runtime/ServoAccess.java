@@ -40,42 +40,67 @@ class ServoAccess extends HardwareAccess<Servo> {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setDirection(String directionString) {
-    startBlockExecution(BlockType.SETTER, ".Direction");
-    Direction direction = checkArg(directionString, Direction.class, "");
-    if (direction != null) {
-      servo.setDirection(direction);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Direction");
+      Direction direction = checkArg(directionString, Direction.class, "");
+      if (direction != null) {
+        servo.setDirection(direction);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getDirection() {
-    startBlockExecution(BlockType.GETTER, ".Direction");
-    Direction direction = servo.getDirection();
-    if (direction != null) {
-      return direction.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Direction");
+      Direction direction = servo.getDirection();
+      if (direction != null) {
+        return direction.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setPosition(double position) {
-    startBlockExecution(BlockType.SETTER, ".Position");
-    servo.setPosition(position);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Position");
+      servo.setPosition(position);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getPosition() {
-    startBlockExecution(BlockType.GETTER, ".Position");
-    return servo.getPosition();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Position");
+      return servo.getPosition();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void scaleRange(double min, double max) {
-    startBlockExecution(BlockType.FUNCTION, ".scaleRange");
-    servo.scaleRange(min, max);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".scaleRange");
+      servo.scaleRange(min, max);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

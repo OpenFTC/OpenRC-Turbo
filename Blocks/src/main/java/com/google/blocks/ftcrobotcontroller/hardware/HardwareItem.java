@@ -26,10 +26,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  */
 public class HardwareItem {
   /**
-   * The parent of this hardware item.
-   */
-  public final HardwareItem parent;
-  /**
    * The HardwareType of this hardware item.
    */
   public final HardwareType hardwareType;
@@ -51,11 +47,10 @@ public class HardwareItem {
   /**
    * Constructs a {@link HardwareItem} with the given {@link HardwareType} and device name.
    */
-  public HardwareItem(HardwareItem parent, HardwareType hardwareType, String deviceName) {
+  public HardwareItem(HardwareType hardwareType, String deviceName) {
     if (hardwareType == null || deviceName == null) {
       throw new NullPointerException();
     }
-    this.parent = parent;
     this.hardwareType = hardwareType;
     this.deviceName = deviceName;
     identifier = makeIdentifier(deviceName) + hardwareType.identifierSuffixForJavaScript;
@@ -79,15 +74,6 @@ public class HardwareItem {
       }
     }
     return identifier.toString();
-  }
-
-  boolean hasAncestor(HardwareType hardwareType) {
-    for (HardwareItem p = parent; p != null; p = p.parent) {
-      if (p.hardwareType == hardwareType) {
-        return true;
-      }
-    }
-    return false;
   }
 
   // java.lang.Object methods

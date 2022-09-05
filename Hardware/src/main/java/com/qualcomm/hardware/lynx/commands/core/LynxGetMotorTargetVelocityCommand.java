@@ -60,8 +60,7 @@ public class LynxGetMotorTargetVelocityCommand extends LynxDekaInterfaceCommand<
 
     public LynxGetMotorTargetVelocityCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorTargetVelocityResponse(module);
+        super(module, new LynxGetMotorTargetVelocityResponse(module));
         }
 
     public LynxGetMotorTargetVelocityCommand(LynxModuleIntf module, int motorZ)
@@ -78,12 +77,6 @@ public class LynxGetMotorTargetVelocityCommand extends LynxDekaInterfaceCommand<
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorTargetVelocityResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

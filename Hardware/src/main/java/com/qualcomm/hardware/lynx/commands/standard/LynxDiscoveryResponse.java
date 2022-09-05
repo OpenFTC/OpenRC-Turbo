@@ -94,12 +94,6 @@ public class LynxDiscoveryResponse extends LynxStandardResponse
         return false;
         }
 
-    @Override
-    public boolean isRetransmittable()
-        {
-        return false;
-        }
-
     //----------------------------------------------------------------------------------------------
     // Operations
     //----------------------------------------------------------------------------------------------

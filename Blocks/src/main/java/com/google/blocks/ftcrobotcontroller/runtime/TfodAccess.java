@@ -16,6 +16,8 @@
 
 package com.google.blocks.ftcrobotcontroller.runtime;
 
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_CURRENT_GAME_NAME_NO_SPACES;
+
 import android.webkit.JavascriptInterface;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import java.util.List;
@@ -41,19 +43,30 @@ final class TfodAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void useDefaultModel() {
-    tfod.useDefaultModel();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".useDefaultModelFor" + TFOD_CURRENT_GAME_NAME_NO_SPACES);
+      tfod.useDefaultModel();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void useModelFromAsset(String assetName, String jsonLabels,
       boolean isModelTensorFlow2, boolean isModelQuantized, int inputSize) {
-    startBlockExecution(BlockType.FUNCTION, ".useModelFromAsset");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
     try {
-      tfod.useModelFromAsset(assetName, labels, isModelTensorFlow2, isModelQuantized, inputSize);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".useModelFromAsset");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      try {
+        tfod.useModelFromAsset(assetName, labels, isModelTensorFlow2, isModelQuantized, inputSize);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -61,12 +74,17 @@ final class TfodAccess extends Access {
   @JavascriptInterface
   public void useModelFromFile(String fileName, String jsonLabels,
       boolean isModelTensorFlow2, boolean isModelQuantized, int inputSize) {
-    startBlockExecution(BlockType.FUNCTION, ".useModelFromFile");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
     try {
-      tfod.useModelFromFile(fileName, labels, isModelTensorFlow2, isModelQuantized, inputSize);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".useModelFromFile");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      try {
+        tfod.useModelFromFile(fileName, labels, isModelTensorFlow2, isModelQuantized, inputSize);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -74,14 +92,19 @@ final class TfodAccess extends Access {
   @JavascriptInterface
   public void initialize(VuforiaBaseAccess vuforiaBaseAccess,
       float minimumConfidence, boolean useObjectTracker, boolean enableCameraMonitoring) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
-    if (vuforiaBase != null) {
-      try {
-        tfod.initialize(vuforiaBase, minimumConfidence, useObjectTracker, enableCameraMonitoring);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
+      if (vuforiaBase != null) {
+        try {
+          tfod.initialize(vuforiaBase, minimumConfidence, useObjectTracker, enableCameraMonitoring);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -93,74 +116,104 @@ final class TfodAccess extends Access {
       int maxNumDetections, int timingBufferSize, double maxFrameRate,
       float trackerMaxOverlap, float trackerMinSize,
       float trackerMarginalCorrelation, float trackerMinCorrelation) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
-    if (vuforiaBase != null) {
-      try {
-        tfod.initialize(vuforiaBase, minimumConfidence, useObjectTracker,
-            enableCameraMonitoring, numInterpreterThreads, numExecutorThreads, maxNumDetections,
-            timingBufferSize, maxFrameRate, trackerMaxOverlap, trackerMinSize,
-            trackerMarginalCorrelation, trackerMinCorrelation);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
+      if (vuforiaBase != null) {
+        try {
+          tfod.initialize(vuforiaBase, minimumConfidence, useObjectTracker,
+              enableCameraMonitoring, numInterpreterThreads, numExecutorThreads, maxNumDetections,
+              timingBufferSize, maxFrameRate, trackerMaxOverlap, trackerMinSize,
+              trackerMarginalCorrelation, trackerMinCorrelation);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void activate() {
-    startBlockExecution(BlockType.FUNCTION, ".activate");
     try {
-      tfod.activate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".activate");
+      try {
+        tfod.activate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void deactivate() {
-    startBlockExecution(BlockType.FUNCTION, ".deactivate");
     try {
-      tfod.deactivate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".deactivate");
+      try {
+        tfod.deactivate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setClippingMargins(int left, int top, int right, int bottom) {
-    startBlockExecution(BlockType.FUNCTION, ".setClippingMargins");
     try {
-      tfod.setClippingMargins(left, top, right, bottom);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".setClippingMargins");
+      try {
+        tfod.setClippingMargins(left, top, right, bottom);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setZoom(double magnification, double aspectRatio) {
-    startBlockExecution(BlockType.FUNCTION, ".setZoom");
     try {
-      tfod.setZoom(magnification, aspectRatio);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".setZoom");
+      try {
+        tfod.setZoom(magnification, aspectRatio);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getRecognitions() {
-    startBlockExecution(BlockType.FUNCTION, ".getRecognitions");
     try {
-      return toJson(tfod.getRecognitions());
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".getRecognitions");
+      try {
+        return toJson(tfod.getRecognitions());
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+      return "[]";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "[]";
   }
 
   private static String toJson(List<Recognition> recognitions) {
@@ -195,24 +248,34 @@ final class TfodAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setModelFromAssetLegacy(String assetName, String jsonLabels) {
-    startBlockExecution(BlockType.FUNCTION, ".useModelFromAsset");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
     try {
-      tfod.useModelFromAsset(assetName, labels);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".useModelFromAsset");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      try {
+        tfod.useModelFromAsset(assetName, labels);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setModelFromFileLegacy(String fileName, String jsonLabels) {
-    startBlockExecution(BlockType.FUNCTION, ".useModelFromFile");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
     try {
-      tfod.useModelFromFile(fileName, labels);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".useModelFromFile");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      try {
+        tfod.useModelFromFile(fileName, labels);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -222,16 +285,21 @@ final class TfodAccess extends Access {
       VuforiaBaseAccess vuforiaBaseAccess,
       float minimumConfidence, boolean useObjectTracker, boolean enableCameraMonitoring,
       boolean isModelTensorFlow2) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
-    if (vuforiaBase != null) {
-      try {
-        tfod.initialize(vuforiaBase,
-            minimumConfidence, useObjectTracker, enableCameraMonitoring,
-            isModelTensorFlow2);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
+      if (vuforiaBase != null) {
+        try {
+          tfod.initialize(vuforiaBase,
+              minimumConfidence, useObjectTracker, enableCameraMonitoring,
+              isModelTensorFlow2);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -244,19 +312,24 @@ final class TfodAccess extends Access {
       int maxNumDetections, int timingBufferSize, double maxFrameRate,
       float trackerMaxOverlap, float trackerMinSize,
       float trackerMarginalCorrelation, float trackerMinCorrelation) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
-    if (vuforiaBase != null) {
-      try {
-        tfod.initialize(vuforiaBase,
-            minimumConfidence, useObjectTracker, enableCameraMonitoring,
-            isModelTensorFlow2, isModelQuantized, inputSize,
-            numInterpreterThreads, numExecutorThreads, maxNumDetections,
-            timingBufferSize, maxFrameRate, trackerMaxOverlap, trackerMinSize,
-            trackerMarginalCorrelation, trackerMinCorrelation);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaBase vuforiaBase = vuforiaBaseAccess.getVuforiaBase();
+      if (vuforiaBase != null) {
+        try {
+          tfod.initialize(vuforiaBase,
+              minimumConfidence, useObjectTracker, enableCameraMonitoring,
+              isModelTensorFlow2, isModelQuantized, inputSize,
+              numInterpreterThreads, numExecutorThreads, maxNumDetections,
+              timingBufferSize, maxFrameRate, trackerMaxOverlap, trackerMinSize,
+              trackerMarginalCorrelation, trackerMinCorrelation);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

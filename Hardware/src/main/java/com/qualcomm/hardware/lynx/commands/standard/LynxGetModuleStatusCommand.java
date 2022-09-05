@@ -53,8 +53,7 @@ public class LynxGetModuleStatusCommand extends LynxStandardCommand<LynxGetModul
 
     public LynxGetModuleStatusCommand(LynxModule module)
         {
-        super(module);
-        this.response = new LynxGetModuleStatusResponse(module);
+        super(module, new LynxGetModuleStatusResponse(module));
         }
 
     public LynxGetModuleStatusCommand(LynxModule module, boolean clearStatusAfterResponse)
@@ -84,12 +83,6 @@ public class LynxGetModuleStatusCommand extends LynxStandardCommand<LynxGetModul
     public static Class<? extends LynxResponse> getResponseClass()
         {
         return LynxGetModuleStatusResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

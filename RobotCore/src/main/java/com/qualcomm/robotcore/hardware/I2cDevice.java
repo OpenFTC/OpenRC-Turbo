@@ -38,11 +38,10 @@ import java.util.concurrent.locks.Lock;
 
 /**
  * The {@link I2cDevice} interface abstracts the engine used to interact on with a specific I2c device
- * on a port of an {@link I2cController}.
  *
  * @see I2cDeviceSynch
  */
-public interface I2cDevice extends I2cControllerPortDevice, HardwareDevice
+public interface I2cDevice extends HardwareDevice
     {
     //----------------------------------------------------------------------------------------------
     // Mode management
@@ -230,73 +229,6 @@ public interface I2cDevice extends I2cControllerPortDevice, HardwareDevice
      */
     int getMaxI2cWriteLatency();
 
-    /**
-     * Registers an object to get {@link I2cController.I2cPortReadyCallback#portIsReady(int) portIsReady()}
-     * callbacks at regular intervals from the {@link I2cDevice}. Only one object may be registered for a callback
-     * with an {@link I2cDevice} at any given time.
-     * @param callback
-     * @see #getI2cPortReadyCallback()
-     * @see #deregisterForPortReadyCallback()
-     */
-    void registerForI2cPortReadyCallback(I2cController.I2cPortReadyCallback callback);
-
-    /**
-     * Returns the callback previously registered with {@link #registerForI2cPortReadyCallback}, or
-     * null if no callback is currently registered.
-     * @return the currently registered callback
-     */
-    I2cController.I2cPortReadyCallback getI2cPortReadyCallback();
-
-    /**
-     * Unregisters any callback currently registered.
-     * @see #registerForI2cPortReadyCallback(I2cController.I2cPortReadyCallback)
-     */
-    void deregisterForPortReadyCallback();
-
-    /**
-     * Returns the number of callbacks ever experienced by this I2cDevice instance, whether or not
-     * they were ever seen by a registered callback. This method is mostly useful for debugging and
-     * gathering of statistics.
-     * @return the number of port-is-ready callbacks ever experienced by this {@link I2cDevice} instance
-     */
-    int getCallbackCount();
-
-    /**
-     * Returns whether the I2cDevice instance has experienced a callback since the last issuance
-     * of work to the controller. It is difficult to use this method effectively; in most
-     * circumstances, one is better off registering a {@link I2cController.I2cPortReadyCallback#portIsReady(int) portIsReady()}
-     * callback and putting your processing logic there. Inside the callback, the port is, by definition, ready.
-     * Alternately, consider using the {@link I2cDeviceSynch} interface instead.
-     *
-     * @return whether the port is ready for new work
-     * @see I2cDeviceSynch
-     * @see #registerForI2cPortReadyCallback(I2cController.I2cPortReadyCallback)
-     */
-    boolean isI2cPortReady();
-
-    /**
-     * Register for notifications as to when {@link I2cController.I2cPortReadyCallback#portIsReady(int) portIsReady()}
-     * begin and end. Only one object may be registered for such notifications with an I2cDevice at
-     * any given time.
-     * @param callback
-     * @see #getPortReadyBeginEndCallback()
-     * @see #deregisterForPortReadyBeginEndCallback()
-     */
-    void registerForPortReadyBeginEndCallback(I2cController.I2cPortReadyBeginEndNotifications callback);
-
-    /**
-     * Returns the object, if any, currently registered for portIsReady() begin / end notifications
-     * @return the currently registered notification receiver, or null if none exists
-     * @see #registerForPortReadyBeginEndCallback(I2cController.I2cPortReadyBeginEndNotifications)
-     */
-    I2cController.I2cPortReadyBeginEndNotifications getPortReadyBeginEndCallback();
-
-    /**
-     * Unregisters any portIsReady() begin / end notifications object if any is present.
-     * @see #registerForPortReadyBeginEndCallback(I2cController.I2cPortReadyBeginEndNotifications)
-     */
-    void deregisterForPortReadyBeginEndCallback();
-
     //----------------------------------------------------------------------------------------------
     // Arming and disarming
     //----------------------------------------------------------------------------------------------
@@ -313,9 +245,6 @@ public interface I2cDevice extends I2cControllerPortDevice, HardwareDevice
     //----------------------------------------------------------------------------------------------
     // Deprecated
     //----------------------------------------------------------------------------------------------
-
-    /** @deprecated Use of {@link #getI2cController()} is suggested instead */
-    @Deprecated I2cController getController();
 
     /** @deprecated Use of {@link #readI2cCacheFromController()} is suggested instead */
     @Deprecated void readI2cCacheFromModule();

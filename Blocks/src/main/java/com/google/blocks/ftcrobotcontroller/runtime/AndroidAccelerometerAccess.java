@@ -46,65 +46,111 @@ class AndroidAccelerometerAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setDistanceUnit(String distanceUnitString) {
-    startBlockExecution(BlockType.SETTER, ".DistanceUnit");
-    DistanceUnit distanceUnit = checkArg(distanceUnitString, DistanceUnit.class, "");
-    if (distanceUnit != null) {
-      androidAccelerometer.setDistanceUnit(distanceUnit);
+    try {
+      startBlockExecution(BlockType.SETTER, ".DistanceUnit");
+      DistanceUnit distanceUnit = checkArg(distanceUnitString, DistanceUnit.class, "");
+      if (distanceUnit != null) {
+        androidAccelerometer.setDistanceUnit(distanceUnit);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getX() {
-    startBlockExecution(BlockType.GETTER, ".X");
-    return androidAccelerometer.getX();
+    try {
+      startBlockExecution(BlockType.GETTER, ".X");
+      return androidAccelerometer.getX();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getY() {
-    startBlockExecution(BlockType.GETTER, ".Y");
-    return androidAccelerometer.getY();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Y");
+      return androidAccelerometer.getY();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getZ() {
-    startBlockExecution(BlockType.GETTER, ".Z");
-    return androidAccelerometer.getZ();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Z");
+      return androidAccelerometer.getZ();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Acceleration getAcceleration() {
-    startBlockExecution(BlockType.GETTER, ".Acceleration");
-    return androidAccelerometer.getAcceleration();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Acceleration");
+      return androidAccelerometer.getAcceleration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getDistanceUnit() {
-    startBlockExecution(BlockType.GETTER, ".DistanceUnit");
-    return androidAccelerometer.getDistanceUnit().toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".DistanceUnit");
+      return androidAccelerometer.getDistanceUnit().toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isAvailable() {
-    return androidAccelerometer.isAvailable();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isAvailable");
+      return androidAccelerometer.isAvailable();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void startListening() {
-    startBlockExecution(BlockType.FUNCTION, ".startListening");
-    androidAccelerometer.startListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".startListening");
+      androidAccelerometer.startListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void stopListening() {
-    startBlockExecution(BlockType.FUNCTION, ".stopListening");
-    androidAccelerometer.stopListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".stopListening");
+      androidAccelerometer.stopListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

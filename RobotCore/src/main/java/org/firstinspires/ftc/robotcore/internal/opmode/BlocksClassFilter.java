@@ -256,7 +256,7 @@ public class BlocksClassFilter implements ClassFilter {
         continue;
       }
       int prohibitedModifiers = Modifier.ABSTRACT | Modifier.STATIC;
-      if ((method.getModifiers() & prohibitedModifiers) != 0) {
+      if ((modifiers & prohibitedModifiers) != 0) {
         continue;
       }
       if (!method.isAnnotationPresent(ExportToBlocks.class)) {

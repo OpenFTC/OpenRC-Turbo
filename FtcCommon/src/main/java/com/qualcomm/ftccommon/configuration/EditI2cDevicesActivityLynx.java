@@ -93,7 +93,7 @@ public class EditI2cDevicesActivityLynx extends EditI2cDevicesActivityAbstract<L
         Spinner spinner = (Spinner) itemView.findViewById(this.idItemSpinner);
 
         List<ConfigurationType> deviceTypes =
-                ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.I2C, controlSystem, i2cBus);
+                ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.I2C, controlSystem, configuringControlHubParent, i2cBus);
 
         localizeConfigTypeSpinnerTypes(ConfigurationType.DisplayNameFlavor.Normal, spinner, deviceTypes);
         }

@@ -56,8 +56,7 @@ public class LynxReadVersionStringCommand extends LynxDekaInterfaceCommand<LynxR
 
     public LynxReadVersionStringCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxReadVersionStringResponse(module);  // support pretendFinish()
+        super(module, new LynxReadVersionStringResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -67,12 +66,6 @@ public class LynxReadVersionStringCommand extends LynxDekaInterfaceCommand<LynxR
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxReadVersionStringResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

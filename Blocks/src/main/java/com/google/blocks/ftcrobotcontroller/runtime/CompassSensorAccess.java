@@ -18,7 +18,6 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
-import com.qualcomm.hardware.hitechnic.HiTechnicNxtCompassSensor;
 import com.qualcomm.robotcore.hardware.CompassSensor;
 import com.qualcomm.robotcore.hardware.CompassSensor.CompassMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -38,28 +37,43 @@ class CompassSensorAccess extends HardwareAccess<CompassSensor> {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtCompassSensor.class}, methodName = "getDirection")
+  @Block(classes = {CompassSensor.class}, methodName = "getDirection")
   public double getDirection() {
-    startBlockExecution(BlockType.GETTER, ".Direction");
-    return compassSensor.getDirection();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Direction");
+      return compassSensor.getDirection();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtCompassSensor.class}, methodName = "calibrationFailed")
+  @Block(classes = {CompassSensor.class}, methodName = "calibrationFailed")
   public boolean getCalibrationFailed() {
-    startBlockExecution(BlockType.GETTER, ".CalibrationFailed");
-    return compassSensor.calibrationFailed();
+    try {
+      startBlockExecution(BlockType.GETTER, ".CalibrationFailed");
+      return compassSensor.calibrationFailed();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtCompassSensor.class}, methodName = "setMode")
+  @Block(classes = {CompassSensor.class}, methodName = "setMode")
   public void setMode(String compassModeString) {
-    startBlockExecution(BlockType.FUNCTION, ".Mode");
-    CompassMode compassMode = checkArg(compassModeString, CompassMode.class, "compassMode");
-    if (compassMode != null) {
-      compassSensor.setMode(compassMode);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".Mode");
+      CompassMode compassMode = checkArg(compassModeString, CompassMode.class, "compassMode");
+      if (compassMode != null) {
+        compassSensor.setMode(compassMode);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

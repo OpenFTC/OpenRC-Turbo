@@ -38,66 +38,96 @@ class VelocityAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getDistanceUnit(Object velocityArg) {
-    startBlockExecution(BlockType.GETTER, ".DistanceUnit");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      DistanceUnit distanceUnit = velocity.unit;
-      if (distanceUnit != null) {
-        return distanceUnit.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".DistanceUnit");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        DistanceUnit distanceUnit = velocity.unit;
+        if (distanceUnit != null) {
+          return distanceUnit.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getXVeloc(Object velocityArg) {
-    startBlockExecution(BlockType.GETTER, ".XVeloc");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      return velocity.xVeloc;
+    try {
+      startBlockExecution(BlockType.GETTER, ".XVeloc");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        return velocity.xVeloc;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getYVeloc(Object velocityArg) {
-    startBlockExecution(BlockType.GETTER, ".YVeloc");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      return velocity.yVeloc;
+    try {
+      startBlockExecution(BlockType.GETTER, ".YVeloc");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        return velocity.yVeloc;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getZVeloc(Object velocityArg) {
-    startBlockExecution(BlockType.GETTER, ".ZVeloc");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      return velocity.zVeloc;
+    try {
+      startBlockExecution(BlockType.GETTER, ".ZVeloc");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        return velocity.zVeloc;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object velocityArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      return velocity.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        return velocity.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Velocity create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Velocity();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Velocity();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -105,34 +135,49 @@ class VelocityAccess extends Access {
   public Velocity create_withArgs(
       String distanceUnitString, double xVeloc, double yVeloc, double zVeloc,
       long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
-    if (distanceUnit != null) {
-      return new Velocity(distanceUnit, xVeloc, yVeloc, zVeloc, acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
+      if (distanceUnit != null) {
+        return new Velocity(distanceUnit, xVeloc, yVeloc, zVeloc, acquisitionTime);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Velocity toDistanceUnit(Object velocityArg, String distanceUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".toDistanceUnit");
-    Velocity velocity = checkVelocity(velocityArg);
-    DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
-    if (velocity != null && distanceUnit != null) {
-      return velocity.toUnit(distanceUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toDistanceUnit");
+      Velocity velocity = checkVelocity(velocityArg);
+      DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
+      if (velocity != null && distanceUnit != null) {
+        return velocity.toUnit(distanceUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object velocityArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    Velocity velocity = checkVelocity(velocityArg);
-    if (velocity != null) {
-      return velocity.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      Velocity velocity = checkVelocity(velocityArg);
+      if (velocity != null) {
+        return velocity.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 }

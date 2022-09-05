@@ -490,7 +490,7 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         synchronized (concurrentClientLock)
             {
             if (!this.isOpenForReading())
-                return TimestampedI2cData.makeFakeData(null, getI2cAddress(), 0, creg);
+                return TimestampedI2cData.makeFakeData(getI2cAddress(), 0, creg);
 
             this.cregReadLast = creg;
 
@@ -512,7 +512,7 @@ public class I2cDeviceSynchImplOnSimple extends I2cDeviceSynchReadHistoryImpl im
         synchronized (concurrentClientLock)
             {
             if (!this.isOpenForReading())
-                return TimestampedI2cData.makeFakeData(null, getI2cAddress(), ireg, creg);
+                return TimestampedI2cData.makeFakeData(getI2cAddress(), ireg, creg);
 
             this.iregReadLast = ireg;
             this.cregReadLast = creg;

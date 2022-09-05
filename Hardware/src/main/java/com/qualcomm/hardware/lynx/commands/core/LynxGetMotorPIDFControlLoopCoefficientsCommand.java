@@ -72,7 +72,7 @@ public class LynxGetMotorPIDFControlLoopCoefficientsCommand extends LynxDekaInte
 
     public LynxGetMotorPIDFControlLoopCoefficientsCommand(LynxModuleIntf module, int motorZ, DcMotor.RunMode mode)
         {
-        super(module);
+        super(module, new LynxGetMotorPIDFControlLoopCoefficientsResponse(module));
         LynxConstants.validateMotorZ(motorZ);
         this.motor = (byte)motorZ;
         switch (mode)
@@ -81,7 +81,6 @@ public class LynxGetMotorPIDFControlLoopCoefficientsCommand extends LynxDekaInte
             case RUN_TO_POSITION:      this.mode = 2; break;
             default: throw new IllegalArgumentException(String.format("illegal mode: %s", mode.toString()));
             }
-        this.response = new LynxGetMotorPIDFControlLoopCoefficientsResponse(module);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -91,12 +90,6 @@ public class LynxGetMotorPIDFControlLoopCoefficientsCommand extends LynxDekaInte
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorPIDFControlLoopCoefficientsResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

@@ -33,7 +33,6 @@ import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.hardware.rev.RevTouchSensor;
 import com.qualcomm.robotcore.hardware.AccelerationSensor;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.AnalogOutput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -81,11 +80,6 @@ public enum HardwareType {
       ToolboxFolder.OTHER, "AnalogInput", ToolboxIcon.ANALOG_INPUT,
       AnalogInput.class,
       ConfigurationTypeManager.getXmlTag(AnalogInput.class)),
-  ANALOG_OUTPUT( // See analog_output.js
-      "createAnalogOutputDropdown", "analogOutput", "AsAnalogOutput", "_AnalogOutput",
-      ToolboxFolder.OTHER, "AnalogOutput", ToolboxIcon.ANALOG_OUTPUT,
-      AnalogOutput.class,
-      BuiltInConfigurationType.ANALOG_OUTPUT.getXmlTag()),
   BNO055IMU( // see bno055imu.js
       "createBNO055IMUDropdown", "bno055imu", "AsBNO055IMU", "_IMU_BNO055",
       ToolboxFolder.SENSORS, "IMU-BNO055", null, // No toolbox icon yet.
@@ -191,8 +185,7 @@ public enum HardwareType {
       "createServoControllerDropdown", "servoController", "AsServoController", "_ServoController",
       ToolboxFolder.ACTUATORS, "ServoController", ToolboxIcon.SERVO_CONTROLLER,
       ServoController.class,
-      BuiltInConfigurationType.SERVO_CONTROLLER.getXmlTag(),
-      BuiltInConfigurationType.MATRIX_CONTROLLER.getXmlTag()),
+      BuiltInConfigurationType.LYNX_MODULE.getXmlTag()),
   TOUCH_SENSOR( // see touch_sensor.js
       "createTouchSensorDropdown", "touchSensor", "AsTouchSensor", "_TouchSensor",
       ToolboxFolder.SENSORS, "TouchSensor", ToolboxIcon.TOUCH_SENSOR,
@@ -209,7 +202,6 @@ public enum HardwareType {
       "createVoltageSensorDropdown", "voltageSensor", "AsVoltageSensor", "_VoltageSensor",
       ToolboxFolder.SENSORS, "VoltageSensor", ToolboxIcon.VOLTAGE_SENSOR,
       VoltageSensor.class,
-      BuiltInConfigurationType.MOTOR_CONTROLLER.getXmlTag(),
       BuiltInConfigurationType.LYNX_MODULE.getXmlTag()),
   WEBCAM_NAME( // No blocks provided.
       null, null, "AsWebcamName", "_WebcamName",
@@ -219,7 +211,7 @@ public enum HardwareType {
 
   private static String[] getMotorXmlTags() {
     List<String> tags = new LinkedList<>();
-    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.MOTOR, null)) {
+    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.MOTOR, null, false)) {
       if (type == BuiltInConfigurationType.NOTHING) continue;
       tags.add(type.getXmlTag());
       for (String xmlTagAlias : type.getXmlTagAliases()) {
@@ -232,7 +224,7 @@ public enum HardwareType {
 
   private static String[] getStandardServoXmlTags() {
     List<String> tags = new LinkedList<>();
-    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.SERVO, null)) {
+    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.SERVO, null, false)) {
       if (type == BuiltInConfigurationType.NOTHING || ((ServoConfigurationType)type).getServoFlavor() != ServoFlavor.STANDARD) continue;
       tags.add(type.getXmlTag());
       for (String xmlTagAlias : type.getXmlTagAliases()) {
@@ -245,7 +237,7 @@ public enum HardwareType {
 
   private static String[] getContinuousServoXmlTags() {
     List<String> tags = new LinkedList<>();
-    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.SERVO, null)) {
+    for (ConfigurationType type : ConfigurationTypeManager.getInstance().getApplicableConfigTypes(ConfigurationType.DeviceFlavor.SERVO, null, false)) {
       if (type == BuiltInConfigurationType.NOTHING || ((ServoConfigurationType)type).getServoFlavor() != ServoFlavor.CONTINUOUS) continue;
       tags.add(type.getXmlTag());
       for (String xmlTagAlias : type.getXmlTagAliases()) {

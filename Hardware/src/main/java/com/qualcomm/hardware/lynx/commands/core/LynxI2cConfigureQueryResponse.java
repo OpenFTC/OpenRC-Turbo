@@ -59,6 +59,13 @@ public class LynxI2cConfigureQueryResponse extends LynxDekaInterfaceResponse
         super(module);
         }
 
+    public static LynxI2cConfigureQueryResponse createDefaultResponse(LynxModuleIntf module)
+        {
+        LynxI2cConfigureQueryResponse result = new LynxI2cConfigureQueryResponse(module);
+        result.speedCode = LynxI2cConfigureChannelCommand.SpeedCode.UNKNOWN.bVal;
+        return result;
+        }
+
     //----------------------------------------------------------------------------------------------
     // Accessing
     //----------------------------------------------------------------------------------------------

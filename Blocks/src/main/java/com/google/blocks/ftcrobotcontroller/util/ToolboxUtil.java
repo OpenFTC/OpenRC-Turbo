@@ -56,7 +56,7 @@ public class ToolboxUtil {
    * Creates a shadow text block with the given value.
    */
   public static String makeTextShadow(String text) {
-    return "<shadow type=\"text\"><field name=\"TEXT\">" + text + "</field></shadow>\n";
+    return "<shadow type=\"text\"><field name=\"TEXT\">" + escapeForXml(text) + "</field></shadow>\n";
   }
 
   /**
@@ -105,7 +105,7 @@ public class ToolboxUtil {
   /**
    * Creates a shadow enum block with the given blockTypePrefix, enum type, fieldName, and fieldValue.
    */
-  static String makeTypedEnumShadow(String blockTypePrefix, String enumType,
+  public static String makeTypedEnumShadow(String blockTypePrefix, String enumType,
       String fieldName, String fieldValue) {
     return "<shadow type=\"" + blockTypePrefix + "_typedEnum_" + enumType + "\">\n"
         + "<field name=\"" + fieldName + "\">" + fieldValue + "</field>"
@@ -217,5 +217,14 @@ public class ToolboxUtil {
       xmlToolbox
           .append("</block>\n");
     }
+  }
+
+  public static String escapeForXml(String s) {
+    return s
+        .replace("&", "&amp;")
+        .replace("\"", "&quot;")
+        .replace("'", "&apos;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;");
   }
 }

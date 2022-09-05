@@ -33,7 +33,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.lynx;
 
 import com.qualcomm.hardware.bosch.BNO055IMUImpl;
-import com.qualcomm.robotcore.hardware.I2cController;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.UserConfigurationType;
@@ -45,10 +44,11 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import static com.qualcomm.robotcore.hardware.ControlSystem.REV_HUB;
 
 /**
- * {@link LynxEmbeddedIMU} represents a BNO055 IMU embedded on the lynx board.
+ * {@link LynxEmbeddedIMU} represents a BNO055 IMU embedded on the lynx board. It cannot be used
+ * for the BHI260AP IMU on newer Control Hubs.
  */
 @I2cDeviceType
-@DeviceProperties(name = "@string/lynx_embedded_imu_name", xmlTag = LynxConstants.EMBEDDED_IMU_XML_TAG, description = "@string/lynx_embedded_imu_description", builtIn = true, compatibleControlSystems = REV_HUB)
+@DeviceProperties(name = "@string/lynx_embedded_bno055_imu_name", xmlTag = LynxConstants.EMBEDDED_BNO055_IMU_XML_TAG, description = "@string/lynx_embedded_imu_description", builtIn = true, compatibleControlSystems = REV_HUB)
 public class LynxEmbeddedIMU extends BNO055IMUImpl
     {
     //----------------------------------------------------------------------------------------------
@@ -56,9 +56,7 @@ public class LynxEmbeddedIMU extends BNO055IMUImpl
     //----------------------------------------------------------------------------------------------
 
     /**
-     * This constructor is used by {@link UserConfigurationType#createInstance(I2cController, int)}
-     * @see UserConfigurationType#createInstance(I2cController, int)
-     * @see I2cDeviceType
+     * This constructor is used internally by the FTC SDK
      */
     public LynxEmbeddedIMU(I2cDeviceSynch deviceClient)
         {
@@ -67,7 +65,7 @@ public class LynxEmbeddedIMU extends BNO055IMUImpl
 
     @Override public String getDeviceName()
         {
-        return AppUtil.getDefContext().getString(com.qualcomm.robotcore.R.string.lynx_embedded_imu_name);
+        return AppUtil.getDefContext().getString(com.qualcomm.robotcore.R.string.lynx_embedded_bno055_imu_name);
         }
 
     @Override public Manufacturer getManufacturer()

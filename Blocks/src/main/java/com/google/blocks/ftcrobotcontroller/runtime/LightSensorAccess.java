@@ -18,7 +18,6 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
-import com.qualcomm.hardware.hitechnic.HiTechnicNxtLightSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.LightSensor;
 
@@ -39,33 +38,53 @@ class LightSensorAccess extends HardwareAccess<LightSensor> {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtLightSensor.class}, methodName = "getLightDetected")
+  @Block(classes = {LightSensor.class}, methodName = "getLightDetected")
   public double getLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".LightDetected");
-    return lightSensor.getLightDetected();
+    try {
+      startBlockExecution(BlockType.GETTER, ".LightDetected");
+      return lightSensor.getLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtLightSensor.class}, methodName = "getRawLightDetected")
+  @Block(classes = {LightSensor.class}, methodName = "getRawLightDetected")
   public double getRawLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetected");
-    return lightSensor.getRawLightDetected();
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetected");
+      return lightSensor.getRawLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtLightSensor.class}, methodName = "getRawLightDetectedMax")
+  @Block(classes = {LightSensor.class}, methodName = "getRawLightDetectedMax")
   public double getRawLightDetectedMax() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
-    return lightSensor.getRawLightDetectedMax();
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
+      return lightSensor.getRawLightDetectedMax();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtLightSensor.class}, methodName = "enableLed")
+  @Block(classes = {LightSensor.class}, methodName = "enableLed")
   public void enableLed(boolean enable) {
-    startBlockExecution(BlockType.FUNCTION, ".enableLed");
-    lightSensor.enableLed(enable);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".enableLed");
+      lightSensor.enableLed(enable);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

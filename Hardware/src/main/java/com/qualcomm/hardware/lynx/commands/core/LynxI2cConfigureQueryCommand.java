@@ -56,14 +56,9 @@ public class LynxI2cConfigureQueryCommand extends LynxDekaInterfaceCommand<LynxI
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public LynxI2cConfigureQueryCommand(LynxModuleIntf module)
-        {
-        super(module);
-        }
-
     public LynxI2cConfigureQueryCommand(LynxModuleIntf module, int busZ)
         {
-        this(module);
+        super(module, LynxI2cConfigureQueryResponse.createDefaultResponse(module));
         LynxConstants.validateI2cBusZ(busZ);
         this.i2cBus = (byte)busZ;
         }
@@ -75,12 +70,6 @@ public class LynxI2cConfigureQueryCommand extends LynxDekaInterfaceCommand<LynxI
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxI2cConfigureQueryResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

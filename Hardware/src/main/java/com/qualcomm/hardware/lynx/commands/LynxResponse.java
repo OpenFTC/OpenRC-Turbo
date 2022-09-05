@@ -37,7 +37,7 @@ import com.qualcomm.hardware.lynx.LynxModuleIntf;
 /**
  * Created by bob on 2016-03-06.
  */
-public abstract class LynxResponse extends LynxRespondable
+public abstract class LynxResponse<RESPONSE extends LynxMessage> extends LynxRespondable<RESPONSE>
     {
     //----------------------------------------------------------------------------------------------
     // Constants
@@ -60,12 +60,6 @@ public abstract class LynxResponse extends LynxRespondable
     //----------------------------------------------------------------------------------------------
     // Operations
     //----------------------------------------------------------------------------------------------
-
-    @Override
-    public final boolean isResponseExpected()
-        {
-        return false;
-        }
 
     @Override
     public boolean isResponse()

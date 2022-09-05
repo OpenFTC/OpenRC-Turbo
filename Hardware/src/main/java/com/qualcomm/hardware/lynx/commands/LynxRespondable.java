@@ -47,6 +47,9 @@ import org.firstinspires.ftc.robotcore.internal.hardware.TimeWindow;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 /**
  * A LynxRespondable is a message that will generate a response from the module to which it is
  * transmitted. A positive response is either a full-fledged response message (if the message
@@ -59,26 +62,46 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
     // State
     //----------------------------------------------------------------------------------------------
 
-    protected boolean        isAckOrResponseReceived;
-    protected LynxNack       nackReceived;
-    protected CountDownLatch ackOrNackReceived;
-    protected int            retransmissionsRemaining;
-    protected CountDownLatch responseOrNackReceived;
-    protected RESPONSE       response;
+    private volatile boolean            isAckOrResponseReceived;
+    private volatile LynxNack           nackReceived;
+    private volatile RESPONSE           response;
+    private volatile CountDownLatch     ackOrNackReceived;
+    private volatile CountDownLatch     responseOrNackReceived;
+    @Nullable private final RESPONSE    defaultResponse;
 
     //----------------------------------------------------------------------------------------------
-    // Construction
+    // Construction and setup
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Constructor for any messages that do not expect a response (other than ACK or NACK)
+     */
     public LynxRespondable(LynxModuleIntf module)
         {
         super(module);
+        this.defaultResponse = null;
+        prepareForSending();
+        }
+
+    /**
+     * Constructor for commands that expect a response (not just an ACK)
+     */
+    public LynxRespondable(LynxModuleIntf module, @NonNull RESPONSE defaultResponse)
+        {
+        super(module);
+        this.defaultResponse = defaultResponse;
+        // Fix up the default response's time window (it was initialized to null)
+        this.defaultResponse.setPayloadTimeWindow(new TimeWindow());
+        prepareForSending();
+        }
+
+    private void prepareForSending()
+        {
         this.isAckOrResponseReceived = false;
         this.nackReceived = null;
-        this.ackOrNackReceived = new CountDownLatch(1);
-        this.retransmissionsRemaining = 5;
-        this.responseOrNackReceived = new CountDownLatch(1);
         this.response = null;
+        this.ackOrNackReceived = new CountDownLatch(1);
+        this.responseOrNackReceived = new CountDownLatch(1);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -90,23 +113,6 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         {
         super.onPretendTransmit();
         this.pretendFinish();
-        }
-
-    public boolean isRetransmittable()
-        {
-        return this.retransmissionsRemaining > 0;
-        }
-
-    public void setUnretransmittable()
-        {
-        this.retransmissionsRemaining = 0;
-        }
-
-    @Override
-    public void noteRetransmission()
-        {
-        this.retransmissionsRemaining--;
-        if (this.retransmissionsRemaining < 0) this.retransmissionsRemaining = 0;
         }
 
     //----------------------------------------------------------------------------------------------
@@ -134,6 +140,10 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         {
         return true;
         }
+    public final boolean isResponseExpected()
+        {
+        return this.defaultResponse != null;
+        }
 
     //----------------------------------------------------------------------------------------------
     // Completions
@@ -146,11 +156,7 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
 
         if (isResponseExpected())
             {
-            /*
-             * We'll just use the (phony) response object with which we initialized ourselves
-             * Fix up our time window.  It was initialized to null.
-             */
-            this.response.setPayloadTimeWindow(new TimeWindow());
+            this.response = this.defaultResponse;
             onResponseReceived();
             }
 
@@ -231,6 +237,8 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
     public void send() throws InterruptedException, LynxNackException
         {
         acquireNetworkLock();
+        prepareForSending();
+
         try {
             try {
                 this.module.sendCommand(this);
@@ -253,6 +261,8 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
     public RESPONSE sendReceive() throws InterruptedException, LynxNackException
         {
         acquireNetworkLock();
+        prepareForSending();
+
         try {
             try {
                 this.module.sendCommand(this);
@@ -265,9 +275,9 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
                     {
                     // The module SAID he supported this command, but it turns out he didn't (liar).
                     // Deal with it as if he had told us in the first place that he hadn't supported it.
-                    if (usePretendResponseIfRealModuleDoesntSupport() && this.response != null)
+                    if (usePretendResponseIfRealModuleDoesntSupport() && this.defaultResponse != null)
                         {
-                        return this.response;
+                        return this.defaultResponse;
                         }
                     }
                 throw e;
@@ -276,9 +286,9 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
                 {
                 // The module doesn't actually support this command, as it has an older sense of some interface.
                 // Return the default response for the command, if any; otherwise, act like we got a nack from the module.
-                if (usePretendResponseIfRealModuleDoesntSupport() && this.response != null)
+                if (usePretendResponseIfRealModuleDoesntSupport() && this.defaultResponse != null)
                     {
-                    return this.response;
+                    return this.defaultResponse;
                     }
                 throwNackForUnsupportedCommand(e);
                 return null;    // not reached

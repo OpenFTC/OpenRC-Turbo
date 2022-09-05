@@ -60,8 +60,7 @@ public class LynxGetMotorChannelModeCommand extends LynxDekaInterfaceCommand<Lyn
 
     public LynxGetMotorChannelModeCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorChannelModeResponse(module);
+        super(module, new LynxGetMotorChannelModeResponse(module));
         }
 
     public LynxGetMotorChannelModeCommand(LynxModuleIntf module, int motorZ)
@@ -78,12 +77,6 @@ public class LynxGetMotorChannelModeCommand extends LynxDekaInterfaceCommand<Lyn
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorChannelModeResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

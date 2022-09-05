@@ -88,18 +88,10 @@ public enum BuiltInConfigurationType implements ConfigurationType
         IR_SEEKER("IrSeeker", null),
         LIGHT_SENSOR("LightSensor", null),
         ACCELEROMETER("Accelerometer", null),
-        MOTOR_CONTROLLER("MotorController", null), // Can be HiTechnic or MR
-        SERVO_CONTROLLER("ServoController", null), // Can be HiTechnic or MR
-        LEGACY_MODULE_CONTROLLER("LegacyModuleController", null),
-        DEVICE_INTERFACE_MODULE("DeviceInterfaceModule", null),
-        @Deprecated I2C_DEVICE("I2cDevice", DeviceFlavor.I2C),
         @Deprecated I2C_DEVICE_SYNCH("I2cDeviceSynch", DeviceFlavor.I2C),
         TOUCH_SENSOR("TouchSensor", DeviceFlavor.DIGITAL_IO),   // either a MR touch sensor on a digital port or an NXT touch sensor
-        ANALOG_OUTPUT("AnalogOutput", DeviceFlavor.ANALOG_OUTPUT),
         PULSE_WIDTH_DEVICE("PulseWidthDevice", null),
         IR_SEEKER_V3("IrSeekerV3", DeviceFlavor.I2C),
-        TOUCH_SENSOR_MULTIPLEXER("TouchSensorMultiplexer", null),
-        MATRIX_CONTROLLER("MatrixController", null),
         ULTRASONIC_SENSOR("UltrasonicSensor", null),
         ADAFRUIT_COLOR_SENSOR("AdafruitColorSensor", DeviceFlavor.I2C),
         COLOR_SENSOR("ColorSensor", DeviceFlavor.I2C),    // this is a modern robotics or an NXT color sensor
@@ -152,10 +144,6 @@ public enum BuiltInConfigurationType implements ConfigurationType
         {
         switch (type)
             {
-            case MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER:       return MOTOR_CONTROLLER;
-            case MODERN_ROBOTICS_USB_SERVO_CONTROLLER:          return SERVO_CONTROLLER;
-            case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE:   return DEVICE_INTERFACE_MODULE;
-            case MODERN_ROBOTICS_USB_LEGACY_MODULE:             return LEGACY_MODULE_CONTROLLER;
             case LYNX_USB_DEVICE:                               return LYNX_USB_DEVICE;
             case WEBCAM:                                        return WEBCAM;
             default:                                            return UNKNOWN;
@@ -186,10 +174,6 @@ public enum BuiltInConfigurationType implements ConfigurationType
         {
         switch (this)
             {
-            case MOTOR_CONTROLLER:          return DeviceManager.UsbDeviceType.MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER;
-            case SERVO_CONTROLLER:          return DeviceManager.UsbDeviceType.MODERN_ROBOTICS_USB_SERVO_CONTROLLER;
-            case DEVICE_INTERFACE_MODULE:   return DeviceManager.UsbDeviceType.MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE;
-            case LEGACY_MODULE_CONTROLLER:  return DeviceManager.UsbDeviceType.MODERN_ROBOTICS_USB_LEGACY_MODULE;
             case LYNX_USB_DEVICE:           return DeviceManager.UsbDeviceType.LYNX_USB_DEVICE;
             case WEBCAM:                    return DeviceManager.UsbDeviceType.WEBCAM;
             default:                        return DeviceManager.UsbDeviceType.FTDI_USB_UNKNOWN_DEVICE;
@@ -201,40 +185,18 @@ public enum BuiltInConfigurationType implements ConfigurationType
         {
         switch (this)
             {
-            case COMPASS:                   return context.getString(R.string.configTypeHTCompass);
-            case IR_SEEKER:                 return context.getString(R.string.configTypeHTIrSeeker);
-            case LIGHT_SENSOR:              return context.getString(R.string.configTypeHTLightSensor);
-            case ACCELEROMETER:             return context.getString(R.string.configTypeHTAccelerometer);
-            case MOTOR_CONTROLLER:          return context.getString(R.string.configTypeMotorController);
-            case SERVO_CONTROLLER:          return context.getString(R.string.configTypeServoController);
-            case LEGACY_MODULE_CONTROLLER:  return context.getString(R.string.configTypeLegacyModuleController);
-            case DEVICE_INTERFACE_MODULE:   return context.getString(R.string.configTypeDeviceInterfaceModule);
-            case I2C_DEVICE:                return context.getString(R.string.configTypeI2cDevice);
             case I2C_DEVICE_SYNCH:          return context.getString(R.string.configTypeI2cDeviceSynch);
-            case ANALOG_OUTPUT:             return context.getString(R.string.configTypeAnalogOutput);
             case PULSE_WIDTH_DEVICE:        return context.getString(R.string.configTypePulseWidthDevice);
             case IR_SEEKER_V3:              return context.getString(R.string.configTypeIrSeekerV3);
-            case TOUCH_SENSOR_MULTIPLEXER:  return context.getString(R.string.configTypeHTTouchSensorMultiplexer);
-            case MATRIX_CONTROLLER:         return context.getString(R.string.configTypeMatrixController);
-            case ULTRASONIC_SENSOR:         return context.getString(R.string.configTypeNXTUltrasonicSensor);
             case ADAFRUIT_COLOR_SENSOR:     return context.getString(R.string.configTypeAdafruitColorSensor);
             case LYNX_COLOR_SENSOR:         return context.getString(R.string.configTypeLynxColorSensor);
             case LYNX_USB_DEVICE:           return context.getString(R.string.configTypeLynxUSBDevice);
             case LYNX_MODULE:               return context.getString(R.string.configTypeLynxModule);
             case NOTHING:                   return context.getString(R.string.configTypeNothing);
             case WEBCAM:                    return context.getString(R.string.configTypeWebcam);
-            case TOUCH_SENSOR:
-                return flavor==DisplayNameFlavor.Legacy
-                        ? context.getString(R.string.configTypeNXTTouchSensor)
-                        : context.getString(R.string.configTypeMRTouchSensor);
-            case GYRO:
-                return flavor==DisplayNameFlavor.Legacy
-                        ? context.getString(R.string.configTypeHTGyro)
-                        : context.getString(R.string.configTypeMRGyro);
-            case COLOR_SENSOR:
-                return flavor==DisplayNameFlavor.Legacy
-                        ? context.getString(R.string.configTypeHTColorSensor)
-                        : context.getString(R.string.configTypeMRColorSensor);
+            case TOUCH_SENSOR:              return context.getString(R.string.configTypeMRTouchSensor);
+            case GYRO:                      return context.getString(R.string.configTypeMRGyro);
+            case COLOR_SENSOR:              return context.getString(R.string.configTypeMRColorSensor);
             case UNKNOWN:
             default:
                 return context.getString(R.string.configTypeUnknown);

@@ -60,8 +60,7 @@ public class LynxGetPWMConfigurationCommand extends LynxDekaInterfaceCommand<Lyn
 
     public LynxGetPWMConfigurationCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetPWMConfigurationResponse(module);
+        super(module, new LynxGetPWMConfigurationResponse(module));
         }
 
     public LynxGetPWMConfigurationCommand(LynxModuleIntf module, int channelZ)
@@ -78,12 +77,6 @@ public class LynxGetPWMConfigurationCommand extends LynxDekaInterfaceCommand<Lyn
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetPWMConfigurationResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

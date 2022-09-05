@@ -45,15 +45,15 @@ public class Dragonboard extends AndroidBoard {
 
     // GPIO pins
     private static final DigitalChannel ANDROID_BOARD_IS_PRESENT_PIN =
-            new GpioPin(921, true, GpioPin.Active.LOW, AndroidBoard.ANDROID_BOARD_IS_PRESENT_PIN_NAME);
+            GpioPin.createOutput(921, true, GpioPin.Active.LOW, AndroidBoard.ANDROID_BOARD_IS_PRESENT_PIN_NAME);
 
     private static final DigitalChannel LYNX_MODULE_RESET_PIN =
-            new GpioPin(915, false, GpioPin.Active.LOW, AndroidBoard.LYNX_MODULE_RESET_PIN_NAME);
+            GpioPin.createOutput(915, false, GpioPin.Active.LOW, AndroidBoard.LYNX_MODULE_RESET_PIN_NAME);
 
     private static final DigitalChannel PROGRAMMING_PIN =
-            new GpioPin(938, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
+            GpioPin.createOutput(938, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
 
-    private static final DigitalChannel USER_BUTTON_PIN = new GpioPin(919, USER_BUTTON_PIN_NAME);
+    private static final DigitalChannel USER_BUTTON_PIN = GpioPin.createInput(919, GpioPin.Active.HIGH, USER_BUTTON_PIN_NAME);
 
     // UART file
 
@@ -84,6 +84,11 @@ public class Dragonboard extends AndroidBoard {
     @Override
     public DigitalChannel getUserButtonPin() {
         return USER_BUTTON_PIN;
+    }
+
+    @Override
+    public DigitalChannel getBhi260QuatRegFreezePin() {
+        return new FakeAndroidBoard.FakeDigitalChannel(DigitalChannel.Mode.OUTPUT);
     }
 
     @Override

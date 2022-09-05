@@ -73,10 +73,8 @@ public class HardwareMap implements Iterable<HardwareDevice> {
   public DeviceMapping<Servo>                 servo                 = new DeviceMapping<Servo>(Servo.class);
   public DeviceMapping<CRServo>               crservo               = new DeviceMapping<CRServo>(CRServo.class);
 
-  public DeviceMapping<LegacyModule>          legacyModule          = new DeviceMapping<LegacyModule>(LegacyModule.class);
   public DeviceMapping<TouchSensorMultiplexer> touchSensorMultiplexer = new DeviceMapping<TouchSensorMultiplexer>(TouchSensorMultiplexer.class);
 
-  public DeviceMapping<DeviceInterfaceModule> deviceInterfaceModule = new DeviceMapping<DeviceInterfaceModule>(DeviceInterfaceModule.class);
   public DeviceMapping<AnalogInput>           analogInput           = new DeviceMapping<AnalogInput>(AnalogInput.class);
   public DeviceMapping<DigitalChannel>        digitalChannel        = new DeviceMapping<DigitalChannel>(DigitalChannel.class);
   public DeviceMapping<OpticalDistanceSensor> opticalDistanceSensor = new DeviceMapping<OpticalDistanceSensor>(OpticalDistanceSensor.class);
@@ -84,7 +82,6 @@ public class HardwareMap implements Iterable<HardwareDevice> {
   public DeviceMapping<PWMOutput>             pwmOutput             = new DeviceMapping<PWMOutput>(PWMOutput.class);
   public DeviceMapping<I2cDevice>             i2cDevice             = new DeviceMapping<I2cDevice>(I2cDevice.class);
   public DeviceMapping<I2cDeviceSynch>        i2cDeviceSynch        = new DeviceMapping<I2cDeviceSynch>(I2cDeviceSynch.class);
-  public DeviceMapping<AnalogOutput>          analogOutput          = new DeviceMapping<AnalogOutput>(AnalogOutput.class);
   public DeviceMapping<ColorSensor>           colorSensor           = new DeviceMapping<ColorSensor>(ColorSensor.class);
   public DeviceMapping<LED>                   led                   = new DeviceMapping<LED>(LED.class);
 
@@ -122,10 +119,8 @@ public class HardwareMap implements Iterable<HardwareDevice> {
     this.allDeviceMappings.add(this.servo);
     this.allDeviceMappings.add(this.crservo);
 
-    this.allDeviceMappings.add(this.legacyModule);
     this.allDeviceMappings.add(this.touchSensorMultiplexer);
 
-    this.allDeviceMappings.add(this.deviceInterfaceModule);
     this.allDeviceMappings.add(this.analogInput);
     this.allDeviceMappings.add(this.digitalChannel);
     this.allDeviceMappings.add(this.opticalDistanceSensor);
@@ -133,7 +128,6 @@ public class HardwareMap implements Iterable<HardwareDevice> {
     this.allDeviceMappings.add(this.pwmOutput);
     this.allDeviceMappings.add(this.i2cDevice);
     this.allDeviceMappings.add(this.i2cDeviceSynch);
-    this.allDeviceMappings.add(this.analogOutput);
     this.allDeviceMappings.add(this.colorSensor);
     this.allDeviceMappings.add(this.led);
 

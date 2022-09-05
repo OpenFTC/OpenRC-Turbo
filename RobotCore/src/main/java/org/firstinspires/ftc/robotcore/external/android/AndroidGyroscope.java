@@ -34,15 +34,22 @@ import androidx.annotation.NonNull;
  * @author lizlooney@google.com (Liz Looney)
  */
 public class AndroidGyroscope implements SensorEventListener {
-  @SuppressWarnings("ConstantConditions")
-  @NonNull private final SensorManager sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
-
   private volatile boolean listening;
   private volatile long timestamp;
   private volatile float x; // angular speed around the x-axis, in radians/second
   private volatile float y; // angular speed around the y-axis, in radians/second
   private volatile float z; // angular speed around the z-axis, in radians/second
   private volatile AngleUnit angleUnit = AngleUnit.RADIANS;
+
+  // The __sensorManager field should not be accessed directly. Use sensorManager() instead.
+  private volatile SensorManager __sensorManager;
+
+  private SensorManager sensorManager() {
+    if (__sensorManager == null) {
+      __sensorManager = (SensorManager) AppUtil.getDefContext().getSystemService(Context.SENSOR_SERVICE);
+    }
+    return __sensorManager;
+  }
 
   // SensorEventListener methods
 
@@ -111,17 +118,14 @@ public class AndroidGyroscope implements SensorEventListener {
    * X, Y and Z axis.
    */
   public AngularVelocity getAngularVelocity() {
-    if (timestamp != 0) {
-      return new AngularVelocity(AngleUnit.RADIANS, x, y, z, timestamp).toAngleUnit(angleUnit);
-    }
-    return null;
+    return new AngularVelocity(AngleUnit.RADIANS, x, y, z, timestamp).toAngleUnit(angleUnit);
   }
 
   /**
    * Returns true if the Android device has a gyroscope.
    */
   public boolean isAvailable() {
-    return !sensorManager.getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty();
+    return !sensorManager().getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty();
   }
 
   /**
@@ -129,6 +133,7 @@ public class AndroidGyroscope implements SensorEventListener {
    */
   public void startListening() {
     if (!listening) {
+      SensorManager sensorManager = sensorManager();
       Sensor gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
       sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_FASTEST);
       listening = true;
@@ -140,7 +145,7 @@ public class AndroidGyroscope implements SensorEventListener {
    */
   public void stopListening() {
     if (listening) {
-      sensorManager.unregisterListener(this);
+      sensorManager().unregisterListener(this);
       listening = false;
       timestamp = 0;
     }

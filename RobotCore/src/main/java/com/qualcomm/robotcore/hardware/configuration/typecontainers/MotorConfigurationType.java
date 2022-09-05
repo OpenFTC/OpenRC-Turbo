@@ -44,8 +44,6 @@ import com.qualcomm.robotcore.hardware.configuration.DistributorInfoState;
 import com.qualcomm.robotcore.hardware.configuration.ExpansionHubMotorControllerParamsState;
 import com.qualcomm.robotcore.hardware.configuration.ExpansionHubMotorControllerPositionParams;
 import com.qualcomm.robotcore.hardware.configuration.ExpansionHubMotorControllerVelocityParams;
-import com.qualcomm.robotcore.hardware.configuration.ModernRoboticsMotorControllerParams;
-import com.qualcomm.robotcore.hardware.configuration.ModernRoboticsMotorControllerParamsState;
 import com.qualcomm.robotcore.hardware.configuration.MotorType;
 import com.qualcomm.robotcore.util.ClassUtil;
 
@@ -69,7 +67,6 @@ public final class MotorConfigurationType extends UserConfigurationType implemen
     private @Expose Rotation orientation;
 
     private @Expose @NonNull DistributorInfoState distributorInfo = new DistributorInfoState();
-    private @Expose @NonNull ModernRoboticsMotorControllerParamsState modernRoboticsParams = new ModernRoboticsMotorControllerParamsState();
     private @Expose @NonNull ExpansionHubMotorControllerParamsState hubVelocityParams = new ExpansionHubMotorControllerParamsState();
     private @Expose @NonNull ExpansionHubMotorControllerParamsState hubPositionParams = new ExpansionHubMotorControllerParamsState();
 
@@ -139,16 +136,6 @@ public final class MotorConfigurationType extends UserConfigurationType implemen
         this.orientation = orientation;
         }
 
-    public boolean hasModernRoboticsParams()
-        {
-        return !modernRoboticsParams.isDefault();
-        }
-
-    public @NonNull ModernRoboticsMotorControllerParamsState getModernRoboticsParams()
-        {
-        return modernRoboticsParams;
-        }
-
     public boolean hasExpansionHubVelocityParams()
         {
         return !hubVelocityParams.isDefault();
@@ -206,7 +193,6 @@ public final class MotorConfigurationType extends UserConfigurationType implemen
         try {
             MotorConfigurationType result = (MotorConfigurationType)super.clone();
             result.distributorInfo = distributorInfo.clone();
-            result.modernRoboticsParams = modernRoboticsParams.clone();
             result.hubVelocityParams = hubVelocityParams.clone();
             result.hubPositionParams = hubPositionParams.clone();
             return result;
@@ -225,7 +211,6 @@ public final class MotorConfigurationType extends UserConfigurationType implemen
             if (params instanceof ExpansionHubMotorControllerVelocityParams) return processAnnotation((ExpansionHubMotorControllerVelocityParams)params);
             if (params instanceof ExpansionHubPIDFPositionParams)            return processAnnotation((ExpansionHubPIDFPositionParams)params);
             if (params instanceof ExpansionHubMotorControllerPositionParams) return processAnnotation((ExpansionHubMotorControllerPositionParams)params);
-            if (params instanceof ModernRoboticsMotorControllerParams)       return processAnnotation((ModernRoboticsMotorControllerParams)params);
             if (params instanceof DistributorInfo)                           return processAnnotation((DistributorInfo)params);
             }
         return false;
@@ -259,16 +244,6 @@ public final class MotorConfigurationType extends UserConfigurationType implemen
             maxRPM = motorType.maxRPM();
             achieveableMaxRPMFraction = motorType.achieveableMaxRPMFraction();
             orientation = motorType.orientation();
-            return true;
-            }
-        return false;
-        }
-
-    public boolean processAnnotation(@Nullable ModernRoboticsMotorControllerParams params)
-        {
-        if (params != null)
-            {
-            modernRoboticsParams = new ModernRoboticsMotorControllerParamsState(params);
             return true;
             }
         return false;

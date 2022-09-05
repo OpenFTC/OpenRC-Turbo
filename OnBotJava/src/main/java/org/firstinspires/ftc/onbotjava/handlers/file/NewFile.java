@@ -40,7 +40,6 @@ import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItemMap;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
-import com.qualcomm.robotcore.hardware.LegacyModule;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ReadWriteFile;
@@ -95,7 +94,7 @@ import static org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils.PATH_SEPA
 @RegisterWebHandler(uri = OnBotJavaProgrammingMode.URI_FILE_NEW)
 public class NewFile implements WebHandler {
     private static final String TAG = NewFile.class.getName();
-    private static final List<Class<? extends HardwareDevice>> HARDWARE_TYPES_PREVENTED_FROM_HARDWARE_SETUP = Arrays.asList(DcMotorController.class,ServoController.class,VoltageSensor.class,LegacyModule.class);
+    private static final List<Class<? extends HardwareDevice>> HARDWARE_TYPES_PREVENTED_FROM_HARDWARE_SETUP = Arrays.asList(DcMotorController.class,ServoController.class,VoltageSensor.class);
 
     @Override
     public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) {

@@ -42,67 +42,97 @@ class TemperatureAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getTempUnit(Object temperatureArg) {
-    startBlockExecution(BlockType.GETTER, ".TempUnit");
-    Temperature temperature = checkTemperature(temperatureArg);
-    if (temperature != null) {
-      TempUnit tempUnit = temperature.unit;
-      if (tempUnit != null) {
-        return tempUnit.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".TempUnit");
+      Temperature temperature = checkTemperature(temperatureArg);
+      if (temperature != null) {
+        TempUnit tempUnit = temperature.unit;
+        if (tempUnit != null) {
+          return tempUnit.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getTemperature(Object temperatureArg) {
-    startBlockExecution(BlockType.GETTER, ".Temperature");
-    Temperature temperature = checkTemperature(temperatureArg);
-    if (temperature != null) {
-      return temperature.temperature;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Temperature");
+      Temperature temperature = checkTemperature(temperatureArg);
+      if (temperature != null) {
+        return temperature.temperature;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object temperatureArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    Temperature temperature = checkTemperature(temperatureArg);
-    if (temperature != null) {
-      return temperature.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      Temperature temperature = checkTemperature(temperatureArg);
+      if (temperature != null) {
+        return temperature.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Temperature create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Temperature();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Temperature();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Temperature create_withArgs(
       String tempUnitString, double temperature, long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    TempUnit tempUnit = checkTempUnit(tempUnitString);
-    if (tempUnit != null) {
-      return new Temperature(tempUnit, temperature, acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      TempUnit tempUnit = checkTempUnit(tempUnitString);
+      if (tempUnit != null) {
+        return new Temperature(tempUnit, temperature, acquisitionTime);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Temperature toTempUnit(Object temperatureArg, String tempUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".toTempUnit");
-    Temperature temperature = checkTemperature(temperatureArg);
-    TempUnit tempUnit = checkTempUnit(tempUnitString);
-    if (temperature != null && tempUnit != null) {
-      return temperature.toUnit(tempUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toTempUnit");
+      Temperature temperature = checkTemperature(temperatureArg);
+      TempUnit tempUnit = checkTempUnit(tempUnitString);
+      if (temperature != null && tempUnit != null) {
+        return temperature.toUnit(tempUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

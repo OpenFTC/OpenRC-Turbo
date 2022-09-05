@@ -202,16 +202,7 @@ public abstract class ModernRoboticsUsbDevice extends ArmableUsbDevice implement
   @SuppressWarnings("unused")
   public abstract String getDeviceName();
 
-  /**
-   * Version
-   *
-   * @return get the version of this device
-   */
-  public int getVersion() {
-    return read8(ModernRoboticsUsbUtil.ADDRESS_VERSION_NUMBER);
-  }
-
-  /**
+    /**
    * Write a single byte to the device
    *
    * @param address address to write

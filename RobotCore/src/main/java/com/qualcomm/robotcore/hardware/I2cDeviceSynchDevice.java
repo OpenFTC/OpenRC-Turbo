@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware;
 
 import com.qualcomm.robotcore.hardware.usb.RobotArmingStateNotifier;
+import com.qualcomm.robotcore.util.RobotLog;
 
 /**
  * {@link I2cDeviceSynchDevice} instances are I2c devices which are built on top of
@@ -127,6 +128,18 @@ public abstract class I2cDeviceSynchDevice<DEVICE_CLIENT extends I2cDeviceSynchS
     public synchronized boolean initialize()
         {
         this.isInitialized = this.doInitialize();
+        if (this.deviceClientIsOwned)
+            {
+            if (this.isInitialized)
+                {
+                I2cWarningManager.removeProblemI2cDevice(deviceClient);
+                }
+            else
+                {
+                RobotLog.e("Marking I2C device %s %s as unhealthy because initialization failed", getClass().getSimpleName(), getConnectionInfo());
+                I2cWarningManager.notifyProblemI2cDevice(deviceClient);
+                }
+            }
         return this.isInitialized;
         }
 

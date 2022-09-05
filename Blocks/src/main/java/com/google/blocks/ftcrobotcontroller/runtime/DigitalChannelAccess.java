@@ -41,10 +41,15 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
   @JavascriptInterface
   @Block(classes = {DigitalChannel.class}, methodName = "setMode")
   public void setMode(String modeString) {
-    startBlockExecution(BlockType.SETTER, ".Mode");
-    Mode mode = checkArg(modeString, Mode.class, "");
-    if (mode != null) {
-      digitalChannel.setMode(mode);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Mode");
+      Mode mode = checkArg(modeString, Mode.class, "");
+      if (mode != null) {
+        digitalChannel.setMode(mode);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -52,27 +57,42 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
   @JavascriptInterface
   @Block(classes = {DigitalChannel.class}, methodName = "getMode")
   public String getMode() {
-    startBlockExecution(BlockType.GETTER, ".Mode");
-    Mode mode = digitalChannel.getMode();
-    if (mode != null) {
-      return mode.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Mode");
+      Mode mode = digitalChannel.getMode();
+      if (mode != null) {
+        return mode.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {DigitalChannel.class}, methodName = "setState")
   public void setState(boolean state) {
-    startBlockExecution(BlockType.SETTER, ".State");
-    digitalChannel.setState(state);
+    try {
+      startBlockExecution(BlockType.SETTER, ".State");
+      digitalChannel.setState(state);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {DigitalChannel.class}, methodName = "getState")
   public boolean getState() {
-    startBlockExecution(BlockType.GETTER, ".State");
-    return digitalChannel.getState();
+    try {
+      startBlockExecution(BlockType.GETTER, ".State");
+      return digitalChannel.getState();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

@@ -35,11 +35,8 @@ package com.qualcomm.robotcore.hardware.configuration.typecontainers;
 import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.hardware.HardwareDevice;
-import com.qualcomm.robotcore.hardware.I2cController;
 import com.qualcomm.robotcore.hardware.I2cDevice;
-import com.qualcomm.robotcore.hardware.I2cDeviceImpl;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
-import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.RobotCoreLynxModule;
 import com.qualcomm.robotcore.hardware.configuration.ConfigurationTypeManager;
@@ -64,14 +61,12 @@ public final class I2cDeviceConfigurationType extends InstantiableUserConfigurat
     private static final ConstructorPrototype ctorI2cDeviceSynchSimple  = new ConstructorPrototype(I2cDeviceSynchSimple.class);
     private static final ConstructorPrototype ctorI2cDeviceSynch        = new ConstructorPrototype(I2cDeviceSynch.class);
     private static final ConstructorPrototype ctorI2cDevice             = new ConstructorPrototype(I2cDevice.class);
-    private static final ConstructorPrototype ctorI2cControllerPort     = new ConstructorPrototype(I2cController.class, int.class);
 
     private static final ConstructorPrototype[] allowableConstructorPrototypes =
         {
             ctorI2cDeviceSynchSimple,
             ctorI2cDeviceSynch,
             ctorI2cDevice,
-            ctorI2cControllerPort
         };
 
     //----------------------------------------------------------------------------------------------
@@ -83,9 +78,14 @@ public final class I2cDeviceConfigurationType extends InstantiableUserConfigurat
         super(clazz, DeviceFlavor.I2C, xmlTag, allowableConstructorPrototypes);
         }
 
-    public static I2cDeviceConfigurationType getLynxEmbeddedIMUType()
+    public static I2cDeviceConfigurationType getLynxEmbeddedBNO055ImuType()
         {
-        return (I2cDeviceConfigurationType) ConfigurationTypeManager.getInstance().configurationTypeFromTag(LynxConstants.EMBEDDED_IMU_XML_TAG);
+        return (I2cDeviceConfigurationType) ConfigurationTypeManager.getInstance().configurationTypeFromTag(LynxConstants.EMBEDDED_BNO055_IMU_XML_TAG);
+        }
+
+    public static I2cDeviceConfigurationType getLynxEmbeddedBHI260APImuType()
+        {
+        return (I2cDeviceConfigurationType) ConfigurationTypeManager.getInstance().configurationTypeFromTag(LynxConstants.EMBEDDED_BHI260AP_IMU_XML_TAG);
         }
 
     // Used by gson deserialization
@@ -132,41 +132,6 @@ public final class I2cDeviceConfigurationType extends InstantiableUserConfigurat
                 }
             }
         catch (IllegalAccessException|InstantiationException|InvocationTargetException e)
-             {
-             handleConstructorExceptions(e);
-             return null;
-             }
-        throw new RuntimeException("internal error: unable to locate constructor for user sensor type " + getName());
-        }
-
-    public @Nullable HardwareDevice createInstance(I2cController controller, int port)
-        {
-        try {
-            Constructor<HardwareDevice> ctor;
-
-            ctor = findMatch(ctorI2cDeviceSynch);
-            if (null == ctor) ctor = findMatch(ctorI2cDeviceSynchSimple);
-            if (null != ctor)
-                {
-                I2cDevice      i2cDevice      = new I2cDeviceImpl(controller, port);
-                I2cDeviceSynch i2cDeviceSynch = new I2cDeviceSynchImpl(i2cDevice, true);
-                return ctor.newInstance(i2cDeviceSynch);
-                }
-
-            ctor = findMatch(ctorI2cDevice);
-            if (null != ctor)
-                {
-                I2cDevice i2cDevice = new I2cDeviceImpl(controller, port);
-                return ctor.newInstance(i2cDevice);
-                }
-
-            ctor = findMatch(ctorI2cControllerPort);
-            if (null != ctor)
-                {
-                return ctor.newInstance(controller, port);
-                }
-            }
-         catch (IllegalAccessException|InstantiationException|InvocationTargetException e)
              {
              handleConstructorExceptions(e);
              return null;

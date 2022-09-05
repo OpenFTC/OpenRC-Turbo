@@ -110,8 +110,13 @@ public interface TFObjectDetector extends CameraStreamSource {
     public int numInterpreterThreads = 1;
     public int numExecutorThreads = 2;
     public int maxNumDetections = 10;
+
+    @Deprecated
     public int timingBufferSize = 10;
+
+    @Deprecated
     public double maxFrameRate = 30;
+
     public float minResultConfidence = 0.4f;
     public float trackerMaxOverlap = 0.2f;
     public float trackerMinSize = 16.0f;

@@ -166,6 +166,44 @@ Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFram
     return result;
     }
 
+void rgb2rgba(const uint8_t *rgb, uint32_t width, uint32_t height, uint8_t *rgba)
+    {
+    for(uint32_t irgb = 0, irgba = 0; irgb < width*height*3; irgb += 3, irgba += 4)
+        {
+        rgba[irgba]   = rgb[irgb];
+        rgba[irgba+1] = rgb[irgb+1];
+        rgba[irgba+2] = rgb[irgb+2];
+        rgba[irgba+3] = 255;
+        }
+    }
+
+JNIEXPORT void JNICALL
+Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFrame_nativeCopyFrameToBmp(JNIEnv *env, jclass type, long jPtrYuvFrame, jobject bmp)
+    {
+    FTC_TRACE_VERBOSE();
+    NATIVE_API_ONE_CALLER_VERBOSE();
+
+    uvc_frame* yuyvFrame = (uvc_frame*) jPtrYuvFrame;
+
+    AndroidBitmapInfo bmpInfo;
+    AndroidBitmap_getInfo(env, bmp, &bmpInfo);
+
+    if(bmpInfo.width != yuyvFrame->width || bmpInfo.height != yuyvFrame->height || bmpInfo.format != ANDROID_BITMAP_FORMAT_RGBA_8888)
+        {
+        return;
+        }
+
+    void* pixels = NULL;
+    AndroidBitmap_lockPixels(env, bmp, &pixels);
+
+    uvc_frame* rgbFrame = uvc_allocate_frame(yuyvFrame->pContext, 0,0);
+    uvc_yuyv2rgb(yuyvFrame, rgbFrame);
+    rgb2rgba(rgbFrame->pbData, yuyvFrame->width, yuyvFrame->height, (uint8_t*)pixels);
+    uvc_free_frame(rgbFrame);
+
+    AndroidBitmap_unlockPixels(env, bmp);
+    }
+
 JNIEXPORT void JNICALL
 Java_org_firstinspires_ftc_robotcore_internal_camera_libuvc_nativeobject_UvcFrame_nativeFreeFrame(JNIEnv *env, jclass type, JNI_NATIVE_POINTER pointer)
     {

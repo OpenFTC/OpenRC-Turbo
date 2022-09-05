@@ -60,8 +60,7 @@ public class LynxGetMotorConstantPowerCommand extends LynxDekaInterfaceCommand<L
 
     public LynxGetMotorConstantPowerCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetMotorConstantPowerResponse(module);
+        super(module, new LynxGetMotorConstantPowerResponse(module));
         }
 
     public LynxGetMotorConstantPowerCommand(LynxModuleIntf module, int motorZ)
@@ -78,12 +77,6 @@ public class LynxGetMotorConstantPowerCommand extends LynxDekaInterfaceCommand<L
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetMotorConstantPowerResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

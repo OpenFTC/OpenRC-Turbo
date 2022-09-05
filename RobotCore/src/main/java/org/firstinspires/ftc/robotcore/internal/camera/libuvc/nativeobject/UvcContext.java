@@ -41,7 +41,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.renderscript.RenderScript;
 
 import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -83,23 +82,6 @@ public class UvcContext extends NativeObject
     protected static final UsbManager usbManager = (UsbManager) AppUtil.getDefContext().getSystemService(Context.USB_SERVICE);
 
     protected final int instanceNumber = instanceCounter.getAndIncrement();
-    protected final Lock renderscriptAccessLock = new ReentrantLock();
-    protected RenderScript renderScript = null;
-    protected final RenderScript.ContextType renderScriptContextType =
-            DEBUG_RS
-                ? RenderScript.ContextType.DEBUG
-                : RenderScript.ContextType.NORMAL;
-
-    /* From the NDK:
-     *  enum RSInitFlags {
-     *      RS_INIT_SYNCHRONOUS = 1,        ///< All RenderScript calls will be synchronous. May reduce latency.
-     *      RS_INIT_LOW_LATENCY = 2,        ///< Prefer low latency devices over potentially higher throughput devices.
-     *      // Bitflag 4 is reserved for the context flag low power
-     *      RS_INIT_WAIT_FOR_ATTACH = 8,    ///< Kernel execution will hold to give time for a debugger to be attached
-     *      RS_INIT_MAX = 16
-     *  };
-     */
-    protected final int renderScriptCreateFlags = 0; // RenderScript.CREATE_FLAG_NONE
 
     /**
      * We hold on to a {@link CameraManagerImpl}, but we DON'T ref count it. All we're trying to do is keep
@@ -110,7 +92,6 @@ public class UvcContext extends NativeObject
     protected CameraManagerImpl cameraManagerImpl = null;
 
     protected @Nullable final String usbFileSystemRoot;
-    protected boolean renderScriptInitialized = false;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -131,11 +112,6 @@ public class UvcContext extends NativeObject
 
     @Override protected void destructor()
         {
-        if (renderScript != null)
-            {
-            renderScript.destroy();
-            renderScript = null;
-            }
         if (pointer != 0)
             {
             nativeExitContext(pointer);
@@ -197,91 +173,6 @@ public class UvcContext extends NativeObject
                 }
             return null;
             }
-        }
-
-    //----------------------------------------------------------------------------------------------
-    // Renderscript
-    //----------------------------------------------------------------------------------------------
-
-    protected void initRenderScriptParametersIfNeeded()
-        {
-        synchronized (lock)
-            {
-            if (!renderScriptInitialized)
-                {
-                File file = getRenderscriptCacheDir();
-                AppUtil.getInstance().ensureDirectoryExists(file, false);
-                //
-                /* see C:\Android\410c\build\frameworks\rs\rsContext.cpp:
-                 *     if (getProp("debug.rs.debug") != 0) {
-                 *         ALOGD("Forcing debug context due to debug.rs.debug.");
-                 *         ...
-                 *     }
-                 */
-                try {
-                    SystemProperties.set("debug.rs.debug", renderScriptContextType==RenderScript.ContextType.DEBUG ? "1" : "0");
-                    }
-                catch (Throwable throwable)
-                    {
-                    // Ignore possible security issue or whatever
-                    }
-
-                renderScriptInitialized = true;
-                }
-            }
-        }
-
-    protected File getRenderscriptCacheDir()
-        {
-        // Internally, Java Renderscript uses the following. We just mirror.
-        // final String CACHE_PATH = "com.android.renderscript.cache";
-        // File f = new File(RenderScriptCacheDir.mCacheDir, CACHE_PATH);
-        return new File(AppUtil.getDefContext().getCacheDir(), "org.firstinspires.ftc.renderscript.cache");
-        }
-
-    public @NonNull RenderScript getRenderScript()
-        {
-        synchronized (lock)
-            {
-            initRenderScriptParametersIfNeeded();
-            if (null == renderScript)
-                {
-                renderScript = RenderScript.create(AppUtil.getDefContext(), BuildConfig.RS_TARGET_API, renderScriptContextType, renderScriptCreateFlags);
-                }
-            renderScript.setErrorHandler(new RenderScript.RSErrorHandler()
-                {
-                @Override public void run()
-                    {
-                    RobotLog.ee(getTag(), "RenderScript error(%d): %s", mErrorNum, mErrorMessage);
-                    }
-                });
-            return renderScript;
-            }
-        }
-
-    /** We only keep single instances of renderscript, so we need to serialize access thereto */
-    public boolean lockRenderScriptWhile(long time, TimeUnit timeUnit, Runnable runnable)
-        {
-        try {
-            initRenderScriptParametersIfNeeded();
-            if (renderscriptAccessLock.tryLock(time, timeUnit))
-                {
-                try
-                    {
-                    runnable.run();
-                    }
-                finally
-                    {
-                    renderscriptAccessLock.unlock();
-                    }
-                return true;
-                }
-            }
-        catch (InterruptedException e)
-            {
-            Thread.currentThread().interrupt();
-            }
-        return false;
         }
 
     //----------------------------------------------------------------------------------------------

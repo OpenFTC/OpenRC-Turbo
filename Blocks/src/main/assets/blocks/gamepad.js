@@ -649,3 +649,125 @@ Blockly.FtcJava['gamepad_RUMBLE_DURATION_CONTINUOUS'] = function(block) {
   Blockly.FtcJava.generateImport_('Gamepad');
   return [code, Blockly.FtcJava.ORDER_MEMBER];
 };
+
+// LED Effect
+
+Blockly.Blocks['gamepad_setLedColor'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createGamepadDropdown(), 'IDENTIFIER')
+        .appendField('.')
+        .appendField(createNonEditableField('setLedColor'));
+    this.appendValueInput('RED').setCheck('Number')
+        .appendField('red')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('GREEN').setCheck('Number')
+        .appendField('green')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('BLUE').setCheck('Number')
+        .appendField('blue')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.appendValueInput('MILLISECONDS').setCheck('Number')
+        .appendField('duration')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Set the LED to a certain color (r,g,b) for a certain duration.');
+    this.getFtcJavaInputType = function(inputName) {
+      switch (inputName) {
+        case 'MILLISECONDS':
+          return 'int';
+        case 'RED':
+        case 'GREEN':
+        case 'BLUE':
+          return 'double';
+      }
+      return '';
+    };
+  }
+};
+
+Blockly.JavaScript['gamepad_setLedColor'] = function(block) {
+  var identifier = block.getFieldValue('IDENTIFIER');
+  var red = Blockly.JavaScript.valueToCode(
+      block, 'RED', Blockly.JavaScript.ORDER_COMMA);
+  var green = Blockly.JavaScript.valueToCode(
+      block, 'GREEN', Blockly.JavaScript.ORDER_COMMA);
+  var blue = Blockly.JavaScript.valueToCode(
+      block, 'BLUE', Blockly.JavaScript.ORDER_COMMA);
+  var millis = Blockly.JavaScript.valueToCode(
+      block, 'MILLISECONDS', Blockly.JavaScript.ORDER_COMMA);
+  return identifier + '.setLedColor(' +
+      red + ', ' + green + ', ' + blue + ', ' + millis + ');\n';
+};
+
+Blockly.FtcJava['gamepad_setLedColor'] = function(block) {
+  var identifier = block.getFieldValue('IDENTIFIER');
+  var red = Blockly.FtcJava.valueToCode(
+      block, 'RED', Blockly.FtcJava.ORDER_COMMA);
+  var green = Blockly.FtcJava.valueToCode(
+      block, 'GREEN', Blockly.FtcJava.ORDER_COMMA);
+  var blue = Blockly.FtcJava.valueToCode(
+      block, 'BLUE', Blockly.FtcJava.ORDER_COMMA);
+  var millis = Blockly.FtcJava.valueToCode(
+      block, 'MILLISECONDS', Blockly.FtcJava.ORDER_COMMA);
+  return identifier + '.setLedColor(' + red + ', ' + green + ', ' + blue + ', ' + millis + ');\n';
+};
+
+Blockly.Blocks['gamepad_runLedEffect'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField('call')
+        .appendField(createGamepadDropdown(), 'IDENTIFIER')
+        .appendField('.')
+        .appendField(createNonEditableField('runLedEffect'));
+    this.appendValueInput('LED_EFFECT').setCheck('Gamepad.LedEffect')
+        .appendField('ledEffect')
+        .setAlign(Blockly.ALIGN_RIGHT);
+    this.setPreviousStatement(true);
+    this.setNextStatement(true);
+    this.setColour(functionColor);
+    this.setTooltip('Run an led effect.');
+  }
+};
+
+Blockly.JavaScript['gamepad_runLedEffect'] = function(block) {
+  var identifier = block.getFieldValue('IDENTIFIER');
+  var ledEffect = Blockly.JavaScript.valueToCode(
+      block, 'LED_EFFECT', Blockly.JavaScript.ORDER_NONE);
+  return identifier + '.runLedEffect(' + ledEffect + ');\n';
+};
+
+Blockly.FtcJava['gamepad_runLedEffect'] = function(block) {
+  var identifier = block.getFieldValue('IDENTIFIER');
+  var ledEffect = Blockly.FtcJava.valueToCode(
+      block, 'LED_EFFECT', Blockly.FtcJava.ORDER_MEMBER);
+  return identifier + '.runLedEffect(' + ledEffect + ');\n';
+};
+
+Blockly.Blocks['gamepad_LED_DURATION_CONTINUOUS'] = {
+  init: function() {
+    this.setOutput(true, 'Number');
+    this.appendDummyInput()
+        .appendField(createNonEditableField('Gamepad'))
+        .appendField('.')
+        .appendField(createNonEditableField('LED_DURATION_CONTINUOUS'));
+    this.setColour(getPropertyColor);
+    this.setTooltip('Duration indicating continuous LED effect.');
+    this.getFtcJavaOutputType = function() {
+      return 'int';
+    };
+  }
+};
+
+Blockly.JavaScript['gamepad_LED_DURATION_CONTINUOUS'] = function(block) {
+  return ['-1', Blockly.JavaScript.ORDER_UNARY_NEGATION];
+};
+
+Blockly.FtcJava['gamepad_LED_DURATION_CONTINUOUS'] = function(block) {
+  var code = 'Gamepad.LED_DURATION_CONTINUOUS';
+  Blockly.FtcJava.generateImport_('Gamepad');
+  return [code, Blockly.FtcJava.ORDER_MEMBER];
+};

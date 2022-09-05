@@ -16,56 +16,85 @@
 
 package org.firstinspires.ftc.robotcore.internal.tfod;
 
-import android.app.Activity;
-import com.google.ftcresearch.tfod.util.Size;
+import android.graphics.Bitmap;
+import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
+import com.qualcomm.robotcore.util.RobotLog;
 import com.vuforia.Image;
 import com.vuforia.PIXEL_FORMAT;
-import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CloseableFrame;
+import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameConsumer;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
- * An Implementation of FrameGenerator where the frames are retrieved from the Vuforia frame queue.
+ * An implementation of FrameGenerator where the frames are retrieved from the Vuforia frame queue.
  *
  * @author Vasu Agrawal
  * @author lizlooney@google.com (Liz Looney)
  */
-public class VuforiaFrameGenerator implements FrameGenerator {
+public class VuforiaFrameGenerator implements FrameGenerator, Runnable {
 
-  private static final String TAG = "VuforiaFrameGenerator";
-
-  private final BlockingQueue<VuforiaLocalizer.CloseableFrame> frameQueue;
+  private final VuforiaLocalizer vuforiaLocalizer;
+  private final BlockingQueue<CloseableFrame> frameQueue;
   private final CameraInformation cameraInformation;
-  private final ClippingMargins clippingMargins;
+  private final Thread frameGeneratorThread;
+  private final AtomicReference<FrameConsumer> frameConsumerHolder = new AtomicReference<>();
 
-  public VuforiaFrameGenerator(VuforiaLocalizer vuforia, int rotation, ClippingMargins clippingMargins) {
-    // We only use RGB565, but if I don't include YUV, the Vuforia camera monitor looks crazy.
-    boolean[] results = vuforia.enableConvertFrameToFormat(PIXEL_FORMAT.RGB565, PIXEL_FORMAT.YUV);
-    if (!results[0]) { // Failed to get Vuforia to convert to RGB565.
-      throw new RuntimeException("Unable to convince Vuforia to generate RGB565 frames!");
+  public VuforiaFrameGenerator(VuforiaLocalizer vuforiaLocalizer) {
+    this.vuforiaLocalizer = vuforiaLocalizer;
+    vuforiaLocalizer.enableConvertFrameToBitmap();
+    vuforiaLocalizer.setFrameQueueCapacity(1);
+    frameQueue = vuforiaLocalizer.getFrameQueue();
+    cameraInformation = createCameraInformation(vuforiaLocalizer);
+    frameGeneratorThread = new Thread(this, "VuforiaFrameGenerator");
+  }
+
+  private static CameraInformation createCameraInformation(VuforiaLocalizer vuforiaLocalizer) {
+    int rotation = 0;
+
+    CameraName cameraName = vuforiaLocalizer.getCameraName();
+    if (cameraName instanceof BuiltinCameraName) {
+      int displayRotation = 90 * AppUtil.getInstance().getRootActivity().getWindowManager().getDefaultDisplay().getRotation();
+
+      CameraDirection cameraDirection = ((BuiltinCameraName) cameraName).getCameraDirection();
+
+      for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
+        CameraInfo cameraInfo = new CameraInfo();
+        Camera.getCameraInfo(cameraId, cameraInfo);
+
+        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT && cameraDirection == CameraDirection.FRONT) {
+          rotation = - displayRotation - cameraInfo.orientation;
+          break;
+        }
+        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK && cameraDirection == CameraDirection.BACK) {
+          rotation = displayRotation - cameraInfo.orientation;
+          break;
+        }
+      }
     }
 
-    vuforia.setFrameQueueCapacity(1);
-    frameQueue = vuforia.getFrameQueue();
+    while (rotation < 0) {
+      rotation += 360;
+    }
+    rotation %= 360;
 
+    CameraCalibration camCal = vuforiaLocalizer.getCameraCalibration();
     // Vuforia returns the focal length in pixels, which is exactly what we need!
-
-    CameraCalibration camCal = vuforia.getCameraCalibration();
-
-    // NOTE(lizlooney): If the focal length is not available, we can calculate it from the size and
-    // field of view, like this:
-    /*
-    float[] fieldOfView = vuforia.getCameraCalibration().getFieldOfViewRads().getData();
-    float[] focalLength = new float[2];
-    focalLength[0] = 0.5 * size[0] / Math.tan(0.5 * fieldOfView[0]);
-    focalLength[1] = 0.5 * size[1] / Math.tan(0.5 * fieldOfView[1]);
-    */
-
-    cameraInformation = new CameraInformation(rotation, camCal.focalLengthX, camCal.focalLengthY, camCal.getSize().getWidth(), camCal.getSize().getHeight());
-
-    this.clippingMargins = clippingMargins;
+    return new CameraInformation(camCal.getSize().getWidth(), camCal.getSize().getHeight(),
+        rotation, camCal.focalLengthX, camCal.focalLengthY);
   }
+
+  // FrameGenerator
 
   @Override
   public CameraInformation getCameraInformation() {
@@ -73,24 +102,104 @@ public class VuforiaFrameGenerator implements FrameGenerator {
   }
 
   @Override
-  public YuvRgbFrame getFrame() throws InterruptedException {
-
-    VuforiaLocalizer.CloseableFrame vuforiaFrame = frameQueue.take();
-    long frameTimeNanos = System.nanoTime();
-
-    for (int i = 0; i < vuforiaFrame.getNumImages(); i++) {
-      Image image = vuforiaFrame.getImage(i);
-      if (image.getFormat() == PIXEL_FORMAT.RGB565) {
-        return new YuvRgbFrame(frameTimeNanos, cameraInformation.size, image.getPixels(),
-            clippingMargins);
+  public void setFrameConsumer(FrameConsumer frameConsumer) {
+    frameConsumerHolder.set(frameConsumer);
+    if (frameConsumer != null) {
+      frameGeneratorThread.start();
+    } else {
+      frameGeneratorThread.interrupt();
+      try {
+        frameGeneratorThread.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       }
     }
-
-    // We can't return a null frame, so this is the responsible thing to do.
-    throw new IllegalStateException("Didn't find an RGB565 image from Vuforia!");
   }
 
+  // Runnable
+
   @Override
-  public void shutdown() {
+  public void run() {
+    Bitmap bitmap = null;
+
+    while (true) {
+      CloseableFrame frame;
+      try {
+        frame = frameQueue.take();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
+
+      if (bitmap == null) {
+        bitmap = createBitmap(frame, Bitmap.Config.ARGB_8888);
+        if (bitmap == null) {
+          bitmap = createBitmap(frame, Bitmap.Config.RGB_565);
+          if (bitmap == null) {
+            RobotLog.e("Error: Didn't find an RGBA8888 or RGB565 image from Vuforia!");
+            return;
+          }
+        }
+        FrameConsumer frameConsumer = frameConsumerHolder.get();
+        if (frameConsumer == null) {
+          return;
+        }
+        frameConsumer.init(bitmap);
+      }
+
+      boolean success = copyFrameToBitmap(frame, bitmap);
+      frame.close(); frame = null;
+      if (success) {
+        FrameConsumer frameConsumer = frameConsumerHolder.get();
+        if (frameConsumer == null) {
+          return;
+        }
+        frameConsumer.processFrame();
+      }
+    }
+  }
+
+  private Bitmap createBitmap(CloseableFrame frame, Bitmap.Config bitmapConfig) {
+    int pixelFormat = getPixelFormat(bitmapConfig);
+    for (int i = 0; i < frame.getNumImages(); i++) {
+      Image image = frame.getImage(i);
+      if (image.getFormat() == pixelFormat) {
+        return Bitmap.createBitmap(image.getWidth(), image.getHeight(), bitmapConfig);
+      }
+    }
+    return null;
+  }
+
+  private boolean copyFrameToBitmap(CloseableFrame frame, Bitmap bitmap) {
+    int pixelFormat = getPixelFormat(bitmap.getConfig());
+    for (int i = 0; i < frame.getNumImages(); i++) {
+      Image image = frame.getImage(i);
+      if (image.getFormat() == pixelFormat) {
+        bitmap.copyPixelsFromBuffer(image.getPixels());
+        return true;
+      }
+    }
+    RobotLog.e("Error: Didn't find a " + getPixelFormatName(bitmap.getConfig()) + " image from Vuforia!");
+    return false;
+  }
+
+  private static int getPixelFormat(Bitmap.Config bitmapConfig) {
+    switch (bitmapConfig) {
+      case ARGB_8888:
+        return PIXEL_FORMAT.RGBA8888;
+      case RGB_565:
+        return PIXEL_FORMAT.RGB565;
+    }
+    throw new IllegalArgumentException("Unexpected Bitmap.Config " + bitmapConfig);
+  }
+
+  private static String getPixelFormatName(Bitmap.Config bitmapConfig) {
+    switch (bitmapConfig) {
+      case ARGB_8888:
+        return "RGBA8888";
+      case RGB_565:
+        return "RGB565";
+    }
+    throw new IllegalArgumentException("Unexpected Bitmap.Config " + bitmapConfig);
   }
 }

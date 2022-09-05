@@ -34,22 +34,12 @@ package org.firstinspires.ftc.robotcore.internal.camera.libuvc.nativeobject;
 
 import android.graphics.Bitmap;
 
-import androidx.renderscript.Allocation;
-import androidx.renderscript.Element;
-import androidx.renderscript.RenderScript;
-import androidx.renderscript.Type;
-
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.camera.libuvc.constants.UvcFrameFormat;
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.robotcore.internal.system.Assert;
-import org.firstinspires.ftc.robotcore.internal.system.Misc;
 import org.firstinspires.ftc.robotcore.internal.system.NativeObject;
-import org.firstinspires.ftc.robotcore.internal.camera.ScriptC_format_convert;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The Java manifestation of a native uvc_frame
@@ -113,50 +103,15 @@ public class UvcFrame extends NativeObject<UvcContext>
      * https://github.com/yigalomer/Yuv2RgbRenderScript/blob/master/src/com/example/yuv2rgbrenderscript/RenderScriptHelper.java
      * C:\Android\410c\build\frameworks\rs\cpu_ref\rsCpuIntrinsicYuvToRGB.cpp
      */
-    protected void yuy2ToBitmap(final Bitmap bitmap)
+    protected void yuy2ToBitmap(Bitmap bitmap)
         {
-        if (!getContext().lockRenderScriptWhile(1, TimeUnit.SECONDS, new Runnable()
+        if (bitmap.getConfig() != Bitmap.Config.ARGB_8888)
             {
-            @Override public void run()
-                {
-                RenderScript rs = getContext().getRenderScript();
-
-                int width = getWidth(); Assert.assertTrue(Misc.isEven(width));
-                int height = getHeight();
-
-                Type.Builder inTypeBuilder = new Type.Builder(rs, Element.U8_4(rs))
-                    .setX(width/2)  // we clump two pixels together horizontally
-                    .setY(height);
-                Type inType = inTypeBuilder.create();
-                Allocation aIn = Allocation.createTyped(rs, inType, Allocation.USAGE_SCRIPT);
-                byte[] array = UvcFrame.this.getImageData();
-                aIn.copyFromUnchecked(array);
-
-                /** USAGE_SHARED has the Allocation's backing store be that of the bitmap, which avoids copies */
-                Allocation aOut = Allocation.createFromBitmap(rs, bitmap, Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT | Allocation.USAGE_SHARED);
-
-                ScriptC_format_convert script = new ScriptC_format_convert(rs);
-                script.set_inputAllocation(aIn);
-                script.set_outputWidth(width);
-                script.set_outputHeight(height);
-                switch (bitmap.getConfig())
-                    {
-                    case ARGB_8888:
-                        script.forEach_yuv2_to_argb8888(aOut);
-                        break;
-                    default:
-                        RobotLog.ee(getTag(), "conversion to %s not yet implemented; ignored", bitmap.getConfig());
-                        break;
-                    }
-
-                // https://developer.android.com/guide/topics/renderscript/compute.html#asynchronous-model
-                aOut.copyTo(bitmap); // synchronous
-                aOut.destroy();
-                }
-            }))
-            {
-            RobotLog.ee(getTag(), "failed to access RenderScript: frameNumber=%d", getFrameNumber());
+            RobotLog.ee(getTag(), "conversion to %s not yet implemented; ignored", bitmap.getConfig());
+            return;
             }
+
+        nativeCopyFrameToBmp(pointer, bitmap);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -264,6 +219,7 @@ public class UvcFrame extends NativeObject<UvcContext>
     protected native static int[] nativeGetFieldOffsets(int cFieldExpected);
     protected native static Object nativeGetImageByteBuffer(long pointer);
     protected native static void nativeCopyImageData(long pointer, byte[] byteArray, int byteArrayLength);
+    protected native static void nativeCopyFrameToBmp(long pointer, Bitmap bmp);
     protected native static long nativeCopyFrame(long pointer);
     protected native static void nativeFreeFrame(long pointer);
     }

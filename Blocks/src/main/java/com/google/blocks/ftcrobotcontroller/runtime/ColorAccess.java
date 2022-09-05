@@ -37,127 +37,212 @@ class ColorAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getRed(int color) {
-    startBlockExecution(BlockType.GETTER, ".Red");
-    return Color.red(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Red");
+      return Color.red(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getGreen(int color) {
-    startBlockExecution(BlockType.GETTER, ".Green");
-    return Color.green(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Green");
+      return Color.green(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getBlue(int color) {
-    startBlockExecution(BlockType.GETTER, ".Blue");
-    return Color.blue(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Blue");
+      return Color.blue(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getAlpha(int color) {
-    startBlockExecution(BlockType.GETTER, ".Alpha");
-    return Color.alpha(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Alpha");
+      return Color.alpha(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getHue(int color) {
-    startBlockExecution(BlockType.GETTER, ".Hue");
-    return JavaUtil.colorToHue(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Hue");
+      return JavaUtil.colorToHue(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getSaturation(int color) {
-    startBlockExecution(BlockType.GETTER, ".Saturation");
-    return JavaUtil.colorToSaturation(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Saturation");
+      return JavaUtil.colorToSaturation(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getValue(int color) {
-    startBlockExecution(BlockType.GETTER, ".Value");
-    return JavaUtil.colorToValue(color);
+    try {
+      startBlockExecution(BlockType.GETTER, ".Value");
+      return JavaUtil.colorToValue(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int rgbToColor(int red, int green, int blue) {
-    startBlockExecution(BlockType.FUNCTION, ".rgbToColor");
-    return Color.rgb(red, green, blue);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rgbToColor");
+      return Color.rgb(red, green, blue);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int argbToColor(int alpha, int red, int green, int blue) {
-    startBlockExecution(BlockType.FUNCTION, ".argbToColor");
-    return Color.argb(alpha, red, green, blue);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".argbToColor");
+      return Color.argb(alpha, red, green, blue);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int hsvToColor(float hue, float saturation, float value) {
-    startBlockExecution(BlockType.FUNCTION, ".hsvToColor");
-    float[] array = new float[3];
-    array[0] = hue;
-    array[1] = saturation;
-    array[2] = value;
-    return Color.HSVToColor(array);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".hsvToColor");
+      float[] array = new float[3];
+      array[0] = hue;
+      array[1] = saturation;
+      array[2] = value;
+      return Color.HSVToColor(array);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int ahsvToColor(int alpha, float hue, float saturation, float value) {
-    startBlockExecution(BlockType.FUNCTION, ".ahsvToColor");
-    float[] array = new float[3];
-    array[0] = hue;
-    array[1] = saturation;
-    array[2] = value;
-    return Color.HSVToColor(alpha, array);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".ahsvToColor");
+      float[] array = new float[3];
+      array[0] = hue;
+      array[1] = saturation;
+      array[2] = value;
+      return Color.HSVToColor(alpha, array);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public int textToColor(String text) {
-    startBlockExecution(BlockType.FUNCTION, ".textToColor");
-    return Color.parseColor(text);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".textToColor");
+      return Color.parseColor(text);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float rgbToHue(int red, int green, int blue) {
-    startBlockExecution(BlockType.FUNCTION, ".rgbToHue");
-    return JavaUtil.rgbToHue(red, green, blue);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rgbToHue");
+      return JavaUtil.rgbToHue(red, green, blue);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float rgbToSaturation(int red, int green, int blue) {
-    startBlockExecution(BlockType.FUNCTION, ".rgbToSaturation");
-    return JavaUtil.rgbToSaturation(red, green, blue);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rgbToSaturation");
+      return JavaUtil.rgbToSaturation(red, green, blue);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float rgbToValue(int red, int green, int blue) {
-    startBlockExecution(BlockType.FUNCTION, ".rgbToValue");
-    return JavaUtil.rgbToValue(red, green, blue);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rgbToValue");
+      return JavaUtil.rgbToValue(red, green, blue);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(int color) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    return JavaUtil.colorToText(color);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      return JavaUtil.colorToText(color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void showColor(int color) {
-    startBlockExecution(BlockType.FUNCTION, ".showColor");
-    JavaUtil.showColor(activity, color);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".showColor");
+      JavaUtil.showColor(activity, color);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

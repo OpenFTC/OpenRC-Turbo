@@ -98,8 +98,7 @@ public class LynxGetADCCommand extends LynxDekaInterfaceCommand<LynxGetADCRespon
 
     public LynxGetADCCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetADCResponse(module);
+        super(module, new LynxGetADCResponse(module));
         }
 
     public LynxGetADCCommand(LynxModuleIntf module, Channel channel, Mode mode)
@@ -116,12 +115,6 @@ public class LynxGetADCCommand extends LynxDekaInterfaceCommand<LynxGetADCRespon
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetADCResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

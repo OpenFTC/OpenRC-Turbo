@@ -42,7 +42,8 @@ import com.qualcomm.robotcore.hardware.configuration.annotations.ServoType;
  * Driver Station, configure the port you connected the SPARKmini as a REV SPARKmini Motor Controller.
  *
  */
-@ServoType(flavor = ServoFlavor.CONTINUOUS, usPulseLower = 500, usPulseUpper = 2500)
+// The SPARKmini supports a pulse frequency of up to 200 Hz, which is a pulse every 5000 microseconds (using 5500 for safety)
+@ServoType(flavor = ServoFlavor.CONTINUOUS, usPulseLower = 500, usPulseUpper = 2500, usPulseFrameRate = 5500)
 @DeviceProperties(xmlTag = "RevSPARKMini", name = "@string/rev_spark_mini_name", description = "@string/rev_spark_mini_description",
         builtIn = true, compatibleControlSystems = ControlSystem.REV_HUB)
 public interface RevSPARKMini

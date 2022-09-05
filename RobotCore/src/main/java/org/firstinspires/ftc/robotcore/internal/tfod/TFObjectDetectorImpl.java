@@ -26,30 +26,22 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.os.Build;
-import androidx.annotation.NonNull;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.Surface;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-
+import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamServer;
+import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -75,9 +67,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Vasu Agrawal
  * @author lizlooney@google.com (Liz Looney)
  */
-public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNotifier.Notifications {
-
-  private static final String TAG = "TFObjectDetector";
+public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNotifier.Notifications,
+    ResultsCallback, Consumer<Bitmap> {
 
   private final AppUtil appUtil = AppUtil.getInstance();
   private final List<String> labels = new ArrayList<>();
@@ -85,28 +76,24 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
   private final ClippingMargins clippingMargins = new ClippingMargins();
   private final Zoom zoom = new Zoom(1.0, 16.0/9.0);
 
-  // Parameters passed in through the constructor.
-  private TfodParameters params;
-  private VuforiaLocalizer vuforiaLocalizer;
-
-  private final Rate rate;
-  private final int rotation;
+  private final TfodParameters params;
   private final FrameGenerator frameGenerator;
+  private final CameraInformation cameraInformation;
 
-  private ViewGroup imageViewParent;
+  private final ViewGroup imageViewParent;
   private ImageView imageView;
   private FrameLayout.LayoutParams imageViewLayoutParams;
 
-  // Parameters created during initialization.
+  private final Object frameManagerLock = new Object();
   private TfodFrameManager frameManager;
-  private Thread frameManagerThread;
 
-  // Store all of the data relevant to a set of recognitions together in an AnnotatedYuvRgbFrame,
-  // guarded by annotatedFrameLock for when multiple callbacks attempt to update the
-  // annotatedFrame, or multiple clients attempt to access it.
-  private final Object annotatedFrameLock = new Object();
-  private AnnotatedYuvRgbFrame annotatedFrame;
+  private final Object resultsLock = new Object();
+  private Results results; // Do not access directly, use getResults or getUpdatedResults.
   private long lastReturnedFrameTime = 0;
+
+  private final Object annotatedBitmapLock = new Object();
+  private Bitmap annotatedBitmap;
+  private Canvas annotatedBitmapCanvas;
 
   private final Object bitmapFrameLock = new Object();
   private Continuation<? extends Consumer<Bitmap>> bitmapContinuation;
@@ -115,65 +102,48 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
   private final AtomicBoolean shutdownDone = new AtomicBoolean();
 
 
-  public TFObjectDetectorImpl(Parameters parameters, VuforiaLocalizer vuforiaLocalizer) {
+  public TFObjectDetectorImpl(Parameters parameters, FrameGenerator frameGenerator) {
 
     this.params = makeTfodParameters(parameters);
-    this.vuforiaLocalizer = vuforiaLocalizer;
-
-    rate = new Rate(params.maxFrameRate);
 
     Activity activity = (parameters.activity != null)
         ? parameters.activity
         : appUtil.getRootActivity();
-
     opModeManager = OpModeManagerImpl.getOpModeManagerOfActivity(activity);
     if (opModeManager != null) {
       opModeManager.registerListener(this);
     }
 
-    rotation = getRotation(activity, vuforiaLocalizer.getCameraName());
-    frameGenerator = new VuforiaFrameGenerator(vuforiaLocalizer, rotation, clippingMargins);
+    this.frameGenerator = frameGenerator;
+    cameraInformation = frameGenerator.getCameraInformation();
 
-    createImageViewIfRequested(activity, parameters);
-
-    // Initialize the stored frame to something non-null. This also ensures that any asynchronous
-    // setup being done in the frameGenerator gets done before the frame manager starts, so there's
-    // no unexpected delays there.
-    for (int i = 10; i >= 0; i--) {
-      try {
-        YuvRgbFrame frame = frameGenerator.getFrame();
-        annotatedFrame = new AnnotatedYuvRgbFrame(frame, new ArrayList<Recognition>());
-        break;
-      } catch (IllegalStateException e) {
-        Log.e(TAG, "TFObjectDetectorImpl.<init> - could not get image from frame generator");
-        if (i == 0) {
-          throw e;
-        }
-        continue;
-      } catch (InterruptedException e) {
-        // TODO(vasuagrawal): Figure out if this is the right exception / behavior.
-        throw new RuntimeException("TFObjectDetector constructor interrupted while getting first frame!");
-      }
+    // Create image view if requested.
+    ViewGroup imageViewParent = null;
+    if (parameters.tfodMonitorViewParent != null) {
+      imageViewParent = parameters.tfodMonitorViewParent;
+    } else if (parameters.tfodMonitorViewIdParent != 0) {
+      imageViewParent = (ViewGroup) activity.findViewById(parameters.tfodMonitorViewIdParent);
     }
-
-    if (imageView != null) {
-      updateImageView(annotatedFrame);
+    this.imageViewParent = imageViewParent;
+    if (imageViewParent != null) {
+      createImageView(activity);
     }
 
     CameraStreamServer.getInstance().setSource(this);
+
+    // Initialize the results to something non-null.
+    synchronized (resultsLock) {
+      results = new Results(cameraInformation, System.nanoTime(), new ArrayList<LabeledObject>());
+    }
   }
 
   private static TfodParameters makeTfodParameters(Parameters parameters) {
     return new TfodParameters.Builder(parameters.isModelQuantized, parameters.inputSize)
         .tensorFlow2(parameters.isModelTensorFlow2)
-        .trackerDisable(!parameters.useObjectTracker)
-        // Additional configuration requested in
-        // https://github.com/FIRST-Tech-Challenge/SkyStone/issues/210.
+        .useObjectTracker(parameters.useObjectTracker)
         .numInterpreterThreads(parameters.numInterpreterThreads)
         .numExecutorThreads(parameters.numExecutorThreads)
         .maxNumDetections(parameters.maxNumDetections)
-        .timingBufferSize(parameters.timingBufferSize)
-        .maxFrameRate(parameters.maxFrameRate)
         .minResultConfidence(parameters.minResultConfidence)
         .trackerMaxOverlap(parameters.trackerMaxOverlap)
         .trackerMinSize(parameters.trackerMinSize)
@@ -182,65 +152,21 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
         .build();
   }
 
-  private static int getRotation(Activity activity, CameraName cameraName) {
-    int rotation = 0;
-
-    if (cameraName instanceof BuiltinCameraName) {
-      int displayRotation = 0;
-      switch (activity.getWindowManager().getDefaultDisplay().getRotation()) {
-        case Surface.ROTATION_0: displayRotation = 0; break;
-        case Surface.ROTATION_90: displayRotation = 90; break;
-        case Surface.ROTATION_180: displayRotation = 180; break;
-        case Surface.ROTATION_270: displayRotation = 270; break;
+  private void createImageView(final Activity activity) {
+    appUtil.synchronousRunOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        imageView = new ImageView(activity);
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        imageView.setLayoutParams(new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+        imageViewLayoutParams = null;
+        if (cameraInformation.rotation != 0) {
+          imageView.setRotation(360 - cameraInformation.rotation);
+        }
+        imageViewParent.addView(imageView);
+        imageViewParent.setVisibility(VISIBLE);
       }
-
-      CameraDirection cameraDirection = ((BuiltinCameraName) cameraName).getCameraDirection();
-
-      for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
-        CameraInfo cameraInfo = new CameraInfo();
-        Camera.getCameraInfo(cameraId, cameraInfo);
-
-        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT && cameraDirection == CameraDirection.FRONT) {
-          rotation = - displayRotation - cameraInfo.orientation;
-          break;
-        }
-        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK && cameraDirection == CameraDirection.BACK) {
-          rotation = displayRotation - cameraInfo.orientation;
-          break;
-        }
-      }
-    }
-
-    while (rotation < 0) {
-      rotation += 360;
-    }
-    rotation %= 360;
-    return rotation;
-  }
-
-  private void createImageViewIfRequested(final Activity activity, Parameters parameters) {
-    if (parameters.tfodMonitorViewParent != null) {
-      imageViewParent = parameters.tfodMonitorViewParent;
-    } else if (parameters.tfodMonitorViewIdParent != 0) {
-      imageViewParent = (ViewGroup) activity.findViewById(parameters.tfodMonitorViewIdParent);
-    }
-
-    if (imageViewParent != null) {
-      appUtil.synchronousRunOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          imageView = new ImageView(activity);
-          imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-          imageView.setLayoutParams(new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-          imageViewLayoutParams = null;
-          if (rotation != 0) {
-            imageView.setRotation(360 - rotation);
-          }
-          imageViewParent.addView(imageView);
-          imageViewParent.setVisibility(VISIBLE);
-        }
-      });
-    }
+    });
   }
 
   @Override
@@ -288,38 +214,41 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
     // Create a TfodFrameManager, which handles feeding tasks to the executor. Each task consists
     // of processing a single camera frame, passing it through the model, and returning a list of
     // recognitions.
-    frameManager = newTfodFrameManager(modelData,
-        new AnnotatedFrameCallback() {
-          @Override
-          public void onResult(AnnotatedYuvRgbFrame receivedAnnotatedFrame) {
-            synchronized (annotatedFrameLock) {
-              //Log.v(receivedAnnotatedFrame.getTag(), "TFObjectDetectorImpl callback - frame change: setting a new annotatedFrame");
-              annotatedFrame = receivedAnnotatedFrame;
-            }
-
-            if (imageView != null) {
-              updateImageView(receivedAnnotatedFrame);
-            }
-          }
-        });
-    //Log.i(TAG, "Starting frame manager thread");
-    frameManagerThread = new Thread(frameManager, "FrameManager");
-    frameManagerThread.start();
+    synchronized (frameManagerLock) {
+      frameManager = newTfodFrameManager(modelData);
+      // Attach our frame consumer from the frame generator.
+      frameGenerator.setFrameConsumer(frameManager.getFrameConsumer());
+    }
   }
 
-  private TfodFrameManager newTfodFrameManager(
-      MappedByteBuffer modelData, AnnotatedFrameCallback tfodCallback) {
+  private TfodFrameManager newTfodFrameManager(MappedByteBuffer modelData) {
+    ResultsCallback resultsCallback = this;
+    Consumer<Bitmap> annotatedFrameCallback = this;
     return params.isModelTensorFlow2
-        ? new TfodFrameManager2(frameGenerator, modelData, labels, params, zoom, tfodCallback)
-        : new TfodFrameManager1(frameGenerator, modelData, labels, params, zoom, tfodCallback);
+        ? new TfodFrameManager2(modelData, labels, params, cameraInformation, clippingMargins, zoom, resultsCallback, annotatedFrameCallback)
+        : new TfodFrameManager1(modelData, labels, params, cameraInformation, clippingMargins, zoom, resultsCallback, annotatedFrameCallback);
   }
 
-  private void updateImageView(final AnnotatedYuvRgbFrame receivedAnnotatedFrame) {
-    final Bitmap bitmap = receivedAnnotatedFrame.getFrame().getCopiedBitmap();
-    Canvas canvas = new Canvas(bitmap);
-    if (frameManager != null) {
-      // Draw recognitions onto the screen.
-      frameManager.draw(canvas);
+  // ResultsCallback
+
+  @Override
+  public void onResults(Results results) {
+    synchronized (resultsLock) {
+      this.results = results;
+    }
+  }
+
+  // Consumer<Bitmap> (annotated frame callback)
+
+  @Override
+  public void accept(Bitmap bitmap) {
+    synchronized (annotatedBitmapLock) {
+      if (annotatedBitmap == null) {
+        // Create a bitmap that we can use on the UI thread.
+        annotatedBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        annotatedBitmapCanvas = new Canvas(annotatedBitmap);
+      }
+      annotatedBitmapCanvas.drawBitmap(bitmap, 0, 0, null);
     }
 
     synchronized (bitmapFrameLock) {
@@ -327,43 +256,54 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
         bitmapContinuation.dispatch(new ContinuationResult<Consumer<Bitmap>>() {
           @Override
           public void handle(Consumer<Bitmap> bitmapConsumer) {
-            bitmapConsumer.accept(bitmap);
+            bitmapConsumer.accept(annotatedBitmap);
           }
         });
         bitmapContinuation = null;
       }
     }
 
-    appUtil.synchronousRunOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (imageView != null) {
-          if (imageViewLayoutParams == null) {
-            double width = bitmap.getWidth();
-            double height = bitmap.getHeight();
-            if (rotation % 180 != 0) {
-              double swap = width;
-              width = height;
-              height = swap;
-            }
-            double scale = Math.min(imageView.getWidth() / width, imageView.getHeight() / height);
-            width *= scale;
-            height *= scale;
+    if (imageViewParent != null) {
+      appUtil.synchronousRunOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          synchronized (annotatedBitmapLock) {
+            if (imageViewLayoutParams == null) {
+              double width = annotatedBitmap.getWidth();
+              double height = annotatedBitmap.getHeight();
+              if (cameraInformation.rotation % 180 != 0) {
+                double swap = width;
+                width = height;
+                height = swap;
+              }
+              double scale = Math.min(imageView.getWidth() / width, imageView.getHeight() / height);
+              width *= scale;
+              height *= scale;
 
-            if (rotation % 180 != 0) {
-              double swap = width;
-              width = height;
-              height = swap;
-            }
+              if (cameraInformation.rotation % 180 != 0) {
+                double swap = width;
+                width = height;
+                height = swap;
+              }
 
-            imageViewLayoutParams = new FrameLayout.LayoutParams((int) width, (int) height, Gravity.CENTER);
-            imageView.setLayoutParams(imageViewLayoutParams);
+              imageViewLayoutParams = new FrameLayout.LayoutParams((int) width, (int) height, Gravity.CENTER);
+              imageView.setLayoutParams(imageViewLayoutParams);
+            }
+            imageView.setImageBitmap(annotatedBitmap);
+            imageView.invalidate();
           }
-          imageView.setImageBitmap(bitmap);
-          imageView.invalidate();
         }
-      }
-    });
+      });
+    }
+  }
+
+  // CameraStreamSource
+
+  @Override
+  public void getFrameBitmap(Continuation<? extends Consumer<Bitmap>> continuation) {
+    synchronized (bitmapFrameLock) {
+      bitmapContinuation = continuation;
+    }
   }
 
   /**
@@ -371,8 +311,10 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
    */
   @Override
   public void activate() {
-    if (frameManager != null) {
-      frameManager.activate();
+    synchronized (frameManagerLock) {
+      if (frameManager != null) {
+        frameManager.activate();
+      }
     }
   }
 
@@ -381,15 +323,17 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
    */
   @Override
   public void deactivate() {
-    if (frameManager != null) {
-      frameManager.deactivate();
+    synchronized (frameManagerLock) {
+      if (frameManager != null) {
+        frameManager.deactivate();
+      }
     }
   }
 
   @Override
   public void setClippingMargins(int left, int top, int right, int bottom) {
     synchronized (clippingMargins) {
-      switch (rotation) {
+      switch (cameraInformation.rotation) {
         default:
           throw new IllegalStateException("rotation must be 0, 90, 180, or 270.");
         case 0:
@@ -429,37 +373,14 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
     }
   }
 
-  /**
-   * Get the most recent AnnotatedYuvRgbFrame available, at a maximum predetermined frame rate.
-   *
-   * Internally, the library gets frames asynchronously. To help clients behave more predictibly,
-   * this function makes the most recent frame received by the library available at a specified
-   * frame rate. If the requested frame rate is higher than the rate at which the library is
-   * receiving frames, the same frame will be returned multiple times.
-   *
-   * The client is free to modify the contents of the AnnotatedYuvRgbFrame. However, note that
-   * any changes will persist if the same frame is returned multiple times by this method.
-   *
-   * This method will never return a null frame, since a frame is acquired during initialization.
-   *
-   * @return Newest available AnnotatedYuvRgbFrame.
-   */
-  private @NonNull AnnotatedYuvRgbFrame getAnnotatedFrameAtRate() {
-    rate.sleep();
-
-    synchronized (annotatedFrameLock) {
-      return annotatedFrame;
-    }
-  }
-
-  private @NonNull AnnotatedYuvRgbFrame getAnnotatedFrame() {
-    synchronized (annotatedFrameLock) {
-      return annotatedFrame;
+  private @NonNull Results getResults() {
+    synchronized (resultsLock) {
+      return results;
     }
   }
 
   /**
-   * Return a new AnnotatedYuvRgbFrame or null if a new one isn't available.
+   * Return a new Results or null if a new one isn't available.
    *
    * If a new frame has arrived since the last time this method was called, it will be returned.
    * Otherwise, null will be returned.
@@ -469,42 +390,35 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
    *
    * @return A new frame if one is available, null otherwise.
    */
-  private AnnotatedYuvRgbFrame getUpdatedAnnotatedFrame() {
-    synchronized (annotatedFrameLock) {
-      // Can only do this safely because we know the annotatedFrame can never be null after the
+  private Results getUpdatedResults() {
+    synchronized (resultsLock) {
+      // Can do this safely because we know the results can never be null after the
       // constructor has happened.
-      if (annotatedFrame.getFrameTimeNanos() > lastReturnedFrameTime) {
-        lastReturnedFrameTime = annotatedFrame.getFrameTimeNanos();
-        return annotatedFrame;
+      if (results.getFrameTimeNanos() > lastReturnedFrameTime) {
+        lastReturnedFrameTime = results.getFrameTimeNanos();
+        return results;
       }
     }
 
     return null;
   }
 
-  @Override
-  public void getFrameBitmap(Continuation<? extends Consumer<Bitmap>> continuation) {
-    synchronized (bitmapFrameLock) {
-      bitmapContinuation = continuation;
-    }
-  }
-
-  private static List<Recognition> makeRecognitionsList(@NonNull AnnotatedYuvRgbFrame frame) {
-    return new ArrayList<Recognition>(frame.getRecognitions());
+  private static List<Recognition> makeRecognitionsList(@NonNull Results results) {
+    return new ArrayList<Recognition>(results.getRecognitions());
   }
 
   @Override
   public List<Recognition> getUpdatedRecognitions() {
-    AnnotatedYuvRgbFrame frame = getUpdatedAnnotatedFrame();
-    if (frame == null) {
+    Results updatedResults = getUpdatedResults();
+    if (updatedResults == null) {
       return null;
     }
-    return makeRecognitionsList(frame);
+    return makeRecognitionsList(updatedResults);
   }
 
   @Override
   public List<Recognition> getRecognitions() {
-    return makeRecognitionsList(getAnnotatedFrame());
+    return makeRecognitionsList(getResults());
   }
 
   /**
@@ -516,33 +430,27 @@ public class TFObjectDetectorImpl implements TFObjectDetector, OpModeManagerNoti
       return;
     }
 
-    Thread currentThread = Thread.currentThread();
-    boolean interrupted = currentThread.interrupted();
+    // Detach our frame consumer from the frame generator.
+    frameGenerator.setFrameConsumer(null);
 
-    deactivate();
-
-    frameManagerThread.interrupt();
-    try {
-      frameManagerThread.join();
-    } catch (InterruptedException e) {
-      interrupted = true;
+    synchronized (frameManagerLock) {
+      if (frameManager != null) {
+        frameManager.deactivate();
+        frameManager.shutdown();
+      }
     }
 
     // If we've been asked to draw to the screen, remove the image view.
-    if (imageView != null) {
+    if (imageViewParent != null) {
       appUtil.synchronousRunOnUiThread(new Runnable() {
         @Override
         public void run() {
-          imageViewParent.removeView(imageView);
+          if (imageView != null) {
+            imageViewParent.removeView(imageView);
+          }
           imageViewParent.setVisibility(GONE);
         }
       });
-    }
-
-    frameGenerator.shutdown();
-
-    if (interrupted) {
-      currentThread.interrupt();
     }
   }
 

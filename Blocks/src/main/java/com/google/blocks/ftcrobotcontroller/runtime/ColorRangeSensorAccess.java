@@ -45,148 +45,228 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "red")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "red")
   public int getRed() {
-    startBlockExecution(BlockType.GETTER, ".Red");
-    return colorRangeSensor.red();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Red");
+      return colorRangeSensor.red();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "green")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "green")
   public int getGreen() {
-    startBlockExecution(BlockType.GETTER, ".Green");
-    return colorRangeSensor.green();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Green");
+      return colorRangeSensor.green();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "blue")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "blue")
   public int getBlue() {
-    startBlockExecution(BlockType.GETTER, ".Blue");
-    return colorRangeSensor.blue();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Blue");
+      return colorRangeSensor.blue();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "alpha")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "alpha")
   public int getAlpha() {
-    startBlockExecution(BlockType.GETTER, ".Alpha");
-    return colorRangeSensor.alpha();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Alpha");
+      return colorRangeSensor.alpha();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "argb")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "argb")
   public int getArgb() {
-    startBlockExecution(BlockType.GETTER, ".Argb");
-    return colorRangeSensor.argb();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Argb");
+      return colorRangeSensor.argb();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "setI2cAddress")
   public void setI2cAddress7Bit(int i2cAddr7Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
-    colorRangeSensor.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
-  }
-
-  @SuppressWarnings("unused")
-  @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getI2cAddress")
-  public int getI2cAddress7Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
-    I2cAddr i2cAddr = colorRangeSensor.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get7Bit();
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
+      colorRangeSensor.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "setI2cAddress")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getI2cAddress")
+  public int getI2cAddress7Bit() {
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
+      I2cAddr i2cAddr = colorRangeSensor.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get7Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "setI2cAddress")
   public void setI2cAddress8Bit(int i2cAddr8Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
-    colorRangeSensor.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
+      colorRangeSensor.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getI2cAddress")
   public int getI2cAddress8Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
-    I2cAddr i2cAddr = colorRangeSensor.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get8Bit();
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
+      I2cAddr i2cAddr = colorRangeSensor.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get8Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getLightDetected")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getLightDetected")
   public double getLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".LightDetected");
-    return colorRangeSensor.getLightDetected();
-  }
-
-  @SuppressWarnings("unused")
-  @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getRawLightDetected")
-  public double getRawLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetected");
-    return colorRangeSensor.getRawLightDetected();
-  }
-
-  @SuppressWarnings("unused")
-  @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getRawLightDetectedMax")
-  public double getRawLightDetectedMax() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
-    return colorRangeSensor.getRawLightDetectedMax();
-  }
-
-  @SuppressWarnings("unused")
-  @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getDistance")
-  public double getDistance(String distanceUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".getDistance");
-    DistanceUnit distanceUnit = checkArg(distanceUnitString, DistanceUnit.class, "unit");
-    if (distanceUnit != null) {
-      return colorRangeSensor.getDistance(distanceUnit);
+    try {
+      startBlockExecution(BlockType.GETTER, ".LightDetected");
+      return colorRangeSensor.getLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getNormalizedColors")
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getRawLightDetected")
+  public double getRawLightDetected() {
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetected");
+      return colorRangeSensor.getRawLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getRawLightDetectedMax")
+  public double getRawLightDetectedMax() {
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
+      return colorRangeSensor.getRawLightDetectedMax();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getDistance")
+  public double getDistance(String distanceUnitString) {
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getDistance");
+      DistanceUnit distanceUnit = checkArg(distanceUnitString, DistanceUnit.class, "unit");
+      if (distanceUnit != null) {
+        return colorRangeSensor.getDistance(distanceUnit);
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class}, methodName = "getNormalizedColors")
   public String getNormalizedColors() {
-    startBlockExecution(BlockType.FUNCTION, ".getNormalizedColors");
-    NormalizedRGBA color = colorRangeSensor.getNormalizedColors();
-    return "{ \"Red\":" + color.red +
-        ", \"Green\":" + color.green +
-        ", \"Blue\":" + color.blue +
-        ", \"Alpha\":" + color.alpha +
-        ", \"Color\":" + color.toColor() + " }";
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getNormalizedColors");
+      NormalizedRGBA color = colorRangeSensor.getNormalizedColors();
+      return "{ \"Red\":" + color.red +
+          ", \"Green\":" + color.green +
+          ", \"Blue\":" + color.blue +
+          ", \"Alpha\":" + color.alpha +
+          ", \"Color\":" + color.toColor() + " }";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
       methodName = "setGain")
   public void setGain(float gain) {
-    startBlockExecution(BlockType.SETTER, ".Gain");
-    colorRangeSensor.setGain(gain);
+    try {
+      startBlockExecution(BlockType.SETTER, ".Gain");
+      colorRangeSensor.setGain(gain);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
+  @Block(classes = {ColorRangeSensor.class, LynxI2cColorRangeSensor.class, RevColorSensorV3.class},
       methodName = "getGain")
   public float getGain() {
-    startBlockExecution(BlockType.GETTER, ".Gain");
-    return colorRangeSensor.getGain();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Gain");
+      return colorRangeSensor.getGain();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

@@ -34,6 +34,7 @@ package org.firstinspires.ftc.robotcore.external;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraManager;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.FrameGenerator;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 /**
@@ -81,6 +82,20 @@ public abstract class ClassFactory
      */
     public abstract TFObjectDetector createTFObjectDetector(TFObjectDetector.Parameters parameters,
         VuforiaLocalizer vuforiaLocalizer);
+
+    /**
+     * createTFObjectDetector returns an instance of the TensorFlow object detector engine
+     * configured with the indicated set of parameters and using the given FrameGenerator to
+     * supply the camera frames
+     *
+     * @param parameters the parameters used to configure the instance of the engine
+     * @param frameGenerator the FrameGenerator that will be used to supply camera frames
+     * @return an instance of the TensorFlow object detector engine.
+     *
+     * @see TFObjectDetector
+     */
+    public abstract TFObjectDetector createTFObjectDetector(TFObjectDetector.Parameters parameters,
+        FrameGenerator frameGenerator);
 
     /**
      * Returns a {@link CameraManager} which can be used to access the USB webcams

@@ -5,9 +5,9 @@
 <variable id="C-j=_t;@/fsV)+=e~^La">recognitions</variable>
 <variable id="A7n%5a@8jC6}[rgS1GS8">index</variable>
 </variables>
-<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" editable="false" x="22" y="5">
+<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" x="22" y="5">
 <field name="NAME">runOpMode</field>
-<comment pinned="false" h="32" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
+<comment pinned="false" h="45" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
 <block type="comment" id="Lc#BFtj*NTB48YL;eBl.">
 <field name="COMMENT">Sample TFOD Op Mode</field>

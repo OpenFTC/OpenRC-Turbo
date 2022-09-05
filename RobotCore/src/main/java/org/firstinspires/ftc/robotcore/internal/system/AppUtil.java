@@ -40,6 +40,7 @@ import android.app.Application;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -71,6 +72,7 @@ import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.Device;
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 import com.qualcomm.robotcore.util.WeakReferenceSet;
@@ -869,6 +871,16 @@ public class AppUtil
         final int maxMax = 10000;   // per ProgressBar.MAX_LEVEL
         final int cappedMax = Math.min(progressParameters.max, maxMax);
 
+        final int adjustedProgress;
+        if (cappedMax == progressParameters.max)
+            {
+            adjustedProgress = progressParameters.cur;
+            }
+        else
+            {
+            adjustedProgress = (int) Range.scale(progressParameters.cur, 0, progressParameters.max, 0, cappedMax);
+            }
+
         this.runOnUiThread(new Runnable()
             {
             @Override public void run()
@@ -891,7 +903,7 @@ public class AppUtil
                 else
                     {
                     currentProgressDialog.setIndeterminate(false);
-                    currentProgressDialog.setProgress(progressParameters.cur);
+                    currentProgressDialog.setProgress(adjustedProgress);
                     }
                 }
             });
@@ -1570,6 +1582,23 @@ public class AppUtil
                  */
                 initializeRootActivityIfNecessary();
                 }
+            }
+        }
+
+    //----------------------------------------------------------------------------------------------
+    // Bluetooth management
+    //----------------------------------------------------------------------------------------------
+
+    public void setBluetoothEnabled(boolean enable)
+        {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (enable && !adapter.isEnabled())
+            {
+            adapter.enable();
+            }
+        else if (!enable && adapter.isEnabled())
+            {
+            adapter.disable();
             }
         }
 

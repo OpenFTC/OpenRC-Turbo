@@ -18,7 +18,6 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
-import com.qualcomm.hardware.hitechnic.HiTechnicNxtUltrasonicSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.UltrasonicSensor;
 
@@ -37,9 +36,14 @@ class UltrasonicSensorAccess extends HardwareAccess<UltrasonicSensor> {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtUltrasonicSensor.class}, methodName = "getUltrasonicLevel")
+  @Block(classes = {UltrasonicSensor.class}, methodName = "getUltrasonicLevel")
   public double getUltrasonicLevel() {
-    startBlockExecution(BlockType.GETTER, ".UltrasonicLevel");
-    return ultrasonicSensor.getUltrasonicLevel();
+    try {
+      startBlockExecution(BlockType.GETTER, ".UltrasonicLevel");
+      return ultrasonicSensor.getUltrasonicLevel();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }
