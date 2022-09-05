@@ -776,7 +776,7 @@ public abstract class MatrixF
 
         if (this.numRows == 2)
             {
-            MatrixF result = this.emptyMatrix(4,4);
+            MatrixF result = this.emptyMatrix(2,2);
 
             final float m00=get(0,0), m01=get(0,1);
             final float m10=get(1,0), m11=get(1,1);
@@ -793,7 +793,7 @@ public abstract class MatrixF
 
         if (this.numRows == 1)
             {
-            MatrixF result = this.emptyMatrix(4,4);
+            MatrixF result = this.emptyMatrix(1,1);
             result.put(0,0, 1 / get(0,0));
             return result;
             }

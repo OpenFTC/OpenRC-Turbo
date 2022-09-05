@@ -681,9 +681,20 @@ function generateFtcJavaCallJava(block) {
   var order = (block.ftcAttributes_.parameterCount == 1) ? Blockly.FtcJava.ORDER_NONE : Blockly.FtcJava.ORDER_COMMA;
   for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
     code += delimiter;
-    code += (block.ftcAttributes_.argAutos[i]
-        ? block.ftcAttributes_.argAutos[i]
-        : (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null'));
+    if (block.ftcAttributes_.argAutos[i]) {
+      code += block.ftcAttributes_.argAutos[i];
+    } else {
+      var argCode = (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null');
+
+      // Special case for char and java.lang.Character.
+      if (block.ftcAttributes_.argTypes[i] == 'char' ||
+          block.ftcAttributes_.argTypes[i] == 'java.lang.Character') {
+        if (argCode.length == 3 && argCode.charAt(0) == '"' && argCode.charAt(2) == '"') {
+          argCode = "'" + argCode.charAt(1) + "'";
+        }
+      }
+      code += argCode;
+    }
     delimiter = ', ';
   }
   code += ')';
@@ -815,9 +826,20 @@ function generateFtcJavaCallHardware(block) {
   var order = (block.ftcAttributes_.parameterCount == 1) ? Blockly.FtcJava.ORDER_NONE : Blockly.FtcJava.ORDER_COMMA;
   for (var i = 0; i < block.ftcAttributes_.parameterCount; i++) {
     code += delimiter;
-    code += (block.ftcAttributes_.argAutos[i]
-        ? block.ftcAttributes_.argAutos[i]
-        : (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null'));
+    if (block.ftcAttributes_.argAutos[i]) {
+      code += block.ftcAttributes_.argAutos[i];
+    } else {
+      var argCode = (Blockly.FtcJava.valueToCode(block, 'ARG' + i, order) || 'null');
+
+      // Special case for char and java.lang.Character.
+      if (block.ftcAttributes_.argTypes[i] == 'char' ||
+          block.ftcAttributes_.argTypes[i] == 'java.lang.Character') {
+        if (argCode.length == 3 && argCode.charAt(0) == '"' && argCode.charAt(2) == '"') {
+          argCode = "'" + argCode.charAt(1) + "'";
+        }
+      }
+      code += argCode;
+    }
     delimiter = ', ';
   }
   code += ')';

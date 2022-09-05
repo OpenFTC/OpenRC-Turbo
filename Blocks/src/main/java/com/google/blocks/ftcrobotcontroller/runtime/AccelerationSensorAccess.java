@@ -18,7 +18,6 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
 import com.google.blocks.ftcrobotcontroller.hardware.HardwareItem;
-import com.qualcomm.hardware.hitechnic.HiTechnicNxtAccelerationSensor;
 import com.qualcomm.robotcore.hardware.AccelerationSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -40,51 +39,76 @@ class AccelerationSensorAccess extends HardwareAccess<AccelerationSensor> {
   @JavascriptInterface
   @Block(exclusiveToBlocks = true)
   public double getXAccel() {
-    startBlockExecution(BlockType.GETTER, ".XAccel");
-    Acceleration acceleration = accelerationSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.xAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".XAccel");
+      Acceleration acceleration = accelerationSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.xAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(exclusiveToBlocks = true)
   public double getYAccel() {
-    startBlockExecution(BlockType.GETTER, ".YAccel");
-    Acceleration acceleration = accelerationSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.yAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".YAccel");
+      Acceleration acceleration = accelerationSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.yAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(exclusiveToBlocks = true)
   public double getZAccel() {
-    startBlockExecution(BlockType.GETTER, ".ZAccel");
-    Acceleration acceleration = accelerationSensor.getAcceleration();
-    if (acceleration != null) {
-      return acceleration.zAccel;
+    try {
+      startBlockExecution(BlockType.GETTER, ".ZAccel");
+      Acceleration acceleration = accelerationSensor.getAcceleration();
+      if (acceleration != null) {
+        return acceleration.zAccel;
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtAccelerationSensor.class}, methodName = "getAcceleration")
+  @Block(classes = {AccelerationSensor.class}, methodName = "getAcceleration")
   public Acceleration getAcceleration() {
-    startBlockExecution(BlockType.GETTER, ".Acceleration");
-    return accelerationSensor.getAcceleration();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Acceleration");
+      return accelerationSensor.getAcceleration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {HiTechnicNxtAccelerationSensor.class}, methodName = "toString")
+  @Block(exclusiveToBlocks = true)
   public String toText() {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    return accelerationSensor.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      return accelerationSensor.getAcceleration().toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

@@ -37,7 +37,12 @@ class VoltageSensorAccess extends HardwareAccess<VoltageSensor> {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getVoltage() {
-    startBlockExecution(BlockType.GETTER, ".Voltage");
-    return voltageSensor.getVoltage();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Voltage");
+      return voltageSensor.getVoltage();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

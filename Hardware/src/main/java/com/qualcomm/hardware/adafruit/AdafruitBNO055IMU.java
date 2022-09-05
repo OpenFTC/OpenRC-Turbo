@@ -33,7 +33,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.hardware.adafruit;
 
 import com.qualcomm.hardware.bosch.BNO055IMUImpl;
-import com.qualcomm.robotcore.hardware.I2cController;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.I2cDeviceConfigurationType;
 import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;

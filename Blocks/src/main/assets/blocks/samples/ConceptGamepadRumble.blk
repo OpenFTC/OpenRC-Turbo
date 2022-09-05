@@ -12,9 +12,9 @@
 <variable id="?I%j?PROpahr-K4gWT.|">currentA</variable>
 <variable id="M!~hqtgk7kI]B?w#v2uw">customRumbleEffect</variable>
 </variables>
-<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" editable="false" x="39" y="4">
+<block type="procedures_defnoreturn" id="WtpyD@tEu+EoY=P9iY,D" deletable="false" x="39" y="4">
 <field name="NAME">runOpMode</field>
-<comment pinned="false" h="32" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
+<comment pinned="false" h="45" w="532">This function is executed when this Op Mode is selected from the Driver Station.</comment>
 <statement name="STACK">
 <block type="comment" id="|~t=5+j(vm3qALF7vFty">
 <field name="COMMENT">This sample illustrates using the rumble feature</field>

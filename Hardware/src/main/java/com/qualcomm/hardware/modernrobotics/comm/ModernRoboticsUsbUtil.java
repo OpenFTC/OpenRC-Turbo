@@ -78,27 +78,7 @@ public class ModernRoboticsUsbUtil
     // State
     //----------------------------------------------------------------------------------------------
 
-    /** Modern Robotics USB Manufacturer Code */
-    public static final int MFG_CODE_MODERN_ROBOTICS = 0x4d;
-
-    /** Modern Robotics DC Motor Controller USB Device ID */
-    public static final int DEVICE_ID_DC_MOTOR_CONTROLLER = 0x4d;
-
-    /** Modern Robotics Servo Controller USB Device ID */
-    public static final int DEVICE_ID_SERVO_CONTROLLER = 0x53;
-
-    /** Modern Robotics Legacy Module USB Device ID */
-    public static final int DEVICE_ID_LEGACY_MODULE = 0x49;
-
-    /** Modern Robotics Device Interface Module USB Device ID */
-    public static final int DEVICE_ID_DEVICE_INTERFACE_MODULE = 0x41;
-
-    /* Memory addresses used by Modern Robotics devices */
-    public static final int ADDRESS_VERSION_NUMBER    = 0x00;
-    public static final int ADDRESS_MANUFACTURER_CODE = 0x01;
-    public static final int ADDRESS_DEVICE_ID         = 0x02;
-
-    //----------------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
 
@@ -181,22 +161,4 @@ public class ModernRoboticsUsbUtil
         return deviceHeaderData;
         }
 
-    public static UsbDeviceType getDeviceType(byte[] deviceHeader)
-        {
-        if (deviceHeader[ADDRESS_MANUFACTURER_CODE] != MFG_CODE_MODERN_ROBOTICS)
-            {
-            return UsbDeviceType.FTDI_USB_UNKNOWN_DEVICE;
-            }
-        else
-            {
-            switch (deviceHeader[ADDRESS_DEVICE_ID])
-                {
-                case DEVICE_ID_DEVICE_INTERFACE_MODULE: return UsbDeviceType.MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE;
-                case DEVICE_ID_LEGACY_MODULE:           return UsbDeviceType.MODERN_ROBOTICS_USB_LEGACY_MODULE;
-                case DEVICE_ID_DC_MOTOR_CONTROLLER:     return UsbDeviceType.MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER;
-                case DEVICE_ID_SERVO_CONTROLLER:        return UsbDeviceType.MODERN_ROBOTICS_USB_SERVO_CONTROLLER;
-                default:                                return UsbDeviceType.MODERN_ROBOTICS_USB_UNKNOWN_DEVICE;
-                }
-            }
-        }
     }

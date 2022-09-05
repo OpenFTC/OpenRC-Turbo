@@ -54,8 +54,7 @@ public class LynxGetAllDIOInputsCommand extends LynxDekaInterfaceCommand<LynxGet
 
     public LynxGetAllDIOInputsCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetAllDIOInputsResponse(module);
+        super(module, new LynxGetAllDIOInputsResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -65,12 +64,6 @@ public class LynxGetAllDIOInputsCommand extends LynxDekaInterfaceCommand<LynxGet
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetSingleDIOInputResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

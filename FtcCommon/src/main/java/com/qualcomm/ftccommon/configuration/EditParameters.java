@@ -120,6 +120,11 @@ public class EditParameters<ITEM_T extends DeviceConfiguration> implements Seria
     private ControlSystem controlSystem = null;
 
     /**
+     * whether we are configuring the Control Hub parent
+     */
+    private boolean configuringControlHubParent = false;
+
+    /**
      * optional explicit configuration
      */
     private RobotConfigFile currentCfgFile = null;
@@ -285,6 +290,16 @@ public class EditParameters<ITEM_T extends DeviceConfiguration> implements Seria
         this.controlSystem = controlSystem;
         }
 
+    public boolean configuringControlHubParent()
+        {
+        return configuringControlHubParent;
+        }
+
+    public void setConfiguringControlHubParent(boolean configuringControlHubParent)
+        {
+        this.configuringControlHubParent = configuringControlHubParent;
+        }
+
     public RobotConfigFile getCurrentCfgFile()
         {
         return this.currentCfgFile;
@@ -328,6 +343,7 @@ public class EditParameters<ITEM_T extends DeviceConfiguration> implements Seria
             {
             result.putSerializable("controlSystem", this.controlSystem);
             }
+        result.putBoolean("configuringControlHubParent", this.configuringControlHubParent);
         if (this.currentCfgFile != null)
             {
             result.putString("currentCfgFile", RobotConfigFileManager.serializeConfig(this.currentCfgFile));
@@ -387,6 +403,10 @@ public class EditParameters<ITEM_T extends DeviceConfiguration> implements Seria
             else if (key.equals("controlSystem"))
                 {
                 result.controlSystem = (ControlSystem) bundle.getSerializable(key);
+                }
+            else if (key.equals("configuringControlHubParent"))
+                {
+                result.configuringControlHubParent = bundle.getBoolean(key);
                 }
             else if (key.equals("currentCfgFile"))
                 {

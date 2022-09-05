@@ -120,11 +120,6 @@ public abstract class LynxMessage
         this.nanotimeLastTransmit = value;
         }
 
-
-    public void noteRetransmission()
-        {
-        }
-
     public void acquireNetworkLock() throws InterruptedException
         {
         this.module.acquireNetworkTransmissionLock(this);

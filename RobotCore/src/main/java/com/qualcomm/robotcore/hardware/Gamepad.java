@@ -31,12 +31,8 @@
 package com.qualcomm.robotcore.hardware;
 
 import android.os.SystemClock;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.robocol.RobocolParsableBase;
 import com.qualcomm.robotcore.util.Range;
@@ -44,16 +40,12 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
-import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
-import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.network.SendOnceRunnable;
 import org.firstinspires.ftc.robotcore.internal.ui.GamepadUser;
 
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -289,9 +281,9 @@ public class Gamepad extends RobocolParsableBase {
   /**
    * See {@link org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl#runActiveOpMode(Gamepad[])}
    */
-  protected byte userForRumble = ID_UNASSOCIATED;
-  public void setUserForRumble(byte userForRumble) {
-    this.userForRumble = userForRumble;
+  protected byte userForEffects = ID_UNASSOCIATED;
+  public void setUserForEffects(byte userForEffects) {
+    this.userForEffects = userForEffects;
   }
 
   /**
@@ -326,54 +318,11 @@ public class Gamepad extends RobocolParsableBase {
     setTimestamp(SystemClock.uptimeMillis());
   }
 
-  /**
-   * DPAD button will be considered pressed when the movement crosses this
-   * threshold
-   */
-  protected float dpadThreshold = 0.2f;
-
-  /**
-   * If the motion value is less than the threshold, the controller will be
-   * considered at rest
-   */
-  protected float joystickDeadzone = 0.2f; // very high, since we don't know the device type
-
   // private static values used for packaging the gamepad state into a byte array
   private static final short PAYLOAD_SIZE = 60;
   private static final short BUFFER_SIZE = PAYLOAD_SIZE + RobocolParsable.HEADER_LENGTH;
 
   private static final byte ROBOCOL_GAMEPAD_VERSION = 5;
-
-  private static final float MAX_MOTION_RANGE = 1.0f;
-
-  private static Set<Integer> gameControllerDeviceIdCache = new HashSet<Integer>();
-
-  // Set of devices to consume input events from. If null, inputs from all detected devices will be used.
-  private static Set<DeviceId> deviceWhitelist = null;
-
-  /**
-   * Container class to identify a vendor/product ID combination.
-   *
-   * Reusing Map.Entry which provides appropriate .equals/.hashCode
-   */
-  private static class DeviceId extends java.util.AbstractMap.SimpleEntry<Integer, Integer> {
-    private static final long serialVersionUID = -6429575391769944899L;
-
-    public DeviceId(int vendorId, int productId) {
-      super(vendorId, productId);
-    }
-
-    @SuppressWarnings("unused")
-    public int getVendorId() {
-      return getKey();
-    }
-
-    @SuppressWarnings("unused")
-    public int getProductId() {
-      return getValue();
-    }
-
-  }
 
   public Gamepad() {
     this.type = type();
@@ -636,70 +585,124 @@ public class Gamepad extends RobocolParsableBase {
             right_stick_x, right_stick_y, left_trigger, right_trigger, buttons);
   }
 
-  /**
-   * Add a whitelist filter for a specific device vendor/product ID.
-   * <p>
-   * This adds a whitelist to the gamepad detection method. If a device has been added to the
-   * whitelist, then only devices that match the given vendor ID and product ID will be considered
-   * gamepads. This method can be called multiple times to add multiple devices to the whitelist.
-   * <p>
-   * If no whitelist entries have been added, then the default OS detection methods will be used.
-   * @param vendorId the vendor ID
-   * @param productId the product ID
-   */
-  public static void enableWhitelistFilter(int vendorId, int productId) {
-    if (deviceWhitelist == null) {
-      deviceWhitelist = new HashSet<DeviceId>();
+
+  // To prevent blowing up the command queue if the user tries to send an LED command in a tight loop,
+  // we have a 1-element evicting blocking queue for the outgoing LED effect and the event loop periodically
+  // just grabs the effect out of it (if any)
+  public EvictingBlockingQueue<LedEffect> ledQueue = new EvictingBlockingQueue<>(new ArrayBlockingQueue<LedEffect>(1));
+
+  public static final int LED_DURATION_CONTINUOUS = -1;
+
+  public static class LedEffect {
+    public static class Step {
+      public int r;
+      public int g;
+      public int b;
+      public int duration;
     }
-    deviceWhitelist.add(new DeviceId(vendorId, productId));
-  }
 
-  /**
-   * Clear the device whitelist filter.
-   */
-  public static void clearWhitelistFilter() {
-    deviceWhitelist = null;
-  }
+    public final ArrayList<Step> steps;
+    public final boolean repeating;
+    public int user;
 
-  /**
-   * Does this device ID belong to a gamepad device?
-   * @param deviceId device ID
-   * @return true, if gamepad device; false otherwise
-   */
-  public static synchronized boolean isGamepadDevice(int deviceId) {
+    private LedEffect(ArrayList<Step> steps, boolean repeating) {
+      this.steps = steps;
+      this.repeating = repeating;
+    }
 
-    // check the cache
-    if (gameControllerDeviceIdCache.contains(deviceId))
-      return true;
+    public String serialize() {
+      return SimpleGson.getInstance().toJson(this);
+    }
 
-    // update game controllers cache, since a new controller might have been plugged in
-    gameControllerDeviceIdCache = new HashSet<Integer>();
-    int[] deviceIds = InputDevice.getDeviceIds();
-    for (int id : deviceIds) {
-      InputDevice device = InputDevice.getDevice(id);
+    public static LedEffect deserialize(String serialized) {
+      return SimpleGson.getInstance().fromJson(serialized, LedEffect.class);
+    }
 
-      /* getDevice might return null (observed on Moto G2) */
-      if (device != null) {
-        int source = device.getSources();
-        if ((source & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-                || (source & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+    public static class Builder {
+      private ArrayList<Step> steps = new ArrayList<>();
+      private boolean repeating;
 
-          // null mDeviceWhitelist means all devices are valid
-          // non-null mDeviceWhitelist means only use devices in mDeviceWhitelist
-          if (deviceWhitelist == null
-                  || deviceWhitelist.contains(new DeviceId(device.getVendorId(), device.getProductId()))) {
-            gameControllerDeviceIdCache.add(id);
-          }
-        }
+      /**
+       * Add a "step" to this LED effect. A step basically just means to set
+       * the LED to a certain color (r,g,b) for a certain duration. By creating a chain of
+       * steps, you can create unique effects.
+       *
+       * @param r the red LED intensity (0.0 - 1.0)
+       * @param g the green LED intensity (0.0 - 1.0)
+       * @param b the blue LED intensity (0.0 - 1.0)
+       * @return the builder object, to follow the builder pattern
+       */
+      public Builder addStep(double r, double g, double b, int durationMs) {
+        return addStepInternal(r, g, b, Math.max(durationMs, 0));
+      }
+
+      /**
+       * Set whether this LED effect should loop after finishing,
+       * unless the LED is otherwise commanded differently.
+       * @param repeating whether to loop
+       * @return the builder object, to follow the builder pattern
+       */
+      public Builder setRepeating(boolean repeating) {
+        this.repeating = repeating;
+        return this;
+      }
+
+      private Builder addStepInternal(double r, double g, double b, int duration) {
+
+        r = Range.clip(r, 0, 1);
+        g = Range.clip(g, 0, 1);
+        b = Range.clip(b, 0, 1);
+
+        Step step = new Step();
+        step.r = (int) Math.round(Range.scale(r, 0.0, 1.0, 0, 255));
+        step.g = (int) Math.round(Range.scale(g, 0.0, 1.0, 0, 255));
+        step.b = (int) Math.round(Range.scale(b, 0.0, 1.0, 0, 255));
+        step.duration = duration;
+        steps.add(step);
+        return this;
+      }
+
+      /**
+       * After you've added your steps, call this to get an LedEffect object
+       * that you can then pass to {@link #runLedEffect(LedEffect)}
+       * @return an LedEffect object, built from previously added steps
+       */
+      public LedEffect build() {
+        return new LedEffect(steps, repeating);
       }
     }
+  }
 
-    // check updated cache
-    if (gameControllerDeviceIdCache.contains(deviceId))
-      return true;
+  public void setLedColor(double r, double g, double b, int durationMs) {
 
-    // this is not an event from a game pad
-    return false;
+    if (durationMs != LED_DURATION_CONTINUOUS) {
+      durationMs = Math.max(0, durationMs);
+    }
+
+    LedEffect effect = new LedEffect.Builder().addStepInternal(r,g,b, durationMs).build();
+    queueEffect(effect);
+  }
+
+  /**
+   * Run an LED effect built using {@link LedEffect.Builder}
+   * The LED effect will be run asynchronously; your OpMode will
+   * not halt execution while the effect is running.
+   *
+   * Calling this will displace any currently running LED effect
+   */
+  public void runLedEffect(LedEffect effect) {
+    queueEffect(effect);
+  }
+
+  private void queueEffect(LedEffect effect) {
+    // We need to make a new object here, because since the effect is queued and
+    // not set immediately, if you called this function for two different gamepads
+    // but passed in the same instance of an LED effect object, then it could happen
+    // that both effect commands would be directed to the *same* gamepad. (Because of
+    // the "user" field being modified before the queued command was serialized)
+    LedEffect copy = new LedEffect(effect.steps, effect.repeating);
+    copy.user = userForEffects;
+    ledQueue.offer(copy);
   }
 
   // To prevent blowing up the command queue if the user tries to send a rumble command in a tight loop,
@@ -840,9 +843,15 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   private void queueEffect(RumbleEffect effect) {
-    effect.user = userForRumble;
-    rumbleQueue.offer(effect);
-    nextRumbleApproxFinishTime = calcApproxRumbleFinishTime(effect);
+    // We need to make a new object here, because since the effect is queued and
+    // not set immediately, if you called this function for two different gamepads
+    // but passed in the same instance of a rumble effect object, then it could happen
+    // that both rumble commands would be directed to the *same* gamepad. (Because of
+    // the "user" field being modified before the queued command was serialized)
+    RumbleEffect copy = new RumbleEffect(effect.steps);
+    copy.user = userForEffects;
+    rumbleQueue.offer(copy);
+    nextRumbleApproxFinishTime = calcApproxRumbleFinishTime(copy);
   }
 
   private static final long RUMBLE_FINISH_TIME_FLAG_NOT_RUMBLING = -1;

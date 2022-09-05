@@ -108,7 +108,6 @@ import com.qualcomm.robotcore.hardware.ScannedDevices;
 import com.qualcomm.ftccommon.configuration.USBScanManager;
 import com.qualcomm.hardware.HardwareFactory;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
 import com.qualcomm.robotcore.eventloop.EventLoop;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
@@ -286,6 +285,10 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             handleCommandRequestInspectionReport();
             }
+        else if (name.equals(CommandList.CMD_DISABLE_BLUETOOTH))
+            {
+            handleCommandDisableBluetooth();
+            }
         else if (name.equals(CommandList.CMD_REQUEST_ABOUT_INFO))
             {
             handleCommandRequestAboutInfo(command);
@@ -457,7 +460,7 @@ public abstract class FtcEventLoopBase implements EventLoop
     @Override @CallSuper
     public void loop()
         {
-        AppAliveNotifier.getInstance().onEventLoopIteration();
+        AppAliveNotifier.getInstance().notifyAppAlive();
         }
 
     protected void handleCommandRestartRobot()
@@ -1080,6 +1083,11 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             dialogContext = AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "Competition Legality", "In its default configuration, OpenRC is illegal for competition use.\n\nMake sure to switch to the stock build variant before going to competition!");
             }
+        }
+
+    protected void handleCommandDisableBluetooth()
+        {
+        AppUtil.getInstance().setBluetoothEnabled(false);
         }
 
     protected void handleCommandRequestAboutInfo(Command command)

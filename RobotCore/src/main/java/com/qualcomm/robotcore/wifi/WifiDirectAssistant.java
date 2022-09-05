@@ -320,18 +320,10 @@ public class WifiDirectAssistant extends NetworkConnection {
       if (receiver == null) receiver = new WifiP2pBroadcastReceiver();
       context.registerReceiver(receiver, intentFilter);
 
-      // In Android versions prior to 10, WIFI_P2P_THIS_DEVICE_CHANGED_ACTION and
-      // WIFI_P2P_CONNECTION_CHANGED_ACTION were sticky broadcasts, so re-registering the broadcast
-      // receiver was enough to guarantee that we would be updated with the current name. In
-      // Android 10+, we have to explicitly request the latest information the first time
-      // (any changes after that will still be broadcast)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        if (ContextCompat.checkSelfPermission(AppUtil.getDefContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
-          throw new RuntimeException("We do NOT have permission to access fine location");
-        }
-        wifiP2pManager.requestDeviceInfo(wifiP2pChannel, new WifiP2pManager.DeviceInfoListener() {
+        WifiDirectAssistantAndroid10Extensions.handleRegisterBroadcastReceiver(wifiP2pManager, wifiP2pChannel, new WifiDirectAssistantAndroid10Extensions.DelegateDeviceInfoListener() {
           @Override
-          public void onDeviceInfoAvailable(@Nullable WifiP2pDevice wifiP2pDevice) {
+          void onDeviceInfoAvailable(@Nullable WifiP2pDevice wifiP2pDevice) {
             if (wifiP2pDevice != null) {
               updateLocalDeviceInfo(wifiP2pDevice);
             }

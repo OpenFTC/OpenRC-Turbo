@@ -37,6 +37,7 @@ import android.content.res.AssetManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Predicate;
@@ -60,6 +61,9 @@ import java.util.zip.ZipOutputStream;
 import fi.iki.elonen.NanoHTTPD;
 import org.firstinspires.ftc.robotserver.internal.webserver.MimeTypesUtil;
 
+import static com.qualcomm.robotcore.util.ReadWriteFile.ensureAllChangesAreCommitted;
+import static com.qualcomm.robotcore.util.ReadWriteFile.ensureChangesAreCommitted;
+import static com.qualcomm.robotcore.util.Util.forEachInFolder;
 import static org.firstinspires.ftc.onbotjava.OnBotJavaSecurityManager.isValidSourceFileOrFolder;
 import static org.firstinspires.ftc.onbotjava.StandardResponses.badRequest;
 import static org.firstinspires.ftc.onbotjava.StandardResponses.serverError;
@@ -100,8 +104,10 @@ public final class OnBotJavaFileSystemUtils {
             return getFileAsFile(lineEndings, filePath);
         } else if (OnBotJavaSecurityManager.isValidSourceFileOrFolder(trimmedUri, false)) { // is a folder
             if (folderAsZip) {
+                ensureAllChangesAreCommitted(OnBotJavaManager.srcDir);
                 return getFolderAsZip(filePath);
             } else {
+                ensureAllChangesAreCommitted(OnBotJavaManager.srcDir);
                 return getFolderAsTree(filePath);
             }
         }
@@ -190,15 +196,6 @@ public final class OnBotJavaFileSystemUtils {
         }
     }
 
-    private static void forEachInFolder(@NonNull File folder, boolean recursive, Predicate<File> action) throws FileNotFoundException {
-        if (!folder.isDirectory()) throw new FileNotFoundException("not a directory");
-        for (File file : folder.listFiles()) {
-            if (recursive && file.isDirectory()) forEachInFolder(file, true, action);
-            action.test(file);
-        }
-    }
-
-
     private static boolean copyAsset(@NonNull String assetPath, @NonNull File dest, boolean mirror) throws IOException {
         if (assetPath.isEmpty()) throw new IllegalArgumentException("assetPath cannot be empty");
         boolean templatesEnsured = true;
@@ -282,6 +279,7 @@ public final class OnBotJavaFileSystemUtils {
         if (!uri.startsWith(AppUtil.FIRST_FOLDER.getAbsolutePath()) && !uri.contains(".."))
             return StandardResponses.unauthorizedAccess();
         File file = new File(uri);
+        ensureChangesAreCommitted(file);
         String mime = MimeTypesUtil.determineMimeType(uri);
         if (file.exists() && file.canRead()) {
             FileInputStream reader = new FileInputStream(file);

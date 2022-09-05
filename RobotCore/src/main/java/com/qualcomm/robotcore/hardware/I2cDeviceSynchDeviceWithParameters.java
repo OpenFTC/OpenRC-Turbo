@@ -1,5 +1,7 @@
 package com.qualcomm.robotcore.hardware;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import androidx.annotation.NonNull;
 
 /**
@@ -50,12 +52,20 @@ public abstract class I2cDeviceSynchDeviceWithParameters<DEVICE_CLIENT extends I
      */
     public boolean initialize(@NonNull PARAMETERS parameters)
         {
-        if (internalInitialize(parameters))
+        this.isInitialized = internalInitialize(parameters);
+        if (this.deviceClientIsOwned)
             {
-            this.isInitialized = true;
-            return true;
+            if (this.isInitialized)
+                {
+                I2cWarningManager.removeProblemI2cDevice(deviceClient);
+                }
+            else
+                {
+                RobotLog.e("Marking I2C device %s %s as unhealthy because initialization failed", getClass().getSimpleName(), getConnectionInfo());
+                I2cWarningManager.notifyProblemI2cDevice(deviceClient);
+                }
             }
-        return false;
+        return this.isInitialized;
         }
 
     /**

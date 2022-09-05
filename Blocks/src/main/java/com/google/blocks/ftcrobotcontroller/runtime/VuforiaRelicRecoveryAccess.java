@@ -41,9 +41,16 @@ final class VuforiaRelicRecoveryAccess extends VuforiaBaseAccess<VuforiaRelicRec
   public void initialize(String vuforiaLicenseKey,
       String cameraDirectionString, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle) {
-    initialize_withCameraDirection(vuforiaLicenseKey, cameraDirectionString, true /* useExtendedTracking */,
-        enableCameraMonitoring, cameraMonitorFeedbackString, dx, dy, dz, xAngle, yAngle, zAngle,
-        true /* useCompetitionFieldTargetLocations */);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithCameraDirection(cameraDirectionString,
+          true /* useExtendedTracking */, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+          true /* useCompetitionFieldTargetLocations */);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   // We no longer generate javascript code to call this method, but it remains for backwards
@@ -54,9 +61,15 @@ final class VuforiaRelicRecoveryAccess extends VuforiaBaseAccess<VuforiaRelicRec
       boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
       boolean useCompetitionFieldTargetLocations) {
-    initialize_withCameraDirection(vuforiaLicenseKey, cameraDirectionString,
-        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
-        dx, dy, dz, xAngle, yAngle, zAngle,
-        useCompetitionFieldTargetLocations);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithCameraDirection(cameraDirectionString,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+          useCompetitionFieldTargetLocations);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

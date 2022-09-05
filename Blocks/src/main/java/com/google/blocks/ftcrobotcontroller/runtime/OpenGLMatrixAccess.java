@@ -37,30 +37,45 @@ class OpenGLMatrixAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new OpenGLMatrix();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new OpenGLMatrix();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix create_withMatrixF(Object matrixArg) {
-    startBlockExecution(BlockType.CREATE, "");
-    MatrixF matrix = checkMatrixF(matrixArg);
-    if (matrix != null) {
-      return new OpenGLMatrix(matrix);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      MatrixF matrix = checkMatrixF(matrixArg);
+      if (matrix != null) {
+        return new OpenGLMatrix(matrix);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix rotation(String angleUnitString, float angle, float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".rotation");
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (angleUnit != null) {
-      return OpenGLMatrix.rotation(angleUnit, angle, dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotation");
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (angleUnit != null) {
+        return OpenGLMatrix.rotation(angleUnit, angle, dx, dy, dz);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
@@ -68,69 +83,104 @@ class OpenGLMatrixAccess extends Access {
   public OpenGLMatrix rotation_withAxesArgs(
       String axesReferenceString, String axesOrderString, String angleUnitString,
       float firstAngle, float secondAngle, float thirdAngle) {
-    startBlockExecution(BlockType.FUNCTION, ".rotation");
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (axesReference != null && axesOrder != null && angleUnit != null) {
-      return OpenGLMatrix.rotation(
-          axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotation");
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (axesReference != null && axesOrder != null && angleUnit != null) {
+        return OpenGLMatrix.rotation(
+            axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix translation(float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".translation");
-    return OpenGLMatrix.translation(dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".translation");
+      return OpenGLMatrix.translation(dx, dy, dz);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix identityMatrix() {
-    startBlockExecution(BlockType.FUNCTION, ".identityMatrix");
-    return OpenGLMatrix.identityMatrix();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".identityMatrix");
+      return OpenGLMatrix.identityMatrix();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void scale_with3(Object matrixArg, float scaleX, float scaleY, float scaleZ) {
-    startBlockExecution(BlockType.FUNCTION, ".scale");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      matrix.scale(scaleX, scaleY, scaleZ);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".scale");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        matrix.scale(scaleX, scaleY, scaleZ);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void scale_with1(Object matrixArg, float scale) {
-    startBlockExecution(BlockType.FUNCTION, ".scale");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      matrix.scale(scale);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".scale");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        matrix.scale(scale);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void translate(Object matrixArg, float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".translate");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      matrix.translate(dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".translate");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        matrix.translate(dx, dy, dz);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void rotate(Object matrixArg, String angleUnitString, float angle, float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".rotate");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (matrix != null && angleUnit != null) {
-      matrix.rotate(angleUnit, angle, dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotate");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (matrix != null && angleUnit != null) {
+        matrix.rotate(angleUnit, angle, dx, dy, dz);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -140,60 +190,85 @@ class OpenGLMatrixAccess extends Access {
       Object matrixArg,
       String axesReferenceString, String axesOrderString, String angleUnitString,
       float firstAngle, float secondAngle, float thirdAngle) {
-    startBlockExecution(BlockType.FUNCTION, ".rotate");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
-      matrix.rotate(axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotate");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
+        matrix.rotate(axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix scaled_with3(Object matrixArg, float scaleX, float scaleY, float scaleZ) {
-    startBlockExecution(BlockType.FUNCTION, ".scaled");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      return matrix.scaled(scaleX, scaleY, scaleZ);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".scaled");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        return matrix.scaled(scaleX, scaleY, scaleZ);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix scaled_with1(Object matrixArg, float scale) {
-    startBlockExecution(BlockType.FUNCTION, ".scaled");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      return matrix.scaled(scale);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".scaled");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        return matrix.scaled(scale);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix translated(Object matrixArg, float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".translated");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (matrix != null) {
-      return matrix.translated(dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".translated");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (matrix != null) {
+        return matrix.translated(dx, dy, dz);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix rotated(
       Object matrixArg, String angleUnitString, float angle, float dx, float dy, float dz) {
-    startBlockExecution(BlockType.FUNCTION, ".rotated");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (matrix != null && angleUnit != null) {
-      return matrix.rotated(angleUnit, angle, dx, dy, dz);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotated");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (matrix != null && angleUnit != null) {
+        return matrix.rotated(angleUnit, angle, dx, dy, dz);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
@@ -201,37 +276,52 @@ class OpenGLMatrixAccess extends Access {
   public OpenGLMatrix rotated_withAxesArgs(
       Object matrixArg, String axesReferenceString, String axesOrderString, String angleUnitString,
       float firstAngle, float secondAngle, float thirdAngle) {
-    startBlockExecution(BlockType.FUNCTION, ".rotated");
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
-      return matrix.rotated(axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".rotated");
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
+        return matrix.rotated(axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix multiplied(Object matrix1Arg, Object matrix2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".multiplied");
-    OpenGLMatrix matrix1 = checkArg(matrix1Arg, OpenGLMatrix.class, "matrix1");
-    OpenGLMatrix matrix2 = checkArg(matrix2Arg, OpenGLMatrix.class, "matrix2");
-    if (matrix1 != null && matrix2 != null) {
-      return matrix1.multiplied(matrix2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".multiplied");
+      OpenGLMatrix matrix1 = checkArg(matrix1Arg, OpenGLMatrix.class, "matrix1");
+      OpenGLMatrix matrix2 = checkArg(matrix2Arg, OpenGLMatrix.class, "matrix2");
+      if (matrix1 != null && matrix2 != null) {
+        return matrix1.multiplied(matrix2);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void multiply(Object matrix1Arg, Object matrix2Arg) {
-    startBlockExecution(BlockType.FUNCTION, ".multiply");
-    OpenGLMatrix matrix1 = checkArg(matrix1Arg, OpenGLMatrix.class, "matrix1");
-    OpenGLMatrix matrix2 = checkArg(matrix2Arg, OpenGLMatrix.class, "matrix2");
-    if (matrix1 != null && matrix2 != null) {
-      matrix1.multiply(matrix2);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".multiply");
+      OpenGLMatrix matrix1 = checkArg(matrix1Arg, OpenGLMatrix.class, "matrix1");
+      OpenGLMatrix matrix2 = checkArg(matrix2Arg, OpenGLMatrix.class, "matrix2");
+      if (matrix1 != null && matrix2 != null) {
+        matrix1.multiply(matrix2);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

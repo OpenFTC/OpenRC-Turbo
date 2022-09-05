@@ -153,6 +153,8 @@ public class EditLynxModuleActivity extends EditActivity
         EditParameters result = new EditParameters<ITEM_T>(this, clazz, currentItems);
         result.setInitialPortNumber(initialPortNumber);
         result.setControlSystem(ControlSystem.REV_HUB);
+        result.setConfiguringControlHubParent(lynxModuleConfiguration.getUsbDeviceSerialNumber().isEmbedded()
+                && (lynxModuleConfiguration.isParent() || lynxModuleConfiguration.getModuleAddress() == LynxConstants.CH_EMBEDDED_MODULE_ADDRESS));
         return result;
         }
 

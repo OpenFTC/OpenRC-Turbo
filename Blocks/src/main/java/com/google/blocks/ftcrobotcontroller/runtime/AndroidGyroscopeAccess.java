@@ -46,66 +46,111 @@ class AndroidGyroscopeAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setAngleUnit(String angleUnitString) {
-    startBlockExecution(BlockType.SETTER, ".AngleUnit");
-    AngleUnit angleUnit = checkArg(angleUnitString, AngleUnit.class, "");
-    if (angleUnit != null) {
-      androidGyroscope.setAngleUnit(angleUnit);
+    try {
+      startBlockExecution(BlockType.SETTER, ".AngleUnit");
+      AngleUnit angleUnit = checkArg(angleUnitString, AngleUnit.class, "");
+      if (angleUnit != null) {
+        androidGyroscope.setAngleUnit(angleUnit);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getX() {
-    startBlockExecution(BlockType.GETTER, ".X");
-    return androidGyroscope.getX();
+    try {
+      startBlockExecution(BlockType.GETTER, ".X");
+      return androidGyroscope.getX();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getY() {
-    startBlockExecution(BlockType.GETTER, ".Y");
-    return androidGyroscope.getY();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Y");
+      return androidGyroscope.getY();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getZ() {
-    startBlockExecution(BlockType.GETTER, ".Z");
-    return androidGyroscope.getZ();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Z");
+      return androidGyroscope.getZ();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public AngularVelocity getAngularVelocity() {
-    startBlockExecution(BlockType.GETTER, ".AngularVelocity");
-    return androidGyroscope.getAngularVelocity();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngularVelocity");
+      return androidGyroscope.getAngularVelocity();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAngleUnit() {
-    startBlockExecution(BlockType.GETTER, ".AngleUnit");
-    return androidGyroscope.getAngleUnit().toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngleUnit");
+      return androidGyroscope.getAngleUnit().toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isAvailable() {
-    startBlockExecution(BlockType.FUNCTION, ".isAvailable");
-    return androidGyroscope.isAvailable();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isAvailable");
+      return androidGyroscope.isAvailable();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void startListening() {
-    startBlockExecution(BlockType.FUNCTION, ".startListening");
-    androidGyroscope.startListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".startListening");
+      androidGyroscope.startListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void stopListening() {
-    startBlockExecution(BlockType.FUNCTION, ".stopListening");
-    androidGyroscope.stopListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".stopListening");
+      androidGyroscope.stopListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

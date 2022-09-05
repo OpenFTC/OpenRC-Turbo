@@ -41,7 +41,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static com.qualcomm.robotcore.hardware.ControlSystem.MODERN_ROBOTICS;
 import static com.qualcomm.robotcore.hardware.ControlSystem.REV_HUB;
 
 /**
@@ -77,7 +76,7 @@ public @interface DeviceProperties {
     /**
      * Specifies what control systems this device is compatible with
      */
-    ControlSystem[] compatibleControlSystems() default {MODERN_ROBOTICS, REV_HUB};
+    ControlSystem[] compatibleControlSystems() default {REV_HUB};
 
     /**
      * Specifies additional XML tags that will map to this device

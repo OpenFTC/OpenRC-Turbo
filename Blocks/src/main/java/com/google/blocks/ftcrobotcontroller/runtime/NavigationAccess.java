@@ -34,35 +34,50 @@ class NavigationAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double angleUnit_normalize(double angle, String angleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, "AngleUnit", ".normalize");
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (angleUnit != null) {
-      return angleUnit.normalize(angle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "AngleUnit", ".normalize");
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (angleUnit != null) {
+        return angleUnit.normalize(angle);
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double angleUnit_convert(double angle, String fromAngleUnitString, String toAngleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, "AngleUnit", ".convert");
-    AngleUnit fromAngleUnit = checkArg(fromAngleUnitString, AngleUnit.class, "from");
-    AngleUnit toAngleUnit = checkArg(toAngleUnitString, AngleUnit.class, "to");
-    if (fromAngleUnit != null && toAngleUnit != null) {
-      return toAngleUnit.fromUnit(fromAngleUnit, angle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "AngleUnit", ".convert");
+      AngleUnit fromAngleUnit = checkArg(fromAngleUnitString, AngleUnit.class, "from");
+      AngleUnit toAngleUnit = checkArg(toAngleUnitString, AngleUnit.class, "to");
+      if (fromAngleUnit != null && toAngleUnit != null) {
+        return toAngleUnit.fromUnit(fromAngleUnit, angle);
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double unnormalizedAngleUnit_convert(double angle, String fromAngleUnitString, String toAngleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, "UnnormalizedAngleUnit", ".convert");
-    AngleUnit fromAngleUnit = checkArg(fromAngleUnitString, AngleUnit.class, "from");
-    AngleUnit toAngleUnit = checkArg(toAngleUnitString, AngleUnit.class, "to");
-    if (fromAngleUnit != null && toAngleUnit != null) {
-      return toAngleUnit.getUnnormalized().fromUnit(fromAngleUnit.getUnnormalized(), angle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "UnnormalizedAngleUnit", ".convert");
+      AngleUnit fromAngleUnit = checkArg(fromAngleUnitString, AngleUnit.class, "from");
+      AngleUnit toAngleUnit = checkArg(toAngleUnitString, AngleUnit.class, "to");
+      if (fromAngleUnit != null && toAngleUnit != null) {
+        return toAngleUnit.getUnnormalized().fromUnit(fromAngleUnit.getUnnormalized(), angle);
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 }

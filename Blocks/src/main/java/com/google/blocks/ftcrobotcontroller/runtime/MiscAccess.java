@@ -24,10 +24,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import org.firstinspires.ftc.robotcore.external.ExportToBlocks;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -54,47 +54,77 @@ class MiscAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Object getNull() {
-    startBlockExecution(BlockType.SPECIAL, "null");
-    return null;
+    try {
+      startBlockExecution(BlockType.SPECIAL, "null");
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isNull(Object value) {
-    startBlockExecution(BlockType.FUNCTION, "isNull");
-    return (value == null);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "isNull");
+      return (value == null);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isNotNull(Object value) {
-    startBlockExecution(BlockType.FUNCTION, "isNotNull");
-    return (value != null);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "isNotNull");
+      return (value != null);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String formatNumber(double number, int precision) {
-    startBlockExecution(BlockType.FUNCTION, "formatNumber");
-    return JavaUtil.formatNumber(number, precision);
+    try {
+      startBlockExecution(BlockType.FUNCTION, "formatNumber");
+      return JavaUtil.formatNumber(number, precision);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double roundDecimal(double number, int precision) {
-    startBlockExecution(BlockType.FUNCTION, "roundDecimal");
-    return Double.parseDouble(JavaUtil.formatNumber(number, precision));
+    try {
+      startBlockExecution(BlockType.FUNCTION, "roundDecimal");
+      return Double.parseDouble(JavaUtil.formatNumber(number, precision));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix getUpdatedRobotLocation(
       float x, float y, float z, float xAngle, float yAngle, float zAngle) {
-    startBlockExecution(BlockType.FUNCTION, "VuforiaTrackingResults", ".getUpdatedRobotLocation");
-    return OpenGLMatrix
-        .translation(x, y, z)
-        .multiplied(Orientation.getRotationMatrix(
-            AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES, xAngle, yAngle, zAngle));
+    try {
+      startBlockExecution(BlockType.FUNCTION, "VuforiaTrackingResults", ".getUpdatedRobotLocation");
+      return OpenGLMatrix
+          .translation(x, y, z)
+          .multiplied(Orientation.getRotationMatrix(
+              AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES, xAngle, yAngle, zAngle));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   // Note(lizlooney): The javascript to java bridge doesn't support calling var args methods, so we
@@ -108,10 +138,17 @@ class MiscAccess extends Access {
       Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
       Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
       Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    return callJavaVarArgs(methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Java method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      return callJavaVarArgs(methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -120,10 +157,17 @@ class MiscAccess extends Access {
       Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
       Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
       Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    return (Boolean) callJavaVarArgs(methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Java method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      return (Boolean) callJavaVarArgs(methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -132,28 +176,29 @@ class MiscAccess extends Access {
       Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
       Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
       Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    Object result = callJavaVarArgs(methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
-    return (result == null) ? null : result.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Java method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      Object result = callJavaVarArgs(methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+      return (result == null) ? null : result.toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
-  private Object callJavaVarArgs(String methodLookupString, String json, Object... objectArgs) {
-    startBlockExecution(BlockType.FUNCTION,
-        "Java method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+  private Object callJavaVarArgs(String methodLookupString, String json, Object... objectArgs) throws Throwable {
     Method method = BlocksClassFilter.getInstance().findStaticMethod(methodLookupString);
     if (method == null) {
-      blocksOpMode.throwException(
-          new RuntimeException("Could not find method " + methodLookupString + "."));
-      return null;
+      throw new RuntimeException("Could not find method " + methodLookupString + ".");
     }
     Object[] jsonArgs = SimpleGson.getInstance().fromJson(json, Object[].class);
     Class[] parameterTypes = method.getParameterTypes();
     if (jsonArgs.length != parameterTypes.length || objectArgs.length < parameterTypes.length) {
-      blocksOpMode.throwException(
-          new RuntimeException("Number of arguments does not match required number of parameters."));
-      return null;
+      throw new RuntimeException("Number of arguments does not match required number of parameters.");
     }
     String[] parameterLabels = HardwareUtil.getParameterLabels(method);
     List<Gamepad> gamepads = new ArrayList<>();
@@ -164,67 +209,86 @@ class MiscAccess extends Access {
     }
     try {
       return method.invoke(null, args);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause != null) {
+        throw cause;
+      }
+      throw e;
     } catch (Exception e) {
-      blocksOpMode.throwException(
-          new RuntimeException("Unable to invoke method " + methodLookupString + ".", e));
-      return null;
+      throw new RuntimeException("Unable to invoke method " + methodLookupString + ".", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Object callHardware(String deviceName, String methodLookupString, String json,
-  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
-  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
-  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    return callHardwareVarArgs(deviceName, methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
+      Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+      Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+      Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Hardware method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      return callHardwareVarArgs(deviceName, methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean callHardware_boolean(String deviceName, String methodLookupString, String json,
-  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
-  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
-  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    return (Boolean) callHardwareVarArgs(deviceName, methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
+      Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+      Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+      Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Hardware method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      return (Boolean) callHardwareVarArgs(deviceName, methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String callHardware_String(String deviceName, String methodLookupString, String json,
-  Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
-  Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
-  Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
-    Object result = callHardwareVarArgs(deviceName, methodLookupString, json,
-        a0, a1, a2, a3, a4, a5, a6, a7,
-        a8, a9, a10, a11, a12, a13, a14,
-        a15, a16, a17, a18, a19, a20);
-    return (result == null) ? null : result.toString();
+      Object a0, Object a1, Object a2, Object a3, Object a4, Object a5, Object a6, Object a7,
+      Object a8, Object a9, Object a10, Object a11, Object a12, Object a13, Object a14,
+      Object a15, Object a16, Object a17, Object a18, Object a19, Object a20) {
+    try {
+      startBlockExecution(BlockType.FUNCTION,
+          "Hardware method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+      Object result = callHardwareVarArgs(deviceName, methodLookupString, json,
+          a0, a1, a2, a3, a4, a5, a6, a7,
+          a8, a9, a10, a11, a12, a13, a14,
+          a15, a16, a17, a18, a19, a20);
+      return (result == null) ? null : result.toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
-  private Object callHardwareVarArgs(String deviceName, String methodLookupString, String json, Object... objectArgs) {
-    startBlockExecution(BlockType.FUNCTION,
-        "Hardware method " + BlocksClassFilter.getUserVisibleName(methodLookupString));
+  private Object callHardwareVarArgs(String deviceName, String methodLookupString, String json, Object... objectArgs) throws Throwable {
     Method method = BlocksClassFilter.getInstance().findHardwareMethod(methodLookupString);
     if (method == null) {
-      blocksOpMode.throwException(
-          new RuntimeException("Could not find method " + methodLookupString + "."));
-      return null;
+      throw new RuntimeException("Could not find method " + methodLookupString + ".");
     }
     Object hardwareDevice = hardwareMap.get(method.getDeclaringClass(), deviceName);
 
     Object[] jsonArgs = SimpleGson.getInstance().fromJson(json, Object[].class);
     Class[] parameterTypes = method.getParameterTypes();
     if (jsonArgs.length != parameterTypes.length || objectArgs.length < parameterTypes.length) {
-      blocksOpMode.throwException(
-          new RuntimeException("Number of arguments does not match required number of parameters."));
-      return null;
+      throw new RuntimeException("Number of arguments does not match required number of parameters.");
     }
     String[] parameterLabels = HardwareUtil.getParameterLabels(method);
     List<Gamepad> gamepads = new ArrayList<>();
@@ -235,10 +299,14 @@ class MiscAccess extends Access {
     }
     try {
       return method.invoke(hardwareDevice, args);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause != null) {
+        throw cause;
+      }
+      throw e;
     } catch (Exception e) {
-      blocksOpMode.throwException(
-          new RuntimeException("Unable to invoke method " + methodLookupString + ".", e));
-      return null;
+      throw new RuntimeException("Unable to invoke method " + methodLookupString + ".", e);
     }
   }
 
@@ -358,5 +426,29 @@ class MiscAccess extends Access {
 
   private static long round(String value) {
     return Math.round(Double.valueOf(value));
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public int listLength(Object o) {
+    try {
+      startBlockExecution(BlockType.SPECIAL, "length of");
+      return JavaUtil.listLength(o);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  public boolean listIsEmpty(Object o) {
+    try {
+      startBlockExecution(BlockType.SPECIAL, "is empty");
+      return JavaUtil.listIsEmpty(o);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

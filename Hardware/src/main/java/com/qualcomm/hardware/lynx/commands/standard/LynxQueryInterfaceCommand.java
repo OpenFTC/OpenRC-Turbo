@@ -55,8 +55,7 @@ public class LynxQueryInterfaceCommand extends LynxStandardCommand<LynxQueryInte
 
     public LynxQueryInterfaceCommand(LynxModule module)
         {
-        super(module);
-        this.response = new LynxQueryInterfaceResponse(module);
+        super(module, new LynxQueryInterfaceResponse(module));
         }
 
     public LynxQueryInterfaceCommand(LynxModule module, String interfaceName)
@@ -89,11 +88,6 @@ public class LynxQueryInterfaceCommand extends LynxStandardCommand<LynxQueryInte
         return getInterfaceName() + "\0";
         }
 
-    public LynxQueryInterfaceResponse getResponse()
-        {
-        return this.response;
-        }
-
     //----------------------------------------------------------------------------------------------
     // Operations
     //----------------------------------------------------------------------------------------------
@@ -106,12 +100,6 @@ public class LynxQueryInterfaceCommand extends LynxStandardCommand<LynxQueryInte
     public static Class<? extends LynxResponse> getResponseClass()
         {
         return LynxQueryInterfaceResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

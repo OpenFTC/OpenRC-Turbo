@@ -35,8 +35,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * On Control Hubs running a sufficiently recent OS, this periodically notifies the OS that the
  * Robot Controller app is alive and operating correctly. If the app were to crash or the main event
@@ -86,9 +84,12 @@ public class AppAliveNotifier {
     }
 
     /**
-     * When this is called, we know that the event loop is currently functioning
+     * Notify the Control Hub OS that we are still alive
+     * <p>
+     * This needs to be called on every event loop iteration, and whenever a long-running action
+     * occurs on the event loop thread.
      */
-    public void onEventLoopIteration() {
+    public void notifyAppAlive() {
         if (!enabled) return;
         if (!appFinishedStartup && !previouslyDetectedDebugger) {
             appFinishedStartup = true;

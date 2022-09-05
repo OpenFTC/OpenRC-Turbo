@@ -45,9 +45,12 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -82,6 +85,7 @@ public final class BlocksOpMode extends LinearOpMode {
   private volatile Thread javaBridgeThread;
 
   private volatile boolean forceStopped = false;
+  private volatile boolean wasTerminated = false;
   private CameraName switchableCamera;
 
   /**
@@ -128,9 +132,7 @@ public final class BlocksOpMode extends LinearOpMode {
     }
   }
 
-  // TODO(lizlooney): Consider changing existing code in *Access.java that catches exception to
-  // call throwException instead of reportWarning.
-  void throwException(Exception e) {
+  void handleFatalException(Throwable e) {
     String errorMessage = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
     RuntimeException re = new RuntimeException(
         "Fatal error occurred while executing the block labeled \"" + getFullBlockLabel() + "\". " +
@@ -197,6 +199,11 @@ public final class BlocksOpMode extends LinearOpMode {
 
   boolean isStopRequestedForBlocks() {
     return super.isStopRequested() || isInterrupted();
+  }
+
+  void terminateOpModeNowForBlocks() {
+    wasTerminated = true;
+    super.terminateOpModeNow();
   }
 
   @Override
@@ -376,9 +383,9 @@ public final class BlocksOpMode extends LinearOpMode {
   }
 
   @SuppressLint("JavascriptInterface")
-  private void addJavascriptInterfaces(HardwareItemMap hardwareItemMap) {
+  private void addJavascriptInterfaces(HardwareItemMap hardwareItemMap, Set<String> identifiersUsed) {
     addJavascriptInterfacesForIdentifiers();
-    addJavascriptInterfacesForHardware(hardwareItemMap);
+    addJavascriptInterfacesForHardware(hardwareItemMap, identifiersUsed);
 
     for (Map.Entry<String, Access> entry : javascriptInterfaces.entrySet()) {
       String identifier = entry.getKey();
@@ -417,6 +424,8 @@ public final class BlocksOpMode extends LinearOpMode {
         new GamepadAccess(this, Identifier.GAMEPAD_1.identifierForJavaScript, gamepad1));
     javascriptInterfaces.put(Identifier.GAMEPAD_2.identifierForJavaScript,
         new GamepadAccess(this, Identifier.GAMEPAD_2.identifierForJavaScript, gamepad2));
+    javascriptInterfaces.put(Identifier.LED_EFFECT.identifierForJavaScript,
+        new LedEffectAccess(this, Identifier.LED_EFFECT.identifierForJavaScript));
     javascriptInterfaces.put(Identifier.LINEAR_OP_MODE.identifierForJavaScript,
         new LinearOpModeAccess(this, Identifier.LINEAR_OP_MODE.identifierForJavaScript, project));
     javascriptInterfaces.put(Identifier.MAGNETIC_FLUX.identifierForJavaScript,
@@ -481,10 +490,17 @@ public final class BlocksOpMode extends LinearOpMode {
         new VuforiaTrackablesAccess(this, Identifier.VUFORIA_TRACKABLES.identifierForJavaScript));
   }
 
-  private void addJavascriptInterfacesForHardware(HardwareItemMap hardwareItemMap) {
+  private void addJavascriptInterfacesForHardware(HardwareItemMap hardwareItemMap, Set<String> identifiersUsed) {
     for (HardwareType hardwareType : HardwareType.values()) {
       if (hardwareItemMap.contains(hardwareType)) {
         for (HardwareItem hardwareItem : hardwareItemMap.getHardwareItems(hardwareType)) {
+          // Don't instantiate the HardwareAccess instance if the identifier isn't used in the
+          // blocks opmode.
+          if (identifiersUsed != null && !identifiersUsed.contains(hardwareItem.identifier)) {
+            RobotLog.i(getLogPrefix() + "Skipping hardware device named \"" +
+                hardwareItem.deviceName + "\". It isn't used in this blocks opmode.");
+            continue;
+          }
           if (javascriptInterfaces.containsKey(hardwareItem.identifier)) {
             RobotLog.w(getLogPrefix() + "There is already a JavascriptInterface for identifier \"" +
                 hardwareItem.identifier + "\". Ignoring hardware type " + hardwareType + ".");
@@ -554,19 +570,32 @@ public final class BlocksOpMode extends LinearOpMode {
     @SuppressWarnings("unused")
     @JavascriptInterface
     public void caughtException(String message) {
+      if (wasTerminated) {
+        return;
+      }
+
       if (message != null) {
         // If a hardware device is used in blocks, but has been removed (or renamed) in the
         // configuration, the message is like "ReferenceError: left_drive is not defined".
         if (message.startsWith("ReferenceError: ") && message.endsWith(" is not defined")) {
-          String missingHardwareDeviceName = message.substring(16, message.length() - 15);
-          fatalErrorMessageHolder.compareAndSet(null,
-              "Could not find hardware device: " + missingHardwareDeviceName);
+          String missingIdentifier = message.substring(16, message.length() - 15);
+          String missingHardwareDeviceName = missingIdentifierToHardwareDeviceName(missingIdentifier);
+          if (missingHardwareDeviceName != null) {
+            fatalErrorMessageHolder.compareAndSet(null,
+                "Could not find hardware device: " + missingHardwareDeviceName);
+          } else {
+            fatalErrorMessageHolder.compareAndSet(null,
+                "Could not find identifier: " + missingIdentifier);
+          }
           return;
         }
 
         if (forceStopped)
         {
-           AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "OpMode Force-Stopped", "User OpMode was stuck in stop(), but was able to be force stopped without restarting the app. Please make sure you are calling opModeIsActive() in any loops!");
+           AppUtil.getInstance().showAlertDialog(UILocation.BOTH, "OpMode Force-Stopped",
+               "User OpMode was stuck in stop(), but was able to be force stopped without " +
+               "restarting the app. Please make sure you are calling opModeInInit() or " +
+               "opModeIsActive() in any loops!");
 
            //Get out of dodge so we don't force a restart by setting a global error
            return;
@@ -592,14 +621,32 @@ public final class BlocksOpMode extends LinearOpMode {
     }
   }
 
+  private static String missingIdentifierToHardwareDeviceName(String identifier) {
+    for (HardwareType hardwareType : HardwareType.values()) {
+      if (identifier.endsWith(hardwareType.identifierSuffixForJavaScript)) {
+        return identifier.substring(0, identifier.length() - hardwareType.identifierSuffixForJavaScript.length());
+      }
+    }
+    return null;
+  }
+
   private void loadScript() throws IOException {
     RobotLog.i(getLogPrefix() + "loadScript - WebView user agent is \"" + webView.getSettings().getUserAgentString() + "\"");
     nameOfOpModeLoadedIntoWebView.set(project);
     HardwareItemMap hardwareItemMap = HardwareItemMap.newHardwareItemMap(hardwareMap);
 
-    addJavascriptInterfaces(hardwareItemMap);
-
+    // Check if the javascript begins with a comment telling us what the identifiers are.
+    Set<String> identifiersUsed = null;
     String jsFileContent = ProjectsUtil.fetchJsFileContent(project);
+    if (jsFileContent.startsWith(HardwareUtil.IDENTIFIERS_USED_PREFIX)) {
+      int eol = jsFileContent.indexOf("\n");
+      identifiersUsed = new HashSet<>(Arrays.asList(
+          jsFileContent.substring(HardwareUtil.IDENTIFIERS_USED_PREFIX.length(), eol).split(",")));
+      jsFileContent = jsFileContent.substring(eol);
+    }
+
+    addJavascriptInterfaces(hardwareItemMap, identifiersUsed);
+
     String jsContent = HardwareUtil.upgradeJs(jsFileContent, hardwareItemMap);
 
     StringBuilder html = new StringBuilder()

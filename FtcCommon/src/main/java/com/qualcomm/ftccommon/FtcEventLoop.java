@@ -63,20 +63,24 @@ package com.qualcomm.ftccommon;
 
 import android.app.Activity;
 import android.hardware.usb.UsbDevice;
-import androidx.annotation.Nullable;
 
 import com.qualcomm.ftccommon.configuration.RobotConfigFile;
 import com.qualcomm.ftccommon.configuration.RobotConfigFileManager;
 import com.qualcomm.ftccommon.configuration.RobotConfigMap;
 import com.qualcomm.hardware.HardwareFactory;
+import com.qualcomm.hardware.bosch.BHI260IMU;
+import com.qualcomm.hardware.lynx.LynxI2cDeviceSynch;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxModuleWarningManager;
 import com.qualcomm.hardware.lynx.LynxUsbDevice;
+import com.qualcomm.hardware.lynx.commands.core.LynxFirmwareVersionManager;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegister;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.I2cWarningManager;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
@@ -88,12 +92,14 @@ import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Consumer;
 import org.firstinspires.ftc.robotcore.internal.camera.CameraManagerInternal;
 import org.firstinspires.ftc.robotcore.internal.ftdi.FtDevice;
 import org.firstinspires.ftc.robotcore.internal.ftdi.FtDeviceManager;
 import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -116,6 +122,8 @@ public class FtcEventLoop extends FtcEventLoopBase {
   //------------------------------------------------------------------------------------------------
   // State
   //------------------------------------------------------------------------------------------------
+
+  private static volatile boolean appJustLaunched = true;
 
   protected final  Utility                 utility;
   protected final  OpModeManagerImpl       opModeManager;
@@ -187,6 +195,21 @@ public class FtcEventLoop extends FtcEventLoopBase {
     try {
       if (LynxConstants.isRevControlHub()) {
         temporaryEmbeddedLynxUsb = ensureEmbeddedControlHubModuleIsSetUp();
+
+        if (appJustLaunched) {
+          appJustLaunched = false;
+          // Flash the BHI260 IMU firmware if necessary
+          temporaryEmbeddedLynxUsb.performSystemOperationOnConnectedModule(LynxConstants.CH_EMBEDDED_MODULE_ADDRESS, true, new Consumer<LynxModule>() {
+            @Override
+            public void accept(LynxModule module) {
+              LynxI2cDeviceSynch tempImuI2cClient = LynxFirmwareVersionManager.createLynxI2cDeviceSynch(AppUtil.getDefContext(), module, 0);
+              if (BHI260IMU.imuIsPresent(tempImuI2cClient)) {
+                BHI260IMU.flashFirmwareIfNecessary(tempImuI2cClient);
+              }
+              tempImuI2cClient.close();
+            }
+          });
+        }
       }
 
       HardwareMap hardwareMap = ftcEventLoopHandler.getHardwareMap();
@@ -195,6 +218,7 @@ public class FtcEventLoop extends FtcEventLoopBase {
       hardwareMap.logDevices();
       CachedLynxFirmwareVersions.update(hardwareMap);
       LynxModuleWarningManager.getInstance().init(opModeManager, hardwareMap);
+      I2cWarningManager.clearI2cWarnings();
     } finally {
       if (temporaryEmbeddedLynxUsb != null) {
         // For performance, we wait until now to close this, so that another delegate will be created before we close this one.
@@ -225,7 +249,7 @@ public class FtcEventLoop extends FtcEventLoopBase {
 
     ftcEventLoopHandler.displayGamePadInfo(opModeManager.getActiveOpModeName());
     Gamepad gamepads[] = ftcEventLoopHandler.getGamepads();
-    ftcEventLoopHandler.rumbleGamepads();
+    ftcEventLoopHandler.gamepadEffects();
 
     opModeManager.runActiveOpMode(gamepads);
   }
@@ -487,19 +511,17 @@ public class FtcEventLoop extends FtcEventLoopBase {
    *
    * We return it instead of closing it ourselves to avoid performing the expensive arming process
    * more than necessary.
-   *
-   * If this method changes the Control Hub's embedded module's address, we'll close the LynxUsbDevice
-   * ourselves and return null instead. This is because we _want_ the module to be reset as a part
-   * of the arming process in this case, as the module should be reset after an address change.
    */
-  private @Nullable LynxUsbDevice ensureEmbeddedControlHubModuleIsSetUp() throws RobotCoreException, InterruptedException {
+  private LynxUsbDevice ensureEmbeddedControlHubModuleIsSetUp() throws RobotCoreException, InterruptedException {
     RobotLog.vv(TAG, "Ensuring that the embedded Control Hub module is set up correctly");
     LynxUsbDevice embeddedLynxUsb = (LynxUsbDevice) startUsbScanMangerIfNecessary().getDeviceManager().createLynxUsbDevice(SerialNumber.createEmbedded(), null);
     boolean justChangedControlHubAddress = embeddedLynxUsb.setupControlHubEmbeddedModule();
     if (justChangedControlHubAddress) {
       updateEditableConfigFilesWithNewControlHubAddress();
+
+      // Since we just changed the embedded module's address, we need to power-cycle and re-initialize our communications with it
       embeddedLynxUsb.close();
-      embeddedLynxUsb = null;
+      embeddedLynxUsb = (LynxUsbDevice) startUsbScanMangerIfNecessary().getDeviceManager().createLynxUsbDevice(SerialNumber.createEmbedded(), null);
     }
     return embeddedLynxUsb;
   }

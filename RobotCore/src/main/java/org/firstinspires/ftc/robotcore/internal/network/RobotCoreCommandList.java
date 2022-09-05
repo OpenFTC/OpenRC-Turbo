@@ -126,6 +126,8 @@ public class RobotCoreCommandList
     public static final String CMD_REQUEST_INSPECTION_REPORT = "CMD_REQUEST_INSPECTION_REPORT";
     public static final String CMD_REQUEST_INSPECTION_REPORT_RESP = "CMD_REQUEST_INSPECTION_REPORT_RESP";
 
+    public static final String CMD_DISABLE_BLUETOOTH = "CMD_DISABLE_BLUETOOTH";
+
     public static final String CMD_REQUEST_ABOUT_INFO = "CMD_REQUEST_ABOUT_INFO";
     public static final String CMD_REQUEST_ABOUT_INFO_RESP = "CMD_REQUEST_ABOUT_INFO_RESP";
     public static class AboutInfo
@@ -395,6 +397,7 @@ public class RobotCoreCommandList
     // Gamepads
     //----------------------------------------------------------------------------------------------
     public static final String CMD_RUMBLE_GAMEPAD = "CMD_RUMBLE_EFFECT";
+    public static final String CMD_GAMEPAD_LED_EFFECT = "CMD_GAMEPAD_LED_EFFECT";
 
     //----------------------------------------------------------------------------------------------
     // Telemetry text-to-speech

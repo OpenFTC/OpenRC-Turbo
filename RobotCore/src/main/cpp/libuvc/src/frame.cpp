@@ -55,3 +55,55 @@ uvc_error_t uvc_duplicate_frame(uvc_frame *in, uvc_frame *out)
     {
     return in->copyTo(out);
     }
+
+static inline unsigned char sat(int i) {
+    return (unsigned char)( i >= 255 ? 255 : (i < 0 ? 0 : i));
+}
+
+#define IYUYV2RGB_2(pyuv, prgb) { \
+    int r = (22987 * ((pyuv)[3] - 128)) >> 14; \
+    int g = (-5636 * ((pyuv)[1] - 128) - 11698 * ((pyuv)[3] - 128)) >> 14; \
+    int b = (29049 * ((pyuv)[1] - 128)) >> 14; \
+    (prgb)[0] = sat(*(pyuv) + r); \
+    (prgb)[1] = sat(*(pyuv) + g); \
+    (prgb)[2] = sat(*(pyuv) + b); \
+    (prgb)[3] = sat((pyuv)[2] + r); \
+    (prgb)[4] = sat((pyuv)[2] + g); \
+    (prgb)[5] = sat((pyuv)[2] + b); \
+    }
+
+#define IYUYV2RGB_8(pyuv, prgb) IYUYV2RGB_4(pyuv, prgb); IYUYV2RGB_4(pyuv + 8, prgb + 12);
+#define IYUYV2RGB_4(pyuv, prgb) IYUYV2RGB_2(pyuv, prgb); IYUYV2RGB_2(pyuv + 4, prgb + 6);
+
+/** @brief Convert a frame from YUYV to RGB
+ * @ingroup frame
+ *
+ * @param in YUYV frame
+ * @param out RGB frame
+ */
+uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out) {
+    if (in->frameFormat != UVC_FRAME_FORMAT_YUYV)
+        return UVC_ERROR_INVALID_PARAM;
+
+    if (out->ensureSize(in->width * in->height * 3) < 0)
+        return UVC_ERROR_NO_MEM;
+
+    out->width = in->width;
+    out->height = in->height;
+    out->frameFormat = UVC_FRAME_FORMAT_RGB;
+    out->cbLineStride = in->width * 3;
+    out->captureTime = in->captureTime;
+
+    uint8_t *pyuv = in->pbData;
+    uint8_t *prgb = out->pbData;
+    uint8_t *prgb_end = prgb + out->cbData;
+
+    while (prgb < prgb_end) {
+        IYUYV2RGB_8(pyuv, prgb);
+
+        prgb += 3 * 8;
+        pyuv += 2 * 8;
+    }
+
+    return UVC_SUCCESS;
+}

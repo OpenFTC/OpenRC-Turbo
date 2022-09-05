@@ -271,49 +271,9 @@ public class RobotConfigMap implements Serializable
         List<ControllerConfiguration> result = new LinkedList<ControllerConfiguration>();
 
         // Only our USB-attached devices are swappable
-        ConfigurationType type = target.getConfigurationType();
-        if (!(type==BuiltInConfigurationType.MOTOR_CONTROLLER
-                || type==BuiltInConfigurationType.SERVO_CONTROLLER
-                || type==BuiltInConfigurationType.DEVICE_INTERFACE_MODULE
-                || type==BuiltInConfigurationType.LEGACY_MODULE_CONTROLLER))
-            return result;
-
-        if (target.getSerialNumber().isFake())
-            {
-            return result;
-            }
-
-        // First snarf candidates that are already in this robot configuration
-        for (ControllerConfiguration other : this.controllerConfigurations())
-            {
-            SerialNumber serialNumber = other.getSerialNumber();
-
-            if (serialNumber.isFake()) continue;
-            if (serialNumber.equals(target.getSerialNumber())) continue;
-            if (containsSerialNumber(result, serialNumber)) continue;   // shouldn't need this test, but it's harmless
-            if (other.getConfigurationType() == target.getConfigurationType())
-                {
-                result.add(other);
-                }
-            }
-
-        // Then add others we know about from scanning but haven't added yet
-        for (Map.Entry<SerialNumber, DeviceManager.UsbDeviceType> entry : scannedDevices.entrySet())
-            {
-            SerialNumber serialNumber = entry.getKey();
-
-            if (serialNumber.isFake()) continue;
-            if (serialNumber.equals(target.getSerialNumber())) continue;
-            if (containsSerialNumber(result, serialNumber)) continue;
-            if (entry.getValue() == target.toUSBDeviceType())
-                {
-                String name = generateName(context, target.getConfigurationType(), result);
-                ControllerConfiguration controllerConfiguration = ControllerConfiguration.forType(name, entry.getKey(), target.getConfigurationType());
-                controllerConfiguration.setKnownToBeAttached(scannedDevices.containsKey(controllerConfiguration.getSerialNumber()));
-                result.add(controllerConfiguration);
-                }
-            }
-
+        /*
+         * TODO: Can swappability be removed entirely given we no longer support MR devices?
+         */
         return result;
         }
 

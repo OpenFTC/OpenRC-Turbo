@@ -117,6 +117,7 @@ public class ClassManager {
             "android", // Also excludes androidx
             "com.android",
             "com.google",
+            "com.qualcomm.robotcore.wifi",
             "com.sun",
             "gnu.kawa.swingviews",
             "io.netty",

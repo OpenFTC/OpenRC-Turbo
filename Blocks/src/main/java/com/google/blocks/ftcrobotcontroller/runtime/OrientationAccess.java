@@ -42,94 +42,134 @@ class OrientationAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAxesReference(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".AxesReference");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      AxesReference axesReference = orientation.axesReference;
-      if (axesReference != null) {
-        return axesReference.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AxesReference");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        AxesReference axesReference = orientation.axesReference;
+        if (axesReference != null) {
+          return axesReference.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAxesOrder(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".AxesOrder");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      AxesOrder axesOrder = orientation.axesOrder;
-      if (axesOrder != null) {
-        return axesOrder.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AxesOrder");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        AxesOrder axesOrder = orientation.axesOrder;
+        if (axesOrder != null) {
+          return axesOrder.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAngleUnit(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".AngleUnit");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      AngleUnit angleUnit = orientation.angleUnit;
-      if (angleUnit != null) {
-        return angleUnit.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngleUnit");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        AngleUnit angleUnit = orientation.angleUnit;
+        if (angleUnit != null) {
+          return angleUnit.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getFirstAngle(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".FirstAngle");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.firstAngle;
+    try {
+      startBlockExecution(BlockType.GETTER, ".FirstAngle");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.firstAngle;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getSecondAngle(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".SecondAngle");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.secondAngle;
+    try {
+      startBlockExecution(BlockType.GETTER, ".SecondAngle");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.secondAngle;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getThirdAngle(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".ThirdAngle");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.thirdAngle;
+    try {
+      startBlockExecution(BlockType.GETTER, ".ThirdAngle");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.thirdAngle;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object orientationArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Orientation create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Orientation();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Orientation();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -137,74 +177,104 @@ class OrientationAccess extends Access {
   public Orientation create_withArgs(
       String axesReferenceString, String axesOrderString, String angleUnitString, float firstAngle,
       float secondAngle, float thirdAngle, long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (axesReference != null && axesOrder != null && angleUnit != null) {
-      return new Orientation(
-          axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle,
-          acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (axesReference != null && axesOrder != null && angleUnit != null) {
+        return new Orientation(
+            axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle,
+            acquisitionTime);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Orientation toAngleUnit(Object orientationArg, String angleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".toAngleUnit");
-    Orientation orientation = checkOrientation(orientationArg);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (orientation != null && angleUnit != null) {
-      return orientation.toAngleUnit(angleUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toAngleUnit");
+      Orientation orientation = checkOrientation(orientationArg);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (orientation != null && angleUnit != null) {
+        return orientation.toAngleUnit(angleUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Orientation toAxesReference(Object orientationArg, String axesReferenceString) {
-    startBlockExecution(BlockType.FUNCTION, ".toAxesReference");
-    Orientation orientation = checkOrientation(orientationArg);
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    if (orientation != null && axesReference != null) {
-      return orientation.toAxesReference(axesReference);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toAxesReference");
+      Orientation orientation = checkOrientation(orientationArg);
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      if (orientation != null && axesReference != null) {
+        return orientation.toAxesReference(axesReference);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Orientation toAxesOrder(Object orientationArg, String axesOrderString) {
-    startBlockExecution(BlockType.FUNCTION, ".toAxesOrder");
-    Orientation orientation = checkOrientation(orientationArg);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    if (orientation != null && axesOrder != null) {
-      return orientation.toAxesOrder(axesOrder);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toAxesOrder");
+      Orientation orientation = checkOrientation(orientationArg);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      if (orientation != null && axesOrder != null) {
+        return orientation.toAxesOrder(axesOrder);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object orientationArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix getRotationMatrix(Object orientationArg) {
-    startBlockExecution(BlockType.FUNCTION, ".getRotationMatrix");
-    Orientation orientation = checkOrientation(orientationArg);
-    if (orientation != null) {
-      return orientation.getRotationMatrix();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getRotationMatrix");
+      Orientation orientation = checkOrientation(orientationArg);
+      if (orientation != null) {
+        return orientation.getRotationMatrix();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
@@ -212,29 +282,39 @@ class OrientationAccess extends Access {
   public OpenGLMatrix getRotationMatrix_withArgs(
       String axesReferenceString, String axesOrderString, String angleUnitString, float firstAngle,
       float secondAngle, float thirdAngle) {
-    startBlockExecution(BlockType.FUNCTION, ".getRotationMatrix");
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (axesReference != null && axesOrder != null && angleUnit != null) {
-      return Orientation.getRotationMatrix(
-          axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getRotationMatrix");
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (axesReference != null && axesOrder != null && angleUnit != null) {
+        return Orientation.getRotationMatrix(
+            axesReference, axesOrder, angleUnit, firstAngle, secondAngle, thirdAngle);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Orientation getOrientation(
       Object matrixArg, String axesReferenceString, String axesOrderString, String angleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".getOrientation");
-    MatrixF matrix = checkMatrixF(matrixArg);
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
-      return Orientation.getOrientation(matrix, axesReference, axesOrder, angleUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getOrientation");
+      MatrixF matrix = checkMatrixF(matrixArg);
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (matrix != null && axesReference != null && axesOrder != null && angleUnit != null) {
+        return Orientation.getOrientation(matrix, axesReference, axesOrder, angleUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

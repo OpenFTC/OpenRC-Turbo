@@ -40,15 +40,25 @@ class LedAccess extends HardwareAccess<LED> {
   @JavascriptInterface
   @Block(classes = {LED.class}, methodName = "enable")
   public void enableLed(boolean enable) {
-    startBlockExecution(BlockType.FUNCTION, ".enableLed");
-    led.enable(enable);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".enableLed");
+      led.enable(enable);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {LED.class}, methodName = "isLightOn")
   public boolean isLightOn() {
-    startBlockExecution(BlockType.FUNCTION, ".isLightOn");
-    return led.isLightOn();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isLightOn");
+      return led.isLightOn();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

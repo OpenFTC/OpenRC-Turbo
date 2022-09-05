@@ -51,8 +51,7 @@ public class LynxGetModuleLEDPatternCommand extends LynxStandardCommand<LynxGetM
 
     public LynxGetModuleLEDPatternCommand(LynxModule module)
         {
-        super(module);
-        this.response = new LynxGetModuleLEDPatternResponse(module);
+        super(module, new LynxGetModuleLEDPatternResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -67,12 +66,6 @@ public class LynxGetModuleLEDPatternCommand extends LynxStandardCommand<LynxGetM
     public static Class<? extends LynxResponse> getResponseClass()
         {
         return LynxGetModuleLEDPatternResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

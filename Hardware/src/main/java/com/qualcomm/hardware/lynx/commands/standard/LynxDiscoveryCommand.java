@@ -114,12 +114,6 @@ public class LynxDiscoveryCommand extends LynxStandardCommand<LynxAck /*actually
         }
 
     @Override
-    public boolean isRetransmittable()
-        {
-        return false;
-        }
-
-    @Override
     protected void noteAttentionRequired()
         {
         // nothing to do (in fact, discovery commands aren't even ack'd any more)

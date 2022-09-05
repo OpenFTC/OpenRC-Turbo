@@ -20,11 +20,18 @@
  * @author lizlooney@google.com (Liz Looney)
  */
 
-// The following are generated dynamically in HardwareUtil.fetchJavaScriptForHardware():
-// createAnalogOutputDropdown
 // The following are defined in vars.js:
+// createFieldDropdown
 // createNonEditableField
 // functionColor
+
+// createAnalogOutputDropdown is no longer generated dynamically in
+// HardwareUtil.fetchJavaScriptForHardware() because AnalogOutput was removed in PR 2531.
+function createAnalogOutputDropdown() {
+  var CHOICES = [
+  ];
+  return createFieldDropdown(CHOICES);
+}
 
 // Functions
 
@@ -46,17 +53,11 @@ Blockly.Blocks['analogOutput_setAnalogOutputVoltage'] = {
 };
 
 Blockly.JavaScript['analogOutput_setAnalogOutputVoltage'] = function(block) {
-  var identifier = block.getFieldValue('IDENTIFIER');
-  var voltage = Blockly.JavaScript.valueToCode(
-      block, 'VOLTAGE', Blockly.JavaScript.ORDER_NONE);
-  return identifier + '.setAnalogOutputVoltage(' + voltage + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.FtcJava['analogOutput_setAnalogOutputVoltage'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, 'IDENTIFIER', 'AnalogOutput');
-  var voltage = Blockly.FtcJava.valueToCode(
-      block, 'VOLTAGE', Blockly.FtcJava.ORDER_NONE);
-  return identifier + '.setAnalogOutputVoltage(' + voltage + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.Blocks['analogOutput_setAnalogOutputVoltage_Number'] = {
@@ -107,17 +108,11 @@ Blockly.Blocks['analogOutput_setAnalogOutputFrequency'] = {
 };
 
 Blockly.JavaScript['analogOutput_setAnalogOutputFrequency'] = function(block) {
-  var identifier = block.getFieldValue('IDENTIFIER');
-  var frequency = Blockly.JavaScript.valueToCode(
-      block, 'FREQUENCY', Blockly.JavaScript.ORDER_NONE);
-  return identifier + '.setAnalogOutputFrequency(' + frequency + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.FtcJava['analogOutput_setAnalogOutputFrequency'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, 'IDENTIFIER', 'AnalogOutput');
-  var frequency = Blockly.FtcJava.valueToCode(
-      block, 'FREQUENCY', Blockly.FtcJava.ORDER_NONE);
-  return identifier + '.setAnalogOutputFrequency(' + frequency + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.Blocks['analogOutput_setAnalogOutputFrequency_Number'] = {
@@ -168,17 +163,11 @@ Blockly.Blocks['analogOutput_setAnalogOutputMode'] = {
 };
 
 Blockly.JavaScript['analogOutput_setAnalogOutputMode'] = function(block) {
-  var identifier = block.getFieldValue('IDENTIFIER');
-  var mode = Blockly.JavaScript.valueToCode(
-      block, 'MODE', Blockly.JavaScript.ORDER_NONE);
-  return identifier + '.setAnalogOutputMode(' + mode + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.FtcJava['analogOutput_setAnalogOutputMode'] = function(block) {
-  var identifier = Blockly.FtcJava.importDeclareAssign_(block, 'IDENTIFIER', 'AnalogOutput');
-  var mode = Blockly.FtcJava.valueToCode(
-      block, 'MODE', Blockly.FtcJava.ORDER_NONE);
-  return identifier + '.setAnalogOutputMode(' + mode + ');\n';
+  return '// AnalogOutput is no longer supported\n';
 };
 
 Blockly.Blocks['analogOutput_setAnalogOutputMode_Number'] = {

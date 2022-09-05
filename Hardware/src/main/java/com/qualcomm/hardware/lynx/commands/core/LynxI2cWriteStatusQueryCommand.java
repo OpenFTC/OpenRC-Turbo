@@ -59,8 +59,7 @@ public class LynxI2cWriteStatusQueryCommand extends LynxDekaInterfaceCommand<Lyn
 
     public LynxI2cWriteStatusQueryCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxI2cWriteStatusQueryResponse(module);
+        super(module, new LynxI2cWriteStatusQueryResponse(module));
         }
 
     public LynxI2cWriteStatusQueryCommand(LynxModuleIntf module, int busZ)
@@ -77,12 +76,6 @@ public class LynxI2cWriteStatusQueryCommand extends LynxDekaInterfaceCommand<Lyn
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxI2cWriteStatusQueryResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

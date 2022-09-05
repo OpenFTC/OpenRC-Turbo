@@ -53,6 +53,7 @@ public abstract class AndroidBoard {
     protected static final String LYNX_MODULE_RESET_PIN_NAME = "LynxModuleResetPin";
     protected static final String PROGRAMMING_PIN_NAME = "ProgrammingPin";
     protected static final String USER_BUTTON_PIN_NAME = "UserButtonPin";
+    protected static final String BHI_260_QUATERNION_REGISTER_FREEZE_PIN_NAME = "BHI260QuatFreezePin";
 
     /**
      * Get the instance of AndroidBoard that is appropriate for our hardware
@@ -118,6 +119,12 @@ public abstract class AndroidBoard {
      * Control Hub (96boards pin 10)
      */
     public abstract DigitalChannel getUserButtonPin();
+
+    /**
+     * Returns a {@link DigitalChannel} that controls the BHI260 quaternion register freeze pin
+     * (96boards pin 30)
+     */
+    public abstract DigitalChannel getBhi260QuatRegFreezePin();
 
     /**
      * Returns a {@link File} that points to the location of the "file" that we read and write from

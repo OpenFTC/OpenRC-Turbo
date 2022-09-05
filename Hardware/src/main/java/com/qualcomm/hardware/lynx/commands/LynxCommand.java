@@ -36,6 +36,8 @@ import com.qualcomm.hardware.lynx.LynxModuleIntf;
 
 import java.lang.reflect.InvocationTargetException;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by bob on 2016-03-06.
  */
@@ -45,9 +47,20 @@ public abstract class LynxCommand<RESPONSE extends LynxMessage> extends LynxResp
     // Construction
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Constructor for commands that do not expect a response (other than ACK or NACK)
+     */
     public LynxCommand(LynxModuleIntf module)
         {
         super(module);
+        }
+
+    /**
+     * Constructor for commands that expect a response (not just an ACK)
+     */
+    public LynxCommand(LynxModuleIntf module, @NonNull RESPONSE defaultResponse)
+        {
+        super(module, defaultResponse);
         }
 
     //----------------------------------------------------------------------------------------------

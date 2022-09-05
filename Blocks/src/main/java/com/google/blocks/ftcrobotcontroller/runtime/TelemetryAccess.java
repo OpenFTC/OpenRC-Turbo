@@ -35,59 +35,94 @@ class TelemetryAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void addNumericData(String key, double data) {
-    startBlockExecution(BlockType.FUNCTION, ".addData");
-    telemetry.addData(key, data);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".addData");
+      telemetry.addData(key, data);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void addTextData(String key, String data) {
-    startBlockExecution(BlockType.FUNCTION, ".addData");
-    if (data != null) {
-      telemetry.addData(key, data);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".addData");
+      if (data != null) {
+        telemetry.addData(key, data);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void addObjectData(String key, Object data) {
-    startBlockExecution(BlockType.FUNCTION, ".addData");
-    // Avoid calling data.toString() in case data is null.
-    telemetry.addData(key, "" + data);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".addData");
+      // Avoid calling data.toString() in case data is null.
+      telemetry.addData(key, "" + data);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void update() {
-    startBlockExecution(BlockType.FUNCTION, ".update");
-    telemetry.update();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".update");
+      telemetry.update();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void speakTextData(String data, String languageCode, String countryCode) {
-    startBlockExecution(BlockType.FUNCTION, ".speak");
-    if (data != null) {
-      telemetry.speak(data, languageCode, countryCode);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".speak");
+      if (data != null) {
+        telemetry.speak(data, languageCode, countryCode);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void speakObjectData(Object data, String languageCode, String countryCode) {
-    startBlockExecution(BlockType.FUNCTION, ".speak");
-    // Avoid calling data.toString() in case data is null.
-    telemetry.speak("" + data, languageCode, countryCode);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".speak");
+      // Avoid calling data.toString() in case data is null.
+      telemetry.speak("" + data, languageCode, countryCode);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setDisplayFormat(String displayFormatString) {
-    startBlockExecution(BlockType.FUNCTION, ".setDisplayFormat");
-    Telemetry.DisplayFormat displayFormat =
-        checkArg(displayFormatString, Telemetry.DisplayFormat.class, "displayFormat");
-    if (displayFormat != null) {
-      telemetry.setDisplayFormat(displayFormat);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setDisplayFormat");
+      Telemetry.DisplayFormat displayFormat =
+          checkArg(displayFormatString, Telemetry.DisplayFormat.class, "displayFormat");
+      if (displayFormat != null) {
+        telemetry.setDisplayFormat(displayFormat);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 }

@@ -66,14 +66,19 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void initialize(VuforiaBaseAccess vuforiaBaseAccess, float minimumConfidence,
       boolean useObjectTracker, boolean enableCameraMonitoring) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
-    if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
-      try {
-        tfodBase.initialize(vuforiaLocalizer, minimumConfidence, useObjectTracker, enableCameraMonitoring);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+      if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
+        try {
+          tfodBase.initialize(vuforiaLocalizer, minimumConfidence, useObjectTracker, enableCameraMonitoring);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -81,15 +86,20 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
   @JavascriptInterface
   public void initializeWithIsModelTensorFlow2(VuforiaBaseAccess vuforiaBaseAccess, float minimumConfidence,
       boolean useObjectTracker, boolean enableCameraMonitoring, boolean isModelTensorFlow2) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
-    if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
-      try {
-        tfodBase.initializeWithIsModelTensorFlow2(vuforiaBaseAccess.getVuforiaBase(),
-            minimumConfidence, useObjectTracker, enableCameraMonitoring, isModelTensorFlow2);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+      if (checkAndSetTfodBase() && vuforiaLocalizer != null) {
+        try {
+          tfodBase.initializeWithIsModelTensorFlow2(vuforiaBaseAccess.getVuforiaBase(),
+              minimumConfidence, useObjectTracker, enableCameraMonitoring, isModelTensorFlow2);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -102,97 +112,127 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
       int maxNumDetections, int timingBufferSize, double maxFrameRate,
       float trackerMaxOverlap, float trackerMinSize,
       float trackerMarginalCorrelation, float trackerMinCorrelation) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
-    if (checkAndSetTfodBase()&& vuforiaLocalizer != null) {
-      try {
-        tfodBase.initializeWithAllArgs(vuforiaBaseAccess.getVuforiaBase(),
-            minimumConfidence, useObjectTracker, enableCameraMonitoring,
-            isModelTensorFlow2, isModelQuantized, inputSize,
-            numInterpreterThreads, numExecutorThreads,
-            maxNumDetections, timingBufferSize, maxFrameRate,
-            trackerMaxOverlap, trackerMinSize,
-            trackerMarginalCorrelation, trackerMinCorrelation);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      VuforiaLocalizer vuforiaLocalizer = vuforiaBaseAccess.getVuforiaBase().getVuforiaLocalizer();
+      if (checkAndSetTfodBase()&& vuforiaLocalizer != null) {
+        try {
+          tfodBase.initializeWithAllArgs(vuforiaBaseAccess.getVuforiaBase(),
+              minimumConfidence, useObjectTracker, enableCameraMonitoring,
+              isModelTensorFlow2, isModelQuantized, inputSize,
+              numInterpreterThreads, numExecutorThreads,
+              maxNumDetections, timingBufferSize, maxFrameRate,
+              trackerMaxOverlap, trackerMinSize,
+              trackerMarginalCorrelation, trackerMinCorrelation);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void activate() {
-    startBlockExecution(BlockType.FUNCTION, ".activate");
-    if (tfodBase == null) {
-      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
-      return;
-    }
     try {
-      tfodBase.activate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".activate");
+      if (tfodBase == null) {
+        reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+        return;
+      }
+      try {
+        tfodBase.activate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void deactivate() {
-    startBlockExecution(BlockType.FUNCTION, ".deactivate");
-    if (tfodBase == null) {
-      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
-      return;
-    }
     try {
-      tfodBase.deactivate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".deactivate");
+      if (tfodBase == null) {
+        reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+        return;
+      }
+      try {
+        tfodBase.deactivate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setClippingMargins(int left, int top, int right, int bottom) {
-    startBlockExecution(BlockType.FUNCTION, ".setClippingMargins");
-    if (tfodBase == null) {
-      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
-      return;
-    }
     try {
-      tfodBase.setClippingMargins(left, top, right, bottom);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".setClippingMargins");
+      if (tfodBase == null) {
+        reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+        return;
+      }
+      try {
+        tfodBase.setClippingMargins(left, top, right, bottom);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setZoom(double magnification, double aspectRatio) {
-    startBlockExecution(BlockType.FUNCTION, ".setZoom");
-    if (tfodBase == null) {
-      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
-      return;
-    }
     try {
-      tfodBase.setZoom(magnification, aspectRatio);
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".setZoom");
+      if (tfodBase == null) {
+        reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+        return;
+      }
+      try {
+        tfodBase.setZoom(magnification, aspectRatio);
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getRecognitions() {
-    startBlockExecution(BlockType.FUNCTION, ".getRecognitions");
-    if (tfodBase == null) {
-      reportWarning("You forgot to call " + blockFirstName + ".initialize!");
-      return "[]";
-    }
     try {
-      return toJson(tfodBase.getRecognitions());
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".getRecognitions");
+      if (tfodBase == null) {
+        reportWarning("You forgot to call " + blockFirstName + ".initialize!");
+        return "[]";
+      }
+      try {
+        return toJson(tfodBase.getRecognitions());
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+      return "[]";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "[]";
   }
 
   private static String toJson(List<Recognition> recognitions) {

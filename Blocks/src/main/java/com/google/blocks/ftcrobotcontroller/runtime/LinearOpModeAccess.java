@@ -18,6 +18,7 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.webkit.JavascriptInterface;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 /**
  * A class that provides JavaScript access to a {@link LinearOpMode}.
@@ -34,50 +35,144 @@ class LinearOpModeAccess extends Access {
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "waitForStart")
   public void waitForStart() {
-    startBlockExecution(BlockType.FUNCTION, ".waitForStart");
-    blocksOpMode.waitForStartForBlocks();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".waitForStart");
+      blocksOpMode.waitForStartForBlocks();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "idle")
   public void idle() {
-    startBlockExecution(BlockType.FUNCTION, ".idle");
-    blocksOpMode.idle();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".idle");
+      blocksOpMode.idle();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "sleep")
   public void sleep(double millis) {
-    startBlockExecution(BlockType.FUNCTION, ".sleep");
-    blocksOpMode.sleepForBlocks((long) millis);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".sleep");
+      blocksOpMode.sleepForBlocks((long) millis);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "opModeInInit")
+  public boolean opModeInInit() {
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".opModeInInit");
+      return blocksOpMode.opModeInInit();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "opModeIsActive")
   public boolean opModeIsActive() {
-    startBlockExecution(BlockType.FUNCTION, ".opModeIsActive");
-    return blocksOpMode.opModeIsActive();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".opModeIsActive");
+      return blocksOpMode.opModeIsActive();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "isStarted")
   public boolean isStarted() {
-    startBlockExecution(BlockType.FUNCTION, ".isStarted");
-    return blocksOpMode.isStartedForBlocks();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isStarted");
+      return blocksOpMode.isStartedForBlocks();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class}, methodName = "isStopRequested")
   public boolean isStopRequested() {
-    startBlockExecution(BlockType.FUNCTION, ".isStopRequested");
-    return blocksOpMode.isStopRequestedForBlocks();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isStopRequested");
+      return blocksOpMode.isStopRequestedForBlocks();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
+  @Block(classes = {LinearOpMode.class, OpMode.class}, methodName = "getRuntime")
   public double getRuntime() {
-    startBlockExecution(BlockType.FUNCTION, ".getRuntime");
-    return blocksOpMode.getRuntime();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getRuntime");
+      return blocksOpMode.getRuntime();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LinearOpMode.class, OpMode.class}, methodName = "resetRuntime")
+  public void resetRuntime() {
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".resetRuntime");
+      blocksOpMode.resetRuntime();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LinearOpMode.class, OpMode.class}, methodName = "requestOpModeStop")
+  public void requestOpModeStop() {
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".requestOpModeStop");
+      blocksOpMode.requestOpModeStop();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @JavascriptInterface
+  @Block(classes = {LinearOpMode.class, OpMode.class}, methodName = "terminateOpModeNow")
+  public void terminateOpModeNow() {
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".terminateOpModeNow");
+      blocksOpMode.terminateOpModeNowForBlocks();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

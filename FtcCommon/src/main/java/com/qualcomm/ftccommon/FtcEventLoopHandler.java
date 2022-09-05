@@ -50,11 +50,9 @@ import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.ConfigurationUtility;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.usb.RobotArmingStateNotifier;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
-import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.util.BatteryChecker;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -110,8 +108,8 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
   protected ElapsedTime       updateUITimer             = new ElapsedTime();
   protected double            updateUIInterval          = 0.250; // in seconds
 
-  protected ElapsedTime       rumbleGamepadsTimer       = new ElapsedTime();
-  protected int               rumbleGamepadsInterval    = 50; // in milliseconds
+  protected ElapsedTime       gamepadEffectsTimer       = new ElapsedTime();
+  protected int               gamepadEffectsInterval    = 50; // in milliseconds
 
   /** the actual hardware map seen by the user */
   protected HardwareMap       hardwareMap               = null;
@@ -331,9 +329,10 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
             : new Gamepad[2];
   }
   
-  public void rumbleGamepads() {
-    if (rumbleGamepadsTimer.milliseconds() > rumbleGamepadsInterval) {
+  public void gamepadEffects() {
+    if (gamepadEffectsTimer.milliseconds() > gamepadEffectsInterval) {
       Gamepad[] gamepads = getGamepads();
+
       Gamepad.RumbleEffect rumble0 = gamepads[0].rumbleQueue.poll();
       Gamepad.RumbleEffect rumble1 = gamepads[1].rumbleQueue.poll();
       
@@ -343,8 +342,18 @@ public class FtcEventLoopHandler implements BatteryChecker.BatteryWatcher {
       if (rumble1 != null) {
         NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_RUMBLE_GAMEPAD, rumble1.serialize()));
       }
+
+      Gamepad.LedEffect led0 = gamepads[0].ledQueue.poll();
+      Gamepad.LedEffect led1 = gamepads[1].ledQueue.poll();
+
+      if (led0 != null) {
+        NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_GAMEPAD_LED_EFFECT, led0.serialize()));
+      }
+      if (led1 != null) {
+        NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_GAMEPAD_LED_EFFECT, led1.serialize()));
+      }
       
-      rumbleGamepadsTimer.reset();
+      gamepadEffectsTimer.reset();
     }
   }
   

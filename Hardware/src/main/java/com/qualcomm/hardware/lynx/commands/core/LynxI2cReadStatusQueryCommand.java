@@ -57,17 +57,10 @@ public class LynxI2cReadStatusQueryCommand extends LynxDekaInterfaceCommand<Lynx
     // Construction
     //----------------------------------------------------------------------------------------------
 
-    public LynxI2cReadStatusQueryCommand(LynxModuleIntf module)
-        {
-        super(module);
-        this.response = new LynxI2cReadStatusQueryResponse(module, 0);
-        }
-
     public LynxI2cReadStatusQueryCommand(LynxModuleIntf module, int busZ, int cbExpected)
         {
-        this(module);
+        super(module, new LynxI2cReadStatusQueryResponse(module, cbExpected));
         LynxConstants.validateI2cBusZ(busZ);
-        this.response = new LynxI2cReadStatusQueryResponse(module, cbExpected);
         this.i2cBus = (byte)busZ;
         }
 
@@ -78,12 +71,6 @@ public class LynxI2cReadStatusQueryCommand extends LynxDekaInterfaceCommand<Lynx
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxI2cReadStatusQueryResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

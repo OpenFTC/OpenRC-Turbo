@@ -57,6 +57,7 @@ public abstract class EditPortListSpinnerActivity<ITEM_T extends DeviceConfigura
 
     protected int idItemSpinner;
 	protected ControlSystem controlSystem;
+    protected boolean configuringControlHubParent;
 
     //----------------------------------------------------------------------------------------------
     // Construction
@@ -71,6 +72,7 @@ public abstract class EditPortListSpinnerActivity<ITEM_T extends DeviceConfigura
         {
         super.deserialize(parameters);
         this.controlSystem = parameters.getControlSystem();
+        this.configuringControlHubParent = parameters.configuringControlHubParent();
         }
 
     @Override
@@ -88,7 +90,7 @@ public abstract class EditPortListSpinnerActivity<ITEM_T extends DeviceConfigura
         {
         Spinner spinner = (Spinner) itemView.findViewById(idItemSpinner);
         List<ConfigurationType> deviceTypes =
-                ConfigurationTypeManager.getInstance().getApplicableConfigTypes(getDeviceFlavorBeingConfigured(), controlSystem);
+                ConfigurationTypeManager.getInstance().getApplicableConfigTypes(getDeviceFlavorBeingConfigured(), controlSystem, configuringControlHubParent);
 
         localizeConfigTypeSpinnerTypes(ConfigurationType.DisplayNameFlavor.Normal, spinner, deviceTypes);
         }

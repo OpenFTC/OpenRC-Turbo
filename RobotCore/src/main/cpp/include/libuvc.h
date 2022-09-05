@@ -1163,6 +1163,7 @@ void uvc_print_stream_ctrl(uvc_stream_ctrl_t *ctrl, FILE *stream);
 uvc_frame *uvc_allocate_frame(uvc_context* pContext, size_t cbFrameAlloc, size_t cbFrameExpected);
 void uvc_free_frame(uvc_frame *pFrame);
 uvc_error_t uvc_duplicate_frame(uvc_frame *in, uvc_frame *out);
+uvc_error_t uvc_yuyv2rgb(uvc_frame_t *in, uvc_frame_t *out);
 
 #endif // !def(LIBUVC_H)
 

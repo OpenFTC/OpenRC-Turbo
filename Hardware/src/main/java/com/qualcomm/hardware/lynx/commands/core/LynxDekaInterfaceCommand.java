@@ -37,6 +37,8 @@ import com.qualcomm.hardware.lynx.commands.LynxInterface;
 import com.qualcomm.hardware.lynx.commands.LynxInterfaceCommand;
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by bob on 2016-03-06.
  */
@@ -113,9 +115,20 @@ public abstract class LynxDekaInterfaceCommand<RESPONSE extends LynxMessage> ext
     // Construction
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Constructor for commands that do not expect a response (other than ACK or NACK)
+     */
     public LynxDekaInterfaceCommand(LynxModuleIntf module)
         {
         super(module);
+        }
+
+    /**
+     * Constructor for commands that expect a response (not just an ACK)
+     */
+    public LynxDekaInterfaceCommand(LynxModuleIntf module, @NonNull RESPONSE defaultResponse)
+        {
+        super(module, defaultResponse);
         }
 
     //----------------------------------------------------------------------------------------------

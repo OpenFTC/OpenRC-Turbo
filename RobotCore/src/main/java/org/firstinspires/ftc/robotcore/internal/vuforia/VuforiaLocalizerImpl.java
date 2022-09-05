@@ -47,6 +47,8 @@ import android.os.Bundle;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -1375,8 +1377,12 @@ public class VuforiaLocalizerImpl implements VuforiaLocalizer
          * Besides, we lived with incorrectly using the internal camera projection matrix
          * with webcams for 2 seasons so it can't be THAT bad. Though admittedly not great....
          */
-        if (webcamCal.isFake())
+        if (webcamCal == null || webcamCal.isFake())
             {
+            if (webcamCal == null)
+                {
+                Log.e(TAG, "Webcam calibration was null - this should not happen!");
+                }
             generateProjectionMatrixForInternalCam();
             return;
             }

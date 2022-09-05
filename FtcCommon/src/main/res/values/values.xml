@@ -15,13 +15,6 @@
     <item>TOUCH_SENSOR_MULTIPLEXER</item>
     <item>COLOR_SENSOR</item>
   </string-array>
-    <string-array name="device_interface_module_options_array">
-    <item>PWM Devices|EDIT_PWM_PORT</item>
-    <item>I2C Devices|EDIT_I2C_PORT</item>
-    <item>Analog Input Devices|EDIT_ANALOG_INPUT</item>
-    <item>Digital Devices|EDIT_DIGITAL</item>
-    <item>Analog Output Devices|EDIT_ANALOG_OUTPUT</item>
-  </string-array>
     <string-array name="lynx_module_options_array">
     <item>Motors|EDIT_MOTOR_LIST</item>
     <item>Servos|EDIT_SERVO_LIST</item>
@@ -55,8 +48,6 @@
     <string name="action_settings">Settings</string>
     <string name="action_wifi_channel_selector">Wi-Fi Direct Channel Selection</string>
     <string name="activeConfigCaption">Active Configuration:</string>
-    <string name="add_motor_controller_menu_item">Add Motor Controller</string>
-    <string name="add_servo_controller_menu_item">Add Servo Controller</string>
     <string name="alertLynxFirmwareUpdateFailed">Firmware update of %s failed. Please try again.</string>
     <string name="alertLynxFirmwareUpdateFailedTitle">Firmware Update Failed</string>
     <string name="alertLynxFirmwareUpdateFailedWithReason">Firmware update of %1$s failed because %2$s. Please try again.</string>
@@ -119,18 +110,13 @@
     <string name="device_type">Device Types</string>
     <string name="edit_analog_input_devices_activity">Edit Analog Input Devices</string>
     <string name="edit_analog_input_devices_activity_lynx">Edit Analog Input Devices (Expansion Hub)</string>
-    <string name="edit_analog_output_devices_activity">Edit Analog Output Devices</string>
     <string name="edit_controller">Edit Controller</string>
-    <string name="edit_core_device_interface_module_controller_activity">Edit Core Device Interface Module Controller</string>
     <string name="edit_digital_devices_activity">Edit Digital Devices</string>
     <string name="edit_digital_devices_activity_lynx">Edit Digital Devices (Expansion Hub)</string>
     <string name="edit_i2c_devices_activity">Edit I2c Devices</string>
-    <string name="edit_legacy_module_controller_activity">Edit Legacy Module Controller</string>
     <string name="edit_lynx_module_controller_activity">Edit Expansion Hub</string>
     <string name="edit_lynx_usb_device_activity">Edit Expansion Hub Portal</string>
-    <string name="edit_matrix_controller_activity">Edit Matrix Controller</string>
     <string name="edit_motor_controller_activity">Edit Motor Controller</string>
-    <string name="edit_motor_controller_menu_item">Edit Motor Controller</string>
     <string name="edit_pwm_devices_activity">Edit PWM Devices</string>
     <string name="edit_servo_controller_activity">Edit Servo Controller</string>
     <string name="edit_swap_devices_activity">Swap USB Devices</string>
@@ -157,7 +143,6 @@
     <string name="input_name_hint">Enter device name here</string>
     <string name="input_name_label">Device name</string>
     <string name="launch_wifi_settings">Wi-Fi Settings...</string>
-    <string name="legacy_controller_name">Enter the name for this legacy module here</string>
     <string name="load_menu_item">Load Configuration File</string>
     <string name="lynxFirmwareUpdateReadme">Place any downloaded REV Hub firmware updates you wish to install in this folder. You can then install those updates using the Advanced Settings menu on the Driver Station or Robot Controller.</string>
     <string name="lynx_address_format_module_address">Current address: %d</string>
@@ -178,18 +163,6 @@
     <string name="lynx_fw_instructions_serial">Serial number: %s</string>
     <string name="lynx_fw_instructions_update">REV Hubs that will be updated:</string>
     <string name="lynx_fw_instructions_update_post">Note that Expansion Hubs are only available for firmware update if they are plugged in directly via USB (not RS485).\n\nWARNING: While the firmware update is in progress, do not unplug hubs or restart the robot, or a hub may need to be updated again before it can be used.</string>
-    <string name="matrix_controller_name_prompt">Enter the name for this matrix controller here</string>
-    <string name="matrix_motor_title">Motors</string>
-    <string name="matrix_name_prompt">Matrix name</string>
-    <string name="matrix_port0">1</string>
-    <string name="matrix_port1">2</string>
-    <string name="matrix_port2">3</string>
-    <string name="matrix_port3">4</string>
-    <string name="matrix_port4">1</string>
-    <string name="matrix_port5">2</string>
-    <string name="matrix_port6">3</string>
-    <string name="matrix_port7">4</string>
-    <string name="matrix_servo_title">Servos</string>
     <string name="motor">Motor</string>
     <string name="motor_controller_name_prompt">Enter the name for this motor controller here</string>
     <string name="motor_name">Enter motor name here</string>
@@ -245,7 +218,6 @@
     <string name="saveChangesTitle">Save Changes?</string>
     <string name="save_configuration">Save Configuration</string>
     <string name="serialNumberNotAttached">" (not attached)"</string>
-    <string name="servo_controller_name_prompt">Enter the name for this servo controller here</string>
     <string name="servo_name">Enter servo name here</string>
     <string name="servo_name_prompt">Servo name</string>
     <string name="servo_port">1</string>

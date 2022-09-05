@@ -52,8 +52,7 @@ public class LynxGetBulkInputDataCommand extends LynxDekaInterfaceCommand<LynxGe
 
     public LynxGetBulkInputDataCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetBulkInputDataResponse(module);
+        super(module, new LynxGetBulkInputDataResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -63,12 +62,6 @@ public class LynxGetBulkInputDataCommand extends LynxDekaInterfaceCommand<LynxGe
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetBulkInputDataResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

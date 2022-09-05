@@ -57,6 +57,8 @@ public enum Identifier {
       "gamepad1", null),
   GAMEPAD_2("gamepad2", null,
       "gamepad2", null),
+  LED_EFFECT("ledEffectAccess", "ledEffectIdentifierForJavaScript",
+      null, null),
   LINEAR_OP_MODE("linearOpMode", "linearOpModeIdentifierForJavaScript",
       null, null),
   MAGNETIC_FLUX("magneticFluxAccess", "magneticFluxIdentifierForJavaScript",

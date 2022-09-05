@@ -57,11 +57,16 @@ class DistanceSensorAccess extends HardwareAccess<DistanceSensor> {
   @JavascriptInterface
   @Block(classes = DistanceSensor.class, methodName = "getDistance")
   public double getDistance(String distanceUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".getDistance");
-    DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
-    if (distanceUnit != null) {
-      return distanceSensor.getDistance(distanceUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getDistance");
+      DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
+      if (distanceUnit != null) {
+        return distanceSensor.getDistance(distanceUnit);
+      }
+      return 0.0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0.0;
   }
 }

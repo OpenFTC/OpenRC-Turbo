@@ -263,6 +263,7 @@ var uploadFile = function (localFile /*a File*/, url, force, success, failure) {
     });
     window.setTimeout(function() {
         uploadData.append("file", localFile, fileName);
+        uploadData.append("force", force);
         xhr.send(uploadData);
     }, 1000);
 }

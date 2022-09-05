@@ -52,8 +52,7 @@ public class LynxFtdiResetQueryCommand extends LynxDekaInterfaceCommand<LynxFtdi
 
     public LynxFtdiResetQueryCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxFtdiResetQueryResponse(module);
+        super(module, new LynxFtdiResetQueryResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -63,12 +62,6 @@ public class LynxFtdiResetQueryCommand extends LynxDekaInterfaceCommand<LynxFtdi
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxPhoneChargeQueryResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
 

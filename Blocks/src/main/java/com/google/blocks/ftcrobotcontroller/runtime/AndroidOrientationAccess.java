@@ -45,73 +45,123 @@ class AndroidOrientationAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setAngleUnit(String angleUnitString) {
-    startBlockExecution(BlockType.SETTER, ".AngleUnit");
-    AngleUnit angleUnit = checkArg(angleUnitString, AngleUnit.class, "");
-    if (angleUnit != null) {
-      androidOrientation.setAngleUnit(angleUnit);
+    try {
+      startBlockExecution(BlockType.SETTER, ".AngleUnit");
+      AngleUnit angleUnit = checkArg(angleUnitString, AngleUnit.class, "");
+      if (angleUnit != null) {
+        androidOrientation.setAngleUnit(angleUnit);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getAzimuth() {
-    startBlockExecution(BlockType.GETTER, ".Azimuth");
-    return androidOrientation.getAzimuth();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Azimuth");
+      return androidOrientation.getAzimuth();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getPitch() {
-    startBlockExecution(BlockType.GETTER, ".Pitch");
-    return androidOrientation.getPitch();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Pitch");
+      return androidOrientation.getPitch();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getRoll() {
-    startBlockExecution(BlockType.GETTER, ".Roll");
-    return androidOrientation.getRoll();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Roll");
+      return androidOrientation.getRoll();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getAngle() {
-    startBlockExecution(BlockType.GETTER, ".Angle");
-    return androidOrientation.getAngle();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Angle");
+      return androidOrientation.getAngle();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getMagnitude() {
-    startBlockExecution(BlockType.GETTER, ".Magnitude");
-    return androidOrientation.getMagnitude();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Magnitude");
+      return androidOrientation.getMagnitude();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getAngleUnit() {
-    startBlockExecution(BlockType.GETTER, ".AngleUnit");
-    return androidOrientation.getAngleUnit().toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngleUnit");
+      return androidOrientation.getAngleUnit().toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public boolean isAvailable() {
-    startBlockExecution(BlockType.FUNCTION, ".isAvailable");
-    return androidOrientation.isAvailable();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isAvailable");
+      return androidOrientation.isAvailable();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void startListening() {
-    startBlockExecution(BlockType.FUNCTION, ".startListening");
-    androidOrientation.startListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".startListening");
+      androidOrientation.startListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void stopListening() {
-    startBlockExecution(BlockType.FUNCTION, ".stopListening");
-    androidOrientation.stopListening();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".stopListening");
+      androidOrientation.stopListening();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

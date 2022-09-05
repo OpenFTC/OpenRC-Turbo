@@ -52,16 +52,16 @@ public class Rock960 extends AndroidBoard {
 
     // GPIO pins
     private static final DigitalChannel ANDROID_BOARD_IS_PRESENT_PIN =
-            new GpioPin(1102, true, GpioPin.Active.LOW, ANDROID_BOARD_IS_PRESENT_PIN_NAME);
+            GpioPin.createOutput(1102, true, GpioPin.Active.LOW, ANDROID_BOARD_IS_PRESENT_PIN_NAME);
 
     private static final DigitalChannel LYNX_MODULE_RESET_PIN =
-            new GpioPin(1041, false, GpioPin.Active.LOW, LYNX_MODULE_RESET_PIN_NAME);
+            GpioPin.createOutput(1041, false, GpioPin.Active.LOW, LYNX_MODULE_RESET_PIN_NAME);
 
     private static final DigitalChannel PROGRAMMING_PIN =
-            new GpioPin(1006, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
+            GpioPin.createOutput(1006, false, GpioPin.Active.LOW, PROGRAMMING_PIN_NAME);
 
     // This pin does not work correctly with the build of Android I have running today (Jun 20, 2018) --Noah
-    private static final DigitalChannel USER_BUTTON_PIN = new GpioPin(1100, USER_BUTTON_PIN_NAME);
+    private static final DigitalChannel USER_BUTTON_PIN = GpioPin.createInput(1100, GpioPin.Active.HIGH, USER_BUTTON_PIN_NAME);
 
     // UART file
     private static final File UART_FILE = new File("/dev/ttyS3");
@@ -91,6 +91,11 @@ public class Rock960 extends AndroidBoard {
     @Override
     public DigitalChannel getUserButtonPin() {
         return USER_BUTTON_PIN;
+    }
+
+    @Override
+    public DigitalChannel getBhi260QuatRegFreezePin() {
+        return new FakeAndroidBoard.FakeDigitalChannel(DigitalChannel.Mode.OUTPUT);
     }
 
     @Override

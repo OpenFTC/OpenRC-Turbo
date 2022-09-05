@@ -16,47 +16,97 @@
 
 package org.firstinspires.ftc.robotcore.internal.tfod;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.RectF;
+import android.util.Log;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.firstinspires.ftc.robotcore.external.function.Consumer;
+import org.firstinspires.ftc.robotcore.external.tfod.CameraInformation;
+import org.firstinspires.ftc.robotcore.internal.tfod.LabeledObject.CoordinateSystem;
+import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.label.Category;
+import org.tensorflow.lite.task.vision.detector.Detection;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector.ObjectDetectorOptions;
 
 /**
- * Subclass of TfodFrameManager that uses {@link ObjectDetector}.
+ * Subclass of TfodFrameManager that uses {@link ObjectDetector} to support TensorFlow 2 object
+ * detection models.
  *
  * @author lizlooney@google.com (Liz Looney)
  */
 class TfodFrameManager2 extends TfodFrameManager {
-
-  private final List<ObjectDetector> objectDetectors = new ArrayList<>();
-
-  TfodFrameManager2(FrameGenerator frameGenerator, MappedByteBuffer modelData, List<String> labels,
-      TfodParameters params, Zoom zoom, AnnotatedFrameCallback tfodCallback) {
-    super(frameGenerator, labels, params, zoom, tfodCallback);
-
-    // Create the ObjectDetectors.
-    ObjectDetectorOptions options = ObjectDetectorOptions.builder()
-        .setMaxResults(params.maxNumDetections)
-        .setNumThreads(params.numInterpreterThreads)
-        .build();
-    for (int i = 0; i < params.numExecutorThreads; i++) {
-      objectDetectors.add(ObjectDetector.createFromBufferAndOptions(modelData, options));
-    }
+  TfodFrameManager2(MappedByteBuffer modelData, List<String> labels, TfodParameters params,
+      CameraInformation cameraInformation, ClippingMargins clippingMargins, Zoom zoom,
+      ResultsCallback resultsCallback, Consumer<Bitmap> annotatedFrameCallback) {
+    super(modelData, labels, params, cameraInformation, clippingMargins, zoom, resultsCallback,
+        annotatedFrameCallback);
   }
 
   @Override
-  protected Runnable createTask(AnnotatedYuvRgbFrame annotatedFrame, int id,
-      double zoomMagnification, double zoomAspectRatio,
-      AnnotatedFrameCallback annotatedFrameCallback) {
-    return new RecognizeImageRunnable2(
-        annotatedFrame,
-        cameraInformation,
-        objectDetectors.get(id),
-        params,
-        zoomMagnification,
-        zoomAspectRatio,
-        labels,
-        annotatedFrameCallback);
+  protected RecognizerPipeline createRecognizerPipeline(MappedByteBuffer modelData, ZoomHelper zoomHelper, Bitmap zoomBitmap) {
+    return new RecognizerPipeline2(modelData, zoomHelper, zoomBitmap);
+  }
+
+  private class RecognizerPipeline2 extends RecognizerPipeline {
+    private final ObjectDetector objectDetector;
+
+    private RecognizerPipeline2(MappedByteBuffer modelData, ZoomHelper zoomHelper, Bitmap zoomBitmap) {
+      super(zoomHelper, zoomBitmap);
+
+      // Create the ObjectDetector.
+      ObjectDetectorOptions options = ObjectDetectorOptions.builder()
+          .setMaxResults(params.maxNumDetections)
+          .setNumThreads(params.numInterpreterThreads)
+          .build();
+      objectDetector = ObjectDetector.createFromBufferAndOptions(modelData, options);
+    }
+
+    @Override
+    protected void processFrame(long frameTimeNanos) {
+      TensorImage tensorImage = createTensorImage();
+      List<Detection> detections = objectDetector.detect(tensorImage);
+      List<LabeledObject> labeledObjects = postProcessDetections(detections);
+      onResultsFromRecognizerPipeline(frameTimeNanos, labeledObjects, zoomBitmap);
+    }
+
+    private TensorImage createTensorImage() {
+      updateBitmapForTfod();
+      return TensorImage.fromBitmap(bitmapForTfod);
+    }
+
+    private List<LabeledObject> postProcessDetections(List<Detection> detections) {
+      List<LabeledObject> labeledObjects = new ArrayList<>();
+      for (Detection detection : detections) {
+        for (Category category : detection.getCategories()) {
+          float detectionScore = category.getScore();
+          if (detectionScore < params.minResultConfidence) {
+            continue;
+          }
+
+          int detectedClass = category.getIndex();
+          if (detectedClass < 0 || detectedClass >= labels.size()) {
+            Log.w("RecognizerPipeline2.postProcessDetections",
+                "got a detection with an invalid class: " + detectedClass);
+            continue;
+          }
+
+          // Convert the box to zoom area coordinates.
+          RectF detectionBox = new RectF();
+          tfodToZoomAreaMatrix.mapRect(detectionBox, detection.getBoundingBox());
+
+          LabeledObject labeledObject = new LabeledObject(
+              labels.get(detectedClass), detectionScore,
+              zoomHelper, CoordinateSystem.ZOOM_AREA,
+              detectionBox.left, detectionBox.top, detectionBox.right, detectionBox.bottom);
+          labeledObjects.add(labeledObject);
+        }
+      }
+      return labeledObjects;
+    }
   }
 }

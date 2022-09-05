@@ -51,8 +51,7 @@ public class LynxGetModuleLEDColorCommand extends LynxStandardCommand<LynxGetMod
 
     public LynxGetModuleLEDColorCommand(LynxModule module)
         {
-        super(module);
-        this.response = new LynxGetModuleLEDColorResponse(module);
+        super(module, new LynxGetModuleLEDColorResponse(module));
         }
 
     //----------------------------------------------------------------------------------------------
@@ -67,12 +66,6 @@ public class LynxGetModuleLEDColorCommand extends LynxStandardCommand<LynxGetMod
     public static Class<? extends LynxResponse> getResponseClass()
         {
         return LynxGetModuleLEDColorResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

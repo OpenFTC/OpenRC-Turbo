@@ -67,6 +67,11 @@ public class FakeAndroidBoard extends AndroidBoard {
         return new FakeDigitalChannel(DigitalChannel.Mode.INPUT);
     }
 
+    @Override
+    public DigitalChannel getBhi260QuatRegFreezePin() {
+        return new FakeDigitalChannel(DigitalChannel.Mode.OUTPUT);
+    }
+
     @Override public File getUartLocation() {
         return new File("/dev/null");
     }
@@ -103,7 +108,7 @@ public class FakeAndroidBoard extends AndroidBoard {
         RobotLog.ww(TAG, "This is not a known type of Control Hub; unable to set the Wi-Fi AP beacon rate");
     }
 
-    private static class FakeDigitalChannel implements DigitalChannel {
+    public static class FakeDigitalChannel implements DigitalChannel {
         Mode mode;
 
         public FakeDigitalChannel(Mode mode) {

@@ -60,142 +60,222 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAcceleration")
   public Acceleration getAcceleration() {
-    startBlockExecution(BlockType.GETTER, ".Acceleration");
-    return imu.getAcceleration();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Acceleration");
+      return imu.getAcceleration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularOrientation")
   public Orientation getAngularOrientation() {
-    startBlockExecution(BlockType.GETTER, ".AngularOrientation");
-    return imu.getAngularOrientation();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngularOrientation");
+      return imu.getAngularOrientation();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularVelocity")
   public AngularVelocity getAngularVelocity() {
-    startBlockExecution(BlockType.GETTER, ".AngularVelocity");
-    return imu.getAngularVelocity();
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngularVelocity");
+      return imu.getAngularVelocity();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getCalibrationStatus")
   public String getCalibrationStatus() {
-    startBlockExecution(BlockType.GETTER, ".CalibrationStatus");
-    CalibrationStatus calibrationStatus = imu.getCalibrationStatus();
-    if (calibrationStatus != null) {
-      return calibrationStatus.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".CalibrationStatus");
+      CalibrationStatus calibrationStatus = imu.getCalibrationStatus();
+      if (calibrationStatus != null) {
+        return calibrationStatus.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getGravity")
   public Acceleration getGravity() {
-    startBlockExecution(BlockType.GETTER, ".Gravity");
-    return imu.getGravity();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Gravity");
+      return imu.getGravity();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getLinearAcceleration")
   public Acceleration getLinearAcceleration() {
-    startBlockExecution(BlockType.GETTER, ".LinearAcceleration");
-    return imu.getLinearAcceleration();
+    try {
+      startBlockExecution(BlockType.GETTER, ".LinearAcceleration");
+      return imu.getLinearAcceleration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getMagneticFieldStrength")
   public MagneticFlux getMagneticFieldStrength() {
-    startBlockExecution(BlockType.GETTER, ".MagneticFieldStrength");
-    return imu.getMagneticFieldStrength();
+    try {
+      startBlockExecution(BlockType.GETTER, ".MagneticFieldStrength");
+      return imu.getMagneticFieldStrength();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getOverallAcceleration")
   public Acceleration getOverallAcceleration() {
-    startBlockExecution(BlockType.GETTER, ".OverallAcceleration");
-    return imu.getOverallAcceleration();
+    try {
+      startBlockExecution(BlockType.GETTER, ".OverallAcceleration");
+      return imu.getOverallAcceleration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getParameters")
   public Parameters getParameters() {
-    startBlockExecution(BlockType.GETTER, ".Parameters");
-    return imu.getParameters();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Parameters");
+      return imu.getParameters();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getPosition")
   public Position getPosition() {
-    startBlockExecution(BlockType.GETTER, ".Position");
-    return imu.getPosition();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Position");
+      return imu.getPosition();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getQuaternionOrientation")
   public Quaternion getQuaternionOrientation() {
-    startBlockExecution(BlockType.GETTER, ".QuaternionOrientation");
-    return imu.getQuaternionOrientation();
+    try {
+      startBlockExecution(BlockType.GETTER, ".QuaternionOrientation");
+      return imu.getQuaternionOrientation();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getSystemError")
   public String getSystemError() {
-    startBlockExecution(BlockType.GETTER, ".SystemError");
-    SystemError systemError = imu.getSystemError();
-    if (systemError != null) {
-      return systemError.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".SystemError");
+      SystemError systemError = imu.getSystemError();
+      if (systemError != null) {
+        return systemError.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getSystemStatus")
   public String getSystemStatus() {
-    startBlockExecution(BlockType.GETTER, ".SystemStatus");
-    SystemStatus systemStatus = imu.getSystemStatus();
-    if (systemStatus != null) {
-      return systemStatus.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".SystemStatus");
+      SystemStatus systemStatus = imu.getSystemStatus();
+      if (systemStatus != null) {
+        return systemStatus.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getTemperature")
   public Temperature getTemperature() {
-    startBlockExecution(BlockType.GETTER, ".Temperature");
-    return imu.getTemperature();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Temperature");
+      return imu.getTemperature();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getVelocity")
   public Velocity getVelocity() {
-    startBlockExecution(BlockType.GETTER, ".Velocity");
-    return imu.getVelocity();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Velocity");
+      return imu.getVelocity();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "initialize")
   public void initialize(Object parametersArg) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
-    Parameters parameters = checkBNO055IMUParameters(parametersArg);
-    if (parameters != null) {
-      imu.initialize(parameters);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      Parameters parameters = checkBNO055IMUParameters(parametersArg);
+      if (parameters != null) {
+        imu.initialize(parameters);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -203,9 +283,14 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "startAccelerationIntegration")
   public void startAccelerationIntegration_with1(int msPollInterval) {
-    startBlockExecution(BlockType.FUNCTION, ".startAccelerationIntegration");
-    imu.startAccelerationIntegration(
-        null /* initialPosition */, null /* initialVelocity */, msPollInterval);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".startAccelerationIntegration");
+      imu.startAccelerationIntegration(
+          null /* initialPosition */, null /* initialVelocity */, msPollInterval);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -213,11 +298,16 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "startAccelerationIntegration")
   public void startAccelerationIntegration_with3(
       Object initialPositionArg, Object initialVelocityArg, int msPollInterval) {
-    startBlockExecution(BlockType.FUNCTION, ".startAccelerationIntegration");
-    Position initialPosition = checkArg(initialPositionArg, Position.class, "initialPosition");
-    Velocity initialVelocity = checkArg(initialVelocityArg, Velocity.class, "initialVelocity");
-    if (initialPosition != null && initialVelocity != null) {
-      imu.startAccelerationIntegration(initialPosition, initialVelocity, msPollInterval);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".startAccelerationIntegration");
+      Position initialPosition = checkArg(initialPositionArg, Position.class, "initialPosition");
+      Velocity initialVelocity = checkArg(initialVelocityArg, Velocity.class, "initialVelocity");
+      if (initialPosition != null && initialVelocity != null) {
+        imu.startAccelerationIntegration(initialPosition, initialVelocity, msPollInterval);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
@@ -225,149 +315,219 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "stopAccelerationIntegration")
   public void stopAccelerationIntegration() {
-    startBlockExecution(BlockType.FUNCTION, ".stopAccelerationIntegration");
-    imu.stopAccelerationIntegration();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".stopAccelerationIntegration");
+      imu.stopAccelerationIntegration();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "isSystemCalibrated")
   public boolean isSystemCalibrated() {
-    startBlockExecution(BlockType.FUNCTION, ".isSystemCalibrated");
-    return imu.isSystemCalibrated();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isSystemCalibrated");
+      return imu.isSystemCalibrated();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "isGyroCalibrated")
   public boolean isGyroCalibrated() {
-    startBlockExecution(BlockType.FUNCTION, ".isGyroCalibrated");
-    return imu.isGyroCalibrated();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isGyroCalibrated");
+      return imu.isGyroCalibrated();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "isAccelerometerCalibrated")
   public boolean isAccelerometerCalibrated() {
-    startBlockExecution(BlockType.FUNCTION, ".isAccelerometerCalibrated");
-    return imu.isAccelerometerCalibrated();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isAccelerometerCalibrated");
+      return imu.isAccelerometerCalibrated();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "isMagnetometerCalibrated")
   public boolean isMagnetometerCalibrated() {
-    startBlockExecution(BlockType.FUNCTION, ".isMagnetometerCalibrated");
-    return imu.isMagnetometerCalibrated();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".isMagnetometerCalibrated");
+      return imu.isMagnetometerCalibrated();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "readCalibrationData")
   public void saveCalibrationData(String absoluteFileName) {
-    startBlockExecution(BlockType.FUNCTION, ".saveCalibrationData");
-    ReadWriteFile.writeFile(
-        AppUtil.getInstance().getSettingsFile(absoluteFileName),
-        imu.readCalibrationData().serialize());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".saveCalibrationData");
+      ReadWriteFile.writeFile(
+          AppUtil.getInstance().getSettingsFile(absoluteFileName),
+          imu.readCalibrationData().serialize());
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "setI2cAddress")
   public void setI2cAddress7Bit(int i2cAddr7Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
-    imu.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress7Bit");
+      imu.setI2cAddress(I2cAddr.create7bit(i2cAddr7Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getI2cAddress")
   public int getI2cAddress7Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
-    I2cAddr i2cAddr = imu.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get7Bit();
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress7Bit");
+      I2cAddr i2cAddr = imu.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get7Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "setI2cAddress")
   public void setI2cAddress8Bit(int i2cAddr8Bit) {
-    startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
-    imu.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    try {
+      startBlockExecution(BlockType.SETTER, ".I2cAddress8Bit");
+      imu.setI2cAddress(I2cAddr.create8bit(i2cAddr8Bit));
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getI2cAddress")
   public int getI2cAddress8Bit() {
-    startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
-    I2cAddr i2cAddr = imu.getI2cAddress();
-    if (i2cAddr != null) {
-      return i2cAddr.get8Bit();
+    try {
+      startBlockExecution(BlockType.GETTER, ".I2cAddress8Bit");
+      I2cAddr i2cAddr = imu.getI2cAddress();
+      if (i2cAddr != null) {
+        return i2cAddr.get8Bit();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularVelocityAxes")
   public String getAngularVelocityAxes() {
-    startBlockExecution(BlockType.GETTER, ".AngularVelocityAxes");
-    Set<Axis> axes = imu.getAngularVelocityAxes();
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    String delimiter = "";
-    for (Axis axis : axes) {
-      sb.append(delimiter).append("\"").append(axis.toString()).append("\"");
-      delimiter = ",";
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngularVelocityAxes");
+      Set<Axis> axes = imu.getAngularVelocityAxes();
+      StringBuilder sb = new StringBuilder();
+      sb.append("[");
+      String delimiter = "";
+      for (Axis axis : axes) {
+        sb.append(delimiter).append("\"").append(axis.toString()).append("\"");
+        delimiter = ",";
+      }
+      sb.append("]");
+      return sb.toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    sb.append("]");
-    return sb.toString();
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularVelocity")
   public AngularVelocity getAngularVelocity(String angleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".getAngularVelocity");
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (angleUnit != null) {
-      return imu.getAngularVelocity(angleUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getAngularVelocity");
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (angleUnit != null) {
+        return imu.getAngularVelocity(angleUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularOrientationAxes")
   public String getAngularOrientationAxes() {
-    startBlockExecution(BlockType.GETTER, ".AngularOrientationAxes");
-    Set<Axis> axes = imu.getAngularOrientationAxes();
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    String delimiter = "";
-    for (Axis axis : axes) {
-      sb.append(delimiter).append("\"").append(axis.toString()).append("\"");
-      delimiter = ",";
+    try {
+      startBlockExecution(BlockType.GETTER, ".AngularOrientationAxes");
+      Set<Axis> axes = imu.getAngularOrientationAxes();
+      StringBuilder sb = new StringBuilder();
+      sb.append("[");
+      String delimiter = "";
+      for (Axis axis : axes) {
+        sb.append(delimiter).append("\"").append(axis.toString()).append("\"");
+        delimiter = ",";
+      }
+      sb.append("]");
+      return sb.toString();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    sb.append("]");
-    return sb.toString();
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {AdafruitBNO055IMU.class, LynxEmbeddedIMU.class}, methodName = "getAngularOrientation")
   public Orientation getAngularOrientation(String axesReferenceString, String axesOrderString, String angleUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".getAngularOrientation");
-    AxesReference axesReference = checkAxesReference(axesReferenceString);
-    AxesOrder axesOrder = checkAxesOrder(axesOrderString);
-    AngleUnit angleUnit = checkAngleUnit(angleUnitString);
-    if (axesReference != null && axesOrder != null && angleUnit != null) {
-      return imu.getAngularOrientation(axesReference, axesOrder, angleUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".getAngularOrientation");
+      AxesReference axesReference = checkAxesReference(axesReferenceString);
+      AxesOrder axesOrder = checkAxesOrder(axesOrderString);
+      AngleUnit angleUnit = checkAngleUnit(angleUnitString);
+      if (axesReference != null && axesOrder != null && angleUnit != null) {
+        return imu.getAngularOrientation(axesReference, axesOrder, angleUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

@@ -1,13 +1,11 @@
 package com.qualcomm.robotcore.eventloop.opmode;
 
-import com.qualcomm.robotcore.hardware.TimestampedI2cData;
+import com.qualcomm.robotcore.hardware.I2cWarningManager;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
-import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
-import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -119,6 +117,17 @@ public abstract class LinearOpMode extends OpMode {
       idle();
     }
     return isActive;
+  }
+
+  /**
+   * Can be used to break out of an Init loop when false is returned. Touching
+   * Start or Stop will return false.
+   *
+   * @return Whether the OpMode is currently in Init. A return of false can exit
+   *         an Init loop and proceed with the next action.
+   */
+  public final boolean opModeInInit() {
+    return !isStarted() && !isStopRequested();
   }
 
   /**
@@ -302,7 +311,7 @@ public abstract class LinearOpMode extends OpMode {
           // If the user has given us a telemetry.update() that hasn't get gone out, then
           // push it out now. However, any NEW device health warning should be suppressed while
           // doing so, since required state might have been cleaned up by now and thus generate errors.
-          TimestampedI2cData.suppressNewHealthWarningsWhile(new Runnable() {
+          I2cWarningManager.suppressNewProblemDeviceWarningsWhile(new Runnable() {
             @Override public void run() {
               if (telemetry instanceof TelemetryInternal) {
                 telemetry.setMsTransmissionInterval(0); // will be reset the next time the opmode runs

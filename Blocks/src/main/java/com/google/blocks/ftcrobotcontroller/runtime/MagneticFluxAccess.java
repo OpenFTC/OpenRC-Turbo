@@ -37,71 +37,106 @@ class MagneticFluxAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getX(Object magneticFluxArg) {
-    startBlockExecution(BlockType.GETTER, ".X");
-    MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
-    if (magneticFlux != null) {
-      return magneticFlux.x;
+    try {
+      startBlockExecution(BlockType.GETTER, ".X");
+      MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
+      if (magneticFlux != null) {
+        return magneticFlux.x;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getY(Object magneticFluxArg) {
-    startBlockExecution(BlockType.GETTER, ".Y");
-    MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
-    if (magneticFlux != null) {
-      return magneticFlux.y;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Y");
+      MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
+      if (magneticFlux != null) {
+        return magneticFlux.y;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getZ(Object magneticFluxArg) {
-    startBlockExecution(BlockType.GETTER, ".Z");
-    MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
-    if (magneticFlux != null) {
-      return magneticFlux.z;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Z");
+      MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
+      if (magneticFlux != null) {
+        return magneticFlux.z;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object magneticFluxArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
-    if (magneticFlux != null) {
-      return magneticFlux.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
+      if (magneticFlux != null) {
+        return magneticFlux.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public MagneticFlux create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new MagneticFlux();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new MagneticFlux();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public MagneticFlux create_withArgs(double x, double y, double z, long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    return new MagneticFlux(x, y, z, acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new MagneticFlux(x, y, z, acquisitionTime);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object magneticFluxArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
-    if (magneticFlux != null) {
-      return magneticFlux.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      MagneticFlux magneticFlux = checkMagneticFlux(magneticFluxArg);
+      if (magneticFlux != null) {
+        return magneticFlux.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 }

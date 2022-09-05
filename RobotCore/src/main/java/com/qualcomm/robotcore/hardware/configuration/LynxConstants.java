@@ -180,7 +180,8 @@ public class LynxConstants
     public final static int MAX_UNRESERVED_MODULE_ADDRESS = 10;
     public final static int DEFAULT_PARENT_MODULE_ADDRESS = 1;              // try to avoid using: query the device instead
 
-    public static final String EMBEDDED_IMU_XML_TAG = "LynxEmbeddedIMU";
+    public static final String EMBEDDED_BNO055_IMU_XML_TAG = "LynxEmbeddedIMU";
+    public static final String EMBEDDED_BHI260AP_IMU_XML_TAG = "ControlHubImuBHI260AP";
 
     public static void validateMotorZ(int motorZ)
         {

@@ -48,7 +48,6 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import static com.qualcomm.robotcore.hardware.ControlSystem.MODERN_ROBOTICS;
 import static com.qualcomm.robotcore.hardware.ControlSystem.REV_HUB;
 
 /**
@@ -71,7 +70,7 @@ public abstract class UserConfigurationType implements ConfigurationType, Serial
     private @Expose                boolean builtIn = false;
     private @Expose                boolean isOnBotJava;
     private @Expose                boolean isExternalLibraries;
-    private @Expose @NonNull       ControlSystem[] compatibleControlSystems = {MODERN_ROBOTICS, REV_HUB};
+    private @Expose @NonNull       ControlSystem[] compatibleControlSystems = {REV_HUB};
     private @Expose                boolean isDeprecated;
 
     //----------------------------------------------------------------------------------------------

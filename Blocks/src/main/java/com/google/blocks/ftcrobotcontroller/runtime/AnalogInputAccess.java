@@ -38,15 +38,25 @@ class AnalogInputAccess extends HardwareAccess<AnalogInput> {
   @JavascriptInterface
   @Block(classes = AnalogInput.class, methodName = "getVoltage")
   public double getVoltage() {
-    startBlockExecution(BlockType.GETTER, ".Voltage");
-    return analogInput.getVoltage();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Voltage");
+      return analogInput.getVoltage();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = AnalogInput.class, methodName = "getMaxVoltage")
   public double getMaxVoltage() {
-    startBlockExecution(BlockType.GETTER, ".MaxVoltage");
-    return analogInput.getMaxVoltage();
+    try {
+      startBlockExecution(BlockType.GETTER, ".MaxVoltage");
+      return analogInput.getMaxVoltage();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

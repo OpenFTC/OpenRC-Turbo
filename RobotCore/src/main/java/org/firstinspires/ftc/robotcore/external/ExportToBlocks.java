@@ -87,4 +87,18 @@ public @interface ExportToBlocks {
    * the method's number of parameters.
    */
   String[] parameterLabels() default {};
+
+  /**
+   * The parameter default values to be used for each socket on the block.
+   * Similar to the parameter labels, the length of the array must match the method's number of
+   * parameters.
+   *
+   * The values are strings, which will be parsed to the actual type of the parameter.
+   *
+   * Parameter values for parameters whose type is LinearOpMode, OpMode, HardwareMap, Telemetry,
+   * and Gamepad are ignored as the block does not have sockets corresponding to these parameters.
+   * However, an entry must be present in the array here since the length of the array must match
+   * the method's number of parameters.
+   */
+  String[] parameterDefaultValues() default {};
 }

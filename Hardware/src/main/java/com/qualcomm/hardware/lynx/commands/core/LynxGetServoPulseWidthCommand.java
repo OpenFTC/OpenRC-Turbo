@@ -60,8 +60,7 @@ public class LynxGetServoPulseWidthCommand extends LynxDekaInterfaceCommand<Lynx
 
     public LynxGetServoPulseWidthCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetServoPulseWidthResponse(module);
+        super(module, new LynxGetServoPulseWidthResponse(module));
         }
 
     public LynxGetServoPulseWidthCommand(LynxModuleIntf module, int channelZ)
@@ -78,12 +77,6 @@ public class LynxGetServoPulseWidthCommand extends LynxDekaInterfaceCommand<Lynx
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetServoPulseWidthResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

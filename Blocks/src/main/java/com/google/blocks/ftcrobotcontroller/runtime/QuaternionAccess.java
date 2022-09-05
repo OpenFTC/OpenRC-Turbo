@@ -37,102 +37,152 @@ class QuaternionAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getW(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".W");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.w;
+    try {
+      startBlockExecution(BlockType.GETTER, ".W");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.w;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getX(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".X");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.x;
+    try {
+      startBlockExecution(BlockType.GETTER, ".X");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.x;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getY(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".Y");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.y;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Y");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.y;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getZ(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".Z");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.z;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Z");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.z;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public float getMagnitude(Object quaternionArg) {
-    startBlockExecution(BlockType.GETTER, ".Magnitude");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.magnitude();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Magnitude");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.magnitude();
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Quaternion create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Quaternion();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Quaternion();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Quaternion create_withArgs(float w, float x, float y, float z, long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Quaternion(w, x, y, z, acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Quaternion(w, x, y, z, acquisitionTime);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Quaternion normalized(Object quaternionArg) {
-    startBlockExecution(BlockType.FUNCTION, ".normalized");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.normalized();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".normalized");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.normalized();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Quaternion congugate(Object quaternionArg) {
-    startBlockExecution(BlockType.FUNCTION, ".congugate");
-    Quaternion quaternion = checkQuaternion(quaternionArg);
-    if (quaternion != null) {
-      return quaternion.congugate();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".congugate");
+      Quaternion quaternion = checkQuaternion(quaternionArg);
+      if (quaternion != null) {
+        return quaternion.congugate();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

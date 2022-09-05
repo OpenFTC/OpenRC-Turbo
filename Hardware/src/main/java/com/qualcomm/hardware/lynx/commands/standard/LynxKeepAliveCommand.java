@@ -85,12 +85,6 @@ public class LynxKeepAliveCommand extends LynxStandardCommand<LynxAck>
         }
 
     @Override
-    public boolean isResponseExpected()
-        {
-        return false;
-        }
-
-    @Override
     public void fromPayloadByteArray(byte[] rgb)
         {
         }

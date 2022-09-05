@@ -11,7 +11,7 @@ public class DsInspectionActivity extends InspectionActivity  {
         return false;
     }
 
-    @Override protected boolean useMenu() {
-        return true;
+    @Override protected int getMenu() {
+        return R.menu.inspection_menu_rcds_local;
     }
 }

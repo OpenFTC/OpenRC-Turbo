@@ -60,11 +60,11 @@ public interface GlobalWarningSource
     /**
      * Suppress or de-suppress the contributions of warnings by this source. If warnings are
      * suppressed, {@link #getGlobalWarning()} will always return an empty string. Internally,
-     * a supression count is maintained which is incremented if 'suppress' is true and decremented
+     * a suppression count is maintained which is incremented if 'suppress' is true and decremented
      * if it is false. The initial value of the count is zero; suppression is in effect if the
      * count is greater than zero.
      *
-     * @param suppress whether to suppress or desupress warnings associated with this source
+     * @param suppress whether to suppress or de-suppress warnings associated with this source
      * @see #clearGlobalWarning()
      */
     void suppressGlobalWarning(boolean suppress);

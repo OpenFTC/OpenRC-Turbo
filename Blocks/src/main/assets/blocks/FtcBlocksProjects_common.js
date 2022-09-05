@@ -411,12 +411,15 @@ function finishNewOrUploadProject(projectName, blkFileContent, errorElement, dia
     return;
   }
 
+  document.body.classList.add('waitCursor');
   saveProject(projectName, blkFileContent, jsFileContent, function(success, errorMessage) {
     if (success) {
+      document.body.classList.remove('waitCursor');
       // Close the dialog.
       dialogElement.style.display = 'none';
       openProjectBlocks(projectName);
     } else {
+      document.body.classList.remove('waitCursor');
       errorElement.innerHTML = errorMessage;
     }
   });

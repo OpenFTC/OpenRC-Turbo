@@ -35,89 +35,129 @@ class VuforiaTrackableAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setLocation(Object vuforiaTrackableArg, Object matrixArg) {
-    startBlockExecution(BlockType.FUNCTION, ".setLocation");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
-    if (vuforiaTrackable != null && matrix != null) {
-      vuforiaTrackable.setLocation(matrix);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setLocation");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      OpenGLMatrix matrix = checkOpenGLMatrix(matrixArg);
+      if (vuforiaTrackable != null && matrix != null) {
+        vuforiaTrackable.setLocation(matrix);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public OpenGLMatrix getLocation(Object vuforiaTrackableArg) {
-    startBlockExecution(BlockType.GETTER, ".Location");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      return vuforiaTrackable.getLocation();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Location");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        return vuforiaTrackable.getLocation();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setUserData(Object vuforiaTrackableArg, Object userData) {
-    startBlockExecution(BlockType.FUNCTION, ".setUserData");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      vuforiaTrackable.setUserData(userData);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setUserData");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        vuforiaTrackable.setUserData(userData);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Object getUserData(Object vuforiaTrackableArg) {
-    startBlockExecution(BlockType.GETTER, ".UserData");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      return vuforiaTrackable.getUserData();
+    try {
+      startBlockExecution(BlockType.GETTER, ".UserData");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        return vuforiaTrackable.getUserData();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VuforiaTrackables getTrackables(Object vuforiaTrackableArg) {
-    startBlockExecution(BlockType.GETTER, ".Trackables");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      return vuforiaTrackable.getTrackables();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Trackables");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        return vuforiaTrackable.getTrackables();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setName(Object vuforiaTrackableArg, String name) {
-    startBlockExecution(BlockType.FUNCTION, ".setName");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      vuforiaTrackable.setName(name);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setName");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        vuforiaTrackable.setName(name);
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getName(Object vuforiaTrackableArg) {
-    startBlockExecution(BlockType.GETTER, ".Name");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      String name = vuforiaTrackable.getName();
-      if (name != null) {
-        return name;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Name");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        String name = vuforiaTrackable.getName();
+        if (name != null) {
+          return name;
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VuforiaTrackable.Listener getListener(Object vuforiaTrackableArg) {
-    startBlockExecution(BlockType.GETTER, ".Listener");
-    VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
-    if (vuforiaTrackable != null) {
-      return vuforiaTrackable.getListener();
+    try {
+      startBlockExecution(BlockType.GETTER, ".Listener");
+      VuforiaTrackable vuforiaTrackable = checkVuforiaTrackable(vuforiaTrackableArg);
+      if (vuforiaTrackable != null) {
+        return vuforiaTrackable.getListener();
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

@@ -40,6 +40,7 @@ import com.qualcomm.hardware.lynx.commands.core.LynxI2cReadSingleByteCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxI2cWriteSingleByteCommand;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.I2cWaitControl;
+import com.qualcomm.robotcore.hardware.I2cWarningManager;
 import com.qualcomm.robotcore.hardware.TimestampedData;
 import com.qualcomm.robotcore.hardware.TimestampedI2cData;
 
@@ -55,8 +56,6 @@ public class LynxI2cDeviceSynchV1 extends LynxI2cDeviceSynch
     @Override
     public synchronized TimestampedData readTimeStamped(final int ireg, final int creg)
     {
-        LynxI2cDeviceSynchV1 deviceHavingProblems = null;
-
         try {
             final LynxI2cWriteSingleByteCommand writeTx = new LynxI2cWriteSingleByteCommand(this.getModule(), this.bus, this.i2cAddr, ireg);
             return acquireI2cLockWhile(new Supplier<TimestampedData>()
@@ -82,11 +81,11 @@ public class LynxI2cDeviceSynchV1 extends LynxI2cDeviceSynch
             handleException(e);
         } catch (LynxNackException e) {
             /*
-             * This is a possible device problem, go ahead and tell makeFakeData to warn.
+             * This is a possible device problem, go ahead and tell I2cWarningManager to warn.
              */
-            deviceHavingProblems = this;
+            I2cWarningManager.notifyProblemI2cDevice(this);
             handleException(e);
         }
-        return readTimeStampedPlaceholder.log(TimestampedI2cData.makeFakeData(deviceHavingProblems, getI2cAddress(), ireg, creg));
+        return readTimeStampedPlaceholder.log(TimestampedI2cData.makeFakeData(getI2cAddress(), ireg, creg));
     }
 }

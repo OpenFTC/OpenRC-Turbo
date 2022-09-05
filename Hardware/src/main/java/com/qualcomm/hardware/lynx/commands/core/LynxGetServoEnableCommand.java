@@ -60,8 +60,7 @@ public class LynxGetServoEnableCommand extends LynxDekaInterfaceCommand<LynxGetS
 
     public LynxGetServoEnableCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetServoEnableResponse(module);
+        super(module, new LynxGetServoEnableResponse(module));
         }
 
     public LynxGetServoEnableCommand(LynxModuleIntf module, int channelZ)
@@ -78,12 +77,6 @@ public class LynxGetServoEnableCommand extends LynxDekaInterfaceCommand<LynxGetS
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetServoEnableResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

@@ -27,6 +27,7 @@ package org.firstinspires.ftc.robotcore.internal.tfod;
  * dramatically increase the CPU load of the system.
  *
  * @author Vasu Agrawal
+ * @author lizlooney@google.com (Liz Looney)
  */
 public class TfodParameters {
 
@@ -73,29 +74,6 @@ public class TfodParameters {
   public final int numExecutorThreads;
 
   /**
-   * The number of past detection timings to use to determine inter frame spacing.
-   *
-   * <p>With numExecutorThreads > 1, frames must be spaced apart before being sent to the executor.
-   * The time is determined by taking the processing time per frame and dividing by the number of
-   * executor threads. Since the processing time per frame is noisy, a rolling average is kept. This
-   * parameter determines the length of that rolling average buffer.
-   */
-  public final int timingBufferSize;
-
-  /**
-   * The fastest that the library should return frames through getAnnotatedFrame().
-   *
-   * This parameter controls how much, if at all, getAnnotatedFrame() will sleep before returning
-   * the newest frame. Set this to something reasonable (roughly the frame rate of your camera) to
-   * ensure that you're not constantly getting the same frame back. More importantly, constantly
-   * calling getAnnotatedFrame() will significantly increase contention for the lock guarding the
-   * newest frame, and will make the overall performance lower.
-   *
-   * Permitted values: (0, 100] (Hz)
-   */
-  public final double maxFrameRate;
-
-  /**
    * Minimum confidence at which to keep detections.
    *
    * <p>Anything higher than about 0.05 or so will filter out all of the extra detections that the
@@ -124,14 +102,14 @@ public class TfodParameters {
   public final float trackerMinCorrelation;
 
   /**
-   * Whether to disable the tracker.
+   * Whether to use the tracker.
    *
    * <p> By default, the tracker is used to improve detection results. However, in the case
    * of static objects, or to use a different processing pipeline, you may want to disable the
    * tracker so that the only recognitions returned from the system are those from the network
    * itself.
    */
-  public final boolean trackerDisable;
+  public final boolean useObjectTracker;
 
   // Private constructor to force clients to use the Builder and get proper argument verification
   private TfodParameters(
@@ -140,29 +118,25 @@ public class TfodParameters {
       int inputSize,
       int numInterpreterThreads,
       int numExecutorThreads,
-      int timingBufferSize,
-      double maxFrameRate,
       int maxNumDetections,
       float minResultConfidence,
       float trackerMaxOverlap,
       float trackerMinSize,
       float trackerMarginalCorrelation,
       float trackerMinCorrelation,
-      boolean trackerDisable) {
+      boolean useObjectTracker) {
     this.isModelTensorFlow2 = isModelTensorFlow2;
     this.isModelQuantized = isModelQuantized;
     this.inputSize = inputSize;
     this.numInterpreterThreads = numInterpreterThreads;
     this.numExecutorThreads = numExecutorThreads;
-    this.timingBufferSize = timingBufferSize;
-    this.maxFrameRate = maxFrameRate;
     this.maxNumDetections = maxNumDetections;
     this.minResultConfidence = minResultConfidence;
     this.trackerMaxOverlap = trackerMaxOverlap;
     this.trackerMinSize = trackerMinSize;
     this.trackerMarginalCorrelation = trackerMarginalCorrelation;
     this.trackerMinCorrelation = trackerMinCorrelation;
-    this.trackerDisable = trackerDisable;
+    this.useObjectTracker = useObjectTracker;
   }
 
   public static class Builder {
@@ -172,12 +146,10 @@ public class TfodParameters {
     private int inputSize = 300; // px
 
     private int numInterpreterThreads = 1;
+    @Deprecated
     private int numExecutorThreads = 2;
 
     private int maxNumDetections = 10;
-    private int timingBufferSize = 10;
-
-    private double maxFrameRate = 30;
 
     private float minResultConfidence = 0.4f;
 
@@ -185,7 +157,7 @@ public class TfodParameters {
     private float trackerMinSize = 16.0f;
     private float trackerMarginalCorrelation = 0.75f;
     private float trackerMinCorrelation = 0.3f;
-    private boolean trackerDisable = false;
+    private boolean useObjectTracker = true;
 
     /** Default constructor to use the model included in the library. */
     public Builder() {}
@@ -209,6 +181,7 @@ public class TfodParameters {
       return this;
     }
 
+    @Deprecated
     public Builder numExecutorThreads(int numExecutorThreads) {
       if (numExecutorThreads <= 0) {
         throw new IllegalArgumentException("Must have at least 1 executor worker thread");
@@ -222,22 +195,6 @@ public class TfodParameters {
         throw new IllegalArgumentException("maxNumDetections must be at least 1");
       }
       this.maxNumDetections = maxNumDetections;
-      return this;
-    }
-
-    public Builder timingBufferSize(int timingBufferSize) {
-      if (timingBufferSize <= 0) {
-        throw new IllegalArgumentException("timingBufferSize must be at least 1");
-      }
-      this.timingBufferSize = timingBufferSize;
-      return this;
-    }
-
-    public Builder maxFrameRate(double maxFrameRate) {
-      if (maxFrameRate <= 0 || maxFrameRate > 100) {
-        throw new IllegalArgumentException("maxFrameRate must be in range (0, 100] (Hz)");
-      }
-      this.maxFrameRate = maxFrameRate;
       return this;
     }
 
@@ -269,8 +226,8 @@ public class TfodParameters {
       return this;
     }
 
-    public Builder trackerDisable(boolean trackerDisable) {
-      this.trackerDisable = trackerDisable;
+    public Builder useObjectTracker(boolean useObjectTracker) {
+      this.useObjectTracker = useObjectTracker;
       return this;
     }
 
@@ -281,15 +238,13 @@ public class TfodParameters {
           inputSize,
           numInterpreterThreads,
           numExecutorThreads,
-          timingBufferSize,
-          maxFrameRate,
           maxNumDetections,
           minResultConfidence,
           trackerMaxOverlap,
           trackerMinSize,
           trackerMarginalCorrelation,
           trackerMinCorrelation,
-          trackerDisable);
+          useObjectTracker);
     }
   }
 }

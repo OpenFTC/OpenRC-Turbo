@@ -68,8 +68,6 @@ abstract class HardwareAccess<DEVICE_TYPE extends HardwareDevice> extends Access
         return new AccelerationSensorAccess(blocksOpMode, hardwareItem, hardwareMap);
       case ANALOG_INPUT:
         return new AnalogInputAccess(blocksOpMode, hardwareItem, hardwareMap);
-      case ANALOG_OUTPUT:
-        return new AnalogOutputAccess(blocksOpMode, hardwareItem, hardwareMap);
       case BNO055IMU:
         return new BNO055IMUAccess(blocksOpMode, hardwareItem, hardwareMap);
       case COLOR_RANGE_SENSOR:

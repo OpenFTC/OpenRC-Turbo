@@ -1070,7 +1070,9 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             try {
                 // Query the module
                 LynxQueryInterfaceResponse response = queryInterfaceCommand.sendReceive();
-                theInterface.setWasNacked(response.isNackReceived());
+                // If the query was NACKed, sendReceive() would have thrown a LynxNackException, not
+                // returned a response.
+                theInterface.setWasNacked(false);
                 theInterface.setBaseCommandNumber(response.getCommandNumberFirst());
                 RobotLog.vv(TAG, "mod#=%d queryInterface(%s)=%d commands starting at %d", getModuleAddress(), theInterface.getInterfaceName(), response.getNumberOfCommands(), response.getCommandNumberFirst());
 

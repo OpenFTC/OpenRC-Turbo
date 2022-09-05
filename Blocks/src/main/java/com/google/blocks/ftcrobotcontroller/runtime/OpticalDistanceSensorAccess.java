@@ -39,33 +39,53 @@ class OpticalDistanceSensorAccess extends HardwareAccess<OpticalDistanceSensor> 
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class}, methodName = "getLightDetected")
+  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class, OpticalDistanceSensor.class}, methodName = "getLightDetected")
   public double getLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".LightDetected");
-    return opticalDistanceSensor.getLightDetected();
+    try {
+      startBlockExecution(BlockType.GETTER, ".LightDetected");
+      return opticalDistanceSensor.getLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class}, methodName = "getRawLightDetected")
+  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class, OpticalDistanceSensor.class}, methodName = "getRawLightDetected")
   public double getRawLightDetected() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetected");
-    return opticalDistanceSensor.getRawLightDetected();
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetected");
+      return opticalDistanceSensor.getRawLightDetected();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
-  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class}, methodName = "getRawLightDetectedMax")
+  @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class, OpticalDistanceSensor.class}, methodName = "getRawLightDetectedMax")
   public double getRawLightDetectedMax() {
-    startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
-    return opticalDistanceSensor.getRawLightDetectedMax();
+    try {
+      startBlockExecution(BlockType.GETTER, ".RawLightDetectedMax");
+      return opticalDistanceSensor.getRawLightDetectedMax();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   @Block(classes = {ModernRoboticsAnalogOpticalDistanceSensor.class}, methodName = "enableLed")
   public void enableLed(boolean enable) {
-    startBlockExecution(BlockType.FUNCTION, ".enableLed");
-    opticalDistanceSensor.enableLed(enable);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".enableLed");
+      opticalDistanceSensor.enableLed(enable);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

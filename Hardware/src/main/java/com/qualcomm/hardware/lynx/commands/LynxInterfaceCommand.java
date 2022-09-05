@@ -34,6 +34,8 @@ package com.qualcomm.hardware.lynx.commands;
 
 import com.qualcomm.hardware.lynx.LynxModuleIntf;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by bob on 2016-03-06.
  */
@@ -47,9 +49,20 @@ public abstract class LynxInterfaceCommand<RESPONSE extends LynxMessage> extends
     // Construction
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Constructor for commands that do not expect a response (other than ACK or NACK)
+     */
     public LynxInterfaceCommand(LynxModuleIntf module)
         {
         super(module);
+        }
+
+    /**
+     * Constructor for commands that expect a response (not just an ACK)
+     */
+    public LynxInterfaceCommand(LynxModuleIntf module, @NonNull RESPONSE defaultResponse)
+        {
+        super(module, defaultResponse);
         }
 
     //----------------------------------------------------------------------------------------------

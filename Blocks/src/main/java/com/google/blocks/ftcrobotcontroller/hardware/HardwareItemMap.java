@@ -23,12 +23,8 @@ import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.DeviceInterfaceModuleConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.LynxModuleConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.MatrixControllerConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.MotorControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
-import com.qualcomm.robotcore.hardware.configuration.ServoControllerConfiguration;
 import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -103,9 +99,8 @@ public class HardwareItemMap {
   private HardwareItemMap(XmlPullParser pullParser) {
     try {
       ReadXMLFileHandler readXMLFileHandler = new ReadXMLFileHandler();
-      HardwareItem parent = null;
       for (ControllerConfiguration controllerConfiguration : readXMLFileHandler.parse(pullParser)) {
-        addDevice(parent, controllerConfiguration);
+        addDevice(controllerConfiguration);
       }
     } catch (RobotCoreException e) {
       RobotLog.logStackTrace(e);
@@ -120,9 +115,8 @@ public class HardwareItemMap {
   HardwareItemMap(Reader reader) {
     try {
       ReadXMLFileHandler readXMLFileHandler = new ReadXMLFileHandler();
-      HardwareItem parent = null;
       for (ControllerConfiguration controllerConfiguration : readXMLFileHandler.parse(reader)) {
-        addDevice(parent, controllerConfiguration);
+        addDevice(controllerConfiguration);
       }
     } catch (RobotCoreException e) {
       RobotLog.logStackTrace(e);
@@ -134,13 +128,12 @@ public class HardwareItemMap {
    * {@link HardwareMap}.
    */
   private HardwareItemMap(HardwareMap hardwareMap) {
-    HardwareItem parent = null;
     for (HardwareType hardwareType : HardwareType.values()) {
       List<HardwareDevice> devices = hardwareMap.getAll(hardwareType.deviceType);
       for (HardwareDevice hardwareDevice : devices) {
         String deviceName = getDeviceName(hardwareMap, hardwareDevice);
         if (deviceName != null) {
-          addHardwareItem(parent, hardwareType, deviceName);
+          addHardwareItem(hardwareType, deviceName);
         }
       }
     }
@@ -172,78 +165,30 @@ public class HardwareItemMap {
    * Adds the given {@link ControllerConfiguration}, as well as any devices belonging to the
    * controller, to the given HardwareItemMap.
    */
-  private void addController(HardwareItem parent, ControllerConfiguration<? extends DeviceConfiguration> controllerConfiguration) {
+  private void addController(ControllerConfiguration<? extends DeviceConfiguration> controllerConfiguration) {
     for (DeviceConfiguration deviceConfiguration : controllerConfiguration.getDevices()) {
-      addDevice(parent, deviceConfiguration);
-    }
-    if (controllerConfiguration instanceof DeviceInterfaceModuleConfiguration) {
-      DeviceInterfaceModuleConfiguration deviceInterfaceModuleConfiguration =
-          (DeviceInterfaceModuleConfiguration) controllerConfiguration;
-      for (DeviceConfiguration deviceConfiguration :
-          deviceInterfaceModuleConfiguration.getPwmOutputs()) {
-        addDevice(parent, deviceConfiguration);
-      }
-      for (DeviceConfiguration deviceConfiguration :
-          deviceInterfaceModuleConfiguration.getI2cDevices()) {
-        addDevice(parent, deviceConfiguration);
-      }
-      for (DeviceConfiguration deviceConfiguration :
-          deviceInterfaceModuleConfiguration.getAnalogInputDevices()) {
-        addDevice(parent, deviceConfiguration);
-      }
-      for (DeviceConfiguration deviceConfiguration :
-          deviceInterfaceModuleConfiguration.getDigitalDevices()) {
-        addDevice(parent, deviceConfiguration);
-      }
-      for (DeviceConfiguration deviceConfiguration :
-          deviceInterfaceModuleConfiguration.getAnalogOutputDevices()) {
-        addDevice(parent, deviceConfiguration);
-      }
-    }
-    if (controllerConfiguration instanceof MatrixControllerConfiguration) {
-      MatrixControllerConfiguration matrixControllerConfiguration =
-          (MatrixControllerConfiguration) controllerConfiguration;
-      for (DeviceConfiguration deviceConfiguration : matrixControllerConfiguration.getServos()) {
-        addDevice(parent, deviceConfiguration);
-      }
-      for (DeviceConfiguration deviceConfiguration : matrixControllerConfiguration.getMotors()) {
-        addDevice(parent, deviceConfiguration);
-      }
-    }
-    if (controllerConfiguration instanceof MotorControllerConfiguration) {
-      MotorControllerConfiguration motorControllerConfiguration =
-          (MotorControllerConfiguration) controllerConfiguration;
-      for (DeviceConfiguration motorConfiguration : motorControllerConfiguration.getMotors()) {
-        addDevice(parent, motorConfiguration);
-      }
-    }
-    if (controllerConfiguration instanceof ServoControllerConfiguration) {
-      ServoControllerConfiguration servoControllerConfiguration =
-          (ServoControllerConfiguration) controllerConfiguration;
-      for (DeviceConfiguration deviceConfiguration : servoControllerConfiguration.getServos()) {
-        addDevice(parent, deviceConfiguration);
-      }
+      addDevice(deviceConfiguration);
     }
     if (controllerConfiguration instanceof LynxModuleConfiguration) {
       LynxModuleConfiguration lynxModuleConfiguration =
           (LynxModuleConfiguration) controllerConfiguration;
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getServos()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getMotors()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getAnalogInputs()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getPwmOutputs()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getI2cDevices()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
       for (DeviceConfiguration deviceConfiguration : lynxModuleConfiguration.getDigitalDevices()) {
-        addDevice(parent, deviceConfiguration);
+        addDevice(deviceConfiguration);
       }
     }
   }
@@ -251,25 +196,16 @@ public class HardwareItemMap {
   /**
    * Adds the given {@link DeviceConfiguration} to the given HardwareItemMap.
    */
-  private void addDevice(HardwareItem parent, DeviceConfiguration deviceConfiguration) {
+  private void addDevice(DeviceConfiguration deviceConfiguration) {
     // Use a set to prevent duplicates. Duplicates can occur if a controller returns the same
     // devices in getDevices() as it does in getMotors, getServos, etc.
     if (devices.add(deviceConfiguration)) {
       if (deviceConfiguration.isEnabled()) {
-        // If deviceConfiguration is a controller, but there's no corresponding HardwareType that
-        // is a container, use the given parent as the container of the controller's children.
-        // This is the case with DcMotorController. Blocks (so far) doesn't have a HardwareType for
-        // DcMotorController.
-        HardwareItem container = parent;
         for (HardwareType hardwareType : HardwareUtil.getHardwareTypes(deviceConfiguration)) {
-          HardwareItem harwareItem = addHardwareItem(parent, hardwareType, deviceConfiguration.getName());
-          if (hardwareType.isContainer()) {
-            // Use this hardwareItem as the container for the controller's children.
-            container = harwareItem;
-          }
+          addHardwareItem(hardwareType, deviceConfiguration.getName());
         }
         if (deviceConfiguration instanceof ControllerConfiguration) {
-          addController(container, (ControllerConfiguration<? extends DeviceConfiguration>) deviceConfiguration);
+          addController((ControllerConfiguration<? extends DeviceConfiguration>) deviceConfiguration);
         }
       }
     }
@@ -278,12 +214,11 @@ public class HardwareItemMap {
   /**
    * Adds a {@link HardwareItem} to the given HardwareItemMap.
    */
-  // visible for testing
-  HardwareItem addHardwareItem(HardwareItem parent, HardwareType hardwareType, String deviceName) {
+  private void addHardwareItem(HardwareType hardwareType, String deviceName) {
     if (deviceName.isEmpty()) {
       RobotLog.w("Blocks cannot support a hardware device (" +
           hardwareType.deviceType.getSimpleName() + ") whose name is empty.");
-      return null;
+      return;
     }
     List<HardwareItem> hardwareItemList = map.get(hardwareType);
     if (hardwareItemList == null) {
@@ -293,12 +228,11 @@ public class HardwareItemMap {
     // paranoia: avoid theoretically possible exact duplicates
     for (HardwareItem item : hardwareItemList) {
       if (item.deviceName.equals(deviceName)) {
-        return null; // we already have this item
+        return; // we already have this item
       }
     }
-    HardwareItem hardwareItem = new HardwareItem(parent, hardwareType, deviceName);
+    HardwareItem hardwareItem = new HardwareItem(hardwareType, deviceName);
     hardwareItemList.add(hardwareItem);
-    return hardwareItem;
   }
 
   /**
@@ -316,12 +250,22 @@ public class HardwareItemMap {
   }
 
   /**
-   * Returns a list of {@link HardwareItem}s for the given {@link HardwareType}.
+   * Returns a list of {@link HardwareItem}s for the given {@link HardwareType}, sorted by device
+   * name.
    */
   public List<HardwareItem> getHardwareItems(HardwareType hardwareType) {
-    return map.containsKey(hardwareType)
-        ? Collections.<HardwareItem>unmodifiableList(map.get(hardwareType))
-        : Collections.<HardwareItem>emptyList();
+    List<HardwareItem> list = new ArrayList<HardwareItem>();
+    if (map.containsKey(hardwareType)) {
+      for (HardwareItem hardwareItem : map.get(hardwareType)) {
+        list.add(hardwareItem);
+      }
+    }
+    Collections.sort(list, new Comparator<HardwareItem>() {
+      @Override public int compare(HardwareItem a, HardwareItem b) {
+        return a.deviceName.compareTo(b.deviceName);
+      }
+    });
+    return Collections.unmodifiableList(list);
   }
 
   /**

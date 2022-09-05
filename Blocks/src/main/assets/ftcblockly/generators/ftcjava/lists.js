@@ -73,23 +73,35 @@ Blockly.FtcJava['lists_repeat'] = function(block) {
 Blockly.FtcJava['lists_length'] = function(block) {
   // List length.
   var list = Blockly.FtcJava.valueToCode(block, 'VALUE',
-      Blockly.FtcJava.ORDER_FUNCTION_CALL);
-  if (!list) {
-    Blockly.FtcJava.generateImport_('Collections');
-    list = 'Collections.emptyList()';
+      Blockly.FtcJava.ORDER_NONE);
+  var code;
+  var order;
+  if (list) {
+    Blockly.FtcJava.generateImport_('JavaUtil');
+    code = 'JavaUtil.listLength(' + list + ')';
+    order = Blockly.FtcJava.ORDER_FUNCTION_CALL;
+  } else {
+    code = '0';
+    order = Blockly.FtcJava.ORDER_ATOMIC;
   }
-  return [list + '.size()', Blockly.FtcJava.ORDER_FUNCTION_CALL];
+  return [code, order];
 };
 
 Blockly.FtcJava['lists_isEmpty'] = function(block) {
   // Is the list empty?
   var list = Blockly.FtcJava.valueToCode(block, 'VALUE',
-      Blockly.FtcJava.ORDER_FUNCTION_CALL);
-  if (!list) {
-    Blockly.FtcJava.generateImport_('Collections');
-    list = 'Collections.emptyList()';
+      Blockly.FtcJava.ORDER_NONE);
+  var code;
+  var order;
+  if (list) {
+    Blockly.FtcJava.generateImport_('JavaUtil');
+    code = 'JavaUtil.listIsEmpty(' + list + ')';
+    order = Blockly.FtcJava.ORDER_FUNCTION_CALL;
+  } else {
+    code = 'true';
+    order = Blockly.FtcJava.ORDER_ATOMIC;
   }
-  return [list + '.isEmpty()', Blockly.FtcJava.ORDER_FUNCTION_CALL];
+  return [code, order];
 };
 
 Blockly.FtcJava['lists_indexOf'] = function(block) {

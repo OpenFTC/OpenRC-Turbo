@@ -37,6 +37,8 @@ import com.qualcomm.hardware.lynx.commands.LynxCommand;
 import com.qualcomm.hardware.lynx.commands.LynxMessage;
 import com.qualcomm.hardware.lynx.commands.LynxResponse;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by bob on 2016-03-04.
  */
@@ -83,9 +85,20 @@ public abstract class LynxStandardCommand<RESPONSE extends LynxMessage> extends 
     // Construction
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Constructor for commands that do not expect a response (other than ACK or NACK)
+     */
     public LynxStandardCommand(LynxModule module)
         {
         super(module);
+        }
+
+    /**
+     * Constructor for commands that expect a response (not just an ACK)
+     */
+    public LynxStandardCommand(LynxModule module, @NonNull RESPONSE defaultResponse)
+        {
+        super(module, defaultResponse);
         }
 
     //----------------------------------------------------------------------------------------------

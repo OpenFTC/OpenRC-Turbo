@@ -60,8 +60,7 @@ public class LynxGetPWMPulseWidthCommand extends LynxDekaInterfaceCommand<LynxGe
 
     public LynxGetPWMPulseWidthCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetPWMPulseWidthResponse(module);
+        super(module, new LynxGetPWMPulseWidthResponse(module));
         }
 
     public LynxGetPWMPulseWidthCommand(LynxModuleIntf module, int channelZ)
@@ -78,12 +77,6 @@ public class LynxGetPWMPulseWidthCommand extends LynxDekaInterfaceCommand<LynxGe
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetPWMPulseWidthResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

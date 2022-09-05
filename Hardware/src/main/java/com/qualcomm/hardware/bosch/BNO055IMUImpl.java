@@ -40,16 +40,13 @@ import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.qualcomm.robotcore.hardware.Gyroscope;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cAddrConfig;
-import com.qualcomm.robotcore.hardware.I2cController;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDeviceWithParameters;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.I2cWaitControl;
+import com.qualcomm.robotcore.hardware.I2cWarningManager;
 import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.TimestampedData;
-import com.qualcomm.robotcore.hardware.TimestampedI2cData;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.UserConfigurationType;
-import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -89,26 +86,49 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         implements BNO055IMU, Gyroscope, IntegratingGyroscope, I2cAddrConfig, OpModeManagerNotifier.Notifications
     {
 
+    public static class ImuNotInitializedException extends RuntimeException
+        {
+        public ImuNotInitializedException() { super("The IMU was not initialized"); }
+        }
+
     /**
      * The deviceClient parameter needs to already have its I2C address set.
      */
     public static boolean imuIsPresent(I2cDeviceSynchSimple deviceClient, boolean retryAfterWaiting)
         {
-        byte chipId = deviceClient.read8(BNO055IMU.Register.CHIP_ID.bVal);
-        if (chipId != bCHIP_ID_VALUE && retryAfterWaiting)
+        RobotLog.vv("BNO055", "Suppressing I2C warnings while we check for a BNO055 IMU");
+        I2cWarningManager.suppressNewProblemDeviceWarnings(true);
+        try
             {
-            deviceClient.waitForWriteCompletions(I2cWaitControl.WRITTEN);
-            try
+            byte chipId = deviceClient.read8(Register.CHIP_ID.bVal);
+            if (chipId != bCHIP_ID_VALUE && retryAfterWaiting)
                 {
-                Thread.sleep(650); // delay value is from Table 0-2 in the BNO055 specification
+                deviceClient.waitForWriteCompletions(I2cWaitControl.WRITTEN);
+                try
+                    {
+                    Thread.sleep(650); // delay value is from Table 0-2 in the BNO055 specification
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    }
+                chipId = deviceClient.read8(Register.CHIP_ID.bVal);
                 }
-            catch (InterruptedException e)
+            if (chipId == bCHIP_ID_VALUE)
                 {
-                Thread.currentThread().interrupt();
+                RobotLog.vv("BNO055", "Found BNO055 IMU");
+                return true;
                 }
-            chipId = deviceClient.read8(Register.CHIP_ID.bVal);
+            else
+                {
+                RobotLog.vv("BNO055", "No BNO055 IMU found");
+                return false;
+                }
             }
-        return chipId == bCHIP_ID_VALUE;
+        finally
+            {
+            I2cWarningManager.suppressNewProblemDeviceWarnings(false);
+            }
         }
 
     //------------------------------------------------------------------------------------------
@@ -160,14 +180,18 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         return new I2cDeviceSynch.ReadWindow(regFirst.bVal, regMax.bVal-regFirst.bVal, readMode);
         }
 
+    protected void throwIfNotInitialized()
+        {
+        if (parameters.mode == SensorMode.DISABLED) throw new ImuNotInitializedException();
+        }
+
+
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
 
     /**
-     * This constructor is used by {@link UserConfigurationType#createInstance(I2cController, int)}
-     * @see UserConfigurationType#createInstance(I2cController, int)
-     * @see I2cDeviceType
+     * This constructor is called internally by the FTC SDK.
      */
     public BNO055IMUImpl(I2cDeviceSynch deviceClient)
         {
@@ -238,8 +262,14 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
      */
     @Override public boolean internalInitialize(@NonNull Parameters parameters)
         {
-        if (parameters.mode==SensorMode.DISABLED)
-            return false;
+        if (parameters.mode==SensorMode.DISABLED) {
+            // Semantically, we should probably return false here, because the sensor was not
+            // successfully initialized. However, we now show a warning whenever initialization
+            // fails (returns false). Since this class does not do anything with the
+            // isInitialized field (and as the legacy IMU driver, it won't be receiving new
+            // enhancements in the future), it doesn't really impact anything, so practicality wins.
+            return true;
+        }
 
         // Remember parameters so they're accessible starting during initialization.
         // Disconnect from user parameters so he won't interfere with us later.
@@ -296,7 +326,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // Reset the system, and wait for the chip id register to switch back from its reset state
         // to the chip id state. This can take a very long time, some 650ms (Table 0-2, p13)
         // perhaps. While in the reset state the chip id (and other registers) reads as 0xFF.
-        TimestampedI2cData.suppressNewHealthWarnings(true);
+        I2cWarningManager.suppressNewProblemDeviceWarnings(true);
         try {
             elapsed.reset();
             write8(Register.SYS_TRIGGER, 0x20, I2cWaitControl.WRITTEN);
@@ -319,7 +349,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
             }
         finally
             {
-            TimestampedI2cData.suppressNewHealthWarnings(false);
+                I2cWarningManager.suppressNewProblemDeviceWarnings(false);
             }
 
         RobotLog.vv("IMU", "IMU has come out of reset. No more I2C failures should occur.");
@@ -472,6 +502,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     @Override
     public synchronized AngularVelocity getAngularVelocity(org.firstinspires.ftc.robotcore.external.navigation.AngleUnit unit)
         {
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.GYROSCOPE, getAngularScale());
         float zRotationRate = -vector.next();
         float yRotationRate =  vector.next();
@@ -587,32 +618,38 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     public synchronized Temperature getTemperature()
         {
+        throwIfNotInitialized();
         byte b = this.read8(Register.TEMP);
         return new Temperature(this.parameters.temperatureUnit.toTempUnit(), (double)b, System.nanoTime());
         }
 
     public synchronized MagneticFlux getMagneticFieldStrength()
         {
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.MAGNETOMETER, getFluxScale());
         return new MagneticFlux(vector.next(), vector.next(), vector.next(), vector.data.nanoTime);
         }
     public synchronized Acceleration getOverallAcceleration()
         {
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.ACCELEROMETER, getMetersAccelerationScale());
         return new Acceleration(DistanceUnit.METER, vector.next(), vector.next(), vector.next(), vector.data.nanoTime);
         }
     public synchronized Acceleration getLinearAcceleration()
         {
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.LINEARACCEL, getMetersAccelerationScale());
         return new Acceleration(DistanceUnit.METER, vector.next(), vector.next(), vector.next(), vector.data.nanoTime);
         }
     public synchronized Acceleration getGravity()
         {
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.GRAVITY, getMetersAccelerationScale());
         return new Acceleration(DistanceUnit.METER, vector.next(), vector.next(), vector.next(), vector.data.nanoTime);
         }
     public synchronized AngularVelocity getAngularVelocity()
         {
+        throwIfNotInitialized();
         return getAngularVelocity(parameters.angleUnit.toAngleUnit());
         }
     public synchronized Orientation getAngularOrientation()
@@ -627,6 +664,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // normalize such that users aren't surprised by (e.g.) Z angles which always appear as negative
         // (in the range (-360, 0]).
         //
+        throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.EULER, getAngularScale());
         org.firstinspires.ftc.robotcore.external.navigation.AngleUnit angleUnit = parameters.angleUnit.toAngleUnit();
         return new Orientation(AxesReference.INTRINSIC, AxesOrder.ZYX, angleUnit,
@@ -638,6 +676,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
 
     public synchronized Quaternion getQuaternionOrientation()
         {
+        throwIfNotInitialized();
         // Ensure we can see the registers we need
         deviceClient.ensureReadWindow(
                 new I2cDeviceSynch.ReadWindow(Register.QUA_DATA_W_LSB.bVal, 8, readMode),

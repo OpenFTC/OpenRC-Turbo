@@ -80,10 +80,16 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
       boolean useCompetitionFieldTargetLocations) {
-    initialize_withCameraDirection_2(cameraDirectionString,
-        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
-        dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
-        useCompetitionFieldTargetLocations);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithCameraDirection(cameraDirectionString,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+          useCompetitionFieldTargetLocations);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -93,20 +99,32 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       float dx, float dy, float dz,
       String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
       boolean useCompetitionFieldTargetLocations) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithCameraDirection(cameraDirectionString,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, axesOrderString, firstAngle, secondAngle, thirdAngle,
+          useCompetitionFieldTargetLocations);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  protected void internalInitializeWithCameraDirection(String cameraDirectionString,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
+      float dx, float dy, float dz,
+      String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
+      boolean useCompetitionFieldTargetLocations) {
     CameraDirection cameraDirection = checkVuforiaLocalizerCameraDirection(cameraDirectionString);
     AxesOrder axesOrder = checkAxesOrder(axesOrderString);
     Pair<Boolean, CameraMonitorFeedback> cameraMonitorFeedback =
         checkCameraMonitorFeedback(cameraMonitorFeedbackString);
     if (cameraDirection != null && axesOrder != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
       String vuforiaLicenseKey = "";
-      try {
-        vuforiaBase.initialize(vuforiaLicenseKey, cameraDirection,
-            useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
-            dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
-      } catch (Exception e) {
-        blocksOpMode.throwException(e);
-      }
+      vuforiaBase.initialize(vuforiaLicenseKey, cameraDirection,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
+          dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
     }
   }
 
@@ -116,10 +134,16 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
       float dx, float dy, float dz, float xAngle, float yAngle, float zAngle,
       boolean useCompetitionFieldTargetLocations) {
-    initialize_withWebcam_2(cameraNameString, webcamCalibrationFilename,
-        useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
-        dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
-        useCompetitionFieldTargetLocations);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithWebcam(cameraNameString, webcamCalibrationFilename,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, "XYZ", xAngle, yAngle, zAngle,
+          useCompetitionFieldTargetLocations);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -129,7 +153,23 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
       float dx, float dy, float dz,
       String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
       boolean useCompetitionFieldTargetLocations) {
-    startBlockExecution(BlockType.FUNCTION, ".initialize");
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".initialize");
+      internalInitializeWithWebcam(cameraNameString, webcamCalibrationFilename,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedbackString,
+          dx, dy, dz, axesOrderString, firstAngle, secondAngle, thirdAngle,
+          useCompetitionFieldTargetLocations);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
+  }
+
+  protected void internalInitializeWithWebcam(String cameraNameString, String webcamCalibrationFilename,
+      boolean useExtendedTracking, boolean enableCameraMonitoring, String cameraMonitorFeedbackString,
+      float dx, float dy, float dz,
+      String axesOrderString, float firstAngle, float secondAngle, float thirdAngle,
+      boolean useCompetitionFieldTargetLocations) {
     CameraName cameraName;
     if (cameraNameString.equals(SWITCHABLE_CAMERA_NAME)) {
       cameraName = blocksOpMode.getSwitchableCamera();
@@ -141,89 +181,115 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
         checkCameraMonitorFeedback(cameraMonitorFeedbackString);
     if (cameraName != null && axesOrder != null && cameraMonitorFeedback.first && checkAndSetVuforiaBase()) {
       String vuforiaLicenseKey = "";
-      try {
-        vuforiaBase.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename,
-            useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
-            dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
-      } catch (Exception e) {
-        blocksOpMode.throwException(e);
-      }
+      vuforiaBase.initialize(vuforiaLicenseKey, cameraName, webcamCalibrationFilename,
+          useExtendedTracking, enableCameraMonitoring, cameraMonitorFeedback.second,
+          dx, dy, dz, axesOrder, firstAngle, secondAngle, thirdAngle, useCompetitionFieldTargetLocations);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void activate() {
-    startBlockExecution(BlockType.FUNCTION, ".activate");
     try {
-      vuforiaBase.activate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".activate");
+      try {
+        vuforiaBase.activate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void deactivate() {
-    startBlockExecution(BlockType.FUNCTION, ".deactivate");
     try {
-      vuforiaBase.deactivate();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".deactivate");
+      try {
+        vuforiaBase.deactivate();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setActiveCamera(String cameraNameString) {
-    startBlockExecution(BlockType.FUNCTION, ".deactivate");
-    CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
-    if (cameraName != null) {
-      try {
-        vuforiaBase.setActiveCamera(cameraName);
-      } catch (IllegalStateException e) {
-        reportWarning(e.getMessage());
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".deactivate");
+      CameraName cameraName = checkCameraNameFromString(hardwareMap, cameraNameString);
+      if (cameraName != null) {
+        try {
+          vuforiaBase.setActiveCamera(cameraName);
+        } catch (IllegalStateException e) {
+          reportWarning(e.getMessage());
+        }
       }
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String track(String name) {
-    startBlockExecution(BlockType.FUNCTION, ".track");
     try {
-      return vuforiaBase.track(name).toJson();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
-    } catch (IllegalArgumentException e) {
-      reportInvalidArg("name", vuforiaBase.printTrackableNames());
+      startBlockExecution(BlockType.FUNCTION, ".track");
+      try {
+        return vuforiaBase.track(name).toJson();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      } catch (IllegalArgumentException e) {
+        reportInvalidArg("name", vuforiaBase.printTrackableNames());
+      }
+      return vuforiaBase.emptyTrackingResults(name).toJson();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return vuforiaBase.emptyTrackingResults(name).toJson();
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String trackPose(String name) {
-    startBlockExecution(BlockType.FUNCTION, ".trackPose");
     try {
-      return vuforiaBase.trackPose(name).toJson();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
-    } catch (IllegalArgumentException e) {
-      reportInvalidArg("name", vuforiaBase.printTrackableNames());
+      startBlockExecution(BlockType.FUNCTION, ".trackPose");
+      try {
+        return vuforiaBase.trackPose(name).toJson();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      } catch (IllegalArgumentException e) {
+        reportInvalidArg("name", vuforiaBase.printTrackableNames());
+      }
+      return vuforiaBase.emptyTrackingResults(name).toJson();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return vuforiaBase.emptyTrackingResults(name).toJson();
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public VuforiaLocalizer getVuforiaLocalizer() {
-    startBlockExecution(BlockType.FUNCTION, ".getVuforiaLocalizer");
     try {
-      return vuforiaBase.getVuforiaLocalizer();
-    } catch (IllegalStateException e) {
-      reportWarning(e.getMessage());
+      startBlockExecution(BlockType.FUNCTION, ".getVuforiaLocalizer");
+      try {
+        return vuforiaBase.getVuforiaLocalizer();
+      } catch (IllegalStateException e) {
+        reportWarning(e.getMessage());
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 }

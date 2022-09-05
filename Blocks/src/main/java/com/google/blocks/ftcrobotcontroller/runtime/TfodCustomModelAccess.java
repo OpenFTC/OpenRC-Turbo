@@ -38,21 +38,31 @@ final class TfodCustomModelAccess extends TfodBaseAccess<TfodCustomModel> {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setModelFromAsset(String assetName, String jsonLabels) {
-    startBlockExecution(BlockType.FUNCTION, ".setModelFromAsset");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
-    this.assetName = assetName;
-    this.tfliteModelFilename = null;
-    this.labels = labels;
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setModelFromAsset");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      this.assetName = assetName;
+      this.tfliteModelFilename = null;
+      this.labels = labels;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void setModelFromFile(String tfliteModelFilename, String jsonLabels) {
-    startBlockExecution(BlockType.FUNCTION, ".setModelFromFile");
-    String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
-    this.assetName = null;
-    this.tfliteModelFilename = tfliteModelFilename;
-    this.labels = labels;
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".setModelFromFile");
+      String[] labels = SimpleGson.getInstance().fromJson(jsonLabels, String[].class);
+      this.assetName = null;
+      this.tfliteModelFilename = tfliteModelFilename;
+      this.labels = labels;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   protected TfodCustomModel createTfod() {

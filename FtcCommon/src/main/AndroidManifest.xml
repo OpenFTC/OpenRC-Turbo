@@ -88,57 +88,15 @@
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditMotorControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_motor_controller_activity"
-            android:windowSoftInputMode="stateHidden" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditLegacyMotorControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_motor_controller_activity"
-            android:windowSoftInputMode="stateHidden" >
-        </activity>
-        <activity
             android:name="com.qualcomm.ftccommon.configuration.EditMotorListActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/edit_motor_controller_activity"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditServoControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_servo_controller_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditLegacyServoControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_servo_controller_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
             android:name="com.qualcomm.ftccommon.configuration.EditServoListActivity"
             android:configChanges="orientation|screenSize"
             android:label="@string/edit_servo_controller_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditLegacyModuleControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_legacy_module_controller_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditMatrixControllerActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_matrix_controller_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditDeviceInterfaceModuleActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_core_device_interface_module_controller_activity"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
         <activity
@@ -194,17 +152,6 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/edit_i2c_devices_activity"
             android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="com.qualcomm.ftccommon.configuration.EditAnalogOutputDevicesActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/edit_analog_output_devices_activity"
-            android:windowSoftInputMode="stateHidden|adjustResize" >
-        </activity>
-        <activity
-            android:name="org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/program_and_manage_activity" >
         </activity>
 
         <!-- A service that will auto-restart the robot controller if it crashes (if it's supposed to) -->

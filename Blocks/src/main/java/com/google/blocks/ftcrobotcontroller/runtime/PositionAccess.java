@@ -38,100 +38,145 @@ class PositionAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getDistanceUnit(Object positionArg) {
-    startBlockExecution(BlockType.GETTER, ".DistanceUnit");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      DistanceUnit distanceUnit = position.unit;
-      if (distanceUnit != null) {
-        return distanceUnit.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".DistanceUnit");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        DistanceUnit distanceUnit = position.unit;
+        if (distanceUnit != null) {
+          return distanceUnit.toString();
+        }
       }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getX(Object positionArg) {
-    startBlockExecution(BlockType.GETTER, ".X");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      return position.x;
+    try {
+      startBlockExecution(BlockType.GETTER, ".X");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        return position.x;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getY(Object positionArg) {
-    startBlockExecution(BlockType.GETTER, ".Y");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      return position.y;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Y");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        return position.y;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public double getZ(Object positionArg) {
-    startBlockExecution(BlockType.GETTER, ".Z");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      return position.z;
+    try {
+      startBlockExecution(BlockType.GETTER, ".Z");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        return position.z;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public long getAcquisitionTime(Object positionArg) {
-    startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      return position.acquisitionTime;
+    try {
+      startBlockExecution(BlockType.GETTER, ".AcquisitionTime");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        return position.acquisitionTime;
+      }
+      return 0;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return 0;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Position create() {
-    startBlockExecution(BlockType.CREATE, "");
-    return new Position();
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      return new Position();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Position create_withArgs(
       String distanceUnitString, double x, double y, double z, long acquisitionTime) {
-    startBlockExecution(BlockType.CREATE, "");
-    DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
-    if (distanceUnit != null) {
-      return new Position(distanceUnit, x, y, z, acquisitionTime);
+    try {
+      startBlockExecution(BlockType.CREATE, "");
+      DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
+      if (distanceUnit != null) {
+        return new Position(distanceUnit, x, y, z, acquisitionTime);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public Position toDistanceUnit(Object positionArg, String distanceUnitString) {
-    startBlockExecution(BlockType.FUNCTION, ".toDistanceUnit");
-    Position position = checkPosition(positionArg);
-    DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
-    if (position != null && distanceUnit != null) {
-      return position.toUnit(distanceUnit);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toDistanceUnit");
+      Position position = checkPosition(positionArg);
+      DistanceUnit distanceUnit = checkDistanceUnit(distanceUnitString);
+      if (position != null && distanceUnit != null) {
+        return position.toUnit(distanceUnit);
+      }
+      return null;
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return null;
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String toText(Object positionArg) {
-    startBlockExecution(BlockType.FUNCTION, ".toText");
-    Position position = checkPosition(positionArg);
-    if (position != null) {
-      return position.toString();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".toText");
+      Position position = checkPosition(positionArg);
+      if (position != null) {
+        return position.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 }

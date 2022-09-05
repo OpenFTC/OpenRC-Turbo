@@ -60,8 +60,7 @@ public class LynxGetSingleDIOInputCommand extends LynxDekaInterfaceCommand<LynxG
 
     public LynxGetSingleDIOInputCommand(LynxModuleIntf module)
         {
-        super(module);
-        this.response = new LynxGetSingleDIOInputResponse(module);
+        super(module, new LynxGetSingleDIOInputResponse(module));
         }
 
     public LynxGetSingleDIOInputCommand(LynxModuleIntf module, int pin)
@@ -78,12 +77,6 @@ public class LynxGetSingleDIOInputCommand extends LynxDekaInterfaceCommand<LynxG
     public static Class<? extends LynxInterfaceResponse> getResponseClass()
         {
         return LynxGetSingleDIOInputResponse.class;
-        }
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return true;
         }
 
     @Override

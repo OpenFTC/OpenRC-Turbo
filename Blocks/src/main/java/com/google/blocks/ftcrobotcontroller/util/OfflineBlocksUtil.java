@@ -70,6 +70,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blockly/msg/messages.js");
     assetsToInclude.add("blockly/blocks_compressed.js");
     assetsToInclude.add("blockly/javascript_compressed.js");
+    assetsToInclude.add("ftcblockly/generators/javascript.js");
     assetsToInclude.add("ftcblockly/generators/ftcjava.js");
     assetsToInclude.add("ftcblockly/generators/ftcjava/lists.js");
     assetsToInclude.add("ftcblockly/generators/ftcjava/logic.js");
@@ -111,6 +112,7 @@ public class OfflineBlocksUtil {
     assetsToInclude.add("blocks/hardware_util.js");
     assetsToInclude.add("blocks/ir_seeker_sensor.js");
     assetsToInclude.add("blocks/led.js");
+    assetsToInclude.add("blocks/led_effect.js");
     assetsToInclude.add("blocks/light_sensor.js");
     assetsToInclude.add("blocks/linear_op_mode.js");
     assetsToInclude.add("blocks/locale.js");

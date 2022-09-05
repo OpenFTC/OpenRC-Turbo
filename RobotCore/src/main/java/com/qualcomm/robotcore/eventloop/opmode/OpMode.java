@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeServices;
@@ -143,6 +144,14 @@ public abstract class OpMode {
   }
 
   /**
+   * Immediately stops execution of the calling OpMode; and transitions to the STOP state.
+   * No further code in the OpMode will execute once this has been called.
+   */
+  public final void terminateOpModeNow() {
+    throw new OpModeManagerImpl.ForceStopException();
+  }
+
+  /**
    * Get the number of seconds this op mode has been running
    * <p>
    * This method has sub millisecond accuracy.
@@ -154,9 +163,17 @@ public abstract class OpMode {
   }
 
   /**
-   * Reset the start time to zero.
+   * Reset the start time to the current time.
    */
+  @Deprecated
   public void resetStartTime() {
+    startTime = System.nanoTime();
+  }
+
+  /**
+   * Reset the runtime to zreo.
+   */
+  public void resetRuntime() {
     startTime = System.nanoTime();
   }
 

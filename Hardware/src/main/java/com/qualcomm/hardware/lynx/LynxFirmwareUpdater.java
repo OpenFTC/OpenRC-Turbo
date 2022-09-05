@@ -93,7 +93,7 @@ class LynxFirmwareUpdater {
             int cRetryFirmwareUpdate = 2;
             for (int i = 0; i < cRetryFirmwareUpdate; i++) {
                 RobotLog.vv(TAG, "trying firmware update: count=%d", i);
-                AppAliveNotifier.getInstance().onEventLoopIteration(); // be sure not to trip the CH OS watchdog
+                AppAliveNotifier.getInstance().notifyAppAlive(); // be sure not to trip the CH OS watchdog
                 if (updateFirmwareOnce(firmwareImage, progressConsumer)) {
                     result.success = true;
                     break;

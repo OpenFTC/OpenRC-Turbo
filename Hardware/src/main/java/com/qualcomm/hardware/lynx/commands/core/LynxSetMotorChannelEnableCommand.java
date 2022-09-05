@@ -74,13 +74,6 @@ public class LynxSetMotorChannelEnableCommand extends LynxDekaInterfaceCommand<L
     //----------------------------------------------------------------------------------------------
     // Operations
     //----------------------------------------------------------------------------------------------
-
-    @Override
-    public boolean isResponseExpected()
-        {
-        return false;
-        }
-
     @Override
     public byte[] toPayloadByteArray()
         {

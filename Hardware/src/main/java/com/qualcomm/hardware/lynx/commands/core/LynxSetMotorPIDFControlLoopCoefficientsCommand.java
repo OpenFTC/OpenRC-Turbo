@@ -147,11 +147,6 @@ public class LynxSetMotorPIDFControlLoopCoefficientsCommand extends LynxDekaInte
     // Operations
     //----------------------------------------------------------------------------------------------
 
-    @Override public boolean isResponseExpected()
-        {
-        return false;
-        }
-
     @Override public byte[] toPayloadByteArray()
         {
         ByteBuffer buffer = ByteBuffer.allocate(cbPayload).order(LynxDatagram.LYNX_ENDIAN);

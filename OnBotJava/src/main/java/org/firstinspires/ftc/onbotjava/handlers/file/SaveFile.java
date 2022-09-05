@@ -85,10 +85,8 @@ public class SaveFile implements WebHandler {
         code = data.get(KEY_SAVE).get(0);
         if (code == null) return StandardResponses.badRequest();
         File codeFile = new File(OnBotJavaManager.javaRoot, uri);
-        ReadWriteFile.writeFile(codeFile, code);
+        ReadWriteFile.updateFileRequiringCommit(codeFile, code);
         return StandardResponses.successfulRequest(data);
-
-        // default response
     }
 
     @Override

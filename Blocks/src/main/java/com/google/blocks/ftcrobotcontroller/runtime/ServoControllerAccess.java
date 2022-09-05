@@ -38,25 +38,40 @@ class ServoControllerAccess extends HardwareAccess<ServoController> {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public String getPwmStatus() {
-    startBlockExecution(BlockType.GETTER, ".PwmStatus");
-    PwmStatus pwmStatus = servoController.getPwmStatus();
-    if (pwmStatus != null) {
-      return pwmStatus.toString();
+    try {
+      startBlockExecution(BlockType.GETTER, ".PwmStatus");
+      PwmStatus pwmStatus = servoController.getPwmStatus();
+      if (pwmStatus != null) {
+        return pwmStatus.toString();
+      }
+      return "";
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
     }
-    return "";
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void pwmEnable() {
-    startBlockExecution(BlockType.FUNCTION, ".pwmEnable");
-    servoController.pwmEnable();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".pwmEnable");
+      servoController.pwmEnable();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void pwmDisable() {
-    startBlockExecution(BlockType.FUNCTION, ".pwmDisable");
-    servoController.pwmDisable();
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".pwmDisable");
+      servoController.pwmDisable();
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

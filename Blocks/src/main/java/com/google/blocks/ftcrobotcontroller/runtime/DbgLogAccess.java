@@ -36,14 +36,24 @@ class DbgLogAccess extends Access {
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void msg(String message) {
-    startBlockExecution(BlockType.FUNCTION, ".msg");
-    RobotLog.ii(TAG, message);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".msg");
+      RobotLog.ii(TAG, message);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 
   @SuppressWarnings("unused")
   @JavascriptInterface
   public void error(String message) {
-    startBlockExecution(BlockType.FUNCTION, ".error");
-    RobotLog.ee(TAG, message);
+    try {
+      startBlockExecution(BlockType.FUNCTION, ".error");
+      RobotLog.ee(TAG, message);
+    } catch (Throwable e) {
+      blocksOpMode.handleFatalException(e);
+      throw new AssertionError("impossible", e);
+    }
   }
 }

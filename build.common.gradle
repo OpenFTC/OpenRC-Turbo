@@ -102,6 +102,8 @@ android {
         jni.srcDirs = []
         jniLibs.srcDir rootProject.file('libs')
     }
+
+    ndkVersion '21.3.6528147'
 }
 
 apply from: '../moduleFlavors.gradle'
