@@ -62,7 +62,8 @@ Blockly.JavaScript['tfodRecognition_getProperty_String'] = function(block) {
   var tfodRecognition = Blockly.JavaScript.valueToCode(
       block, 'TFOD_RECOGNITION', Blockly.JavaScript.ORDER_MEMBER);
   var code = tfodRecognition + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'Recognition.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['tfodRecognition_getProperty_String'] = function(block) {
@@ -143,7 +144,8 @@ Blockly.JavaScript['tfodRecognition_getProperty_Number'] = function(block) {
   var tfodRecognition = Blockly.JavaScript.valueToCode(
       block, 'TFOD_RECOGNITION', Blockly.JavaScript.ORDER_MEMBER);
   var code = tfodRecognition + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'Recognition.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['tfodRecognition_getProperty_Number'] = function(block) {
@@ -174,7 +176,8 @@ Blockly.JavaScript['tfodRecognition_toText'] = function(block) {
   var tfodRecognition = Blockly.JavaScript.valueToCode(
       block, 'TFOD_RECOGNITION', Blockly.JavaScript.ORDER_NONE);
   var code = 'JSON.stringify(' + tfodRecognition + ')';
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  var blockLabel = 'Recognition.toText';
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['tfodRecognition_toText'] = function(block) {
@@ -211,8 +214,11 @@ Blockly.JavaScript['tfodRecognition_estimateAngleToObject'] = function(block) {
       block, 'TFOD_RECOGNITION', Blockly.JavaScript.ORDER_MEMBER);
   var angleUnit = Blockly.JavaScript.valueToCode(
       block, 'ANGLE_UNIT', Blockly.JavaScript.ORDER_COMMA);
-  var code = navigationIdentifierForJavaScript + '.angleUnit_convert(' +
-      tfodRecognition + '.estimateAngleToObject, "RADIANS", ' + angleUnit + ')';
+  var code = tfodRecognition + '.estimateAngleToObject';
+  var blockLabel = 'Recognition.estimateAngleToObject';
+  var wrapped = wrapJavaScriptCode(code, blockLabel);
+  code = navigationIdentifierForJavaScript + '.angleUnit_convert((' +
+      wrapped[0] + '), "RADIANS", ' + angleUnit + ')';
   return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 

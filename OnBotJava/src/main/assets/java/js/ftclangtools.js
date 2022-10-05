@@ -60,7 +60,7 @@ window.FtcLangTools = (function () {
                         validCompletions.push({
                             name: field,
                             value: field,
-                            score: 800,
+                            score: 700,
                             meta: langTools.classNameFromFullClassName(possibleFieldsForType[field].type).replace(/\$/g, '.')
                         });
                     }
@@ -91,34 +91,12 @@ window.FtcLangTools = (function () {
                         });
                     }
                 }
-
-                langTools.autoImport.knownTypeIds.filter(function (t) {
-                    return (t.indexOf(priorType.name + '$') === 0 || t.indexOf('$' + priorType.name + '$') > 0) &&
-                        t.lastIndexOf('$' + prefix) === t.lastIndexOf('$');
-                }).forEach(function (value) {
-                    var start = value.lastIndexOf('$' + prefix);
-                    var name = value.substr(start + 1);
-                    var nextSeparator = name.indexOf('$');
-                    name = name.substring(0, nextSeparator < 0 ? name.length : nextSeparator);
-                    validCompletions.push({
-                        name: name,
-                        caption: name,
-                        value: name,
-                        score: 700,
-                        meta: name
-                    });
-                });
             }, getCompletions: function (editor, session, pos, prefix, callback) {
                 try {
                     var timeStart = performance.now();
                     var index = env.editor.session.getDocument().positionToIndex(pos, 0);
                     var currentVariables = langTools.validVariablesUnderIndex(index);
                     var currentToken = langTools.tokenUnderIndex(index);
-                    // If nothing has changed, why are we being called? Return whatever we did last time
-                    if (index === lastPos) {
-                        callback(null, cache);
-                        return;
-                    }
 
                     lastPos = index;
 
@@ -161,7 +139,7 @@ window.FtcLangTools = (function () {
                             completedFields.push(field);
                             validCompletions.push({
                                 name: field,
-                                value: field, score: 900,
+                                value: field, score: 800,
                                 meta: langTools.classNameFromFullClassName(possibleFieldsForType[field].type)
                             });
                         }
@@ -184,7 +162,7 @@ window.FtcLangTools = (function () {
                                         snippet: snippet,
                                         //value: method + '(' + (params.length === 0 ? ')' : ''),
                                         name: method,
-                                        score: 800,
+                                        score: 900,
                                         type: 'snippet',
                                         meta: langTools.classNameFromFullClassName(value.type).replace(/\$/g, '.')
                                     });
@@ -288,7 +266,7 @@ window.FtcLangTools = (function () {
     FtcLangTools.prototype.tokenUnderCursor = function (offset) {
         if (!offset) offset = 0;
         var index = env.editor.session.getDocument().positionToIndex(env.editor.getCursorPosition(), 0) + offset;
-        return this.tokenUnderIndex(index - 1);
+        return this.tokenUnderIndex(index);
     };
 
     FtcLangTools.prototype.validVariablesUnderIndex = function (index, line) {

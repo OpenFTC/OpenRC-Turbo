@@ -47,6 +47,8 @@ class OpticalDistanceSensorAccess extends HardwareAccess<OpticalDistanceSensor> 
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -60,6 +62,8 @@ class OpticalDistanceSensorAccess extends HardwareAccess<OpticalDistanceSensor> 
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -73,6 +77,8 @@ class OpticalDistanceSensorAccess extends HardwareAccess<OpticalDistanceSensor> 
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -86,6 +92,8 @@ class OpticalDistanceSensorAccess extends HardwareAccess<OpticalDistanceSensor> 
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

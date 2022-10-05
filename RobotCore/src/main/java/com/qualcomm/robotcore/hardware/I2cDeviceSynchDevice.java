@@ -51,6 +51,8 @@ public abstract class I2cDeviceSynchDevice<DEVICE_CLIENT extends I2cDeviceSynchS
     protected boolean       deviceClientIsOwned;
     protected boolean       isInitialized;
 
+    private static String TAG = "I2C";
+
     //----------------------------------------------------------------------------------------------
     // Construction
     //----------------------------------------------------------------------------------------------
@@ -121,6 +123,7 @@ public abstract class I2cDeviceSynchDevice<DEVICE_CLIENT extends I2cDeviceSynchS
         {
         if (!this.isInitialized)
             {
+            RobotLog.ii(TAG, "Automatically initializing I2C device %s %s", getClass().getSimpleName(), getConnectionInfo());
             this.initialize();
             }
         }
@@ -157,7 +160,10 @@ public abstract class I2cDeviceSynchDevice<DEVICE_CLIENT extends I2cDeviceSynchS
     public void resetDeviceConfigurationForOpMode()
         {
         this.deviceClient.resetDeviceConfigurationForOpMode();
-        this.initialize();
+        this.isInitialized = false;
+        // Instead of performing initialization here (which might take a long time) for a device
+        // that might not even get use, we instead perform initialization when the device is first
+        // retrieved from the HardwareMap.
         }
 
     @Override public void close()

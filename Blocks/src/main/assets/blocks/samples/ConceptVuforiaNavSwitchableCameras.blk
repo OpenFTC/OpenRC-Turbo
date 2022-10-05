@@ -104,7 +104,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="I^C(6*4wS[c!C~=qU5^I">
-<field name="TRACKABLE_NAME">Blue Storage</field>
+<field name="TRACKABLE_NAME">Red Audience Wall</field>
 </block>
 </value>
 </block>
@@ -121,7 +121,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="kGly,#j?1@;!pX^@n_lV">
-<field name="TRACKABLE_NAME">Blue Alliance Wall</field>
+<field name="TRACKABLE_NAME">Red Rear Wall</field>
 </block>
 </value>
 </block>
@@ -138,7 +138,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="z+i+S6WP`l+Ku1!]815o">
-<field name="TRACKABLE_NAME">Red Storage</field>
+<field name="TRACKABLE_NAME">Blue Audience Wall</field>
 </block>
 </value>
 </block>
@@ -155,7 +155,7 @@
 </mutation>
 <value name="ARG0">
 <block type="vuforiaCurrentGame_typedEnum_trackableName" id="@zukx]XD6dmQj8hc!{f=">
-<field name="TRACKABLE_NAME">Red Alliance Wall</field>
+<field name="TRACKABLE_NAME">Blue Rear Wall</field>
 </block>
 </value>
 </block>
@@ -322,7 +322,7 @@
 <block type="vuforiaCurrentGame_track" id="4jZQVo^K@])BLe3f~lUi">
 <value name="TRACKABLE_NAME">
 <shadow type="vuforiaCurrentGame_typedEnum_trackableName" id="rg.#y[B/+7C=n6YeRc__">
-<field name="TRACKABLE_NAME">Blue Storage</field>
+<field name="TRACKABLE_NAME">Red Audience Wall</field>
 </shadow>
 <block type="variables_get" id="#iCxj]yw%~i6|giT1)gf">
 <field name="VAR" id="Q3J-AM0*4@;V}.Qq#{4:">trackableName</field>

@@ -66,7 +66,7 @@ public interface ColorSensor extends HardwareDevice {
    * Get the sensed ARGB color value from the sensor.
    * @return a packed 32-bit integer (to be interpreted as unsigned) containing all 4 color channels.
    *         To extract a specific channel, you can either manually bitshift and bitmask, (e.g. to extract
-   *         red,  (color >> 16) & 0xFF) or you can use the Android color class' red() green() and blue()
+   *         red,  (color &gt;&gt; 16) &amp; 0xFF) or you can use the Android color class' red() green() and blue()
    *         methods.
    */
   @ColorInt int argb();

@@ -24,15 +24,28 @@
 // blocksOpMode
 // telemetry
 
+
+var currentBlockLabel = '';
+
 function callRunOpMode() {
   blocksOpMode.scriptStarting();
   try {
     // Call the runOpMode method in the generated javascript.
     runOpMode();
   } catch (e) {
-    blocksOpMode.caughtException(String(e));
+    blocksOpMode.caughtException(String(e), currentBlockLabel);
   }
   blocksOpMode.scriptFinished();
+}
+
+function startBlockExecution(blockLabel) {
+  currentBlockLabel = blockLabel;
+  return true;
+}
+
+function endBlockExecution(value) {
+  currentBlockLabel = '';
+  return value;
 }
 
 function telemetryAddTextData(key, data) {

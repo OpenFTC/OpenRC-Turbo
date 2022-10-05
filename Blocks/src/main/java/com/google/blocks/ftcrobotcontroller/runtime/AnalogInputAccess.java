@@ -44,6 +44,8 @@ class AnalogInputAccess extends HardwareAccess<AnalogInput> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -57,6 +59,8 @@ class AnalogInputAccess extends HardwareAccess<AnalogInput> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

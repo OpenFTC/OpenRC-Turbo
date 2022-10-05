@@ -98,7 +98,7 @@ public enum ApChannel {
     public String getDisplayName() {
         if (this == UNKNOWN) return UNKNOWN_DISPLAY_NAME;
         if (channelNum == CHANNEL_AUTO_SELECT) {
-            if (NetworkConnectionHandler.getDefaultNetworkType(AppUtil.getDefContext()) == NetworkType.WIFIDIRECT
+            if (NetworkConnectionHandler.getNetworkType(AppUtil.getDefContext()) == NetworkType.WIFIDIRECT
                 && WifiUtil.is5GHzAvailable()) {
                 return "auto (either band)";
             }

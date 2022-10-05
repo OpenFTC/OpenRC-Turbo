@@ -67,6 +67,8 @@ class DistanceSensorAccess extends HardwareAccess<DistanceSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

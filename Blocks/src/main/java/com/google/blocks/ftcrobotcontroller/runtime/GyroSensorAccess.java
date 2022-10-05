@@ -58,6 +58,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -78,6 +80,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -99,6 +103,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -116,6 +122,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -137,6 +145,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -154,6 +164,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -175,6 +187,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -193,6 +207,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -206,6 +222,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -219,6 +237,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -232,6 +252,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -245,6 +267,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -260,6 +284,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -273,6 +299,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -286,6 +314,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -313,6 +343,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -335,6 +367,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -362,6 +396,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -386,6 +422,8 @@ class GyroSensorAccess extends HardwareAccess<GyroSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

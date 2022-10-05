@@ -1,3 +1,35 @@
+/*
+Copyright (c) 2022 REV Robotics
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted (subject to the limitations in the disclaimer below) provided that
+the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this list
+of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright notice, this
+list of conditions and the following disclaimer in the documentation and/or
+other materials provided with the distribution.
+
+Neither the name of REV Robotics nor the names of its contributors may be used to
+endorse or promote products derived from this software without specific prior
+written permission.
+
+NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package com.qualcomm.hardware.bosch;
 
 import androidx.annotation.NonNull;
@@ -47,12 +79,11 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
     // It takes less than a second to boot from flash with no descriptor, but let's allow 2
     private static final int BOOT_FROM_FLASH_TIMEOUT_MS = 2000;
     // See W25Q64JW flash datasheet. In the worst-case scenario, the IMU will erase the flash chip
-    // 4KiB at a time. Each 4KiB erase can take up to 400ms. The chip is 8MiB, so a full erase
-    // could theoretically take as long as  take 819,200ms just in erase time, to say nothing of the
-    // per-erase overhead. Let's be really conservative and say 900 seconds, though in practice it
-    // should not take anywhere near that long because the typical 4KiB erase time is just 45ms, and
-    // we aren't erasing the entire flash chip.
-    private static final int ERASE_FLASH_TIMEOUT_MS = 900_000;
+    // 4KiB at a time. Each 4KiB erase can take up to 400ms. We are erasing around 110-120 KiB of
+    // the chip (to be conservative, let's use a value of 140 KiB), so erasing could theoretically
+    // take as long as  take 14,000ms (not including any overhead). Of course, the typical 4KiB
+    // erase time is just 45ms, so it's extremely unlikely to ever take that long.
+    private static final int ERASE_FLASH_TIMEOUT_MS = 14_000;
 
     // Generic command constants
     private static final int COMMAND_HEADER_LENGTH = 4;
@@ -64,34 +95,23 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
     // General firmware flashing constants
     private static final boolean DEBUG_FW_FLASHING = false;
     private static final int FW_START_ADDRESS = 0x1F84; // From the datasheet
-    private static final boolean USE_SMALL_PACKETS_FOR_FW_FLASH = true; // Setting this to false does not work at present
     // ALWAYS update these two together
-    private static final int FW_RESOURCE = R.raw.bhi260_ap_fw_15;
-    private static final int BUNDLED_FW_VERSION = 15;
+    private static final int FW_RESOURCE = R.raw.rev_bhi260_ap_fw_20;
+    private static final int BUNDLED_FW_VERSION = 20;
 
     // Write Flash constants
 
     // For the Write Flash command, it's simpler if we think of the starting address as part of the
     // header instead of the payload, so that the "payload" only contains FW and padding bytes
     private static final int WRITE_FLASH_COMMAND_HEADER_LENGTH = 8;
-    // The highest number divisible by 4 that is less than
-    // 65535 (the highest 16-bit number) minus 8 (for the header and starting address)
-    private static final int MAX_WRITE_FLASH_LENGTH = 65524;
 
-    private static final int MAX_WRITE_FLASH_AND_PADDING_BYTES_FOR_SINGLE_TRANSACTION = MAX_SEND_I2C_BYTES_WITH_REGISTER - WRITE_FLASH_COMMAND_HEADER_LENGTH;
-    private static final int MAX_WRITE_FLASH_BYTES_FOR_SINGLE_TRANSACTION = // Factors in padding
-            MAX_WRITE_FLASH_AND_PADDING_BYTES_FOR_SINGLE_TRANSACTION - (MAX_WRITE_FLASH_AND_PADDING_BYTES_FOR_SINGLE_TRANSACTION % 4);
+    private static final int MAX_WRITE_FLASH_FIRMWARE_AND_PADDING_BYTES = MAX_SEND_I2C_BYTES_WITH_REGISTER - WRITE_FLASH_COMMAND_HEADER_LENGTH;
+    private static final int MAX_WRITE_FLASH_FIRMWARE_BYTES = // Factors in the need for padding bytes
+            MAX_WRITE_FLASH_FIRMWARE_AND_PADDING_BYTES - (MAX_WRITE_FLASH_FIRMWARE_AND_PADDING_BYTES % 4);
+    // We'll likely need to increase this timeout if we gain the ability to write more I2C bytes at once
     private static final int WRITE_FLASH_RESPONSE_TIMEOUT_MS = 1_000;
 
     private int fwVersion = 0;
-
-    // TODO: Get multi-I2C transaction Write Flash commands working (if possible):
-    //      - To attempt multi-I2C transaction Write Flash commands, set
-    //        USE_SMALL_PACKETS_FOR_FW_FLASH to false.
-    //      - To optimize performance of this, wait the amount of time the I2C write will take
-    //        before sending another write (print to log when this fails)
-    //      - Adjust WRITE_FLASH_RESPONSE_TIMEOUT_MS based on how long it takes to get a response
-    //        after sending a 45 KiB Write Flash command
 
     public static boolean imuIsPresent(I2cDeviceSynchSimple deviceClient) {
         deviceClient.setI2cAddress(I2C_ADDR);
@@ -114,8 +134,6 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
     }
 
     public static void flashFirmwareIfNecessary(I2cDeviceSynchSimple deviceClient) {
-        // TODO(Noah): Remove
-        if (true) { return; }
         deviceClient.setI2cAddress(I2C_ADDR);
 
         try {
@@ -194,25 +212,22 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
                     // Send up to 64K in a single Write Flash command (will require multiple I2C writes)
                     int nextStartAddress = FW_START_ADDRESS;
                     int numBytesAlreadyWritten = 0;
-                    // Based on USE_SMALL_PACKETS_FOR_FW_FLASH, we either send just a couple of big
-                    // Write Flash commands (that take many Expansion Hub I2C writes each), or many
-                    // small Write Flash commands (which only take a single Expansion Hub I2C each)
-                    int maxBytesPerCommand = USE_SMALL_PACKETS_FOR_FW_FLASH ? MAX_WRITE_FLASH_BYTES_FOR_SINGLE_TRANSACTION: MAX_WRITE_FLASH_LENGTH;
 
                     RobotLog.ii(TAG, "Sending firmware data");
                     while (fwBuffer.hasRemaining()) {
-                        int bytesToTransmitInCommand = Math.min(fwBuffer.remaining(), maxBytesPerCommand);
+                        int fwBytesToTransmitInCommand = Math.min(fwBuffer.remaining(), MAX_WRITE_FLASH_FIRMWARE_BYTES);
 
-                        if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Transmitting Write Flash command with %d bytes", bytesToTransmitInCommand); }
+                        if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Transmitting Write Flash command with %d fw bytes", fwBytesToTransmitInCommand); }
                         try {
                             // This function will handle keeping the OS watchdog fed while it runs
-                            sendWriteFlashCommandAndWaitForResponse(deviceClient, nextStartAddress, numBytesAlreadyWritten, fwLength, bytesToTransmitInCommand, fwBuffer);
+                            sendWriteFlashCommandAndWaitForResponse(deviceClient, nextStartAddress, fwBytesToTransmitInCommand, fwBuffer);
                         } catch (CommandFailureException e) {
                             RobotLog.ee(TAG, e, "Write Flash command failed");
                             throw new InitException();
                         }
-                        nextStartAddress += bytesToTransmitInCommand;
-                        numBytesAlreadyWritten += bytesToTransmitInCommand;
+                        nextStartAddress += fwBytesToTransmitInCommand;
+                        numBytesAlreadyWritten += fwBytesToTransmitInCommand;
+                        AppUtil.getInstance().showProgress(UILocation.BOTH, AppUtil.getDefContext().getString(R.string.flashingControlHubImu), new ProgressParameters(numBytesAlreadyWritten, fwLength));
                     }
 
                     // We've finished writing the firmware to flash, now we tell the chip to boot from it
@@ -455,12 +470,10 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
     private static void sendWriteFlashCommandAndWaitForResponse(
             I2cDeviceSynchSimple deviceClient,
             int startAddress,
-            int numFwBytesAlreadyWritten,
-            int numTotalFwBytesToWrite,
             int numFwBytesInCommand,
             ByteBuffer bytesSource) throws CommandFailureException {
 
-        if (numFwBytesInCommand > MAX_WRITE_FLASH_LENGTH) {
+        if (numFwBytesInCommand > MAX_WRITE_FLASH_FIRMWARE_BYTES) {
             throw new IllegalArgumentException("Tried to write too many bytes in a single Write Flash command");
         }
 
@@ -477,34 +490,9 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
         }
         int numFwPlusPaddingBytes = numFwBytesInCommand + numPaddingBytes;
 
-        int numFwBytesInFirstTransaction;
-        boolean fitsInOneTransaction;
-
         if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "totalLengthOfCommand=%d numFwPlusPaddingBytes=%d numFwBytesInCommand=%d", totalLengthOfCommand, numFwPlusPaddingBytes, numFwBytesInCommand); }
-        if (numFwPlusPaddingBytes <= MAX_WRITE_FLASH_AND_PADDING_BYTES_FOR_SINGLE_TRANSACTION) {
-            fitsInOneTransaction = true;
-            numFwBytesInFirstTransaction = numFwBytesInCommand;
-        } else {
-            fitsInOneTransaction = false;
-            // For simplicity's sake, we do not include any padding bytes except in the final
-            // transaction, so if there will be more than one transaction, we need to size the buffer
-            // to not include room for padding bytes.
-            numFwBytesInFirstTransaction = Math.min(numFwBytesInCommand, MAX_WRITE_FLASH_BYTES_FOR_SINGLE_TRANSACTION);
-        }
 
-        // Update the progress indicator based on the first transaction (even though it hasn't been written yet)
-        numFwBytesAlreadyWritten += numFwBytesInFirstTransaction;
-        AppUtil.getInstance().showProgress(UILocation.BOTH, AppUtil.getDefContext().getString(R.string.flashingControlHubImu), new ProgressParameters(numFwBytesAlreadyWritten, numTotalFwBytesToWrite));
-
-        // Allocate the buffer for the first transaction
-        int bufferSize;
-        if (fitsInOneTransaction) {
-            bufferSize = totalLengthOfCommand;
-        } else {
-            bufferSize = WRITE_FLASH_COMMAND_HEADER_LENGTH + numFwBytesInFirstTransaction;
-        }
-
-        ByteBuffer buffer = ByteBuffer.allocate(bufferSize)
+        ByteBuffer buffer = ByteBuffer.allocate(totalLengthOfCommand)
                 .order(ByteOrder.LITTLE_ENDIAN)
                 .putShort((short) CommandType.WRITE_FLASH.id);
 
@@ -519,79 +507,17 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
         buffer.putInt(startAddress);
         int bufferPositionFirmwareBytes = buffer.position();
 
-        if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Copying %d bytes from byte source (%d bytes remaining)", numFwBytesInFirstTransaction, bytesSource.remaining() - numFwBytesInFirstTransaction); }
-        bytesSource.get(buffer.array(), bufferPositionFirmwareBytes, numFwBytesInFirstTransaction);
+        if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Copying %d bytes from byte source (%d bytes remaining)", numFwBytesInCommand, bytesSource.remaining() - numFwBytesInCommand); }
+        bytesSource.get(buffer.array(), bufferPositionFirmwareBytes, numFwBytesInCommand);
 
-        buffer.position(WRITE_FLASH_COMMAND_HEADER_LENGTH + numFwBytesInFirstTransaction);
+        buffer.position(WRITE_FLASH_COMMAND_HEADER_LENGTH + numFwBytesInCommand);
 
-        if (fitsInOneTransaction) {
-            if (numPaddingBytes > 0) {
-                buffer.put(new byte[numPaddingBytes]);
-            }
-            if (DEBUG_FW_FLASHING) { printByteBuffer("only transmission", buffer); }
-            deviceClient.write(Register.COMMAND_INPUT.address, buffer.array());
-            // We're done!
-        } else {
-            int transmissionNum = 1;
-            if (DEBUG_FW_FLASHING) { printByteBuffer("transmission 1", buffer); }
-            deviceClient.write(Register.COMMAND_INPUT.address, buffer.array());
-
-            int numRemainingBytes = numFwPlusPaddingBytes - numFwBytesInFirstTransaction;
-            int numRemainingFwBytes = numRemainingBytes - numPaddingBytes;
-
-            while (numRemainingBytes > 0) {
-                AppAliveNotifier.getInstance().notifyAppAlive(); // Make sure we don't trip the CH OS watchdog
-
-                if (numRemainingBytes <= MAX_SEND_I2C_BYTES_NO_REGISTER) {
-                    // This will be the final transaction
-                    if (bufferSize != numRemainingBytes) {
-                        bufferSize = numRemainingBytes;
-                        buffer = ByteBuffer.allocate(bufferSize);
-                    }
-
-                    if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Copying %d bytes from byte source (%d bytes remaining)", bufferSize, bytesSource.remaining() - numRemainingFwBytes); }
-                    bytesSource.get(buffer.array(), 0, numRemainingFwBytes);
-
-                    // Update how many FW bytes are about to be written for the progress indicator
-                    numFwBytesAlreadyWritten += numFwBytesInFirstTransaction;
-
-                    if (numPaddingBytes > 0) {
-                        buffer.position(numRemainingFwBytes);
-                        buffer.put(new byte[numPaddingBytes]);
-                    }
-                } else {
-                    // This will not be the final transaction
-
-                    // NOTE: For simplicity's sake, we do not include any padding bytes except in
-                    // the final transaction. This means that we may need a buffer size smaller than
-                    // MAX_SEND_I2C_BYTES_NO_REGISTER here.
-                    int newBufferSize;
-                    if (numRemainingFwBytes <= MAX_SEND_I2C_BYTES_NO_REGISTER) {
-                        newBufferSize = numRemainingFwBytes;
-                    } else {
-                        newBufferSize = MAX_SEND_I2C_BYTES_NO_REGISTER;
-                    }
-
-                    // Update how many FW bytes are about to be written for the progress indicator
-                    numFwBytesAlreadyWritten += bufferSize;
-
-                    if (bufferSize != newBufferSize) {
-                        bufferSize = MAX_SEND_I2C_BYTES_NO_REGISTER;
-                        buffer = ByteBuffer.allocate(bufferSize);
-                    }
-
-                    // TODO: The bytes remaining number here is wrong
-                    if (DEBUG_FW_FLASHING) { RobotLog.dd(TAG, "Copying %d bytes from byte source (%d bytes remaining)", bufferSize, bytesSource.remaining() - numRemainingFwBytes); }
-                    bytesSource.get(buffer.array());
-                }
-
-                if (DEBUG_FW_FLASHING) { printByteBuffer(String.format(Locale.US, "transmission %d", ++transmissionNum), buffer); }
-                deviceClient.write(buffer.array());
-                numRemainingBytes -= bufferSize;
-                numRemainingFwBytes = numRemainingBytes - numPaddingBytes;
-                AppUtil.getInstance().showProgress(UILocation.BOTH, AppUtil.getDefContext().getString(R.string.flashingControlHubImu), new ProgressParameters(numFwBytesAlreadyWritten, numTotalFwBytesToWrite));
-            }
+        if (numPaddingBytes > 0) {
+            buffer.put(new byte[numPaddingBytes]);
         }
+
+        if (DEBUG_FW_FLASHING) { printByteBuffer("Write Flash command", buffer); }
+        deviceClient.write(Register.COMMAND_INPUT.address, buffer.array());
         waitForCommandResponse(deviceClient, CommandType.WRITE_FLASH, WRITE_FLASH_RESPONSE_TIMEOUT_MS);
     }
 
@@ -674,9 +600,49 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
                     RobotLog.ww(TAG, "Received status code 0, trying again");
                     continue; // Try again
                 }
-                throw new CommandFailureException(String.format(Locale.US, "Received unexpected response status 0x%X for %s command", responseStatusCode, commandType));
-                // TODO(Noah): Add good support for receiving a Command Error Response
+
+                String errorMessage = null;
+                String erroredCommandDesc;
+
+                if (responseStatusCode == COMMAND_ERROR_RESPONSE) {
+                    CommandError commandError = null;
+                    int commandErrorCode = -1;
+                    int erroredCommandId = -1;
+
+                    if (responsePayload.length >= 3) {
+                        ByteBuffer errorPayload = ByteBuffer.wrap(responsePayload).order(ByteOrder.LITTLE_ENDIAN);
+                        erroredCommandId = TypeConversion.unsignedShortToInt(errorPayload.getShort());
+                        commandErrorCode = TypeConversion.unsignedByteToInt(errorPayload.get());
+                        commandError = CommandError.fromInt(commandErrorCode);
+                    }
+
+                    if (erroredCommandId == commandType.id) {
+                        erroredCommandDesc = commandType.toString() + " command";
+                    } else {
+                        // The command ID that this error is a response to does not match the command we just sent
+                        CommandType erroredCommandType = CommandType.findById(erroredCommandId);
+
+                        if (erroredCommandType == null) {
+                            erroredCommandDesc = String.format(Locale.US, "unknown command 0x%4X (just sent %s command)", erroredCommandId, commandType);
+                        } else {
+                            erroredCommandDesc = String.format(Locale.US, "%s command (just sent %s command)", erroredCommandType, commandType);
+                        }
+                    }
+
+                    if (commandError == null) {
+                        errorMessage = String.format(Locale.US, "Received unknown Command Error code 0x%2X in response to %s", commandErrorCode, erroredCommandDesc);
+                    } else {
+                        errorMessage = String.format(Locale.US, "Received Command Error %s in response to %s", commandError, erroredCommandDesc);
+                    }
+                }
+
                 // TODO(Noah): Add good support for receiving a non-error, non-matching response
+
+                if (errorMessage == null) {
+                    errorMessage = String.format(Locale.US, "Received unexpected response status 0x%X for %s command", responseStatusCode, commandType);
+                }
+
+                throw new CommandFailureException(errorMessage);
             }
             return new StatusPacket(responseStatusCode, responsePayload);
         }
@@ -760,6 +726,36 @@ public class BHI260IMU extends I2cDeviceSynchDeviceWithParameters<I2cDeviceSynch
         CommandType(int id, int successStatusCode) {
             this.id = id;
             this.successStatusCode = successStatusCode;
+        }
+
+        public static @Nullable CommandType findById(int id) {
+            for (CommandType commandType: CommandType.values()) {
+                if (commandType.id == id) { return commandType; }
+            }
+            return null;
+        }
+    }
+
+    private static final int COMMAND_ERROR_RESPONSE = 0x0F;
+    private enum CommandError {
+        INCORRECT_LENGTH(0x01),
+        TOO_LONG(0x02),
+        PARAM_WRITE_ERROR(0x03),
+        PARAM_READ_ERROR(0x04),
+        INVALID_COMMAND(0x05),
+        INVALID_PARAM(0x06),
+        COMMAND_FAILED(0xFF);
+
+        private final int value;
+        CommandError(int value) {
+            this.value = value;
+        }
+
+        public static @Nullable CommandError fromInt(int intValue) {
+            for (CommandError value: values()) {
+                if (intValue == value.value) { return value; }
+            }
+            return null;
         }
     }
 

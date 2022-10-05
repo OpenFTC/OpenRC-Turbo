@@ -1966,7 +1966,7 @@ var doLiveAutocomplete = function(e) {
     }
     else if (e.command.name === "insertstring") {
         var prefix = util.getCompletionPrefix(editor);
-        if (prefix && !hasCompleter) {
+        if ((prefix || prefix === '') && !hasCompleter) {
             if (!editor.completer) {
                 editor.completer = new Autocomplete();
             }

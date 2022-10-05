@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -266,7 +265,7 @@ public abstract class LinearOpMode extends OpMode {
     }
   }
 
-  protected class LinearOpModeHelper implements Runnable {
+  private class LinearOpModeHelper implements Runnable {
     private static final String TAG = "LinearOpModeHelper";
 
     protected RuntimeException     exception  = null;

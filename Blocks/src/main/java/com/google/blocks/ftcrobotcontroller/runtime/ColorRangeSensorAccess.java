@@ -53,6 +53,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -66,6 +68,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -79,6 +83,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -92,6 +98,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -105,6 +113,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -118,6 +128,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -135,6 +147,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -148,6 +162,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -165,6 +181,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -178,6 +196,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -191,6 +211,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -204,6 +226,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -221,6 +245,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -239,6 +265,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -253,6 +281,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -267,6 +297,8 @@ class ColorRangeSensorAccess extends HardwareAccess<ColorRangeSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

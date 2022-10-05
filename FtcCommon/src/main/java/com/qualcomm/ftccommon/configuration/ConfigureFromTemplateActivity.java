@@ -49,6 +49,7 @@ import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.robocol.Command;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
@@ -346,7 +347,7 @@ public class ConfigureFromTemplateActivity extends EditActivity
                             processor.processTemplate(templateMeta, xmlPullParser);
                             }
                         });
-                    networkConnectionHandler.sendCommand(new Command(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION, templateMeta.toString()));
+                    networkConnectionHandler.sendCommand(new Command(RobotCoreCommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION, templateMeta.toString()));
                     }
                 }
             }
@@ -436,7 +437,7 @@ public class ConfigureFromTemplateActivity extends EditActivity
                     {
                     result = handleCommandRequestTemplatesResp(extra);
                     }
-                else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP))
+                else if (name.equals(RobotCoreCommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP))
                     {
                     result = handleCommandRequestParticularConfigurationResp(extra);
                     }

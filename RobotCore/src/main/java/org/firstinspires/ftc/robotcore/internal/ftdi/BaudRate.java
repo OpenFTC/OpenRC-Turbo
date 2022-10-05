@@ -45,7 +45,7 @@ public final class BaudRate extends FtConstants
         {
         }
 
-    /** @hide */
+    /** @hidden */
     public static byte getDivisor(int rate, int[] divisors, boolean isBitModeDevice)
         {
         byte divisor;

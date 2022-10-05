@@ -37,7 +37,7 @@ import com.qualcomm.robotcore.util.ClassUtil;
 import java.lang.reflect.Method;
 
 /**
- * {@link SystemProperties} provides access to {@link android.os.SystemProperties}
+ * {@link SystemProperties} provides access to internal android.os.SystemProperties
  */
 @SuppressWarnings("WeakerAccess")
 public class SystemProperties

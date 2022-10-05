@@ -29,18 +29,15 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.robotcore.internal.opmode;
+package com.qualcomm.robotcore.eventloop.opmode;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Debug;
+import android.util.Log;
 
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -62,6 +59,9 @@ import com.qualcomm.robotcore.util.WeakReferenceSet;
 
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeServices;
+import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
+import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.GamepadUser;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
@@ -372,7 +372,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         resetHardwareForOpMode();
       }
 
-      activeOpMode.resetStartTime();
+      activeOpMode.resetRuntime();
       callActiveOpModeInit();
       opModeState = OpModeState.INIT;
       callToInitNeeded = false;
@@ -383,7 +383,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
      * NOTE: it's important that we use else if here, to avoid more than one user method
      * being called during any one iteration. That, in turn, is important to make sure
      * that if the force-stop logic manages to capture rogue user code, we can cleanly
-     * terminate the opmode immediately, without any other user methods being called.
+     * terminate the Op Mode immediately, without any other user methods being called.
      */
 
     else if (callToStartNeeded) {
@@ -412,7 +412,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
       device.resetDeviceConfigurationForOpMode();
     }
 
-    for (HardwareDevice device: hardwareMap) {
+    for (HardwareDevice device: hardwareMap.unsafeIterable()) {
       if (!devicesToBeResetFirst.contains(device)) {
         device.resetDeviceConfigurationForOpMode();
       }
@@ -450,6 +450,8 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         }});
     } catch (ForceStopException e) {
       //We're already stopping, nothing to do
+    } catch (Exception e) {
+      handleUserCodeException(e);
     }
 
     synchronized (this.listeners) {
@@ -457,7 +459,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         listener.onOpModePostStop(activeOpMode);
       }
     }
-    for (HardwareDevice device : this.hardwareMap) {
+    for (HardwareDevice device : this.hardwareMap.unsafeIterable()) {
       if (device instanceof OpModeManagerNotifier.Notifications) {
         ((OpModeManagerNotifier.Notifications)device).onOpModePostStop(activeOpMode);
       }
@@ -673,7 +675,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         listener.onOpModePreInit(activeOpMode);
       }
     }
-    for (HardwareDevice device : this.hardwareMap) {
+    for (HardwareDevice device : this.hardwareMap.unsafeIterable()) {
       if (device instanceof OpModeManagerNotifier.Notifications) {
         ((OpModeManagerNotifier.Notifications)device).onOpModePreInit(activeOpMode);
       }
@@ -681,7 +683,9 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
 
     activeOpMode.internalPreInit();
     try {
-        detectStuck(activeOpMode.msStuckDetectInit, "init()", new Runnable() {
+        // In this interim period where we have lazy I2C device initialization but iterative Op Modes
+        // still run on the event loop thread, we add 2 seconds to the max runtime for init()
+        detectStuck(activeOpMode.msStuckDetectInit + 2000, "init()", new Runnable() {
             @Override public void run() {
                 activeOpMode.init();
             }}, true);
@@ -694,6 +698,10 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
          */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;
+    } catch (Exception e) {
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+      handleUserCodeException(e);
     }
   }
 
@@ -703,7 +711,7 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         listener.onOpModePreStart(activeOpMode);
       }
     }
-    for (HardwareDevice device : this.hardwareMap) {
+    for (HardwareDevice device : this.hardwareMap.unsafeIterable()) {
       if (device instanceof OpModeManagerNotifier.Notifications) {
         ((OpModeManagerNotifier.Notifications)device).onOpModePreStart(activeOpMode);
       }
@@ -723,6 +731,10 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
          */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;
+    } catch (Exception e) {
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+      handleUserCodeException(e);
     }
   }
 
@@ -742,6 +754,10 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
         */
      initActiveOpMode(DEFAULT_OP_MODE_NAME);
      skipCallToStop = true;
+   } catch (Exception e) {
+     initActiveOpMode(DEFAULT_OP_MODE_NAME);
+     skipCallToStop = true;
+     handleUserCodeException(e);
    }
 
     activeOpMode.internalPostInitLoop();
@@ -763,9 +779,33 @@ public class OpModeManagerImpl implements OpModeServices, OpModeManagerNotifier 
        */
       initActiveOpMode(DEFAULT_OP_MODE_NAME);
       skipCallToStop = true;
+    } catch (Exception e) {
+      initActiveOpMode(DEFAULT_OP_MODE_NAME);
+      skipCallToStop = true;
+      handleUserCodeException(e);
     }
 
     activeOpMode.internalPostLoop();
+  }
+
+  protected void handleUserCodeException(Exception e) {
+    RobotLog.ee(TAG, e, "User code threw an uncaught exception");
+    handleSendStacktrace(e);
+  }
+
+  protected void handleSendStacktrace(Exception e) {
+    // Get the trace as a string
+    String stacktrace = Log.getStackTraceString(e);
+    String[] lines = stacktrace.split("\n");
+    StringBuilder builder = new StringBuilder();
+
+    // Truncate at 15 lines
+    for(int i = 0; i < Math.min(lines.length, 15); i++) {
+      builder.append(lines[i]).append("\n");
+    }
+
+    // Send it off to the DS
+    NetworkConnectionHandler.getInstance().sendCommand(new Command(RobotCoreCommandList.CMD_SHOW_STACKTRACE, builder.toString()));
   }
 
   //------------------------------------------------------------------------------------------------

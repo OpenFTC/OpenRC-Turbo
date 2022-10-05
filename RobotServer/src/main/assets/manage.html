@@ -30,9 +30,9 @@
         <div id="id_control_hub_os_version_item">
             <h1 class="header-shared-line">Control Hub OS version: </h1><span id="id_control_hub_os_version" class="next-to-header"></span>
         </div>
-        <div id="id_rev_firmware_versions_item">
-            <h1>REV Hub firmware versions:</h1>
-            <div id="id_rev_firmware_versions" class="indented"></div>
+        <div id="id_rev_hubs_item">
+            <h1>REV Hubs:</h1>
+            <div id="id_rev_hubs" class="indented"></div>
         </div>
     </div>
     <div class="bordered-text-block" id="id_network_settings_block">
@@ -760,7 +760,7 @@
                 hideElement(document.getElementById("id_wifi_band_group"), !rcInfo.supports5GhzAp);
                 hideElement(document.getElementById("id_update_control_hub_operating_system"), !rcInfo.supportsOtaUpdate || !rcInfo.isREVControlHub);
                 hideElement(document.getElementById("id_control_hub_os_version_item"), !rcInfo.isREVControlHub);
-                hideElement(document.getElementById("id_rev_firmware_versions_item"), !rcInfo.revHubNamesAndVersions || rcInfo.revHubNamesAndVersions.length === 0);
+                hideElement(document.getElementById("id_rev_hubs_item"), !rcInfo.revHubNamesAndVersions || rcInfo.revHubNamesAndVersions.length === 0);
 
                 allAvailableChannels = rcInfo.availableChannels;
                 isControlHub = rcInfo.isREVControlHub;
@@ -795,14 +795,16 @@
                 document.getElementById("id_rc_version").textContent = rcInfo.rcVersion;
                 document.getElementById("id_control_hub_os_version").textContent = rcInfo.chOsVersion;
 
-                var revFirmwareVersions = document.getElementById("id_rev_firmware_versions");
-                revFirmwareVersions.textContent = "";
+                const revHubsListing = document.getElementById("id_rev_hubs");
+                revHubsListing.textContent = "";
 
                 if (rcInfo.revHubNamesAndVersions) {
-                    rcInfo.revHubNamesAndVersions.forEach(function(nameAndVersion) {
+                    rcInfo.revHubNamesAndVersions.forEach(function(revHubInfo) {
                         var entry = document.createElement('p');
-                        entry.innerHTML = '<b><i>' + nameAndVersion.name + '</i></b>: ' + nameAndVersion.firmwareVersion;
-                        revFirmwareVersions.appendChild(entry);
+                        entry.innerHTML = `<b>${revHubInfo.name}</b>
+                                           <br><u>Firmware version</u>: ${revHubInfo.firmwareVersion}
+                                           <br><u>IMU</u>: ${revHubInfo.imuType}`;
+                        revHubsListing.appendChild(entry);
                     });
                 }
 

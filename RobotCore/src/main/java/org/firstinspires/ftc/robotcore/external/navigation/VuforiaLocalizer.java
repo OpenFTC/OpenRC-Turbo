@@ -113,7 +113,7 @@ public interface VuforiaLocalizer extends CameraStreamSource
      * (Advanced) Returns information about Vuforia's knowledge of the camera that it is using.
      * @return information about Vuforia's knowledge of the camera that it is using.
      *
-     * @see com.vuforia.Tool#getProjectionGL(CameraCalibration, float, float)
+     * @see com.vuforia.Tool#getProjectionGL(com.vuforia.CameraCalibration, float, float)
      */
     CameraCalibration getCameraCalibration();
 

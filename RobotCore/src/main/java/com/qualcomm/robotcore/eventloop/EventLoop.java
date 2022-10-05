@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.robocol.TelemetryMessage;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import org.firstinspires.ftc.robotcore.internal.network.CallbackResult;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 
 import java.util.concurrent.TimeUnit;
 

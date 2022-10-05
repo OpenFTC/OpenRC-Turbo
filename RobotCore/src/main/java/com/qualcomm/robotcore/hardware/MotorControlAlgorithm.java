@@ -33,7 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qualcomm.robotcore.hardware;
 
 /**
- * {@Link MotorControlAlgorithm} indicates the control algorithm variant to use with
+ * {@link MotorControlAlgorithm} indicates the control algorithm variant to use with
  * {@link DcMotor.RunMode#RUN_TO_POSITION} and {@link DcMotor.RunMode#RUN_USING_ENCODER}.
  *
  * @see DcMotorEx#setPIDFCoefficients(DcMotor.RunMode, PIDFCoefficients)

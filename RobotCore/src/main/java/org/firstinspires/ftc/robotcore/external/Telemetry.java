@@ -380,7 +380,7 @@ public interface Telemetry
     /**
      * Instances of {@link Item} represent an item of data on the drive station telemetry display.
      *
-     * @see {@link #addData(String, Object)}
+     * @see #addData(String, Object)
      */
     interface Item
         {
@@ -571,9 +571,9 @@ public interface Telemetry
         enum DisplayOrder { NEWEST_FIRST, OLDEST_FIRST }
 
         /**
-         * Returns the maximum number of lines which will be retained in a {@link #log()()} and
+         * Returns the maximum number of lines which will be retained in a {@link #log()} and
          * shown on the driver station display.
-         * @return the maximum number of lines which will be retained in a {@link #log()()}
+         * @return the maximum number of lines which will be retained in a {@link #log()}
          * @see #setCapacity(int)
          */
         int getCapacity();

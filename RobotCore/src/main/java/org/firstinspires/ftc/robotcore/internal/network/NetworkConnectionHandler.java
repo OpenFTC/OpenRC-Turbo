@@ -63,7 +63,6 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.ui.RobotCoreGamepadManager;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
@@ -142,12 +141,12 @@ public class NetworkConnectionHandler {
     }
 
     /**
-     * getDefaultNetworkType
+     * getNetworkType
      *
      * On the control hub we force the network type into wireless ap mode.  On any other device we'll
      * use the stored preference while defaulting to Wi-Fi Direct.
      */
-    public static NetworkType getDefaultNetworkType(Context context) {
+    public static NetworkType getNetworkType(Context context) {
 
         if (Device.isRevControlHub() == true) {
             return NetworkType.RCWIRELESSAP;

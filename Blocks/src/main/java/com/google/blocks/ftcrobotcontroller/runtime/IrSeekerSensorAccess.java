@@ -49,6 +49,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -62,6 +64,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -78,6 +82,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -95,6 +101,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -108,6 +116,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -121,6 +131,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -134,6 +146,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -147,6 +161,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -164,6 +180,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -177,6 +195,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -194,6 +214,8 @@ class IrSeekerSensorAccess extends HardwareAccess<IrSeekerSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

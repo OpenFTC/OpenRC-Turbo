@@ -36,7 +36,6 @@ import android.graphics.Bitmap;
 import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
 import com.qualcomm.robotcore.robocol.Command;
 
@@ -48,7 +47,7 @@ import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 
 import java.io.ByteArrayOutputStream;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**

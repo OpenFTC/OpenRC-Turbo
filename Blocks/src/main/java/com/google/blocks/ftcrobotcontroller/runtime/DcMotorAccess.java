@@ -60,6 +60,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -77,6 +79,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -90,6 +94,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -103,6 +109,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -118,6 +126,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -132,6 +142,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -148,6 +160,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -165,6 +179,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -178,6 +194,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -191,6 +209,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -204,6 +224,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -217,6 +239,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -230,6 +254,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -246,6 +272,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -263,6 +291,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -278,6 +308,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -298,6 +330,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -315,6 +349,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -332,6 +368,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -353,6 +391,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -374,6 +414,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -395,6 +437,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -414,6 +458,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -431,6 +477,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -449,6 +497,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -466,6 +516,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -486,6 +538,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -504,6 +558,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -525,6 +581,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -542,6 +600,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -559,6 +619,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -580,6 +642,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -601,6 +665,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -618,6 +684,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -636,6 +704,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -657,6 +727,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -678,6 +750,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -698,6 +772,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -716,6 +792,8 @@ class DcMotorAccess extends HardwareAccess<DcMotor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

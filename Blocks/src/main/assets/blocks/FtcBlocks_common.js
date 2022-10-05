@@ -223,18 +223,7 @@ function saveProjectNow(opt_success_callback) {
     const blkFileContent = getCurrentBlkFileContent();
 
     // Generate JavaScript code.
-    const disabled = disableOrphans();
-    let jsFileContent = Blockly.JavaScript.workspaceToCode(workspace);
-    const identifiersUsed = collectIdentifiersUsed();
-    reenableOrphans(disabled);
-
-    let comment = IDENTIFIERS_USED_PREFIX;
-    let delimiter = '';
-    for (let identifier of identifiersUsed) {
-      comment += delimiter + identifier;
-      delimiter = ',';
-    }
-    jsFileContent = comment + '\n\n' + jsFileContent;
+    const jsFileContent = generateJavaScriptCode();
 
     saveProject(currentProjectName, blkFileContent, jsFileContent,
         function(success, errorMessage) {
@@ -257,51 +246,6 @@ function saveProjectNow(opt_success_callback) {
   } else {
     alert('The specified project name is not valid');
   }
-}
-
-function disableOrphans() {
-  Blockly.Events.disable();
-  var disabled = [];
-  var blocks = workspace.getTopBlocks(true);
-  for (var x = 0, block; block = blocks[x]; x++) {
-    if (block.type != 'procedures_defnoreturn' &&
-        block.type != 'procedures_defreturn' &&
-        block.isEnabled()) {
-      do {
-        block.setEnabled(false);
-        disabled.push(block);
-        block = block.getNextBlock();
-      } while (block);
-    }
-  }
-  Blockly.Events.enable();
-  return disabled;
-}
-
-function reenableOrphans(disabled) {
-  Blockly.Events.disable();
-  for (var x = 0, block; block = disabled[x]; x++) {
-    block.setEnabled(true);
-  }
-  Blockly.Events.enable();
-}
-
-function collectIdentifiersUsed() {
-  const identifiersUsed = new Set();
-  const allBlocks = workspace.getAllBlocks();
-  for (let iBlock = 0, block; block = allBlocks[iBlock]; iBlock++) {
-    if (block.isEnabled()) {
-      for (var iFieldName = 0; iFieldName < identifierFieldNames.length; iFieldName++) {
-        const identifierFieldName = identifierFieldNames[iFieldName];
-        const field = block.getField(identifierFieldName);
-        if (field) {
-          const identifier = field.getValue();
-          identifiersUsed.add(identifier);
-        }
-      }
-    }
-  }
-  return identifiersUsed;
 }
 
 /**

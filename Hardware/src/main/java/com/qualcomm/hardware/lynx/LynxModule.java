@@ -334,14 +334,17 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
         {
         synchronized (startStopLock)
             {
-            this.isOpen = false;
-            RobotLog.vv(TAG, "close(#%d)", moduleAddress);
-            stopFtdiResetWatchdog();
-            unregisterCallback(this);
-            lynxUsbDevice.removeConfiguredModule(this);
-            stopAttentionRequired();
-            stopPingTimer(true);
-            stopExecutor();
+            if (this.isOpen)
+                {
+                stopFtdiResetWatchdog(); // This must be done while the module is still open
+                this.isOpen = false;
+                RobotLog.vv(TAG, "close(#%d)", moduleAddress);
+                unregisterCallback(this);
+                lynxUsbDevice.removeConfiguredModule(this);
+                stopAttentionRequired();
+                stopPingTimer(true);
+                stopExecutor();
+                }
             }
         }
 
@@ -361,6 +364,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void setUserModule(boolean isUserModule)
         {
+        warnIfClosed();
         this.isUserModule = isUserModule;
         }
 
@@ -371,11 +375,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void setSystemSynthetic(boolean systemSynthetic)
         {
+        warnIfClosed();
         this.isSystemSynthetic = systemSynthetic;
         }
 
     public void noteController(LynxController controller)
         {
+        warnIfClosed();
         this.controllers.add(controller);
         }
 
@@ -386,6 +392,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void setNewModuleAddress(final int newModuleAddress)
         {
+        warnIfClosed();
         if (newModuleAddress != getModuleAddress())
             {
             this.lynxUsbDevice.changeModuleAddress(this, newModuleAddress, new Runnable()
@@ -433,6 +440,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void noteAttentionRequired()
         {
+        warnIfClosed();
         if (isUserModule())
             {
             synchronized (this.futureLock)
@@ -449,7 +457,10 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
                         {
                         @Override public void run()
                             {
-                            sendGetModuleStatusAndProcessResponse(true);
+                            if (isOpen)
+                                {
+                                sendGetModuleStatusAndProcessResponse(true);
+                                }
                             }
                         });
                     }
@@ -460,8 +471,9 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
             }
         }
 
-    public void noteDatagramReceived()
+    protected void noteDatagramReceived()
         {
+        warnIfClosed();
         if (this.isNotResponding)
             {
             this.isNotResponding = false;
@@ -471,12 +483,22 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void noteNotResponding()
         {
+        warnIfClosed();
         this.isNotResponding = true;
         }
 
     public boolean isNotResponding()
         {
+        warnIfClosed();
         return this.isNotResponding;
+        }
+
+    protected void warnIfClosed()
+        {
+        if (!isOpen())
+            {
+            RobotLog.ww(TAG, new RuntimeException(), "Attempted use of a closed LynxModule instance");
+            }
         }
 
     protected void stopAttentionRequired()
@@ -562,6 +584,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     @Override
     public String getNullableFirmwareVersionString()
         {
+        warnIfClosed();
         try {
             LynxReadVersionStringCommand command = new LynxReadVersionStringCommand(this);
             LynxReadVersionStringResponse response = command.sendReceive();
@@ -589,6 +612,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     @Override
     public void resetDeviceConfigurationForOpMode()
         {
+        warnIfClosed();
         setBulkCachingMode(BulkCachingMode.OFF);
         }
 
@@ -599,6 +623,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public List<String> getGlobalWarnings()
         {
+        warnIfClosed();
         List<String> result = new ArrayList<String>();
         for (LynxController controller : controllers)
             {
@@ -694,6 +719,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void engage()
         {
+        warnIfClosed();
         synchronized (engagementLock)
             {
             if (!isEngaged)
@@ -714,6 +740,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void disengage()
         {
+        warnIfClosed();
         synchronized (engagementLock)
             {
             if (isEngaged)
@@ -734,6 +761,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public boolean isEngaged()
         {
+        warnIfClosed();
         synchronized (engagementLock)
             {
             return isEngaged;
@@ -746,6 +774,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void visuallyIdentify(boolean shouldIdentify)
         {
+        warnIfClosed();
         synchronized (this)
             {
             if (isVisuallyIdentifying != shouldIdentify)
@@ -774,6 +803,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void setConstant(@ColorInt int color)
         {
+        warnIfClosed();
         Step step = new Step(color, 1, TimeUnit.SECONDS);
         List<Step> steps = new ArrayList<Step>();
         steps.add(step);
@@ -782,6 +812,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void stopBlinking()
         {
+        warnIfClosed();
         setConstant(Color.BLACK);
         }
 
@@ -793,6 +824,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public synchronized Collection<Step> getPattern()
         {
+        warnIfClosed();
         // Return a copy so caller can't mess with us
         return new ArrayList<Step>(this.currentSteps);
         }
@@ -811,17 +843,20 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     protected void internalPushPattern(Collection<Step> steps)
         {
+        warnIfClosed();
         this.previousSteps.push(this.currentSteps);
         setPattern(steps);
         }
 
     @Override public synchronized boolean patternStackNotEmpty()
         {
+        warnIfClosed();
         return this.previousSteps.size() > 0;
         }
 
     @Override public synchronized boolean popPattern()
         {
+        warnIfClosed();
         try {
             setPattern(previousSteps.pop());
             return true;
@@ -835,6 +870,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     void sendLEDPatternSteps(Collection<Step> steps)
         {
+        warnIfClosed();
         RobotLog.vv(TAG, "sendLEDPatternSteps(): steps=%s", steps);
 
         // Hack: in the current (as of 2016.12.12) version of the firmware, if you send an LED pattern
@@ -960,6 +996,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public boolean isParent()
         {
+        warnIfClosed();
         return this.isParent;
         }
 
@@ -968,6 +1005,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      * the module. */
     public void pingAndQueryKnownInterfacesAndEtc() throws RobotCoreException, InterruptedException
         {
+        warnIfClosed();
         RobotLog.vv(TAG, "pingAndQueryKnownInterfaces mod=%d", this.getModuleAddress());
         // We always ping first, just in case he's stuck right now in discovery mode.
         // Note that, in doing so, we also need to make sure we ping the parent first
@@ -1022,6 +1060,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void validateCommand(LynxMessage lynxMessage) throws LynxUnsupportedCommandException
         {
+        warnIfClosed();
         synchronized (this.interfacesQueried)
             {
             // We can't reasonably validate anything if we're not armed and so talking to a real module
@@ -1049,6 +1088,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      * interface, or as a standard command */
     public boolean isCommandSupported(Class<? extends LynxCommand> clazz)
         {
+        warnIfClosed();
         synchronized (this.interfacesQueried)
             {
             /** Nothing but discovery is supported on fake modules. See {@link LynxUsbDeviceImpl#discoverModules} */
@@ -1063,6 +1103,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      * @return whether or not the interface is supported */
     protected boolean queryInterface(LynxInterface theInterface) throws InterruptedException
         {
+        warnIfClosed();
         boolean supported = false;
         synchronized (this.interfacesQueried)
             {
@@ -1146,6 +1187,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     @Override
     public LynxInterface getInterface(String interfaceName)
         {
+        warnIfClosed();
         synchronized (this.interfacesQueried)
             {
             LynxInterface anInterface = this.interfacesQueried.get(interfaceName);
@@ -1179,6 +1221,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     protected void ping(boolean initialPing) throws RobotCoreException, InterruptedException, LynxNackException
         {
+        warnIfClosed();
         // RobotLog.vv(TAG, "pinging mod#=%d initial=%s", getModuleAddress(), initialPing);
         LynxKeepAliveCommand command = new LynxKeepAliveCommand(this, initialPing);
         command.send();
@@ -1191,11 +1234,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void resetPingTimer(@NonNull LynxMessage message)
         {
+        warnIfClosed();
         startPingTimer();
         }
 
     protected void startPingTimer()
         {
+        warnIfClosed();
         synchronized (this.futureLock)
             {
             stopPingTimer(false);
@@ -1206,7 +1251,10 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
                         {
                         @Override public void run()
                             {
-                            ping();
+                            if (isOpen)
+                                {
+                                ping();
+                                }
                             }
                         }, getMsModulePingInterval(), TimeUnit.MILLISECONDS);
                     }
@@ -1388,6 +1436,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     // contract: sets lastBulkData to non-null value or throws
     public BulkData getBulkData()
         {
+        warnIfClosed();
         synchronized (bulkCachingLock)
             {
             clearBulkCache();
@@ -1441,6 +1490,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public BulkCachingMode getBulkCachingMode()
         {
+        warnIfClosed();
         return bulkCachingMode;
         }
 
@@ -1450,6 +1500,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public void setBulkCachingMode(BulkCachingMode mode)
         {
+        warnIfClosed();
         synchronized (bulkCachingLock)
             {
             // user can switch between MANUAL and AUTO without losing the cache
@@ -1466,6 +1517,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public void clearBulkCache()
         {
+        warnIfClosed();
         synchronized (bulkCachingLock)
             {
             for (List<LynxDekaInterfaceCommand<?>> commands : bulkCachingHistory.values())
@@ -1478,11 +1530,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     BulkData recordBulkCachingCommandIntent(LynxDekaInterfaceCommand<?> command)
         {
+        warnIfClosed();
         return recordBulkCachingCommandIntent(command, "");
         }
 
     BulkData recordBulkCachingCommandIntent(LynxDekaInterfaceCommand<?> command, String tag)
         {
+        warnIfClosed();
         synchronized (bulkCachingLock)
             {
             List<LynxDekaInterfaceCommand<?>> commands = bulkCachingHistory.get(tag);
@@ -1527,6 +1581,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void failSafe() throws RobotCoreException, InterruptedException, LynxNackException
         {
+        warnIfClosed();
         LynxFailSafeCommand command = new LynxFailSafeCommand(this);
         command.send();
         //
@@ -1535,12 +1590,14 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void enablePhoneCharging(boolean enable) throws RobotCoreException, InterruptedException, LynxNackException
         {
+        warnIfClosed();
         LynxPhoneChargeControlCommand command = new LynxPhoneChargeControlCommand(this, enable);
         command.send();
         }
 
     public boolean isPhoneChargingEnabled() throws RobotCoreException, InterruptedException, LynxNackException
         {
+        warnIfClosed();
         LynxPhoneChargeQueryCommand command = new LynxPhoneChargeQueryCommand(this);
         LynxPhoneChargeQueryResponse response = command.sendReceive();
         return response.isChargeEnabled();
@@ -1553,6 +1610,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getCurrent(CurrentUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.BATTERY_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1573,6 +1631,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getGpioBusCurrent(CurrentUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.GPIO_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1593,6 +1652,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getI2cBusCurrent(CurrentUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.I2C_BUS_CURRENT, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1613,6 +1673,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getInputVoltage(VoltageUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.BATTERY_MONITOR, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1633,6 +1694,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getAuxiliaryVoltage(VoltageUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.FIVE_VOLT_MONITOR, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1653,6 +1715,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public double getTemperature(TempUnit unit)
         {
+        warnIfClosed();
         LynxGetADCCommand command = new LynxGetADCCommand(this, LynxGetADCCommand.Channel.CONTROLLER_TEMPERATURE, LynxGetADCCommand.Mode.ENGINEERING);
         try
             {
@@ -1716,6 +1779,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void setDebug(DebugGroup group, DebugVerbosity verbosity) throws InterruptedException
         {
+        warnIfClosed();
         try {
             LynxSetDebugLogLevelCommand command = new LynxSetDebugLogLevelCommand(this, group, verbosity);
             command.send();
@@ -1732,6 +1796,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public <T> T acquireI2cLockWhile(Supplier<T> supplier) throws InterruptedException, RobotCoreException, LynxNackException
         {
+        warnIfClosed();
         synchronized (i2cLock)
             {
             return supplier.get();
@@ -1740,11 +1805,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void acquireNetworkTransmissionLock(@NonNull LynxMessage message) throws InterruptedException
         {
+        warnIfClosed();
         this.lynxUsbDevice.acquireNetworkTransmissionLock(message);
         }
 
     public void releaseNetworkTransmissionLock(@NonNull LynxMessage message) throws InterruptedException
         {
+        warnIfClosed();
         this.lynxUsbDevice.releaseNetworkTransmissionLock(message);
         }
 
@@ -1753,6 +1820,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
      */
     public void sendCommand(LynxMessage command) throws InterruptedException, LynxUnsupportedCommandException
         {
+        warnIfClosed();
         command.setMessageNumber(getNewMessageNumber());
         int msgnumCur = command.getMessageNumber();
 
@@ -1776,6 +1844,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     @Override public void retransmit(LynxMessage message) throws InterruptedException
         {
+        warnIfClosed();
         RobotLog.vv(TAG, "retransmitting: mod=%d cmd=0x%02x msg#=%d ref#=%d ", this.getModuleAddress(), message.getCommandNumber(), message.getMessageNumber(), message.getReferenceNumber());
         this.lynxUsbDevice.transmit(message);
         }
@@ -1793,6 +1862,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void pretendFinishExtantCommands() throws InterruptedException
         {
+        warnIfClosed();
         for (LynxRespondable ackable : this.unfinishedCommands.values())
             {
             ackable.pretendFinish();
@@ -1802,6 +1872,7 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
     public void onIncomingDatagramReceived(LynxDatagram datagram)
     // We've received a datagram from our module.
         {
+        warnIfClosed();
         noteDatagramReceived();
         // Reify the incoming command. First, what kind of command is that guy?
         try {
@@ -1881,11 +1952,13 @@ public class LynxModule extends LynxCommExceptionHandler implements LynxModuleIn
 
     public void abandonUnfinishedCommands()
         {
+        warnIfClosed();
         this.unfinishedCommands.clear();
         }
 
     protected void nackUnfinishedCommands()
         {
+        warnIfClosed();
         while (!unfinishedCommands.isEmpty())
             {
             for (LynxRespondable respondable : unfinishedCommands.values())

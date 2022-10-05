@@ -48,6 +48,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -61,6 +63,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -78,6 +82,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -91,6 +97,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -108,6 +116,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -125,6 +135,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -142,6 +154,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -159,6 +173,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -176,6 +192,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -193,6 +211,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -210,6 +230,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -226,6 +248,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -239,6 +263,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -252,6 +278,8 @@ class MrI2cCompassSensorAccess extends HardwareAccess<ModernRoboticsI2cCompassSe
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

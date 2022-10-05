@@ -49,7 +49,6 @@ import static org.firstinspires.ftc.robotcore.internal.camera.CameraImpl.closeCa
  * Modelled after {@link android.hardware.camera2.CameraDevice}, but somewhat simplified.
  *
  * @see CameraManager#asyncOpenCameraAssumingPermission
- * @see com.example.android.camera2.cameratoo.CameraTooActivity
  */
 @SuppressWarnings("WeakerAccess")
 public interface Camera extends CameraControls

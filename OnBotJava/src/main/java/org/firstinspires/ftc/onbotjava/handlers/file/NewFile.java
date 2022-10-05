@@ -47,6 +47,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.onbotjava.EditorSettings;
 import org.firstinspires.ftc.onbotjava.JavaSourceFile;
+import org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils;
 import org.firstinspires.ftc.onbotjava.OnBotJavaManager;
 import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
 import org.firstinspires.ftc.onbotjava.OnBotJavaSecurityManager;
@@ -75,6 +76,7 @@ import static org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils.EXT_JAVA_
 import static org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils.PATH_SEPARATOR;
 
 /**
+ * <ul>
  * <li>New
  * <p>
  * Requires a "new" entry in data map. If url ends in "/", a new folder will be created,
@@ -90,6 +92,7 @@ import static org.firstinspires.ftc.onbotjava.OnBotJavaFileSystemUtils.PATH_SEPA
  * data entries for template use
  * </p>
  * </li>
+ * </ul>
  */
 @RegisterWebHandler(uri = OnBotJavaProgrammingMode.URI_FILE_NEW)
 public class NewFile implements WebHandler {

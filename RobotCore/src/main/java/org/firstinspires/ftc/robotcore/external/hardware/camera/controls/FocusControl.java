@@ -60,13 +60,13 @@ public interface FocusControl extends CameraControl
 
     double unknownFocusLength = -1.0;
 
-    /** returns <0 if not available */
+    /** returns &lt;0 if not available */
     double getMinFocusLength();
 
-    /** returns <0 if not available */
+    /** returns &lt;0 if not available */
     double getMaxFocusLength();
 
-    /** returns <0 if not available */
+    /** returns &lt;0 if not available */
     double getFocusLength();
 
     boolean setFocusLength(double focusLength);

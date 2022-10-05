@@ -53,9 +53,9 @@ import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
  * implement {@link HardwareDevice} and have a constructor with at least one of the following signatures:
  * <ol>
  *     <li>ctor(I2cDeviceSync i2cDeviceSynch)</li>
- *     <li>ctor(I2cDeviceSyncSimple i2cDeviceSynch)</li> (Only used when configured on a REV Hub)
- *     <li>ctor(I2cDevice i2cDevice)</li> (Only used when configured on a CDIM)
- *     <li>ctor(I2cController i2cController, int port)</li> (Only used when configured on a CDIM)
+ *     <li>ctor(I2cDeviceSyncSimple i2cDeviceSynch)  (Only used when configured on a REV Hub)</li>
+ *     <li>ctor(I2cDevice i2cDevice) (Only used when configured on a CDIM)</li>
+ *     <li>ctor(I2cController i2cController, int port) (Only used when configured on a CDIM)</li>
  * </ol>
  *
  * @see HardwareMap#put(String, HardwareDevice)

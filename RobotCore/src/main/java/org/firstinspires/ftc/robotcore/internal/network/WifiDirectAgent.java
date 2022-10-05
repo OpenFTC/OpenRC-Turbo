@@ -61,7 +61,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * {@link WifiDirectAgent provides *low-level* basic connectivity to Wi-Fi Direct. Most
+ * {@link WifiDirectAgent} provides *low-level* basic connectivity to Wi-Fi Direct. Most
  * importantly, this handles callback threading reasonably for us so we don't end up in
  * deadlock situations with the main app thread.
  */

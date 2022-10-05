@@ -11,8 +11,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 91
-        versionName "17.6"
+        versionCode 97
+        versionName "20.0"
 
         renderscriptTargetApi 28
         renderscriptSupportModeEnabled true
@@ -22,6 +22,7 @@ android {
         buildConfigField "String", "SDK_BUILD_TIME", '"' + (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ROOT).format(new Date())) + '"'
         buildConfigField "int", "SDK_MAJOR_VERSION", versionNumbers.getProperty("MAJOR_VERSION")
         buildConfigField "int", "SDK_MINOR_VERSION", versionNumbers.getProperty("MINOR_VERSION")
+        buildConfigField "int", "SDK_POINT_VERSION", versionNumbers.getProperty("POINT_VERSION")
 
         externalNativeBuild {
             cmake {

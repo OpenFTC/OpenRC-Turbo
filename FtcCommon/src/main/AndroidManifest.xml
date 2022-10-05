@@ -18,6 +18,11 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher" >
         <activity
+            android:name="com.qualcomm.ftccommon.StackTraceActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="true"
+            android:launchMode="singleTask" />
+        <activity
             android:name="com.qualcomm.ftccommon.FtcRobotControllerSettingsActivity"
             android:exported="true"
             android:label="@string/settings_activity" >

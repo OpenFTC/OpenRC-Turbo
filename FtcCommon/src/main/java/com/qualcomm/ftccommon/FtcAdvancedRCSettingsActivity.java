@@ -32,14 +32,12 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package com.qualcomm.ftccommon;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.widget.FrameLayout;
 
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
-import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
@@ -48,7 +46,6 @@ import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.PreferencesHelper;
 import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
-import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 
 /**
  * {@link FtcAdvancedRCSettingsActivity} manages the editing of advanced RC settings
@@ -74,7 +71,7 @@ public class FtcAdvancedRCSettingsActivity extends ThemedActivity
         {
         protected boolean clientConnected = false;
         protected boolean remoteConfigure = AppUtil.getInstance().isDriverStation();
-        protected boolean controlHubConnectionMode = NetworkConnectionHandler.getDefaultNetworkType(AppUtil.getDefContext()) == NetworkType.WIRELESSAP;
+        protected boolean controlHubConnectionMode = NetworkConnectionHandler.getNetworkType(AppUtil.getDefContext()) == NetworkType.WIRELESSAP;
         protected PreferencesHelper preferencesHelper = new PreferencesHelper(TAG);
 
         @Override

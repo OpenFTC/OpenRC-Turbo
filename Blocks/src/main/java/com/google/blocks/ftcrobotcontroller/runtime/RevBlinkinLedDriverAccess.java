@@ -49,6 +49,8 @@ class RevBlinkinLedDriverAccess extends HardwareAccess<RevBlinkinLedDriver> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

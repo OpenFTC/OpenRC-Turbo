@@ -88,7 +88,6 @@ import com.vuforia.VideoMode;
 import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.android.util.Size;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
 import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
@@ -111,7 +110,7 @@ import org.firstinspires.ftc.robotcore.internal.opengl.models.SolidCylinder;
 import org.firstinspires.ftc.robotcore.internal.opengl.models.Teapot;
 import org.firstinspires.ftc.robotcore.internal.opengl.shaders.CubeMeshProgram;
 import org.firstinspires.ftc.robotcore.internal.opengl.shaders.SimpleColorProgram;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.system.Misc;

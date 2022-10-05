@@ -881,7 +881,7 @@ public class ThreadPool
             }
         }
 
-    /** @see ThreadPoolExecutor#afterExecute(Runnable, Throwable), after which this logic is modelled */
+    /** See ThreadPoolExecutor#afterExecute(Runnable, Throwable), after which this logic is modelled */
     protected static Throwable retrieveUserException(Runnable r, Throwable t)
         {
         if (t == null && r instanceof Future<?>)

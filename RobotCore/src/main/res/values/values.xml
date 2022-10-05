@@ -209,7 +209,6 @@
     <string name="configTypeDigitalDevice">Digital Device</string>
     <string name="configTypeGyro">Gyro</string>
     <string name="configTypeHTGyro">HT Gyro</string>
-    <string name="configTypeI2cDeviceSynch">I2C Device (Synchronous)</string>
     <string name="configTypeIrSeekerV3">MR IR Seeker v3</string>
     <string name="configTypeLED">LED</string>
     <string name="configTypeLynxColorSensor">REV Color/Range Sensor</string>

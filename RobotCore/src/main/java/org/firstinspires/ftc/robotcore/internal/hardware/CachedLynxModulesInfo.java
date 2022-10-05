@@ -33,37 +33,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.qualcomm.robotcore.R;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.RobotCoreLynxModule;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class CachedLynxFirmwareVersions {
-    private static volatile List<LynxModuleInfo> cachedVersions;
+public class CachedLynxModulesInfo {
+    private static volatile List<LynxModuleInfo> cachedModulesInfo;
 
-    public static List<LynxModuleInfo> getFormattedVersions() {
-        return cachedVersions;
+    public static List<LynxModuleInfo> getLynxModulesInfo() {
+        return cachedModulesInfo;
     }
 
-    public static void update(HardwareMap hardwareMap) {
-        if (hardwareMap == null) return;
-
-        List<RobotCoreLynxModule> lynxModules = hardwareMap.getAll(RobotCoreLynxModule.class);
-        List<LynxModuleInfo> newVersions = new ArrayList<>();
-
-        for (RobotCoreLynxModule module: lynxModules) {
-            String moduleName;
-            try {
-                moduleName = hardwareMap.getNamesOf(module).iterator().next();
-            } catch (RuntimeException e) { // Protects against empty iterator
-                moduleName = "Expansion Hub " + module.getModuleAddress();
-            }
-            newVersions.add(new LynxModuleInfo(moduleName, module.getNullableFirmwareVersionString(), module.getSerialNumber().toString(), module.getModuleAddress()));
-        }
-        cachedVersions = newVersions;
+    public static void setLynxModulesInfo(List<LynxModuleInfo> lynxModulesInfo) {
+        cachedModulesInfo = lynxModulesInfo;
     }
 
     /**
@@ -86,11 +69,13 @@ public class CachedLynxFirmwareVersions {
         public final String firmwareVersion;
         public final String parentSerial;
         public final int moduleAddress;
+        public final String imuType;
 
-        private LynxModuleInfo(@NonNull String name, @Nullable String rawFirmwareVersion, @NonNull String parentSerial, int moduleAddress) {
+        public LynxModuleInfo(@NonNull String name, @Nullable String rawFirmwareVersion, @NonNull String parentSerial, int moduleAddress, String imuType) {
             this.name = name;
             this.moduleAddress = moduleAddress;
             this.parentSerial = parentSerial;
+            this.imuType = imuType;
             if (rawFirmwareVersion == null) {
                 this.firmwareVersion = AppUtil.getDefContext().getString(R.string.lynxUnavailableFWVersionString);
             } else {

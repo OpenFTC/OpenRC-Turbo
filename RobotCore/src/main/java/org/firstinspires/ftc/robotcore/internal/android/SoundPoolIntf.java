@@ -21,8 +21,7 @@ import androidx.annotation.RawRes;
 import java.io.File;
 
 /**
- * Interface used by {@link org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool}
- * and implemented by {@link com.qualcomm.ftccommon.SoundPlayer}.
+ * Interface used by {@link org.firstinspires.ftc.robotcore.external.android.AndroidSoundPool}.
  */
 public interface SoundPoolIntf {
   boolean preload(Context context, @RawRes int resourceId);

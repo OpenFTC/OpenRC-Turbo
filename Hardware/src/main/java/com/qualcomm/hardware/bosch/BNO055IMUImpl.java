@@ -427,7 +427,7 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         // Actually change the operation/sensor mode
         this.write8(Register.OPR_MODE, mode.bVal & 0x0F, I2cWaitControl.WRITTEN);                           // OPR_MODE=0x3D
 
-        // Delay per Table 3-6 of BNO055 Data sheet (p21)
+        // Delay per Table 3-6 of BNO055 Data sheet
         if (mode == SensorMode.CONFIG)
             delayExtra(19);
         else
@@ -502,11 +502,12 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
     @Override
     public synchronized AngularVelocity getAngularVelocity(org.firstinspires.ftc.robotcore.external.navigation.AngleUnit unit)
         {
+        // See the comment in getAngularOrientation().
         throwIfNotInitialized();
         VectorData vector = getVector(VECTOR.GYROSCOPE, getAngularScale());
-        float zRotationRate = -vector.next();
-        float yRotationRate =  vector.next();
-        float xRotationRate =  vector.next();
+        float xRotationRate = -vector.next();
+        float yRotationRate = -vector.next();
+        float zRotationRate = vector.next();
         return new AngularVelocity(parameters.angleUnit.toAngleUnit(),
                     xRotationRate, yRotationRate, zRotationRate,
                     vector.data.nanoTime)
@@ -654,10 +655,17 @@ public abstract class BNO055IMUImpl extends I2cDeviceSynchDeviceWithParameters<I
         }
     public synchronized Orientation getAngularOrientation()
         {
-        // Data returned from VECTOR.EULER is heading, roll, pitch, in that order.
+        // Data returned from VECTOR.EULER is heading, roll, pitch, in that order as specified by
+        // the Android convention (https://developer.android.com/guide/topics/sensors/sensors_position).
         //
         // Note that the IMU returns heading in what one might call 'compass' direction, with values
         // increasing CW. We need a geometric direction, with values increasing CCW. So we simply negate.
+        //
+        // Also note that the IMU returns roll and pitch with values increasing CW according to the
+        // coordinate axes specified in section 3.4 of the datasheet given the Android pitch mode.
+        // These conventions happen to give the same angle values as the parent interface coordinate
+        // axes with all angles increasing CCW. However, to bring the angular velocity into the
+        // interface-specified coordinates, the x and y rotation rates must be negated.
         //
         // The data returned from the IMU is in the units that we initialized the IMU to return.
         // However, the IMU has a different sense of angle normalization than we do, so we explicitly

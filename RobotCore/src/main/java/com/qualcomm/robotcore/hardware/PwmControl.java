@@ -42,7 +42,7 @@ package com.qualcomm.robotcore.hardware;
  * when the underlying servo controller hardware supports this fine-grained control (not all
  * servo controllers provide such control). To access the {@link PwmControl} interface,
  * cast your {@link Servo} or {@link CRServo} object to {@link PwmControl}; however, it is
- * usually prudent to first test whether the cast will succeed by testing using <pre>instanceof</pre>.</p>
+ * usually prudent to first test whether the cast will succeed by testing using <pre>instanceof</pre>.
  *
  * @see DcMotorEx
  * @see <a href="https://en.wikipedia.org/wiki/Pulse-width_modulation">Pulse-width modulation</a>

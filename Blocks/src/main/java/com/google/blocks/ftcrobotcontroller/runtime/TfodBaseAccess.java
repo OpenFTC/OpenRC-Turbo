@@ -79,6 +79,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -100,6 +102,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -131,6 +135,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -151,6 +157,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -171,6 +179,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -191,6 +201,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -211,6 +223,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -232,6 +246,8 @@ abstract class TfodBaseAccess<T extends TfodBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 

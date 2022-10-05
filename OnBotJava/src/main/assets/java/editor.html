@@ -445,6 +445,15 @@
                             <input type="checkbox" id="settings-autoimport-enabled" name="autoImportEnabled" ng-model="settings.autoImportEnabled" />
                             <label for="settings-autoimport-enabled">Enable autoimport</label>
                         </div>
+                        <div class="form-group" ng-class="{ 'has-error' : (settingsForm.autoImportEnabled.$invalid && !settingsForm.autoImportEnabled.$pristine) }">
+                            <input type="checkbox" id="settings-new-worker-enabled" name="useNewOnBotJavaWorker" ng-model="settings.useNewOnBotJavaWorker" />
+                            <label for="settings-new-worker-enabled">Enable beta Java 8 editor features</label>
+                            <p class="help-block" style="padding: 0 1.5em">
+                                Enables Java 8 editor features in OnBotJava, but valid
+                                Java 8 code will still build irrespective of this setting.
+                                You can find more details on the OnBotJava welcome page.
+                                Please report any encountered issues on <a target="_blank" href="https://github.com/FIRST-Tech-Challenge/FtcRobotController">GitHub</a>.</p>
+                        </div>
                         <div class="form-group" ng-class="{ 'has-error' : (settingsForm.printMargin.$invalid && !settingsForm.printMargin.$pristine) }">
                             <input type="checkbox" id="settings-print-margin" name="printMargin" ng-model="settings.printMargin" />
                             <label for="settings-print-margin">Show the print margin</label>

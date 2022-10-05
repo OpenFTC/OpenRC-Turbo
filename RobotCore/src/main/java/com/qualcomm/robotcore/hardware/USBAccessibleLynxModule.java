@@ -38,7 +38,7 @@ import android.text.TextUtils;
 import com.qualcomm.robotcore.R;
 import com.qualcomm.robotcore.util.SerialNumber;
 
-import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxModulesInfo;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 /**
@@ -113,7 +113,7 @@ public final class USBAccessibleLynxModule
             }
         else
             {
-            result = CachedLynxFirmwareVersions.formatFirmwareVersion(result);
+            result = CachedLynxModulesInfo.formatFirmwareVersion(result);
             }
         return result;
         }

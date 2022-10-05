@@ -534,7 +534,8 @@ Blockly.JavaScript['vuforiaTrackingResults_getProperty_RelicRecoveryVuMark'] = f
   var vuforiaTrackingResults = Blockly.JavaScript.valueToCode(
       block, 'VUFORIA_TRACKING_RESULTS', Blockly.JavaScript.ORDER_MEMBER);
   var code = vuforiaTrackingResults + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'VuforiaTrackingResults.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_getProperty_RelicRecoveryVuMark'] = function(block) {

@@ -56,7 +56,7 @@ import org.firstinspires.ftc.robotcore.internal.network.PeerStatusCallback;
 import org.firstinspires.ftc.robotcore.internal.network.RecvLoopRunnable;
 import org.firstinspires.ftc.robotcore.internal.network.RobotCoreCommandList;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaHelper;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.util.Set;
@@ -308,7 +308,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
             // display error message. it will get reported to DS in the RobotCoreException handler below
             String errorMsg = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
-            RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + errorMsg);
+            RobotLog.setGlobalErrorMsg("System exception: " + errorMsg);
             throw new RobotCoreException("EventLoop Exception in loop(): %s", errorMsg);
           } catch (NoClassDefFoundError e) {
             // Check whether the class that isn't found is part of an external library. If so, it
@@ -319,7 +319,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
 
               // display error message. it will get reported to DS in the RobotCoreException handler below
               String errorMsg = e.getClass().getSimpleName() + (e.getMessage() != null ? " - " + e.getMessage() : "");
-              RobotLog.setGlobalErrorMsg("User code threw an uncaught exception: " + errorMsg);
+              RobotLog.setGlobalErrorMsg("System exception: " + errorMsg);
               throw new RobotCoreException("EventLoop Exception in loop(): %s", errorMsg);
             }
             // Otherwise, don't handle it.
@@ -461,7 +461,7 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
     networkConnectionHandler.pushNetworkConnectionCallback(this);
     networkConnectionHandler.pushReceiveLoopCallback(this);
 
-    NetworkType networkType = networkConnectionHandler.getDefaultNetworkType(context);
+    NetworkType networkType = networkConnectionHandler.getNetworkType(context);
     networkConnectionHandler.init(networkType, context);  // idempotent
 
     // see also similar code in the driver station startup logic
@@ -723,10 +723,10 @@ public class EventLoopManager implements RecvLoopRunnable.RecvLoopCallback, Netw
     if (opModeManager != null) {
       String msg = "Lost connection while running op mode: " + opModeManager.getActiveOpModeName();
       opModeManager.initActiveOpMode(OpModeManager.DEFAULT_OP_MODE_NAME);
-      RobotLog.i(msg);
+      RobotLog.ii(TAG, msg);
     }
     else {
-      RobotLog.i("Lost connection while main event loop not active");
+      RobotLog.ii(TAG, "Lost connection while main event loop not active");
     }
 
     lastHeartbeatReceived = new ElapsedTime(0);

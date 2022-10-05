@@ -37,13 +37,12 @@ import androidx.annotation.NonNull;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.util.ThreadPool;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -53,7 +52,7 @@ import java.util.concurrent.TimeoutException;
  * we are a drop in replacement in limited contexts) because the latter is horrendously poor
  * at thread management.
  *
- * This is similar to {@link OpModeManagerImpl.OpModeStuckCodeMonitor}
+ * This is similar to OpModeManagerImpl.OpModeStuckCodeMonitor
  * and probably could be merged therewith.
  */
 @SuppressWarnings("WeakerAccess")

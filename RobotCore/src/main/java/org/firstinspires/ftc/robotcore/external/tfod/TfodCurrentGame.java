@@ -23,13 +23,12 @@ package org.firstinspires.ftc.robotcore.external.tfod;
  */
 public class TfodCurrentGame extends TfodBase {
   // TODO(lizlooney): This file should be updated when the FTC game changes.
-  public static final String TFOD_MODEL_ASSET = "FreightFrenzy_BCDM.tflite";
+  public static final String TFOD_MODEL_ASSET = "PowerPlay.tflite";
 
   public static final String[] LABELS = {
-    "Ball",
-    "Cube",
-    "Duck",
-    "Marker",
+    "1 Bolt",
+    "2 Bulb",
+    "3 Panel"
   };
 
   public static final boolean IS_MODEL_TENSOR_FLOW_2 = true;

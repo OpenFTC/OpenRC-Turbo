@@ -782,32 +782,17 @@ public class RobotLog {
     }
   }
 
-  public static void logBuildConfig(Class buildConfig) {
-    String packageName  = getStringStatic(buildConfig, "LIBRARY_PACKAGE_NAME");
-    int versionCode    = getIntStatic(buildConfig, "VERSION_CODE");
-    String versionName = getStringStatic(buildConfig, "VERSION_NAME");
-    RobotLog.v("BuildConfig: versionCode=%d versionName=%s packageName=%s", versionCode, versionName, packageName);
+  public static void logAppInfo() {
+    RobotLog.i("App info: version=%s appId=%s",
+            String.format(Locale.ENGLISH, "%s.%s.%s",
+                    com.qualcomm.robotcore.BuildConfig.SDK_MAJOR_VERSION,
+                    com.qualcomm.robotcore.BuildConfig.SDK_MINOR_VERSION,
+                    com.qualcomm.robotcore.BuildConfig.SDK_POINT_VERSION),
+            AppUtil.getInstance().getApplicationId());
   }
-
 
   public static void logDeviceInfo() {
-    RobotLog.i("Android Device: maker=%s model=%s sdk=%d", Build.MANUFACTURER, Build.MODEL, Build.VERSION.SDK_INT);
-  }
-
-  protected static String getStringStatic(Class clazz, String name) {
-    try {
-      return (String)(clazz.getField(name).get(null));
-    } catch (Exception ignored) {
-      return "";
-    }
-  }
-
-  protected static int getIntStatic(Class clazz, String name) {
-    try {
-      return (clazz.getField(name).getInt(null));
-    } catch (Exception ignored) {
-      return 0;
-    }
+    RobotLog.i("Android Device: maker=%s model=%s sdk=%d serial=%s", Build.MANUFACTURER, Build.MODEL, Build.VERSION.SDK_INT, Device.getSerialNumberOrUnknown());
   }
 
   public static void logBytes(String tag, String caption, byte[] data, int cb) {

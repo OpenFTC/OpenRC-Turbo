@@ -70,7 +70,7 @@ public interface CameraFrame
      * images from the camera device, but the frame number of a newer reprocess result will never be
      * smaller than the frame number of an older reprocess result.</p>
      *
-     * @return The frame number. This will always be >=0.
+     * @return The frame number. This will always be &gt;=0.
      *
      * @see Camera#createCaptureRequest
      */
@@ -99,7 +99,7 @@ public interface CameraFrame
     /**
      * Copies the raw image data into the byte array
      * supplied as the parameter. Supplied array must
-     * be >= size reported by {@link #getImageSize()}
+     * be &gt;= size reported by {@link #getImageSize()}
      */
     byte[] getImageData(byte[] buf);
 
@@ -132,7 +132,7 @@ public interface CameraFrame
      *
      * @return int The ID for the sequence of requests that this capture result is a part of
      *
-     * @see CameraCaptureSession.CaptureCallback#onCaptureSequenceCompleted
+     * @see CameraCaptureSession.CaptureCallback#onNewFrame
      */
     CameraCaptureSequenceId getCaptureSequenceId();
 

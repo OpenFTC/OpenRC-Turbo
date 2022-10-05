@@ -245,10 +245,7 @@ public class HardwareFactory {
   private void buildLynxI2cDevices(List<LynxI2cDeviceConfiguration> list, HardwareMap map, DeviceManager deviceMgr, LynxModule module) {
     for (LynxI2cDeviceConfiguration deviceConfiguration : list) {
       ConfigurationType devType = deviceConfiguration.getConfigurationType();
-      if (devType==BuiltInConfigurationType.I2C_DEVICE_SYNCH) {
-        mapI2cDeviceSynch(map, deviceMgr, module, deviceConfiguration);
-      }
-      else if (devType==BuiltInConfigurationType.IR_SEEKER_V3) {
+      if (devType==BuiltInConfigurationType.IR_SEEKER_V3) {
         mapIrSeekerV3Device(map, deviceMgr, module, deviceConfiguration);
       }
       else if (devType==BuiltInConfigurationType.ADAFRUIT_COLOR_SENSOR) {

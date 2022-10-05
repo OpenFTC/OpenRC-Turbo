@@ -56,14 +56,14 @@ public class RobocolConfig {
    * this constant to ensure incompatible apps do not attempt to communicate with each other.
    *
    * The value MUST be between 0 and 255. We store it as an integer, and not as a byte, so that we
-   * can reliably determine which of two Robocol versions is more recent by doing & 0xFF
+   * can reliably determine which of two Robocol versions is more recent by doing &amp; 0xFF
    *
    * In the unlikely event that we hit 255 and run out of numbers, versions 12-99 can be used, as
    * they were skipped over previously, during the time of the separate "lynx" fork for the
    * Expansion Hub.
    */
 
-  public static final int ROBOCOL_VERSION = 122; // MUST be in the 0-255 range
+  public static final int ROBOCOL_VERSION = 123; // MUST be in the 0-255 range
 
   // The actual max packet size is the min of this value and whatever the OS says we can use
   public static final int MAX_MAX_PACKET_SIZE = 65520;  // + 16 bytes overhead == 64k
@@ -76,7 +76,7 @@ public class RobocolConfig {
 
   public static final int TIMEOUT = 1000;
 
-  public static final int WIFI_P2P_SUBNET_MASK = 0xFFFFFF00; // 255.255.255.0
+  public static final int SLASH_24_SUBNET_MASK = 0xFFFFFF00; // 255.255.255.0
 
   /**
    * Find a bind address. If no bind address can be found, return the loopback
@@ -106,23 +106,23 @@ public class RobocolConfig {
       }
     }
 
-    return determineBindAddressBasedOnWifiP2pSubnet(localIpAddresses, destAddress);
+    return determineBindAddressBasedOnSubnet(localIpAddresses, destAddress);
   }
 
   /**
-   * Find a bind address that is in the Wi-Fi P2P subnet. If no bind address
-   * can be found, return the loopback address.
+   * Find a bind address that is in the subnet of the destAddress parameter (if possible). If no
+   * matching bind address can be found, return the loopback address.
    *
-   * @param destAddress destination address
+   * @param destAddress The address whose subnet we are looking for in the local network interfaces
    * @return address to bind to
    */
-  public static InetAddress determineBindAddressBasedOnWifiP2pSubnet(ArrayList<InetAddress> localIpAddresses, InetAddress destAddress) {
+  public static InetAddress determineBindAddressBasedOnSubnet(ArrayList<InetAddress> localIpAddresses, InetAddress destAddress) {
     int destAddrInt = TypeConversion.byteArrayToInt(destAddress.getAddress());
 
     // pick the first address where the destAddress is in the same subnet as an IP address assigned to a local network interface
     for (InetAddress address : localIpAddresses) {
       int addrInt = TypeConversion.byteArrayToInt(address.getAddress());
-      if ((addrInt & WIFI_P2P_SUBNET_MASK) == (destAddrInt & WIFI_P2P_SUBNET_MASK)) {
+      if ((addrInt & SLASH_24_SUBNET_MASK) == (destAddrInt & SLASH_24_SUBNET_MASK)) {
         // we found a match
         return address;
       }

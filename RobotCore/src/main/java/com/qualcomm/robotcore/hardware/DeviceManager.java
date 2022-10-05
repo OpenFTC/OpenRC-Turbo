@@ -134,7 +134,7 @@ public interface DeviceManager {
 
   /**
    *
-   * @param controller I2c Controller Module this device is conneced to
+   * @param module I2c Controller Module this device is connected to
    * @param channel the channel it's connected to on the Controller
    * @return an instance of an I2c Channel device
    */

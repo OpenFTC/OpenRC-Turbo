@@ -36,7 +36,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.robocol.TelemetryMessage;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
 import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryInternal;
 import org.firstinspires.ftc.robotcore.internal.opmode.OpModeServices;
@@ -160,14 +159,6 @@ public abstract class OpMode {
   public double getRuntime() {
     final double NANOSECONDS_PER_SECOND = TimeUnit.SECONDS.toNanos(1);
     return (System.nanoTime() - startTime) / NANOSECONDS_PER_SECOND;
-  }
-
-  /**
-   * Reset the start time to the current time.
-   */
-  @Deprecated
-  public void resetStartTime() {
-    startTime = System.nanoTime();
   }
 
   /**

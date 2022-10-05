@@ -54,6 +54,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -68,6 +70,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -82,6 +86,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -96,6 +102,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -110,6 +118,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -124,6 +134,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -142,6 +154,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -161,6 +175,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -175,6 +191,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -193,6 +211,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -207,6 +227,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -225,6 +247,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -239,6 +263,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -265,6 +291,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -281,6 +309,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -298,6 +328,8 @@ class ColorSensorAccess extends HardwareAccess<ColorSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

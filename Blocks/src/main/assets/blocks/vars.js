@@ -331,3 +331,76 @@ function knownTypeToClassName(type) {
   }
   return null;
 }
+
+function wrapJavaScriptCode(originalCode, blockLabel) {
+  // startBlockExecution always returns true, but using the conditional operator here allows us to
+  // call startBlockExecution, then execute the originalCode, then execute endBlockExecution, then
+  // return the result from the original code.
+  var code = 'startBlockExecution("' + blockLabel + '") ' +
+      '? endBlockExecution(' + originalCode + ') : 0';
+  return [code, Blockly.JavaScript.ORDER_CONDITIONAL];
+}
+
+function generateJavaScriptCode() {
+  const disabled = disableOrphans();
+  let jsFileContent = Blockly.JavaScript.workspaceToCode(workspace);
+  const identifiersUsed = collectIdentifiersUsed();
+  reenableOrphans(disabled);
+
+  let comment = IDENTIFIERS_USED_PREFIX;
+  let delimiter = '';
+  for (var i = 0; i < identifiersUsed.length; i++) {
+    comment += delimiter + identifiersUsed[i];
+    delimiter = ',';
+  }
+  jsFileContent = comment + '\n\n' + jsFileContent;
+
+  return jsFileContent;
+}
+
+function disableOrphans() {
+  Blockly.Events.disable();
+  var disabled = [];
+  var blocks = workspace.getTopBlocks(true);
+  for (var x = 0, block; block = blocks[x]; x++) {
+    if (block.type != 'procedures_defnoreturn' &&
+        block.type != 'procedures_defreturn' &&
+        block.isEnabled()) {
+      do {
+        block.setEnabled(false);
+        disabled.push(block);
+        block = block.getNextBlock();
+      } while (block);
+    }
+  }
+  Blockly.Events.enable();
+  return disabled;
+}
+
+function reenableOrphans(disabled) {
+  Blockly.Events.disable();
+  for (var x = 0, block; block = disabled[x]; x++) {
+    block.setEnabled(true);
+  }
+  Blockly.Events.enable();
+}
+
+function collectIdentifiersUsed() {
+  const identifiersUsed = new Set();
+  const allBlocks = workspace.getAllBlocks();
+  for (let iBlock = 0, block; block = allBlocks[iBlock]; iBlock++) {
+    if (block.isEnabled()) {
+      for (var iFieldName = 0; iFieldName < identifierFieldNames.length; iFieldName++) {
+        const identifierFieldName = identifierFieldNames[iFieldName];
+        const field = block.getField(identifierFieldName);
+        if (field) {
+          const identifier = field.getValue();
+          identifiersUsed.add(identifier);
+        }
+      }
+    }
+  }
+  return Array.from(identifiersUsed).sort(function(id1, id2) {
+    return id1.localeCompare(id2);
+  });
+}

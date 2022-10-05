@@ -107,7 +107,7 @@ public enum FileManager {
    * Save a file.
    *
    * @param name the name of the file to save
-   * @param content the content to write to the file.
+   * @param base64Content the content to write to the file, encoded with base64.
    */
   public void saveFile(String name, String base64Content) throws IOException {
     if (!isValidName(name)) {

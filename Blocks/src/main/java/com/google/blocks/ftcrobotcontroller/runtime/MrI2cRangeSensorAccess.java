@@ -46,6 +46,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -59,6 +61,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -72,6 +76,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -85,6 +91,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -98,6 +106,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -111,6 +121,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -124,6 +136,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -141,6 +155,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -154,6 +170,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -171,6 +189,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -184,6 +204,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -201,6 +223,8 @@ class MrI2cRangeSensorAccess extends HardwareAccess<ModernRoboticsI2cRangeSensor
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }
