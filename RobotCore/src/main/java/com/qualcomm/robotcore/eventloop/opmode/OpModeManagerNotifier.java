@@ -36,8 +36,6 @@ import android.app.Activity;
 
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
-
 /**
  * {@link OpModeManagerNotifier.Notifications} is an interface by which interested
  * parties can receive notification of the coming and going of opmodes.

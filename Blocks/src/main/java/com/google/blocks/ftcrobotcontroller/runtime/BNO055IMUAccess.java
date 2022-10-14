@@ -66,6 +66,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -79,6 +81,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -92,6 +96,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -109,6 +115,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -122,6 +130,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -135,6 +145,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -148,6 +160,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -161,6 +175,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -174,6 +190,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -187,6 +205,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -200,6 +220,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -217,6 +239,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -234,6 +258,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -247,6 +273,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -260,6 +288,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -276,6 +306,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -290,6 +322,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -308,6 +342,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -321,6 +357,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -334,6 +372,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -347,6 +387,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -360,6 +402,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -373,6 +417,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -388,6 +434,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -401,6 +449,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -418,6 +468,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -431,6 +483,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -448,6 +502,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -470,6 +526,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -487,6 +545,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -509,6 +569,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -528,6 +590,8 @@ class BNO055IMUAccess extends HardwareAccess<BNO055IMUImpl> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

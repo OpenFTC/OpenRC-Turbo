@@ -59,7 +59,6 @@ public interface LynxModuleIntf extends RobotCoreLynxModule, HardwareDevice, Eng
     void retransmit(LynxMessage message)                        throws InterruptedException;
     void finishedWithMessage(LynxMessage message)               throws InterruptedException;
     void noteAttentionRequired();
-    void noteDatagramReceived();
     void noteNotResponding();
     boolean isNotResponding();
     LynxInterface getInterface(String interfaceName);

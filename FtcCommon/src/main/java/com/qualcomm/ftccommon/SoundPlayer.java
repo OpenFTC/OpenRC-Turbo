@@ -1198,7 +1198,7 @@ public class SoundPlayer implements SoundPool.OnLoadCompleteListener, SoundPoolI
                 super((int)Math.ceil(capacity / loadFactor) + 1, loadFactor, true);
                 }
 
-            @Override protected boolean removeEldestEntry(Entry<K, SoundInfo> eldest)
+            @Override protected boolean removeEldestEntry(Map.Entry<K, SoundInfo> eldest)
                 {
                 return size() > capacity;
                 }

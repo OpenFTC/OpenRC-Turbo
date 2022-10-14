@@ -46,7 +46,7 @@ public interface Gyroscope
     {
     /**
      * Returns the axes on which the gyroscope measures angular velocity. Some gyroscopes
-     * measure angular velocity on all three axes (X, Y, & Z) while others measure on only
+     * measure angular velocity on all three axes (X, Y, &amp; Z) while others measure on only
      * a subset, typically the Z axis. This method allows you to determine what information
      * is usefully returned through {@link #getAngularVelocity(AngleUnit)}.
      * @return the axes on which the gyroscope measures angular velocity.

@@ -88,7 +88,6 @@ public abstract class InspectionActivity extends ThemedActivity
     private static final String notInstalled = "Not installed";
     private static final String installed = "Installed";
     private static final String fwUnavailable = "firmware version unavailable";
-    private static final String fwMismatch = "mismatched";
 
     protected final boolean remoteConfigure = appUtil.isDriverStation() && inspectingRobotController();
 
@@ -105,6 +104,8 @@ public abstract class InspectionActivity extends ThemedActivity
     LinearLayout osVersionLayout;
     LinearLayout airplaneModeLayout;
     LinearLayout rcPasswordLayout;
+    ImageView autoInspectQr;
+    TextView invalidQr;
     Pattern teamNoRegex;
     Future refreshFuture = null;
     int textOk = AppUtil.getColor(R.color.text_okay);
@@ -169,6 +170,8 @@ public abstract class InspectionActivity extends ThemedActivity
         osVersionLayout = findViewById(R.id.osVersionLayout);
         airplaneModeLayout = findViewById(R.id.airplaneModeLayout);
         rcPasswordLayout = findViewById(R.id.rcPasswordLayout);
+        autoInspectQr = findViewById(R.id.autoInspectQr);
+        invalidQr = findViewById(R.id.invalidQr);
 
         txtAppVersion.setText(inspectingRobotController()
             ? getString(R.string.titleInspectionReportRC)
@@ -179,6 +182,8 @@ public abstract class InspectionActivity extends ThemedActivity
             rcPasswordLayout.setVisibility(View.GONE);
             hubFirmwarePrimaryLine_layout.setVisibility(View.GONE);
             hubFirmwareExtraLineLayout.setVisibility(View.GONE);
+            autoInspectQr.setVisibility(View.GONE);
+            invalidQr.setVisibility(View.GONE);
             }
 
         if (!inspectingRemoteDevice())
@@ -186,6 +191,8 @@ public abstract class InspectionActivity extends ThemedActivity
             // The only time we can know if the versions match is when we are inspecting a remote device
             rcMatchesDSVersion.setVisibility(View.GONE);
             findViewById(R.id.matchesDSVersionLabel).setVisibility(View.GONE);
+            autoInspectQr.setVisibility(View.GONE);
+            invalidQr.setVisibility(View.GONE);
             }
 
         txtManufacturer = findViewById(R.id.txtManufacturer);
@@ -218,7 +225,7 @@ public abstract class InspectionActivity extends ThemedActivity
 
         properWifiConnectedState = false;
 
-        NetworkType networkType = NetworkConnectionHandler.getDefaultNetworkType(this);
+        NetworkType networkType = NetworkConnectionHandler.getNetworkType(this);
         if (networkType == NetworkType.WIRELESSAP)
             {
             makeWirelessAPModeSane();
@@ -382,14 +389,82 @@ public abstract class InspectionActivity extends ThemedActivity
         refresh(state);
         }
 
+    protected InspectionStateValidation getValidation(InspectionState state, boolean inspectingRc)
+        {
+        InspectionStateValidation validation = new InspectionStateValidation();
+        validation.wifi = state.wifiEnabled;
+        validation.bluetooth = !state.bluetoothOn;
+        validation.localNetworks = state.wifiConnected == properWifiConnectedState;
+        validation.os = isValidAndroidVersion(state);
+
+        /*
+            These are currently set based on what the scoring system would need. The inspection activity
+            keeps these broken out so it might make code cleaner to refactor this a bit.
+         */
+        if (state.firmwareVersion == null || state.firmwareVersion.equals(notApplicable))
+            {
+            validation.firmware = true;
+            }
+        else
+            {
+            String[] firmwareStrings = state.firmwareVersion
+                    .replace("Expansion Hub", "EH")
+                    .replace("Control Hub", "CH")
+                    .split("\n");
+            validation.firmware = isValidFirmwareVersion(firmwareStrings[0]);
+            if (firmwareStrings.length > 1)
+                {
+                validation.firmware &= isValidFirmwareVersion(firmwareStrings[1]);
+                }
+            }
+
+        validation.name = isValidDeviceName(state);
+        boolean inspectingControlHub = !InspectionState.NO_VERSION.equals(state.controlHubOsVersion);
+        boolean inspectingDriverHub = !InspectionState.NO_VERSION.equals(state.driverHubOsVersion);
+        validation.rev = inspectingControlHub || inspectingDriverHub;
+        if (validation.rev)
+            {
+            // overload os field
+            validation.os = (inspectingControlHub && isValidControlHubOsVersion(state)) ||
+                    (inspectingDriverHub && isValidDriverHubOsVersion(state));
+            }
+        validation.password = !state.isDefaultPassword || !inspectingControlHub;
+        validation.airplaneMode = state.airplaneModeOn || !validation.rev;
+
+        boolean appIsObsolete = appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.appBuildTime));;
+
+        //check installed apps
+        if (inspectingRc)
+            {
+            validation.appVersion = state.robotControllerInstalled &&
+                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
+                    !appIsObsolete;
+            validation.otherApp = !state.driverStationInstalled;
+            if (inspectingRemoteDevice())
+                {
+                validation.versionsMatch = state.majorAppVersion == BuildConfig.SDK_MAJOR_VERSION &&
+                                           state.minorAppVersion == BuildConfig.SDK_MINOR_VERSION;
+                }
+            }
+        else
+            {
+            validation.appVersion = state.driverStationInstalled &&
+                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
+                    !appIsObsolete;
+            validation.otherApp = !state.robotControllerInstalled;
+            }
+        return validation;
+        }
+
     protected void refresh(InspectionState state)
         {
         // Set values
+        InspectionStateValidation validated = getValidation(state, inspectingRobotController());
 
-        refresh(wifiEnabled, state.wifiEnabled == true, state.wifiEnabled ? "Yes" : "No");
+        refresh(wifiEnabled, validated.wifi, state.wifiEnabled ? "Yes" : "No");
         refreshTrafficStats(state);
-        refresh(bluetooth, state.bluetoothOn == false, state.bluetoothOn ? "Enabled" : "Disabled");
-        refresh(wifiConnected, state.wifiConnected == properWifiConnectedState, state.wifiConnected ? "Yes" : "No");
+        refresh(bluetooth, validated.bluetooth, state.bluetoothOn ? "Enabled" : "Disabled");
+        refresh(wifiConnected, validated.localNetworks, state.wifiConnected ? "Yes" : "No");
 
         if (state.sdkInt >= Build.VERSION_CODES.O)
             {
@@ -405,14 +480,9 @@ public abstract class InspectionActivity extends ThemedActivity
         txtModel.setText(state.model);
         refresh(androidVersion, isValidAndroidVersion(state), state.osVersion);
 
-        if(state.firmwareVersion == null || state.firmwareVersion.equals(notApplicable))
+        if (state.firmwareVersion == null || state.firmwareVersion.equals(notApplicable))
             {
             refresh(firmwareVersion1, false, notApplicable);
-            hubFirmwareExtraLineLayout.setVisibility(View.GONE);
-            }
-        else if(state.firmwareVersion.contains(fwMismatch))
-            {
-            refresh(firmwareVersion1, false, fwMismatch);
             hubFirmwareExtraLineLayout.setVisibility(View.GONE);
             }
         else
@@ -434,15 +504,15 @@ public abstract class InspectionActivity extends ThemedActivity
                 }
             }
 
-        refresh(wifiName, isValidDeviceName(state), state.deviceName);
+        refresh(wifiName, validated.name, state.deviceName);
         batteryLevel.setText(Math.round(state.batteryFraction * 100f) + "%");
         batteryLevel.setTextColor(state.batteryFraction > 0.6 ? textOk : textWarning);
-        refresh(rcPassword, state.isDefaultPassword == false, state.isDefaultPassword ? "Default" : "Not default");
+        refresh(rcPassword, validated.password, state.isDefaultPassword ? "Default" : "Not default");
 
         // Only display Control Hub / Driver Hub OS version if there is one to display
         boolean inspectingControlHub = !InspectionState.NO_VERSION.equals(state.controlHubOsVersion);
         boolean inspectingDriverHub = !InspectionState.NO_VERSION.equals(state.driverHubOsVersion);
-        if (!inspectingControlHub && !inspectingDriverHub)
+        if (!validated.rev)
             {
             osVersionLayout.setVisibility(View.GONE);
             }
@@ -452,12 +522,12 @@ public abstract class InspectionActivity extends ThemedActivity
             if (inspectingControlHub)
                 {
                 osVersionLabel.setText(R.string.controlHubOsVersionLabel);
-                refresh(osVersion, isValidControlHubOsVersion(state), state.controlHubOsVersion);
+                refresh(osVersion, validated.os, state.controlHubOsVersion);
                 }
             else
                 {
                 osVersionLabel.setText(R.string.driverHubOsVersionLabel);
-                refresh(osVersion, isValidDriverHubOsVersion(state), state.driverHubOsVersion);
+                refresh(osVersion, validated.os, state.driverHubOsVersion);
                 }
             }
 
@@ -468,45 +538,35 @@ public abstract class InspectionActivity extends ThemedActivity
 
         // Only display airplane mode line on non-REV devices.
         // REV devices don't have cellular radios, and therefore don't need to be in airplane mode.
-        if (state.manufacturer.equals(Device.MANUFACTURER_REV))
+        if (validated.rev)
             {
             airplaneModeLayout.setVisibility(View.GONE);
             }
         else
             {
             airplaneModeLayout.setVisibility(View.VISIBLE);
-            refresh(airplaneMode, state.airplaneModeOn == true, state.airplaneModeOn ? "Enabled" : "Disabled");
+            refresh(airplaneMode, validated.airplaneMode, state.airplaneModeOn ? "Enabled" : "Disabled");
             }
 
-        boolean appIsObsolete = appUtil.appIsObsolete(appUtil.getYearMonthFromIso8601(state.appBuildTime));;
-
         // check the installed apps.
-        if(inspectingRobotController())
+        if (inspectingRobotController())
             {
-            boolean validRcState = state.robotControllerInstalled &&
-                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
-                    !appIsObsolete;
-            refresh(isRCInstalled, validRcState, state.appVersionString);
+            refresh(isRCInstalled, validated.appVersion, state.appVersionString);
             refresh(isDSInstalled,
-                    !state.driverStationInstalled,
+                    validated.otherApp,
                     state.driverStationInstalled ? installed : notInstalled);
             if (inspectingRemoteDevice())
                 {
-                boolean versionsMatch = state.majorAppVersion == BuildConfig.SDK_MAJOR_VERSION &&
-                                        state.minorAppVersion == BuildConfig.SDK_MINOR_VERSION;
                 refresh(rcMatchesDSVersion,
-                        versionsMatch,
-                        versionsMatch ? "Yes" : getString(R.string.dsVersionMismatch, BuildConfig.SDK_MAJOR_VERSION, BuildConfig.SDK_MINOR_VERSION));
+                        validated.versionsMatch,
+                        validated.versionsMatch ? "Yes" : getString(R.string.dsVersionMismatch, BuildConfig.SDK_MAJOR_VERSION, BuildConfig.SDK_MINOR_VERSION));
                 }
             }
         else // Inspecting driver station
             {
-            boolean validDsState = state.driverStationInstalled &&
-                    state.majorAppVersion >= BuildConfig.SDK_MAJOR_VERSION &&
-                    !appIsObsolete;
-            refresh(isDSInstalled, validDsState, state.appVersionString);
+            refresh(isDSInstalled, validated.appVersion, state.appVersionString);
             refresh(isRCInstalled,
-                    !state.robotControllerInstalled,
+                    validated.otherApp,
                     state.robotControllerInstalled ? installed : notInstalled);
             }
         }
@@ -533,12 +593,11 @@ public abstract class InspectionActivity extends ThemedActivity
         // When you update this, make sure to update LynxModuleWarningManager at the same time.
 
         //noinspection RedundantIfStatement
-        if (string != null && (
+        if (string != null && !string.contains(notApplicable) && (
                 string.contains("1.6.0") ||
                 string.contains("1.7.0") ||
                 string.contains("1.7.2") ||
-                string.contains(fwUnavailable) ||
-                string.contains(fwMismatch)))
+                string.contains(fwUnavailable)))
             {
             return false;
             }
@@ -561,7 +620,7 @@ public abstract class InspectionActivity extends ThemedActivity
     //----------------------------------------------------------------------------------------------
     // Utility
     //----------------------------------------------------------------------------------------------
-    
+
     private void showToast(String message)
         {
         appUtil.showToast(UILocation.BOTH, message);

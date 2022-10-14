@@ -145,7 +145,6 @@ public class HardwareDeviceManager implements DeviceManager {
    * HardwareDeviceManager constructor
    * @param context Context of current Android app
    * @param manager event loop manager
-   * @throws RobotCoreException if unable to open FTDI D2XX manager
    */
    @SuppressWarnings("ConstantConditions")
    // TODO(Noah): Remove context parameter

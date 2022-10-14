@@ -62,24 +62,24 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
  *
  * Transient 'toX' states are also present. The legal state transitions are as follows:
  *
- *              disarmed -> toArmed
- *              toArmed -> armed
+ *              disarmed -&gt; toArmed
+ *              toArmed -&gt; armed
  *
- *              disarmed -> toPretending
- *              toPretending -> pretending
+ *              disarmed -&gt; toPretending
+ *              toPretending -&gt; pretending
  *
- *              armed -> toDisarmed
- *              toArmed -> toDisarmed
- *              pretending -> toDisarmed
- *              toPretending -> toDisarmed
- *              toDisarmed -> disarmed
+ *              armed -&gt; toDisarmed
+ *              toArmed -&gt; toDisarmed
+ *              pretending -&gt; toDisarmed
+ *              toPretending -&gt; toDisarmed
+ *              toDisarmed -&gt; disarmed
  *
- *              armed -> closed
- *              toArmed -> closed
- *              pretending -> closed
- *              toPretending -> closed
- *              toDisarmed -> closed
- *              disarmed -> closed
+ *              armed -&gt; closed
+ *              toArmed -&gt; closed
+ *              pretending -&gt; closed
+ *              toPretending -&gt; closed
+ *              toDisarmed -&gt; closed
+ *              disarmed -&gt; closed
   *
  * Notice that once closed, no further state transitions are possible. Conversely, it is possible
  * to close from any state and to disarm from any state except from closed. In particular, it is

@@ -279,11 +279,6 @@ public final class ConfigurationTypeManager implements ClassFilter
     private List<BuiltInConfigurationType> getDeprecatedConfigTypes(ConfigurationType.DeviceFlavor flavor, @Nullable ControlSystem controlSystem)
         {
         List<BuiltInConfigurationType> result = new LinkedList<>();
-        switch (flavor)
-            {
-            case I2C:
-                result.add(BuiltInConfigurationType.I2C_DEVICE_SYNCH);
-            }
         return result;
         }
 

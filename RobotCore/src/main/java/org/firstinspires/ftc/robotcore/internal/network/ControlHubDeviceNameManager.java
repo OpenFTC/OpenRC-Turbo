@@ -151,11 +151,11 @@ public class ControlHubDeviceNameManager implements DeviceNameManager {
      * handleFactoryReset
      *
      * Generate a short hash of the board serial number.  A number of different common hash algorithms were
-     * evaluated, but none of them could generate reliably short enough hashes where short <= 4.
+     * evaluated, but none of them could generate reliably short enough hashes where short &lt;= 4.
      *
-     * The approach here to get to <= 4 is very simple.  Convert the board serial number into a CRC32 value so that
+     * The approach here to get to &lt;= 4 is very simple.  Convert the board serial number into a CRC32 value so that
      * we ensure we have a 32 bit reasonably unique number given _any_ possible alphanumeric serial number of _any_
-     * length. Take the 32 bit value, modulus it to a maximum of a 4 digit base <ShortHash.alphabetLength> number, and run that
+     * length. Take the 32 bit value, modulus it to a maximum of a 4 digit base {@link ShortHash#getAlphabetLength()} number, and run that
      * through ShortHash, which converts to base alphabetLength while guaranteeing the output to be family friendly, which
      * in this usage is base 44.  See: http://hashids.org/java
      *

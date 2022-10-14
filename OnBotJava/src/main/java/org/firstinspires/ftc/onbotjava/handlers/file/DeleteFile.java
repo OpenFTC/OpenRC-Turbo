@@ -56,9 +56,11 @@ public class DeleteFile implements WebHandler {
 
 
     /**
+     * <ul>
      * <li>Delete
      * <p>Requires a "delete" entry in data map. This should be a JSON encoded array</p>
      * </li>
+     * </ul>
      */
     @Override
     public NanoHTTPD.Response getResponse(NanoHTTPD.IHTTPSession session) {

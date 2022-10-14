@@ -32,6 +32,7 @@ package com.qualcomm.robotcore.hardware;
 
 import android.os.SystemClock;
 
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.robocol.RobocolParsable;
 import com.qualcomm.robotcore.robocol.RobocolParsableBase;
@@ -110,165 +111,165 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   @SuppressWarnings("UnusedAssignment")
-  public Type type = Type.UNKNOWN; // IntelliJ thinks this is redundant, but it is NOT. Must be a bug in the analyzer?
+  public volatile Type type = Type.UNKNOWN; // IntelliJ thinks this is redundant, but it is NOT. Must be a bug in the analyzer?
 
   /**
    * left analog stick horizontal axis
    */
-  public float left_stick_x = 0f;
+  public volatile float left_stick_x = 0f;
 
   /**
    * left analog stick vertical axis
    */
-  public float left_stick_y = 0f;
+  public volatile float left_stick_y = 0f;
 
   /**
    * right analog stick horizontal axis
    */
-  public float right_stick_x = 0f;
+  public volatile float right_stick_x = 0f;
 
   /**
    * right analog stick vertical axis
    */
-  public float right_stick_y = 0f;
+  public volatile float right_stick_y = 0f;
 
   /**
    * dpad up
    */
-  public boolean dpad_up = false;
+  public volatile boolean dpad_up = false;
 
   /**
    * dpad down
    */
-  public boolean dpad_down = false;
+  public volatile boolean dpad_down = false;
 
   /**
    * dpad left
    */
-  public boolean dpad_left = false;
+  public volatile boolean dpad_left = false;
 
   /**
    * dpad right
    */
-  public boolean dpad_right = false;
+  public volatile boolean dpad_right = false;
 
   /**
    * button a
    */
-  public boolean a = false;
+  public volatile boolean a = false;
 
   /**
    * button b
    */
-  public boolean b = false;
+  public volatile boolean b = false;
 
   /**
    * button x
    */
-  public boolean x = false;
+  public volatile boolean x = false;
 
   /**
    * button y
    */
-  public boolean y = false;
+  public volatile boolean y = false;
 
   /**
    * button guide - often the large button in the middle of the controller. The OS may
    * capture this button before it is sent to the app; in which case you'll never
    * receive it.
    */
-  public boolean guide = false;
+  public volatile boolean guide = false;
 
   /**
    * button start
    */
-  public boolean start = false;
+  public volatile boolean start = false;
 
   /**
    * button back
    */
-  public boolean back = false;
+  public volatile boolean back = false;
 
   /**
    * button left bumper
    */
-  public boolean left_bumper = false;
+  public volatile boolean left_bumper = false;
 
   /**
    * button right bumper
    */
-  public boolean right_bumper = false;
+  public volatile boolean right_bumper = false;
 
   /**
    * left stick button
    */
-  public boolean left_stick_button = false;
+  public volatile boolean left_stick_button = false;
 
   /**
    * right stick button
    */
-  public boolean right_stick_button = false;
+  public volatile boolean right_stick_button = false;
 
   /**
    * left trigger
    */
-  public float left_trigger = 0f;
+  public volatile float left_trigger = 0f;
 
   /**
    * right trigger
    */
-  public float right_trigger = 0f;
+  public volatile float right_trigger = 0f;
 
   /**
    * PS4 Support - Circle
    */
-  public boolean circle = false;
+  public volatile boolean circle = false;
 
   /**
    * PS4 Support - cross
    */
-  public boolean cross = false;
+  public volatile boolean cross = false;
 
   /**
    * PS4 Support - triangle
    */
-  public boolean triangle = false;
+  public volatile boolean triangle = false;
 
   /**
    * PS4 Support - square
    */
-  public boolean square = false;
+  public volatile boolean square = false;
 
   /**
    * PS4 Support - share
    */
-  public boolean share = false;
+  public volatile boolean share = false;
 
   /**
    * PS4 Support - options
    */
-  public boolean options = false;
+  public volatile boolean options = false;
 
   /**
    * PS4 Support - touchpad
    */
-  public boolean touchpad = false;
-  public boolean touchpad_finger_1;
-  public boolean touchpad_finger_2;
-  public float touchpad_finger_1_x;
-  public float touchpad_finger_1_y;
-  public float touchpad_finger_2_x;
-  public float touchpad_finger_2_y;
+  public volatile boolean touchpad = false;
+  public volatile boolean touchpad_finger_1;
+  public volatile boolean touchpad_finger_2;
+  public volatile float touchpad_finger_1_x;
+  public volatile float touchpad_finger_1_y;
+  public volatile float touchpad_finger_2_x;
+  public volatile float touchpad_finger_2_y;
 
   /**
    * PS4 Support - PS Button
    */
-  public boolean ps = false;
+  public volatile boolean ps = false;
 
   /**
    * Which user is this gamepad used by
    */
-  protected byte user = ID_UNASSOCIATED;
+  protected volatile byte user = ID_UNASSOCIATED;
   //
   public GamepadUser getUser() {
     return GamepadUser.from(user);
@@ -279,9 +280,9 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   /**
-   * See {@link org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl#runActiveOpMode(Gamepad[])}
+   * See {@link OpModeManagerImpl#runActiveOpMode(Gamepad[])}
    */
-  protected byte userForEffects = ID_UNASSOCIATED;
+  protected volatile byte userForEffects = ID_UNASSOCIATED;
   public void setUserForEffects(byte userForEffects) {
     this.userForEffects = userForEffects;
   }
@@ -289,7 +290,7 @@ public class Gamepad extends RobocolParsableBase {
   /**
    * ID assigned to this gamepad by the OS. This value can change each time the device is plugged in.
    */
-  public int id = ID_UNASSOCIATED;  // public only for historical reasons
+  public volatile int id = ID_UNASSOCIATED;  // public only for historical reasons
 
   public void setGamepadId(int id) {
     this.id = id;
@@ -301,7 +302,7 @@ public class Gamepad extends RobocolParsableBase {
   /**
    * Relative timestamp of the last time an event was detected
    */
-  public long timestamp = 0;
+  public volatile long timestamp = 0;
 
   /**
    * Sets the time at which this Gamepad last changed its state,
@@ -428,6 +429,7 @@ public class Gamepad extends RobocolParsableBase {
 
     byte version = byteBuffer.get();
 
+    // TODO(Noah): Reset version to 1
     // extract version 1 values
     if (version >= 1) {
       id = byteBuffer.getInt();
@@ -894,9 +896,9 @@ public class Gamepad extends RobocolParsableBase {
   }
 
   /**
-   * Alias buttons so that XBOX & PS4 native button labels can be used in use code.
+   * Alias buttons so that XBOX &amp; PS4 native button labels can be used in use code.
    * Should allow a team to program with whatever controllers they prefer, but
-   * be able swap controllers easily without changing code.
+   * be able to swap controllers easily without changing code.
    */
   protected void updateButtonAliases(){
     // There is no assignment for touchpad because there is no equivalent on XBOX controllers.

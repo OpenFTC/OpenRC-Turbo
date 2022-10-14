@@ -62,12 +62,12 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
     // State
     //----------------------------------------------------------------------------------------------
 
-    private volatile boolean            isAckOrResponseReceived;
-    private volatile LynxNack           nackReceived;
-    private volatile RESPONSE           response;
-    private volatile CountDownLatch     ackOrNackReceived;
-    private volatile CountDownLatch     responseOrNackReceived;
-    @Nullable private final RESPONSE    defaultResponse;
+    private volatile boolean          isAckOrResponseReceived = false;
+    private volatile LynxNack         nackReceived = null;
+    private volatile RESPONSE         response = null;
+    private final CountDownLatch      ackOrNackReceived = new CountDownLatch(1);
+    private final CountDownLatch      responseOrNackReceived = new CountDownLatch(1);
+    @Nullable private final RESPONSE  defaultResponse;
 
     //----------------------------------------------------------------------------------------------
     // Construction and setup
@@ -80,7 +80,6 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         {
         super(module);
         this.defaultResponse = null;
-        prepareForSending();
         }
 
     /**
@@ -92,16 +91,6 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
         this.defaultResponse = defaultResponse;
         // Fix up the default response's time window (it was initialized to null)
         this.defaultResponse.setPayloadTimeWindow(new TimeWindow());
-        prepareForSending();
-        }
-
-    private void prepareForSending()
-        {
-        this.isAckOrResponseReceived = false;
-        this.nackReceived = null;
-        this.response = null;
-        this.ackOrNackReceived = new CountDownLatch(1);
-        this.responseOrNackReceived = new CountDownLatch(1);
         }
 
     //----------------------------------------------------------------------------------------------
@@ -236,9 +225,12 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
 
     public void send() throws InterruptedException, LynxNackException
         {
-        acquireNetworkLock();
-        prepareForSending();
+        if (this.ackOrNackReceived.getCount() == 0 || this.responseOrNackReceived.getCount() == 0)
+            {
+            throw new RuntimeException("A LynxRespondable can only be sent once");
+            }
 
+        acquireNetworkLock();
         try {
             try {
                 this.module.sendCommand(this);
@@ -260,8 +252,12 @@ public abstract class LynxRespondable<RESPONSE extends LynxMessage> extends Lynx
 
     public RESPONSE sendReceive() throws InterruptedException, LynxNackException
         {
+        if (this.ackOrNackReceived.getCount() == 0 || this.responseOrNackReceived.getCount() == 0)
+            {
+            throw new RuntimeException("A LynxRespondable can only be sent once");
+            }
+
         acquireNetworkLock();
-        prepareForSending();
 
         try {
             try {

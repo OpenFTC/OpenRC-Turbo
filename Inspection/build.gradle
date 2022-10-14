@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 91
-        versionName "17.6"
+        versionCode 97
+        versionName "20.0"
     }
 }
 
@@ -22,4 +22,7 @@ dependencies {
      * External
      */
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    implementation 'io.github.ehn-digital-green-development:base45:0.0.3'
 }

@@ -18,6 +18,7 @@ package com.google.blocks.ftcrobotcontroller.runtime;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -30,8 +31,14 @@ import com.google.blocks.ftcrobotcontroller.hardware.HardwareUtil;
 import com.google.blocks.ftcrobotcontroller.util.FileUtil;
 import com.google.blocks.ftcrobotcontroller.util.Identifier;
 import com.google.blocks.ftcrobotcontroller.util.ProjectsUtil;
+import com.qualcomm.hardware.bosch.BHI260IMU;
+import com.qualcomm.hardware.lynx.EmbeddedControlHubModule;
+import com.qualcomm.hardware.lynx.LynxI2cDeviceSynch;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.lynx.commands.core.LynxFirmwareVersionManager;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion;
@@ -80,6 +87,7 @@ public final class BlocksOpMode extends LinearOpMode {
   private final AtomicLong interruptedTime = new AtomicLong();
 
   private volatile BlockType currentBlockType;
+  private volatile boolean currentBlockFinished;
   private volatile String currentBlockFirstName;
   private volatile String currentBlockLastName;
   private volatile Thread javaBridgeThread;
@@ -110,7 +118,14 @@ public final class BlocksOpMode extends LinearOpMode {
     currentBlockType = blockType;
     currentBlockFirstName = blockFirstName;
     currentBlockLastName = blockLastName;
+    currentBlockFinished = false;
     checkIfStopRequested();
+  }
+
+  void endBlockExecution() {
+    if (fatalExceptionHolder.get() == null) {
+      currentBlockFinished = true;
+    }
   }
 
   String getFullBlockLabel() {
@@ -569,7 +584,7 @@ public final class BlocksOpMode extends LinearOpMode {
 
     @SuppressWarnings("unused")
     @JavascriptInterface
-    public void caughtException(String message) {
+    public void caughtException(String message, String currentBlockLabel) {
       if (wasTerminated) {
         return;
       }
@@ -579,14 +594,23 @@ public final class BlocksOpMode extends LinearOpMode {
         // configuration, the message is like "ReferenceError: left_drive is not defined".
         if (message.startsWith("ReferenceError: ") && message.endsWith(" is not defined")) {
           String missingIdentifier = message.substring(16, message.length() - 15);
+
+          String errorMessage = "Could not find identifier: " + missingIdentifier;
+
+          // See if we can improve the error message.
           String missingHardwareDeviceName = missingIdentifierToHardwareDeviceName(missingIdentifier);
           if (missingHardwareDeviceName != null) {
-            fatalErrorMessageHolder.compareAndSet(null,
-                "Could not find hardware device: " + missingHardwareDeviceName);
-          } else {
-            fatalErrorMessageHolder.compareAndSet(null,
-                "Could not find identifier: " + missingIdentifier);
+            errorMessage = "Could not find hardware device: " + missingHardwareDeviceName;
+
+            if (missingIdentifier.endsWith(HardwareType.BNO055IMU.identifierSuffixForJavaScript)) {
+              String wrongImuErrorMessage = getWrongImuErrorMessage();
+              if (wrongImuErrorMessage != null) {
+                errorMessage += "\n\n" + wrongImuErrorMessage;
+              }
+            }
           }
+
+          fatalErrorMessageHolder.compareAndSet(null, errorMessage);
           return;
         }
 
@@ -597,17 +621,47 @@ public final class BlocksOpMode extends LinearOpMode {
                "restarting the app. Please make sure you are calling opModeInInit() or " +
                "opModeIsActive() in any loops!");
 
-           //Get out of dodge so we don't force a restart by setting a global error
+           // Get out of dodge so we don't force a restart by setting a global error
            return;
         }
 
-        // An exception occured while a block was executed. The message varies (depending on the
-        // version of Android?) so we don't bother checking it.
-        fatalErrorMessageHolder.compareAndSet(null,
-            "Fatal error occurred while executing the block labeled \"" + getFullBlockLabel() + "\".");
+        // An exception occured while the blocks opmode was executing.
+        // If the currentBlockLabel parameter is not empty, it is the label of the block that caused the exception.
+        if (currentBlockLabel != null && !currentBlockLabel.isEmpty()) {
+          fatalErrorMessageHolder.compareAndSet(null,
+              "Fatal error occurred while executing the block labeled \"" +
+              currentBlockLabel + "\". " + message);
+        } else {
+          // Otherwise, we use the label of the last block whose java code called
+          // startBlockExecution.
+          if (currentBlockFinished) {
+            fatalErrorMessageHolder.compareAndSet(null,
+                "Fatal error occurred after executing the block labeled \"" +
+                getFullBlockLabel() + "\". " + message);
+          } else {
+            fatalErrorMessageHolder.compareAndSet(null,
+                "Fatal error occurred while executing the block labeled \"" +
+                getFullBlockLabel() + "\". " + message);
+          }
+        }
       }
 
       RobotLog.e(getLogPrefix() + "caughtException - message is " + message);
+    }
+
+    private String getWrongImuErrorMessage() {
+      Context context = AppUtil.getDefContext();
+      LynxModule controlHub = EmbeddedControlHubModule.get();
+      LynxI2cDeviceSynch tempImuI2cClient = LynxFirmwareVersionManager.createLynxI2cDeviceSynch(context, controlHub, 0);
+      try {
+        if (BHI260IMU.imuIsPresent(tempImuI2cClient)) {
+          return "You attempted to use a BNO055 IMU on a Control Hub that contains a BHI260AP IMU. " +
+              "You need to migrate your IMU code to the new driver when it becomes available in version 8.1 of the FTC Robot Controller app.";
+        }
+      } finally {
+        tempImuI2cClient.close();
+      }
+      return null;
     }
 
     @SuppressWarnings("unused")

@@ -53,8 +53,8 @@ public class AdafruitBNO055IMU extends BNO055IMUImpl
     //----------------------------------------------------------------------------------------------
 
     /**
-     * This constructor is used by {@link I2cDeviceConfigurationType#createInstance(I2cController, int)}
-     * @see I2cDeviceConfigurationType#createInstance(I2cController, int)
+     * This constructor is used by {@link I2cDeviceConfigurationType#createInstance}
+     * @see I2cDeviceConfigurationType#createInstance
      * @see I2cDeviceType
      */
     public AdafruitBNO055IMU(I2cDeviceSynch deviceClient)

@@ -255,7 +255,7 @@ If your model is based on SSD MobileNet V1 FPN 640x640 or SSD MobileNet V2 FPNLi
 <block type="tfod_setZoom" id=";ZJ]=-U*#}KtN^c{*n}K">
 <value name="MAGNIFICATION">
 <shadow type="math_number" id="U|o7?|l{@X,7N?tnx+E.">
-<field name="NUM">2.5</field>
+<field name="NUM">1.0</field>
 </shadow>
 </value>
 <value name="ASPECT_RATIO">

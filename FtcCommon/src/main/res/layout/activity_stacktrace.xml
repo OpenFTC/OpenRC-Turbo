@@ -1,0 +1,72 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_margin="10dp"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="Op Mode threw an uncaught exception."
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/header_error_message"
+        android:layout_below="@id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:textStyle="bold"
+        android:textColor="@color/text_error"
+        tools:text="java.lang.IllegalArgumentException: Unable to find a hardware device with name &quot;nonExistentMotor&quot; and type DcMotorEx"/>
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_above="@id/okButton"
+        android:layout_below="@id/header_error_message"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </WebView>
+
+    <Button
+        android:id="@+id/okButton"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="150dp"
+        android:onClick="onAccept"
+        android:text="OK"
+        tools:ignore="ButtonOrder" />
+
+    <Button
+        android:id="@+id/zoomInButton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_width="35sp"
+        android:layout_height="35sp"
+        android:padding="0dp"
+        android:textAlignment="center"
+        android:onClick="onZoomIn"
+        android:text="+" />
+
+    <Button
+        android:id="@+id/zoomOutButton"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@id/zoomInButton"
+        android:layout_marginRight="15dp"
+        android:layout_width="35sp"
+        android:layout_height="35sp"
+        android:padding="0dp"
+        android:textAlignment="center"
+        android:onClick="onZoomOut"
+        android:text="-"/>
+
+</RelativeLayout>

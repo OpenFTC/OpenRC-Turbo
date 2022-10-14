@@ -116,7 +116,9 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.LynxModuleMeta;
 import com.qualcomm.robotcore.hardware.LynxModuleMetaList;
+import com.qualcomm.robotcore.hardware.configuration.ConfigurationType;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.ConfigurationTypeManager;
@@ -141,6 +143,7 @@ import org.firstinspires.ftc.robotcore.internal.network.WifiDirectAgent;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectGroupName;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectPersistentGroupManager;
 import org.firstinspires.ftc.robotcore.internal.opmode.OnBotJavaBuildLocker;
+import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
 import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.firstinspires.ftc.robotcore.internal.system.AppAliveNotifier;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -148,6 +151,7 @@ import org.firstinspires.ftc.robotcore.internal.system.Assert;
 import org.firstinspires.ftc.robotcore.internal.ui.ProgressParameters;
 import org.firstinspires.ftc.robotcore.internal.ui.UILocation;
 import org.firstinspires.inspection.InspectionState;
+import org.firstinspires.inspection.SurveyData;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
@@ -157,6 +161,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -301,7 +306,7 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             handleCommandRequestConfigurationTemplates();
             }
-        else if (name.equals(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION))
+        else if (name.equals(RobotCoreCommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION))
             {
             handleCommandRequestParticularConfiguration(extra);
             }
@@ -309,9 +314,17 @@ public abstract class FtcEventLoopBase implements EventLoop
             {
             handleCommandActivateConfiguration(extra);
             }
-        else if (name.equals(CommandList.CMD_REQUEST_UI_STATE))
+        else if (name.equals(CommandList.CMD_REQUEST_USER_DEVICE_TYPES))
             {
-            sendUIState();
+            ConfigurationTypeManager.getInstance().sendUserDeviceTypes();
+            }
+        else if (name.equals(RobotCoreCommandList.CMD_REQUEST_ACTIVE_CONFIG))
+            {
+            sendActiveConfig();
+            }
+        else if (name.equals(RobotCoreCommandList.CMD_REQUEST_OP_MODE_LIST))
+            {
+            sendOpModeList();
             }
         else if (name.equals(CommandList.CMD_SAVE_CONFIGURATION))
             {
@@ -395,25 +408,21 @@ public abstract class FtcEventLoopBase implements EventLoop
         robotCfgFileMgr.setActiveConfigAndUpdateUI(runningOnDriverStation, cfgFile);
         }
 
-    protected void sendUIState()
+    protected void sendActiveConfig()
         {
         RobotConfigFile configFile = robotCfgFileMgr.getActiveConfig();
         String serialized = configFile.toString();
         networkConnectionHandler.sendCommand(new Command(CommandList.CMD_NOTIFY_ACTIVE_CONFIGURATION, serialized));
+        }
 
-        // Send the user device type list
-        ConfigurationTypeManager.getInstance().sendUserDeviceTypes();
-
+    protected void sendOpModeList()
+        {
         // We might get a request in really soon, before we're fully together. Wait: the driver
         // station doesn't retry if we were to ignore (might not need any more, as we send this
         // state more frequently than we used to)
         this.registeredOpModes.waitOpModesRegistered();
-
-        // Send the opmode list
         String opModeList = SimpleGson.getInstance().toJson(registeredOpModes.getOpModes());
         networkConnectionHandler.sendCommand(new Command(CommandList.CMD_NOTIFY_OP_MODE_LIST, opModeList));
-
-        // Subclasses might send other state too
         }
 
     protected void checkForChangedOpModes()
@@ -448,7 +457,8 @@ public abstract class FtcEventLoopBase implements EventLoop
 
         if (needToSendUIState)
             {
-            sendUIState();
+            sendOpModeList();
+            ConfigurationTypeManager.getInstance().sendUserDeviceTypes();
             }
         }
 
@@ -489,7 +499,7 @@ public abstract class FtcEventLoopBase implements EventLoop
             ArrayList<ControllerConfiguration> deviceList = (ArrayList<ControllerConfiguration>) parser.parse(file.getXml());
             String xmlData = writeXMLFileHandler.toXml(deviceList);
             RobotLog.vv(FtcConfigurationActivity.TAG, "FtcEventLoop: handleCommandRequestParticularConfigFile, data: " + xmlData);
-            networkConnectionHandler.sendCommand(new Command(CommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP, xmlData));
+            networkConnectionHandler.sendCommand(new Command(RobotCoreCommandList.CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP, xmlData));
             }
         catch (RobotCoreException | FileNotFoundException | XmlPullParserException e)
             {

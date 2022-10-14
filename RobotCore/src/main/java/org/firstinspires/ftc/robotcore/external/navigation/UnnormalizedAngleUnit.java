@@ -35,14 +35,10 @@ package org.firstinspires.ftc.robotcore.external.navigation;
 /**
  * An {@link UnnormalizedAngleUnit} represents angles in different units of measure and
  * provides utility methods to convert across units. {@link UnnormalizedAngleUnit} does not
- * maintain angle information information internally, but only helps organize
+ * maintain angle information internally, but only helps organize
  * and use angle measures that may be maintained separately across various contexts.
  * <p>
  * Angles can be distinguished along (at least) two axes:
- *  <ol>
- *      <li>the fundamental unit (radians vs degrees)</li>
- *      <li>whether the angular quantity is normalized or not to the range of [-180,+180) degrees</li>
- *  </ol>
  *  Normalized angles are of most utility when dealing with physical angles, as normalization
  *  removes ambiguity of representation. In particular, two angles can be compared for equality
  *  by subtracting them, normalizing, and testing whether the absolute value of the result is

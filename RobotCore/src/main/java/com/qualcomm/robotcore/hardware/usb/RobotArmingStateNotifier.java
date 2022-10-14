@@ -87,7 +87,7 @@ public interface RobotArmingStateNotifier
          * @param module    the module whose state has changed
          * @param state     the state into which that module has transitioned
          *
-         * @see #registerCallback(Callback)
+         * @see #registerCallback(Callback, boolean) 
          */
         void onModuleStateChange(RobotArmingStateNotifier module, ARMINGSTATE state);
         }

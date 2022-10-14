@@ -44,6 +44,8 @@ class UltrasonicSensorAccess extends HardwareAccess<UltrasonicSensor> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

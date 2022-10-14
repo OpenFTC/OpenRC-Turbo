@@ -48,12 +48,10 @@ package org.firstinspires.ftc.robotcore.external.navigation;
  *  by subtracting them, normalizing, and testing whether the absolute value of the result is
  *  smaller than some tolerance threshold. This approach neatly handles all cases of cyclical
  *  wrapping without unexpected discontinuities.
- * </p>
  * <p>
  *  Unnormalized angles can be handy when the angular quantity is not a physical angle but some
  *  related quantity such as an angular <em>velocity</em> or <em>acceleration</em>, where the
  *  quantity in question lacks the 360-degree cyclical equivalence of a physical angle.
- * </p>
  * <p>
  *  {@link AngleUnit} expresses normalized angles, while {@link UnnormalizedAngleUnit} expresses unnormalized ones
  * </p>

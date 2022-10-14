@@ -50,6 +50,8 @@ final class VuforiaRelicRecoveryAccess extends VuforiaBaseAccess<VuforiaRelicRec
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -70,6 +72,8 @@ final class VuforiaRelicRecoveryAccess extends VuforiaBaseAccess<VuforiaRelicRec
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

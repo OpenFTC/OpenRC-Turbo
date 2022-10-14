@@ -537,11 +537,6 @@ public abstract class LynxController extends LynxCommExceptionHandler implements
             this.isEngaged = false;
             }
 
-        @Override public void noteDatagramReceived()
-            {
-            // do nothing
-            }
-
         @Override public void noteNotResponding()
             {
             // do nothing

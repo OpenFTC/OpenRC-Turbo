@@ -39,7 +39,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @{link DistributorInfo} is an annotation by which the distribution source of a class
+ * {@link DistributorInfo} is an annotation by which the distribution source of a class
  * representing a commercial product can be annotated.
  */
 @SuppressWarnings("WeakerAccess")

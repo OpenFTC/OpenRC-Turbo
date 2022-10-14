@@ -118,7 +118,7 @@
 <block type="tfod_setZoom" id="wc!x$n$!eF21(Z6Cu:iN">
 <value name="MAGNIFICATION">
 <shadow type="math_number" id="1KoG{M+xaV:C|)KGJ!_]">
-<field name="NUM">2.5</field>
+<field name="NUM">1.0</field>
 </shadow>
 </value>
 <value name="ASPECT_RATIO">

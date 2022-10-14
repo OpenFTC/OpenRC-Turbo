@@ -24,8 +24,8 @@ import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.IncludedFirmwareFileInfo;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
-import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions.LynxModuleInfo;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxModulesInfo;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxModulesInfo.LynxModuleInfo;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
 import org.firstinspires.ftc.robotcore.internal.network.ApChannel;
 import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
@@ -103,7 +103,7 @@ public class RobotControllerWebInfo {
     this.supportsOtaUpdate = AndroidBoard.getInstance().hasControlHubUpdater();        // The Control Hub Updater enables the RC app to start OTA updates
     this.availableChannels = ApChannelManagerFactory.getInstance().getSupportedChannels();
     this.currentChannel = ApChannelManagerFactory.getInstance().getCurrentChannel();
-    this.revHubNamesAndVersions = CachedLynxFirmwareVersions.getFormattedVersions();
+    this.revHubNamesAndVersions = CachedLynxModulesInfo.getLynxModulesInfo();
     this.includedFirmwareFileVersion = IncludedFirmwareFileInfo.HUMAN_READABLE_FW_VERSION;
 
     SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, h:mm aa", Locale.getDefault());

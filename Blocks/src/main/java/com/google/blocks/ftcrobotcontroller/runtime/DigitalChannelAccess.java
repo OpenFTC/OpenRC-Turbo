@@ -50,6 +50,8 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -67,6 +69,8 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -80,6 +84,8 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -93,6 +99,8 @@ class DigitalChannelAccess extends HardwareAccess<DigitalChannel> {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

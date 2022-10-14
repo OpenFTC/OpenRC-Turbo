@@ -991,7 +991,13 @@ oop.inherits(Mode, JavaScriptMode);
             console.warn('Attempting to enable Java autocompleter, when the document did not load correctly');
         return null;
         }
-        var worker = new WorkerClient(["ace"], "ace/mode/java_worker", "JavaWorker", "/java/js/worker-java.js");
+        var workerScript = "/java/js/worker-java.js";
+        // the settings haven't been normalized by the OBJ infra
+        // so we're reading this value straight from the server
+        if (env.settings._dict['useNewOnBotJavaWorker']) {
+           workerScript = "/java/js/worker/worker-java.js"
+        }
+        var worker = new WorkerClient(["ace"], "ace/mode/java_worker", "JavaWorker", workerScript);
         worker.attachToDocument(session.getDocument());
 
         worker.on("errors", function(e) {
@@ -1008,7 +1014,17 @@ oop.inherits(Mode, JavaScriptMode);
 
             if (importDetectionChangingDocument) return;
             var data = e.data;
-            session.setAnnotations(data.annotations);
+            var annotations = data.annotations.map(x => {
+                if (x.text.includes("extraneous input '>'") ||
+                    x.text.includes("mismatched input ':' expecting ')'") ||
+                    x.text.includes("no viable alternative at input '()'") ||
+                    x.text.includes("extraneous input ')' ")
+                ) {
+                    x.text = x.text + "\n\n" + "You might be using Java 8 features. Try enabling 'Enable beta Java 8 editor features' in Settings.";
+                }
+                return x;
+            });
+            session.setAnnotations(annotations);
             env.ftcLangTools.currentVariables = data.variables;
             var currentTokens = data.tokens;
             if (currentTokens.length > 0)

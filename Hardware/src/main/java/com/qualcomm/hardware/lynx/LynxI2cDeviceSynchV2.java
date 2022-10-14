@@ -42,7 +42,7 @@ import com.qualcomm.robotcore.hardware.TimestampedData;
 import com.qualcomm.robotcore.hardware.TimestampedI2cData;
 
 /*
- * Compatible with firmware revisions 1.7 and up
+ * Compatible with firmware revisions 1.8.2 and up
  */
 public class LynxI2cDeviceSynchV2 extends LynxI2cDeviceSynch
 {
@@ -50,19 +50,24 @@ public class LynxI2cDeviceSynchV2 extends LynxI2cDeviceSynch
         super(context, module, bus);
     }
 
-    /*
-     * Supporting firmware version XX.XX.XX
-     */
     @Override
     public synchronized TimestampedData readTimeStamped(final int ireg, final int creg)
     {
         try {
+            final Supplier<LynxCommand<?>> readWriteTxSupplier = new Supplier<LynxCommand<?>>()
+            {
+                @Override
+                public LynxCommand<?> get()
+                {
+                    return new LynxI2cWriteReadMultipleBytesCommand(getModule(), bus, i2cAddr, ireg, creg);
+                }
+            };
+
             return acquireI2cLockWhile(new Supplier<TimestampedData>()
             {
                 @Override public TimestampedData get() throws InterruptedException, RobotCoreException, LynxNackException
                 {
-                    LynxCommand<?> tx = new LynxI2cWriteReadMultipleBytesCommand(getModule(), bus, i2cAddr, ireg, creg);
-                    tx.send();
+                    sendI2cTransaction(readWriteTxSupplier);
 
                     readTimeStampedPlaceholder.reset();
                     return pollForReadResult(i2cAddr, ireg, creg);

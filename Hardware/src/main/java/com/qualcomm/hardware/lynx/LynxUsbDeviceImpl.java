@@ -123,6 +123,8 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     protected       boolean                                 isEngaged;
     protected       boolean                                 wasPollingWhenEngaged;
     protected final Object                                  engageLock = new Object();  // must hold to access isEngaged
+    // performSystemOperationOnConnectedModule() and any methods that should not run concurrently it must hold this lock
+    protected final Object                                  systemOperationLock = new Object();
     protected final LynxFirmwareUpdater                     lynxFirmwareUpdater = new LynxFirmwareUpdater(this);
 
     // The lynx hw schematic puts the reset and prog lines on particular pins, CBUS0 and CBUS1 respectively
@@ -552,70 +554,77 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
      */
     @Override public LynxModule addConfiguredModule(LynxModule module) throws InterruptedException, RobotCoreException
         {
-        RobotLog.vv(TAG, "addConfiguredModule() module#=%d", module.getModuleAddress());
-        boolean added = false;
-        LynxModule registeredModule;
-
-        synchronized (this.knownModules)
+        // Don't allow one thread to configure a user module while another thread is calling
+        // performSystemOperationOnConnectedModule(). We don't want a race condition where
+        // performSystemOperationOnConnectedModule() closes a module that was just promoted to be a
+        // user module.
+        synchronized (systemOperationLock)
             {
-            if (!this.knownModules.containsKey(module.getModuleAddress()))
+            RobotLog.vv(TAG, "addConfiguredModule() module#=%d", module.getModuleAddress());
+            boolean added = false;
+            LynxModule registeredModule;
+
+            synchronized (this.knownModules)
                 {
-                this.knownModules.put(module.getModuleAddress(), module);
-                added = true;
-                registeredModule = module;
+                if (!this.knownModules.containsKey(module.getModuleAddress()))
+                    {
+                    this.knownModules.put(module.getModuleAddress(), module);
+                    added = true;
+                    registeredModule = module;
+                    }
+                else
+                    {
+                    registeredModule = knownModules.get(module.getModuleAddress());
+                    RobotLog.vv(TAG, "addConfiguredModule() module#=%d: already exists", module.getModuleAddress());
+
+                    //noinspection ConstantConditions
+                    if (module.isUserModule() && !registeredModule.isUserModule())
+                        {
+                        // The caller of this method is trying to set up a user module, but the
+                        // currently-registered module is a non-user module, so we convert the
+                        // registered module into a user module.
+                        RobotLog.vv(TAG, "Converting module #%d to a user module", registeredModule.getModuleAddress());
+                        registeredModule.setUserModule(true);
+                        }
+
+                    //noinspection ConstantConditions
+                    if (module.isUserModule() && module.isSystemSynthetic() && !registeredModule.isSystemSynthetic())
+                        {
+                        // The caller of this method is trying to set up a user module that was added
+                        // implicitly, rather than explicitly stated in the XML configuration. Add that
+                        // property to the registered module.
+                        registeredModule.setSystemSynthetic(true);
+                        }
+
+                    //noinspection ConstantConditions
+                    if (module.isParent() != registeredModule.isParent())
+                        {
+                        RobotLog.ww(TAG, "addConfiguredModule(): The active configuration file may be incorrect about whether Expansion Hub %d is the parent", module.getModuleAddress());
+                        }
+                    }
                 }
-            else
+
+            if (added)
                 {
-                registeredModule = knownModules.get(module.getModuleAddress());
-                RobotLog.vv(TAG, "addConfiguredModule() module#=%d: already exists", module.getModuleAddress());
-
-                //noinspection ConstantConditions
-                if (module.isUserModule() && !registeredModule.isUserModule())
-                    {
-                    // The caller of this method is trying to set up a user module, but the
-                    // currently-registered module is a non-user module, so we convert the
-                    // registered module into a user module.
-                    RobotLog.vv(TAG, "Converting module #%d to a user module", registeredModule.getModuleAddress());
-                    registeredModule.setUserModule(true);
+                try {
+                    module.pingAndQueryKnownInterfacesAndEtc();
                     }
-
-                //noinspection ConstantConditions
-                if (module.isUserModule() && module.isSystemSynthetic() && !registeredModule.isSystemSynthetic())
+                catch (RobotCoreException|InterruptedException|RuntimeException e)
                     {
-                    // The caller of this method is trying to set up a user module that was added
-                    // implicitly, rather than explicitly stated in the XML configuration. Add that
-                    // property to the registered module.
-                    registeredModule.setSystemSynthetic(true);
-                    }
-
-                //noinspection ConstantConditions
-                if (module.isParent() != registeredModule.isParent())
-                    {
-                    RobotLog.ww(TAG, "addConfiguredModule(): The active configuration file may be incorrect about whether Expansion Hub %d is the parent", module.getModuleAddress());
+                    // If we don't full add, then we don't add at all
+                    RobotLog.logExceptionHeader(TAG, e, "addConfiguredModule() module#=%d", module.getModuleAddress());
+                    RobotLog.ee(TAG, "Unable to communicate with REV Hub #%d at robot startup. A Robot Restart will be required to use this hub.", module.getModuleAddress());
+                    module.close();
+                    synchronized (this.knownModules)
+                        {
+                        this.knownModules.remove(module.getModuleAddress());
+                        }
+                    throw e;
                     }
                 }
+
+            return registeredModule;
             }
-
-        if (added)
-            {
-            try {
-                module.pingAndQueryKnownInterfacesAndEtc();
-                }
-            catch (RobotCoreException|InterruptedException|RuntimeException e)
-                {
-                // If we don't full add, then we don't add at all
-                RobotLog.logExceptionHeader(TAG, e, "addConfiguredModule() module#=%d", module.getModuleAddress());
-                RobotLog.ee(TAG, "Unable to communicate with REV Hub #%d at robot startup. A Robot Restart will be required to use this hub.", module.getModuleAddress());
-                module.close();
-                synchronized (this.knownModules)
-                    {
-                    this.knownModules.remove(module.getModuleAddress());
-                    }
-                throw e;
-                }
-            }
-
-        return registeredModule;
         }
 
     public @Nullable LynxModule getConfiguredModule(int moduleAddress)
@@ -645,24 +654,22 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
     @Override public void performSystemOperationOnConnectedModule(int moduleAddress, boolean isParent, @Nullable Consumer<LynxModule> moduleConsumer)
             throws RobotCoreException, InterruptedException
         {
-        LynxModule module = new LynxModule(this, moduleAddress, isParent, false);
-
-        // addConfiguredModule will throw a checked exception if we are unable to communicate with the module
-        // It may return a different module instance than we passed in, which we need to use instead.
-        module = addConfiguredModule(module);
-
-        try
+        synchronized (systemOperationLock)
             {
-            if (moduleConsumer != null)
+            LynxModule module = new LynxModule(this, moduleAddress, isParent, false);
+
+            // addConfiguredModule will throw a checked exception if we are unable to communicate with the module
+            // It may return a different module instance than we passed in, which we need to use instead.
+            module = addConfiguredModule(module);
+
+            try
                 {
-                moduleConsumer.accept(module);
+                if (moduleConsumer != null)
+                    {
+                    moduleConsumer.accept(module);
+                    }
                 }
-            }
-        finally
-            {
-            // We hold the same lock that removeConfiguredModule() does, since we want the check for if
-            // the module is a user module to be atomic with the removal of it.
-            synchronized (this.knownModules)
+            finally
                 {
                 // Only close/remove the configured module if it is currently not available to user code.
                 if (!module.isUserModule)
@@ -671,7 +678,6 @@ public class LynxUsbDeviceImpl extends ArmableUsbDevice implements LynxUsbDevice
                     }
                 }
             }
-
         }
 
     /**

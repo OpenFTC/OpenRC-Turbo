@@ -50,7 +50,7 @@ public class LynxSetServoPulseWidthCommand extends LynxDekaInterfaceCommand<Lynx
     //----------------------------------------------------------------------------------------------
 
     public final static int cbPayload = 3;
-    public final static int apiPulseWidthFirst = 0;
+    public final static int apiPulseWidthFirst = 1;
     public final static int apiPulseWidthLast = 65535;
 
     private byte channel;

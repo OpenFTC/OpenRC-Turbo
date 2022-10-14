@@ -71,9 +71,14 @@ import java.util.Locale;
  * <p>Of those, the first (the gravity-corrected absolute orientation vector) is arguably the most
  * useful in FTC robot design. It's really handy.</p>
  *
+ * <p>The coordinate axes match the specification figure under section 3.4 Axis remap (at the bottom
+ * of page 26 in Revision 1.8) <strong>with the x-axis and y-axis flipped</strong>, and angles are
+ * measured with the right-hand rule. This convention matches the
+ * <a href="https://docs.revrobotics.com/rev-control-system/sensors/i2c/imu#imu-basics">REV Hub documentation</a>.</p>
+ *
  * @see BNO055IMUImpl
  * @see <a href="https://www.bosch-sensortec.com/bst/products/all_products/bno055">BNO055 product page</a>
- * @see <a href="https://ae-bst.resource.bosch.com/media/_tech/media/datasheets/BST_BNO055_DS000_14.pdf">BNO055 specification</a>
+ * @see <a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf">BNO055 specification</a>
  */
 @SuppressWarnings("WeakerAccess")
 public interface BNO055IMU
@@ -115,34 +120,40 @@ public interface BNO055IMU
          * use is recommended by the BNO055 specification. */
         public boolean          useExternalCrystal  = true;
 
-        /** units in which temperature are measured. See Section 3.6.1 (p31) of the BNO055 specification */
+        /** units in which temperature are measured. See Section 3.6.1 of the BNO055 specification */
         public TempUnit         temperatureUnit     = TempUnit.CELSIUS;
-        /** units in which angles and angular rates are measured. See Section 3.6.1 (p31) of the BNO055 specification */
+        /** units in which angles and angular rates are measured. See Section 3.6.1 of the BNO055 specification */
         public AngleUnit        angleUnit           = AngleUnit.RADIANS;
-        /** units in which accelerations are measured. See Section 3.6.1 (p31) of the BNO055 specification */
+        /** units in which accelerations are measured. See Section 3.6.1 of the BNO055 specification */
         public AccelUnit        accelUnit           = AccelUnit.METERS_PERSEC_PERSEC;
-        /** directional convention for measuring pitch angles. See Section 3.6.1 (p31) of the BNO055 specification */
+        /**
+         * directional convention for measuring pitch angles. See Section 3.6.1 of the BNO055 specification
+         *
+         * @deprecated Only the default value {@link PitchMode#ANDROID} fulfils the coordinate
+         * convention contract.
+         */
+        @Deprecated
         public PitchMode        pitchMode           = PitchMode.ANDROID;    // Section 3.6.2
 
-        /** accelerometer range. See Section 3.5.2 (p27) and Table 3-4 (p21) of the BNO055 specification */
+        /** accelerometer range. See Section 3.5.2 and Table 3-4 of the BNO055 specification */
         public AccelRange       accelRange          = AccelRange.G4;
-        /** accelerometer bandwidth. See Section 3.5.2 (p27) and Table 3-4 (p21) of the BNO055 specification */
+        /** accelerometer bandwidth. See Section 3.5.2 and Table 3-4 of the BNO055 specification */
         public AccelBandwidth   accelBandwidth      = AccelBandwidth.HZ62_5;
-        /** accelerometer power mode. See Section 3.5.2 (p27) and Section 4.2.2 (p77) of the BNO055 specification */
+        /** accelerometer power mode. See Section 3.5.2 and Section 4.2.2 of the BNO055 specification */
         public AccelPowerMode   accelPowerMode      = AccelPowerMode.NORMAL;
 
-        /** gyroscope range. See Section 3.5.2 (p27) and Table 3-4 (p21) of the BNO055 specification */
+        /** gyroscope range. See Section 3.5.2 and Table 3-4 of the BNO055 specification */
         public GyroRange        gyroRange           = GyroRange.DPS2000;
-        /** gyroscope bandwidth. See Section 3.5.2 (p27) and Table 3-4 (p21) of the BNO055 specification */
+        /** gyroscope bandwidth. See Section 3.5.2 and Table 3-4 of the BNO055 specification */
         public GyroBandwidth    gyroBandwidth       = GyroBandwidth.HZ32;
-        /** gyroscope power mode. See Section 3.5.2 (p27) and Section 4.4.4 (p78) of the BNO055 specification */
+        /** gyroscope power mode. See Section 3.5.2 and Section 4.4.4 of the BNO055 specification */
         public GyroPowerMode    gyroPowerMode       = GyroPowerMode.NORMAL;
 
-        /** magnetometer data rate. See Section 3.5.3 (p27) and Section 4.4.3 (p77) of the BNO055 specification */
+        /** magnetometer data rate. See Section 3.5.3 and Section 4.4.3 of the BNO055 specification */
         public MagRate          magRate             = MagRate.HZ10;
-        /** magnetometer op mode. See Section 3.5.3 (p27) and Section 4.4.3 (p77) of the BNO055 specification */
+        /** magnetometer op mode. See Section 3.5.3 and Section 4.4.3 of the BNO055 specification */
         public MagOpMode        magOpMode           = MagOpMode.REGULAR;
-        /** magnetometer power mode. See Section 3.5.3 (p27) and Section 4.4.3 (p77) of the BNO055 specification */
+        /** magnetometer power mode. See Section 3.5.3 and Section 4.4.3 of the BNO055 specification */
         public MagPowerMode     magPowerMode        = MagPowerMode.NORMAL;
 
         /** Calibration data with which the BNO055 should be initialized. If calibrationData is non-null,
@@ -368,7 +379,8 @@ public interface BNO055IMU
      * See section 4.3.58 of the BNO055 specification.
      * @see #getSystemError()
      *
-    <table summary="System Status Codes">
+    <table>
+     <caption>System Status Codes</caption>
      <tr><td>Result</td><td>Meaning</td></tr>
      <tr><td>0</td><td>idle</td></tr>
      <tr><td>1</td><td>system error</td></tr>
@@ -387,7 +399,8 @@ public interface BNO055IMU
     * @return the current error status
     * @see #getSystemStatus()
     *
-    <table summary="System Error Codes">
+    <table>
+    <caption>System Error Codes</caption>
     <tr><td>Result</td><td>Meaning</td></tr>
     <tr><td>0</td><td>no error</td></tr>
     <tr><td>1</td><td>peripheral initialization error</td></tr>
@@ -637,7 +650,7 @@ public interface BNO055IMU
         }
 
     /**
-     * Sensor modes are described in Table 3-5 (p21) of the BNO055 specification,
+     * Sensor modes are described in Table 3-5 of the BNO055 specification,
      * where they are termed "operation modes".
      */
     enum SensorMode

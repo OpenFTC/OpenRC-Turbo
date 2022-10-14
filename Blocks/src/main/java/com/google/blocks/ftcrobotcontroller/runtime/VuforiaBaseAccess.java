@@ -89,6 +89,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -108,6 +110,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -143,6 +147,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -162,6 +168,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -200,6 +208,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -216,6 +226,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -235,6 +247,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -254,6 +268,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -273,6 +289,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 
@@ -290,6 +308,8 @@ abstract class VuforiaBaseAccess<T extends VuforiaBase> extends Access {
     } catch (Throwable e) {
       blocksOpMode.handleFatalException(e);
       throw new AssertionError("impossible", e);
+    } finally {
+      endBlockExecution();
     }
   }
 }

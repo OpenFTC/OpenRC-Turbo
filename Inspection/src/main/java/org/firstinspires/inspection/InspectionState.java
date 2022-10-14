@@ -38,12 +38,14 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
 
+import com.google.gson.annotations.SerializedName;
 import com.qualcomm.robotcore.BuildConfig;
 import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.Device;
 import com.qualcomm.robotcore.wifi.NetworkType;
 
-import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxFirmwareVersions;
+import org.firstinspires.ftc.robotcore.internal.hardware.CachedLynxModulesInfo;
+import org.firstinspires.ftc.robotcore.internal.network.ApChannelManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.NetworkConnectionHandler;
@@ -72,33 +74,67 @@ public class InspectionState
     public static final String NO_VERSION = "";
     public static final int NO_VERSION_CODE = 0;
 
+    //The serialized names save several hundred bytes in the QR code
+
+    @SerializedName("mfr")
     public String manufacturer;
+    @SerializedName("mdl")
     public String model;
+    @SerializedName("dev")
+    public String deviceCodename; // For scoring system to auto-select
+    @SerializedName("os")
     public String osVersion; // Android version (e.g. 7.1.1)
+    @SerializedName("chOs")
     public String controlHubOsVersion; // Control Hub OS version (e.g. 1.1.1)
+    @SerializedName("dhOs")
     public String driverHubOsVersion;
+    @SerializedName("chOsNum")
     public int controlHubOsVersionNum;
+    @SerializedName("dhOsNum")
     public int driverHubOsVersionNum;
+    @SerializedName("fw")
     public String firmwareVersion; // TODO(Noah): The next time we bump Robocol, send a list of firmware versions instead
+    @SerializedName("sdk")
     public int sdkInt;
+    @SerializedName("am")
     public boolean airplaneModeOn;
+    @SerializedName("bt")
     public boolean bluetoothOn;
+    @SerializedName("wfEn")
     public boolean wifiEnabled;
+    @SerializedName("wfConn")
     public boolean wifiConnected;
+    @SerializedName("wfDirEn")
     public boolean wifiDirectEnabled;
+    @SerializedName("wfDirConn")
     public boolean wifiDirectConnected;
+    @SerializedName("wfc")
+    public int wifiChannel;
+    @SerializedName("loc")
     public boolean locationEnabled;
+    @SerializedName("name")
     public String deviceName;
+    @SerializedName("bat")
     public double batteryFraction;
+    @SerializedName("rcIn")
     public boolean robotControllerInstalled;
+    @SerializedName("dsIn")
     public boolean driverStationInstalled;
+    @SerializedName("aV")
     public String appVersionString;
+    @SerializedName("aVmj")
     public int majorAppVersion;
+    @SerializedName("aVmn")
     public int minorAppVersion;
+    @SerializedName("bldTs")
     public String appBuildTime;
+    @QrExclude
     public long    rxDataCount;
+    @QrExclude
     public long    txDataCount;
+    @QrExclude
     public long    bytesPerSecond;
+    @SerializedName("pw")
     public boolean isDefaultPassword;
 
     //----------------------------------------------------------------------------------------------
@@ -125,6 +161,7 @@ public class InspectionState
         {
         this.manufacturer = Build.MANUFACTURER;
         this.model = Build.MODEL;
+        this.deviceCodename = Build.DEVICE;
         this.osVersion = Build.VERSION.RELEASE;
         this.firmwareVersion = getFirmwareInspectionVersions();
         this.sdkInt = Build.VERSION.SDK_INT;
@@ -139,7 +176,7 @@ public class InspectionState
         this.appBuildTime = BuildConfig.SDK_BUILD_TIME;
         this.driverStationInstalled = !getPackageVersionString(driverStationPackage).equals(NO_VERSION);
         this.robotControllerInstalled = !getPackageVersionString(robotControllerPackage).equals(NO_VERSION);
-        this.deviceName                     = nameManager.getDeviceName();
+        this.deviceName = nameManager.getDeviceName();
 
         if (Device.isRevDriverHub())
             {
@@ -184,6 +221,7 @@ public class InspectionState
             this.wifiDirectEnabled = WifiDirectAgent.getInstance().isWifiDirectEnabled();
             this.wifiDirectConnected = WifiDirectAgent.getInstance().isWifiDirectConnected();
             }
+        this.wifiChannel = ApChannelManagerFactory.getInstance().getCurrentChannel().channelNum;
         this.locationEnabled = WifiUtil.areLocationServicesEnabled();
         this.rxDataCount = networkConnectionHandler.getRxDataCount();
         this.txDataCount = networkConnectionHandler.getTxDataCount();
@@ -237,7 +275,7 @@ public class InspectionState
      */
     private static String getFirmwareInspectionVersions()
         {
-        List<CachedLynxFirmwareVersions.LynxModuleInfo> versions = CachedLynxFirmwareVersions.getFormattedVersions();
+        List<CachedLynxModulesInfo.LynxModuleInfo> versions = CachedLynxModulesInfo.getLynxModulesInfo();
 
         if (versions ==  null || versions.isEmpty())
             {

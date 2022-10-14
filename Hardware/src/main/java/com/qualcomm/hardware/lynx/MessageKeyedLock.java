@@ -39,8 +39,7 @@ import com.qualcomm.hardware.lynx.commands.standard.LynxKeepAliveCommand;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeManagerImpl;
-import org.firstinspires.ftc.robotcore.internal.ui.ThemedActivity;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;

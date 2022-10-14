@@ -95,7 +95,7 @@ Blockly.Blocks['voltageSensor_getProperty_Number'] = {
     this.getFtcJavaOutputType = function() {
       var property = thisBlock.getFieldValue('PROP');
       switch (property) {
-        case 'voltage':
+        case 'Voltage':
           return 'double';
         default:
           throw 'Unexpected property ' + property + ' (voltageSensor_getProperty_Number getOutputType).';

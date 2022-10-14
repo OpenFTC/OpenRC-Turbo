@@ -32,18 +32,17 @@ import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
  */
 public class VuforiaCurrentGame extends VuforiaBase {
   // TODO(lizlooney): This file should be updated when the FTC game changes.
-  private static final String ASSET_NAME = "FreightFrenzy";
-  private static final String BLUE_STORAGE = "Blue Storage";
-  private static final String BLUE_ALLIANCE_WALL = "Blue Alliance Wall";
-  private static final String RED_STORAGE = "Red Storage";
-  private static final String RED_ALLIANCE_WALL = "Red Alliance Wall";
+  private static final String ASSET_NAME = "PowerPlay";
+  private static final String RED_AUDIENCE_WALL = "Red Audience Wall";
+  private static final String RED_REAR_WALL = "Red Rear Wall";
+  private static final String BLUE_AUDIENCE_WALL = "Blue Audience Wall";
+  private static final String BLUE_REAR_WALL = "Blue Rear Wall";
 
   // The height of the center of the target image above the floor.
   private static final float mmTargetHeight = 6 * MM_PER_INCH;
 
   // Constants for perimeter targets
   private static final float halfField = 72 * MM_PER_INCH;
-  private static final float quadField  = 36 * MM_PER_INCH;
   private static final float halfTile = 12 * MM_PER_INCH;
   private static final float oneAndHalfTile = 36 * MM_PER_INCH;
 
@@ -51,34 +50,25 @@ public class VuforiaCurrentGame extends VuforiaBase {
    * The names of the trackables, ordered to match the Vuforia data files.
    */
   public static final String[] TRACKABLE_NAMES = {
-    BLUE_STORAGE,
-    BLUE_ALLIANCE_WALL,
-    RED_STORAGE,
-    RED_ALLIANCE_WALL,
+    RED_AUDIENCE_WALL,
+    RED_REAR_WALL,
+    BLUE_AUDIENCE_WALL,
+    BLUE_REAR_WALL,
   };
   private static final Map<String, OpenGLMatrix> LOCATIONS_ON_FIELD = new HashMap<>();
   static {
     // Set the position of each trackable object.
-    LOCATIONS_ON_FIELD.put(BLUE_STORAGE,
-        OpenGLMatrix
-            .translation(-halfField, oneAndHalfTile, mmTargetHeight)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-
-    LOCATIONS_ON_FIELD.put(BLUE_ALLIANCE_WALL,
-        OpenGLMatrix
-            .translation(halfTile, halfField, mmTargetHeight)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-    LOCATIONS_ON_FIELD.put(RED_STORAGE,
-        OpenGLMatrix
-            .translation(-halfField, -oneAndHalfTile, mmTargetHeight)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-
-    LOCATIONS_ON_FIELD.put(RED_ALLIANCE_WALL,
-        OpenGLMatrix
-            .translation(halfTile, -halfField, mmTargetHeight)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-
+    setPositionOfTrackable(RED_AUDIENCE_WALL,  -halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+    setPositionOfTrackable(RED_REAR_WALL,       halfField,  -oneAndHalfTile, mmTargetHeight, 90, 0, -90);
+    setPositionOfTrackable(BLUE_AUDIENCE_WALL, -halfField,   oneAndHalfTile, mmTargetHeight, 90, 0,  90);
+    setPositionOfTrackable(BLUE_REAR_WALL,      halfField,   oneAndHalfTile, mmTargetHeight, 90, 0, -90);
   };
+
+  private static void setPositionOfTrackable(String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+    LOCATIONS_ON_FIELD.put(targetName,
+        OpenGLMatrix.translation(dx, dy, dz)
+            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
+  }
 
   public VuforiaCurrentGame() {
     super(ASSET_NAME, TRACKABLE_NAMES, LOCATIONS_ON_FIELD);

@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DriverStationAccessPointAssistant extends AccessPointAssistant {
 
-    private static final String TAG = "DriverStationAccessPointAssistant";
+    private static final String TAG = "DSAccessPointAssistant";
     private static final boolean DEBUG = false;
     private static final int DEFAULT_SECONDS_BETWEEN_WIFI_SCANS = 15;
 

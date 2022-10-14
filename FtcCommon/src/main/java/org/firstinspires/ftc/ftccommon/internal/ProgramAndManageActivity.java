@@ -189,7 +189,7 @@ public class ProgramAndManageActivity extends ThemedActivity
          *         associated with this file picker.
          * @param capture The value of the 'capture' attribute of the input tag
          *         associated with this file picker.
-         * @hide
+         * @hidden
          */
         public void openFileChooser(final ValueCallback<Uri> uploadFile, String acceptType, String capture)
         {

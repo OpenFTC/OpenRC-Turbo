@@ -121,6 +121,7 @@ public class GpioPin implements DigitalChannel
             }
         catch (IOException e)
             {
+            RobotLog.logExceptionHeader(TAG, e, "exception in getRawState(); ignored");
             return false;
             }
         }
@@ -135,7 +136,7 @@ public class GpioPin implements DigitalChannel
                 }
             catch (IOException e)
                 {
-                // ignored
+                RobotLog.logExceptionHeader(TAG, e, "exception in setState(); ignored");
                 }
             }
         }
@@ -163,6 +164,7 @@ public class GpioPin implements DigitalChannel
             }
         catch (IOException e)
             {
+            RobotLog.logExceptionHeader(TAG, e, "exception in getRawMode(); ignored");
             return Mode.INPUT;  // arbitrary
             }
         }
@@ -170,8 +172,14 @@ public class GpioPin implements DigitalChannel
     @Override public synchronized void setMode(Mode mode)
         {
         try {
-            String contents = mode==Mode.INPUT ? "in" : "out";
-            writeAspect("direction", contents);
+            // To avoid permissions errors for pins that we're not allowed to set the direction of,
+            // we first check if the mode is already as-desired.
+            String desiredContents = mode==Mode.INPUT ? "in" : "out";
+            String actualContents = readAspect("direction");
+            if (!desiredContents.equals(actualContents))
+                {
+                writeAspect("direction", desiredContents);
+                }
             lastKnownMode.setValue(mode);
             }
         catch (IOException e)
@@ -196,7 +204,7 @@ public class GpioPin implements DigitalChannel
 
     @Override public String getDeviceName()
         {
-        return "DB GPIO Pin " + TAG;
+        return "GPIO Pin " + TAG;
         }
 
     @Override public String getConnectionInfo()
@@ -252,7 +260,6 @@ public class GpioPin implements DigitalChannel
         File aspectFile = new File(getPath(), aspect);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(aspectFile)))
             {
-            RobotLog.vv(TAG, "writing aspect=%s value=%s", aspectFile.getAbsolutePath(), value);
             writer.write(value);
             }
         }

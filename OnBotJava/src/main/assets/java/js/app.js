@@ -127,7 +127,7 @@
                 implementedSettings: [
                     'autocompleteEnabled', 'autocompleteForceEnabled',  'autoImportEnabled',
                     'defaultPackage', 'font', 'fontSize', 'keybinding',  'invisibleChars',
-                    'printMargin', 'softWrap', 'spacesToTab', 'theme', 'whitespace'
+                    'printMargin', 'softWrap', 'spacesToTab', 'theme', 'useNewOnBotJavaWorker', 'whitespace'
                 ]
             });
             $scope.filesToUpload = [];
@@ -193,7 +193,7 @@
                                     $scope.error.col = 1;
                                 }
 
-                                _editor.gotoLine($scope.error.line, $scope.error.col - 1);
+                                $scope._editor.gotoLine($scope.error.line, $scope.error.col - 1);
                                 $scope.error = null;
                             }
                             sessionStorage.setItem('_active_tab', angular.toJson($scope.tabs.active));
@@ -602,26 +602,7 @@
 
                     // Replace the default set of completers with the ones we specify so that we can remove the 'local' completer which
                     // does is redundant with our better completer
-                    env.langTools.setCompleters([env.ftcLangTools.completer,
-                        {
-                            getCompletions: function (editor, session, pos, prefix, callback) {
-                                if (!env.ftcLangTools.completer.engaged) {
-                                    return env.langTools.keyWordCompleter.getCompletions(editor, session, pos, prefix, callback);
-                                } else {
-                                    return callback(null, []);
-                                }
-                            }
-                        },
-                        {
-                            getCompletions: function (editor, session, pos, prefix, callback) {
-                                if (!env.ftcLangTools.completer.engaged) {
-                                    return env.langTools.snippetCompleter.getCompletions(editor, session, pos, prefix, callback);
-                                } else {
-                                    return callback(null, []);
-                                }
-                            }
-                        }
-                    ]);
+                    env.langTools.setCompleters([env.ftcLangTools.completer]);
                 }
 
                 var keyBindings = {
@@ -1103,6 +1084,7 @@
                                 .put('printMargin', $scope.settings.printMargin)
                                 .put('softWrap', $scope.settings.softWrap)
                                 .put('spacesToTab', $scope.settings.spacesToTab)
+                                .put('useNewOnBotJavaWorker', $scope.settings.useNewOnBotJavaWorker)
                                 .put('theme', $scope.settings.theme)
                                 .put('whitespace', $scope.settings.whitespace)
                                 .commit();

@@ -292,7 +292,8 @@ Blockly.JavaScript['vuforiaTrackingResults_getProperty_String'] = function(block
   var vuforiaTrackingResults = Blockly.JavaScript.valueToCode(
       block, 'VUFORIA_TRACKING_RESULTS', Blockly.JavaScript.ORDER_MEMBER);
   var code = vuforiaTrackingResults + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'VuforiaTrackingResults.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_getProperty_String'] = function(block) {
@@ -341,7 +342,8 @@ Blockly.JavaScript['vuforiaTrackingResults_getProperty_Boolean'] = function(bloc
   var vuforiaTrackingResults = Blockly.JavaScript.valueToCode(
       block, 'VUFORIA_TRACKING_RESULTS', Blockly.JavaScript.ORDER_MEMBER);
   var code = vuforiaTrackingResults + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'VuforiaTrackingResults.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_getProperty_Boolean'] = function(block) {
@@ -413,7 +415,8 @@ Blockly.JavaScript['vuforiaTrackingResults_getProperty_Number'] = function(block
   var vuforiaTrackingResults = Blockly.JavaScript.valueToCode(
       block, 'VUFORIA_TRACKING_RESULTS', Blockly.JavaScript.ORDER_MEMBER);
   var code = vuforiaTrackingResults + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'VuforiaTrackingResults.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_getProperty_Number'] = function(block) {
@@ -448,7 +451,8 @@ Blockly.JavaScript['vuforiaTrackingResults_getUpdatedRobotLocation'] = function(
           vuforiaTrackingResults + '.X, ' + vuforiaTrackingResults + '.Y, ' + vuforiaTrackingResults + '.Z, ' +
           vuforiaTrackingResults + '.XAngle, ' + vuforiaTrackingResults + '.YAngle, ' + vuforiaTrackingResults + '.ZAngle) ' +
       ': ' + miscIdentifierForJavaScript + '.getNull()';
-  return [code, Blockly.JavaScript.ORDER_CONDITIONAL];
+  var blockLabel = 'VuforiaTrackingResults.getUpdatedRobotLocation';
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_getUpdatedRobotLocation'] = function(block) {
@@ -486,7 +490,8 @@ Blockly.JavaScript['vuforiaTrackingResults_formatAsTransform'] = function(block)
       vuforiaTrackingResults + '.X.toFixed(2) + " " + ' +
       vuforiaTrackingResults + '.Y.toFixed(2) + " " + ' +
       vuforiaTrackingResults + '.Z.toFixed(2) + "}"';
-  return [code, Blockly.JavaScript.ORDER_ADDITION];
+  var blockLabel = 'VuforiaTrackingResults.formatAsTransform';
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_formatAsTransform'] = function(block) {
@@ -516,7 +521,8 @@ Blockly.JavaScript['vuforiaTrackingResults_toText'] = function(block) {
   var vuforiaTrackingResults = Blockly.JavaScript.valueToCode(
       block, 'VUFORIA_TRACKING_RESULTS', Blockly.JavaScript.ORDER_NONE);
   var code = 'JSON.stringify(' + vuforiaTrackingResults + ')';
-  return [code, Blockly.JavaScript.ORDER_FUNCTION_CALL];
+  var blockLabel = 'VuforiaTrackingResults.toText';
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['vuforiaTrackingResults_toText'] = function(block) {

@@ -75,6 +75,10 @@ abstract class Access {
     blocksOpMode.startBlockExecution(blockType, blockFirstNameOverride, blockLastName);
   }
 
+  protected final void endBlockExecution() {
+    blocksOpMode.endBlockExecution();
+  }
+
   protected AngleUnit checkAngleUnit(String angleUnitString) {
     return checkArg(angleUnitString, AngleUnit.class, "angleUnit");
   }
@@ -203,7 +207,7 @@ abstract class Access {
   }
 
   protected final void reportWarning(String message) {
-    reportWarning("Warning while executing the block labeled \"%s\". %s",
+    reportWarning("Warning while (or after) executing the block labeled \"%s\". %s",
         blocksOpMode.getFullBlockLabel(), message);
   }
 

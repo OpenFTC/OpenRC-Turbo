@@ -71,7 +71,7 @@ public abstract class ClassFactory
     public abstract VuforiaLocalizer createVuforia(VuforiaLocalizer.Parameters parameters);
 
     /**
-     * {@link #createTFObjectDetector(TFObjectDetector.Parameters) createTFObjectDetector} returns
+     * createTFObjectDetector returns
      * an instance of the TensorFlow object detector engine configured with the indicated set of parameters.
      *
      * @param parameters the parameters used to configure the instance of the engine

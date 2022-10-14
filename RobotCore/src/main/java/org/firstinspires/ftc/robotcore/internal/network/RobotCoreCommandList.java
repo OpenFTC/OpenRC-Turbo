@@ -89,6 +89,8 @@ public class RobotCoreCommandList
 
     public static final String CMD_DISMISS_PROGRESS = "CMD_DISMISS_PROGRESS";
 
+    public static final String CMD_SHOW_STACKTRACE = "CMD_SHOW_STACKTRACE";
+
     public static final String CMD_SHOW_DIALOG = "CMD_SHOW_DIALOG";
     static public class ShowDialog
         {
@@ -126,6 +128,9 @@ public class RobotCoreCommandList
     public static final String CMD_REQUEST_INSPECTION_REPORT = "CMD_REQUEST_INSPECTION_REPORT";
     public static final String CMD_REQUEST_INSPECTION_REPORT_RESP = "CMD_REQUEST_INSPECTION_REPORT_RESP";
 
+    public static final String CMD_REQUEST_PARTICULAR_CONFIGURATION = "CMD_REQUEST_PARTICULAR_CONFIGURATION"; // also works for (resource-based) templates
+    public static final String CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP = "CMD_REQUEST_PARTICULAR_CONFIGURATION_RESP";
+
     public static final String CMD_DISABLE_BLUETOOTH = "CMD_DISABLE_BLUETOOTH";
 
     public static final String CMD_REQUEST_ABOUT_INFO = "CMD_REQUEST_ABOUT_INFO";
@@ -156,7 +161,10 @@ public class RobotCoreCommandList
     public static final String CMD_NOTIFY_INIT_OP_MODE          = "CMD_NOTIFY_INIT_OP_MODE";
     public static final String CMD_NOTIFY_RUN_OP_MODE           = "CMD_NOTIFY_RUN_OP_MODE";
 
-    public static final String CMD_REQUEST_UI_STATE             = "CMD_REQUEST_UI_STATE";
+    public static final String CMD_REQUEST_ACTIVE_CONFIG        = "CMD_REQUEST_ACTIVE_CONFIG";
+    public static final String CMD_REQUEST_USER_DEVICE_TYPES    = "CMD_REQUEST_USER_DEVICE_TYPES";
+    public static final String CMD_REQUEST_OP_MODE_LIST         = "CMD_REQUEST_OP_MODE_LIST";
+
     public static final String CMD_NOTIFY_ACTIVE_CONFIGURATION  = "CMD_NOTIFY_ACTIVE_CONFIGURATION";
     public static final String CMD_NOTIFY_OP_MODE_LIST          = "CMD_NOTIFY_OP_MODE_LIST";
     public static final String CMD_NOTIFY_USER_DEVICE_LIST      = "CMD_NOTIFY_USER_DEVICE_LIST";

@@ -58,6 +58,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Through their {@link com.qualcomm.robotcore.eventloop.opmode.OpMode#hardwareMap hardwareMap}, this
  * provides access to a {@link Context} for OpModes, as such an appropriate instance is needed
  * by various system APIs.</p>
+ *
+ * Retrieving devices from a HardwareMap will initialize them if they have not already been
+ * initialized, which may take some time. As a result, you should ONLY access a HardwareMap from
+ * the Init phase of your Op Mode.
  */
 @SuppressWarnings("WeakerAccess")
 public class HardwareMap implements Iterable<HardwareDevice> {
@@ -102,6 +106,10 @@ public class HardwareMap implements Iterable<HardwareDevice> {
 
   public final Context appContext;
   protected final Object lock = new Object();
+
+  private static final String TAG = "HardwareMap";
+  @SuppressWarnings("rawtypes") // We have to use the raw type here as far as I (Noah) can tell
+  private static final Class<I2cDeviceSynchDevice> i2cDriverBaseClass = I2cDeviceSynchDevice.class;
 
   //------------------------------------------------------------------------------------------------
   // Construction
@@ -153,6 +161,10 @@ public class HardwareMap implements Iterable<HardwareDevice> {
    *    ColorSensor colorSensor = hardwareMap.get(ColorSensor.class, "myColorSensor");
    * </pre>
    *
+   * If the device has not already been initialized, calling this method will initialize it, which
+   * may take some time. As a result, you should ONLY call this method during the Init phase of your
+   * Op Mode.
+   *
    * @param classOrInterface  the class or interface indicating the type of the device object to be retrieved
    * @param deviceName        the name of the device object to be retrieved
    * @return a device with the indicated name which is an instance of the indicated class or interface
@@ -172,37 +184,64 @@ public class HardwareMap implements Iterable<HardwareDevice> {
 
   /**
    * Retrieves the (first) device with the indicated name which is also an instance of the
-   * indicated class or interface. If no such device is found, null is returned. 
+   * indicated class or interface. If no such device is found, null is returned.
    * 
-   * This is not commonly used; {@link #get} is the usual method for retreiving items from 
+   * This is not commonly used; {@link #get} is the usual method for retrieving items from
    * the map.
-   * 
+   *
+   * If the device has not already been initialized, calling this method will initialize it, which
+   * may take some time. As a result, you should ONLY call this method during the Init phase of your
+   * Op Mode.
+   *
    * @see #get(Class, String)
    */
   public @Nullable <T> T tryGet(Class<? extends T> classOrInterface, String deviceName) {
     synchronized (lock) {
       deviceName = deviceName.trim();
       List<HardwareDevice> list = allDevicesMap.get(deviceName);
+      @Nullable T result = null;
+
       if (list != null) {
         for (HardwareDevice device : list) {
           if (classOrInterface.isInstance(device)) {
-            return classOrInterface.cast(device);
+            initializeDeviceIfNecessary(device);
+            result = classOrInterface.cast(device);
+            break;
           }
         }
       }
-      return null;
+
+      // Show a warning if the user tried to get the BNO055 IMU when a BHI260 IMU is configured
+      if (result == null && (classOrInterface.getSimpleName().contains("BNO055") || classOrInterface.getSimpleName().contains("LynxEmbeddedIMU"))) {
+        // Unfortunately, we can't check which IMU is physically present from RobotCore. Instead, we'll just check if the hardware map contains a BHI260 IMU.
+        for (HardwareDevice device : this) {
+          if (device.getClass().getSimpleName().contains("BHI260")) {
+            // TODO(Noah): Update this text when we add the new IMU driver
+            RobotLog.addGlobalWarningMessage("You attempted to use a BNO055 IMU when only a BHI260AP IMU is configured. Most likely, this Control Hub contains a BHI260AP IMU, " +
+                    "and you need to migrate your IMU code to the new driver when it becomes available in version 8.1 of the FTC Robot Controller app.");
+            break;
+          }
+        }
+      }
+
+      return result;
     }
   }
 
   /**
    * (Advanced) Returns the device with the indicated {@link SerialNumber}, if it exists,
    * cast to the indicated class or interface; otherwise, null.
+   *
+   * If the device has not already been initialized, calling this method will initialize it, which
+   * may take some time. As a result, you should ONLY call this method during the Init phase of your
+   * Op Mode.
    */
   public @Nullable <T> T get(Class<? extends T> classOrInterface, SerialNumber serialNumber) {
     synchronized (lock) {
-      Object device = serialNumberMap.get(serialNumber);
+      HardwareDevice device = serialNumberMap.get(serialNumber);
       if (device != null) {
         if (classOrInterface.isInstance(device)) {
+          initializeDeviceIfNecessary(device);
           return classOrInterface.cast(device);
         }
       }
@@ -211,7 +250,10 @@ public class HardwareMap implements Iterable<HardwareDevice> {
   }
 
   /**
-   * Returns the (first) device with the indicated name. If no such device is found, an exception is thrown.
+   * Returns the (first) device with the indicated name. If no such device is found, an exception is
+   * thrown. If the found device is an I2C device, it will be initialized at this time if it has not
+   * already been initialized, which for some devices may take a second or more.
+   *
    * Note that the compile-time type of the return value of this method is {@link HardwareDevice},
    * which is usually not what is desired in user code. Thus, the programmer usually casts the
    * return type to the target type that the programmer knows the returned value to be:
@@ -220,6 +262,10 @@ public class HardwareMap implements Iterable<HardwareDevice> {
    *    DcMotor motorLeft = (DcMotor)hardwareMap.get("motorLeft");
    *    ColorSensor colorSensor = (ColorSensor)hardwareMap.get("myColorSensor");
    * </pre>
+   *
+   * If the device has not already been initialized, calling this method will initialize it, which
+   * may take some time. As a result, you should ONLY call this method during the Init phase of your
+   * Op Mode.
    *
    * @param deviceName  the name of the device object to be retrieved
    * @return a device with the indicated name.
@@ -232,15 +278,23 @@ public class HardwareMap implements Iterable<HardwareDevice> {
       List<HardwareDevice> list = allDevicesMap.get(deviceName);
       if (list != null) {
         for (HardwareDevice device : list) {
+          initializeDeviceIfNecessary(device);
           return device;
-          }
         }
+      }
       throw new IllegalArgumentException(String.format("Unable to find a hardware device with name \"%s\"", deviceName));
     }
   }
 
   /**
-   * Returns all the devices which are instances of the indicated class or interface.
+   * Returns all the devices which are instances of the indicated class or interface. Any I2C
+   * devices that are found will be initialized at this time if they have not already been
+   * initialized, which for some devices may take a second or more.
+   *
+   * Any matching devices that have not already been initialized wil be initialized now, which may
+   * take some time. As a result, you should ONLY call this method during the Init phase of your
+   * Op Mode.
+   *
    * @param classOrInterface the class or interface indicating the type of the device object to be retrieved
    * @return all the devices registered in the map which are instances of classOrInterface
    * @see #get(Class, String)
@@ -248,8 +302,9 @@ public class HardwareMap implements Iterable<HardwareDevice> {
   public <T> List<T> getAll(Class<? extends T> classOrInterface) {
     synchronized (lock) {
       List<T> result = new LinkedList<T>();
-      for (HardwareDevice device : this) {
+      for (HardwareDevice device : unsafeIterable()) {
         if (classOrInterface.isInstance(device)) {
+          initializeDeviceIfNecessary(device);
           result.add(classOrInterface.cast(device));
         }
       }
@@ -405,15 +460,54 @@ public class HardwareMap implements Iterable<HardwareDevice> {
   }
 
   /**
-   * Returns an iterator of all the devices in the HardwareMap.
+   * Returns an iterator of all the devices in the HardwareMap. This function will initialize ALL
+   * devices in the HardwareMap if they are not initialized already, so try to avoid using it
+   * (whether directly or indirectly by treating HardwareMap as an Iterable).
+   *
    * @return an iterator of all the devices in the HardwareMap.
    * @see #size()
    */
   @Override
   public @NonNull Iterator<HardwareDevice> iterator() {
+    RobotLog.ww(TAG, new RuntimeException(), "HardwareMap iterator was used, which blindly initializes all uninitialized devices");
     synchronized (lock) {
       buildAllDevicesList();
+      initializeMultipleDevicesIfNecessary(allDevicesList);
       return new ArrayList<>(allDevicesList).iterator(); // make copy for locking reasons
+    }
+  }
+
+  /**
+   * Returns an Iterable for all the devices in the HardwareMap. This function will NOT ensure that
+   * all devices have been initialized, so this is NOT recommended for use by end users.
+   *
+   * @return an Iterable for all the devices in the HardwareMap.
+   */
+  public @NonNull Iterable<HardwareDevice> unsafeIterable() {
+    return new Iterable<HardwareDevice>() {
+      @NonNull @Override public Iterator<HardwareDevice> iterator() {
+        synchronized (lock) {
+          buildAllDevicesList();
+          return new ArrayList<>(allDevicesList).iterator(); // make copy for locking reasons
+        }
+      }
+    };
+  }
+
+  /**
+   * Call this on every HardwareDevice that is being fetched from the HardwareMap, in case it is a
+   * device that is lazily-initialized. As of June 2022, only I2C devices fall in this category, but
+   * do not assume that will always be true.
+   */
+  private void initializeDeviceIfNecessary(HardwareDevice device) {
+    if (i2cDriverBaseClass.isAssignableFrom(device.getClass())) {
+      i2cDriverBaseClass.cast(device).initializeIfNecessary();
+    }
+  }
+
+  private void initializeMultipleDevicesIfNecessary(Iterable<? extends HardwareDevice> devices) {
+    for (HardwareDevice device: devices) {
+      initializeDeviceIfNecessary(device);
     }
   }
 
@@ -423,15 +517,19 @@ public class HardwareMap implements Iterable<HardwareDevice> {
 
   /**
    * A DeviceMapping contains a subcollection of the devices registered in a {@link HardwareMap}
-   * comprised of all the devices of a particular device type
+   * comprised of all the devices of a particular device type.
+   *
+   * Retrieving devices from a DeviceMapping will initialize them if they have not already been
+   * initialized, which may take some time. As a result, you should ONLY access a DeviceMapping from
+   * the Init phase of your Op Mode.
    *
    * @param <DEVICE_TYPE>
    * @see com.qualcomm.robotcore.hardware.HardwareMap.DeviceMapping#get(String)
    * @see #get(String)
    */
   public class DeviceMapping<DEVICE_TYPE extends HardwareDevice> implements Iterable<DEVICE_TYPE> {
-    private Map <String, DEVICE_TYPE> map = new HashMap<String, DEVICE_TYPE>();
-    private Class<DEVICE_TYPE> deviceTypeClass;
+    private final Map <String, DEVICE_TYPE> map = new HashMap<String, DEVICE_TYPE>();
+    private final Class<DEVICE_TYPE> deviceTypeClass;
 
     public DeviceMapping(Class<DEVICE_TYPE> deviceTypeClass) {
       this.deviceTypeClass = deviceTypeClass;
@@ -447,6 +545,17 @@ public class HardwareMap implements Iterable<HardwareDevice> {
       return this.deviceTypeClass.cast(obj);
     }
 
+    /**
+     * Retrieves the device in this DeviceMapping with the indicated name. If no such device is
+     * found, an exception is thrown.
+     *
+     * If the device has not already been initialized, calling this method will initialize it, which
+     * may take some time. As a result, you should ONLY call this method during the Init phase of
+     * your Op Mode.
+     *
+     * @param deviceName the name of the device object to be retrieved
+     * @return a device with the indicated name
+     */
     public DEVICE_TYPE get(String deviceName) {
       synchronized (lock) {
         deviceName = deviceName.trim();
@@ -455,6 +564,7 @@ public class HardwareMap implements Iterable<HardwareDevice> {
           String msg = String.format("Unable to find a hardware device with the name \"%s\"", deviceName);
           throw new IllegalArgumentException(msg);
         }
+        initializeDeviceIfNecessary(device);
         return device;
       }
     }
@@ -558,21 +668,29 @@ public class HardwareMap implements Iterable<HardwareDevice> {
     }
 
     /**
-     * Returns an iterator over all the devices in this DeviceMapping.
+     * Returns an iterator over all the devices in this DeviceMapping. This will initialize any
+     * un-initialized devices in the DeviceMapping, so you should ONLY call it during the Init phase
+     * of your Op Mode.
+     *
      * @return an iterator over all the devices in this DeviceMapping.
      */
     @Override public @NonNull Iterator<DEVICE_TYPE> iterator() {
       synchronized (lock) {
+        initializeMultipleDevicesIfNecessary(map.values());
         return new ArrayList<>(map.values()).iterator();
       }
     }
 
     /**
-     * Returns a collection of all the (name, device) pairs in this DeviceMapping.
+     * Returns a collection of all the (name, device) pairs in this DeviceMapping. This will
+     * initialize any un-initialized devices in the DeviceMapping, so you should ONLY call it during
+     * the Init phase of your Op Mode.
+     *
      * @return a collection of all the (name, device) pairs in this DeviceMapping.
      */
     public Set<Map.Entry<String, DEVICE_TYPE>> entrySet() {
       synchronized (lock) {
+        initializeMultipleDevicesIfNecessary(map.values());
         return new HashSet<>(map.entrySet());
       }
     }

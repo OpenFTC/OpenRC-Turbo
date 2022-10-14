@@ -35,6 +35,7 @@ package org.firstinspires.ftc.onbotjava;
 
 import android.content.SharedPreferences;
 
+import com.android.tools.r8.graph.S;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -57,18 +58,19 @@ import java.util.Map;
 public class EditorSettings {
     public final Setting<Boolean> autocompleteEnabledSetting = new Setting<>("autocompleteEnabled", Boolean.class, true);
     public final Setting<Boolean> autocompleteForceEnabledSetting = new Setting<>("autocompleteForceEnabled", Boolean.class, false);
+    public final Setting<List> autocompletePackagesSetting = new Setting<List>("autocompletePackages", List.class, OnBotJavaWebInterfaceManager.packagesToAutocomplete());
     public final Setting<Boolean> autoImportEnabledSetting = new Setting<>("autoImportEnabled", Boolean.class, true);
     public final Setting<String> defaultPackageSetting = new Setting<>("defaultPackage", String.class, "org.firstinspires.ftc.teamcode");
     public final Setting<String> fontSetting = new Setting<>("font", String.class, "Source Code Pro");
     public final Setting<Integer> fontSizeSetting = new Setting<>("fontSize", Integer.class, 16);
     public final Setting<String> keybindingSetting = new Setting<>("keybinding", String.class, "OnBotJava");
-    public final Setting<Boolean> showPrintMarginSetting = new Setting<>("printMargin", Boolean.class, true);
     public final Setting<Boolean> showInvisibleCharsSetting = new Setting<>("invisibleChars", Boolean.class, false);
+    public final Setting<Boolean> showPrintMarginSetting = new Setting<>("printMargin", Boolean.class, true);
     public final Setting<Boolean> softWrapSetting = new Setting<>("softWrap", Boolean.class, false);
     public final Setting<Integer> spacesToTabSetting = new Setting<>("spacesToTab", Integer.class, 4);
     public final Setting<String> themeSetting = new Setting<>("theme", String.class, "chrome");
+    public final Setting<Boolean> useNewOnBotJavaWorker = new Setting<>("useNewOnBotJavaWorker", Boolean.class, false);
     public final Setting<String> whitespaceSetting = new Setting<>("whitespace", String.class, "space");
-    public final Setting<List> autocompletePackagesSetting = new Setting<List>("autocompletePackages", List.class, OnBotJavaWebInterfaceManager.packagesToAutocomplete());
 
     private final Map<String, Setting<?>> settings;
 
@@ -76,18 +78,19 @@ public class EditorSettings {
         HashMap<String, Setting<?>> settings = new HashMap<>();
         settings.put(autocompleteEnabledSetting.name, autocompleteEnabledSetting);
         settings.put(autocompleteForceEnabledSetting.name, autocompleteForceEnabledSetting);
+        settings.put(autocompletePackagesSetting.name, autocompletePackagesSetting);
         settings.put(autoImportEnabledSetting.name, autoImportEnabledSetting);
         settings.put(defaultPackageSetting.name, defaultPackageSetting);
         settings.put(fontSetting.name, fontSetting);
         settings.put(fontSizeSetting.name, fontSizeSetting);
         settings.put(keybindingSetting.name, keybindingSetting);
-        settings.put(showPrintMarginSetting.name, showPrintMarginSetting);
         settings.put(showInvisibleCharsSetting.name, showInvisibleCharsSetting);
+        settings.put(showPrintMarginSetting.name, showPrintMarginSetting);
         settings.put(softWrapSetting.name, softWrapSetting);
         settings.put(spacesToTabSetting.name, spacesToTabSetting);
         settings.put(themeSetting.name, themeSetting);
+        settings.put(useNewOnBotJavaWorker.name, useNewOnBotJavaWorker);
         settings.put(whitespaceSetting.name, whitespaceSetting);
-        settings.put(autocompletePackagesSetting.name, autocompletePackagesSetting);
         this.settings = Collections.unmodifiableMap(settings);
     }
 

@@ -19,6 +19,8 @@
     <string name="matchesDSVersionLabel">Matches DS version:</string>
     <string name="menuButtonContentDescription">Menu button</string>
     <string name="passwordLabel">RC Password:</string>
+    <string name="qrInvalid">Please activate your competition config before scanning</string>
+    <string name="qrNoGamepad">Please connect or bind your gamepads before scanning</string>
     <string name="robotControllerLabel">Robot Controller:</string>
     <string name="stringManufacturer">Manufacturer:</string>
     <string name="stringModel">Model:</string>

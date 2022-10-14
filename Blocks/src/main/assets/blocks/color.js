@@ -656,7 +656,8 @@ Blockly.JavaScript['normalizedColors_getProperty_Number'] = function(block) {
   var normalizedColors = Blockly.JavaScript.valueToCode(
       block, 'NORMALIZED_COLORS', Blockly.JavaScript.ORDER_MEMBER);
   var code = normalizedColors + '.' + property;
-  return [code, Blockly.JavaScript.ORDER_MEMBER];
+  var blockLabel = 'NormalizedColors.' + block.getField('PROP').getText();
+  return wrapJavaScriptCode(code, blockLabel);
 };
 
 Blockly.FtcJava['normalizedColors_getProperty_Number'] = function(block) {

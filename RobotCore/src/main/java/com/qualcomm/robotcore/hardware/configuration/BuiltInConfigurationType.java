@@ -88,7 +88,6 @@ public enum BuiltInConfigurationType implements ConfigurationType
         IR_SEEKER("IrSeeker", null),
         LIGHT_SENSOR("LightSensor", null),
         ACCELEROMETER("Accelerometer", null),
-        @Deprecated I2C_DEVICE_SYNCH("I2cDeviceSynch", DeviceFlavor.I2C),
         TOUCH_SENSOR("TouchSensor", DeviceFlavor.DIGITAL_IO),   // either a MR touch sensor on a digital port or an NXT touch sensor
         PULSE_WIDTH_DEVICE("PulseWidthDevice", null),
         IR_SEEKER_V3("IrSeekerV3", DeviceFlavor.I2C),
@@ -185,7 +184,6 @@ public enum BuiltInConfigurationType implements ConfigurationType
         {
         switch (this)
             {
-            case I2C_DEVICE_SYNCH:          return context.getString(R.string.configTypeI2cDeviceSynch);
             case PULSE_WIDTH_DEVICE:        return context.getString(R.string.configTypePulseWidthDevice);
             case IR_SEEKER_V3:              return context.getString(R.string.configTypeIrSeekerV3);
             case ADAFRUIT_COLOR_SENSOR:     return context.getString(R.string.configTypeAdafruitColorSensor);

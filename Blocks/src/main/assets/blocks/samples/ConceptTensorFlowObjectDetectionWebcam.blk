@@ -116,7 +116,7 @@
 <block type="tfod_setZoom" id="aB1GwzHR*MIIKAnQObG!">
 <value name="MAGNIFICATION">
 <shadow type="math_number" id="$|tmDEP2DSJ6saa+-BMd">
-<field name="NUM">2.5</field>
+<field name="NUM">1.0</field>
 </shadow>
 </value>
 <value name="ASPECT_RATIO">

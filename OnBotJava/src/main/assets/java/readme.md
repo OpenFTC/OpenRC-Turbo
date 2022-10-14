@@ -39,4 +39,108 @@ eg: The name's prefix describes the general purpose, which can be one of the fol
 
 For more help, visit the FTC Control System Wiki (https://github.com/FIRST-Tech-Challenge/FtcRobotController/wiki)
 
+Please report any encountered issues on [GitHub](https://github.com/FIRST-Tech-Challenge/FtcRobotController).
+
+## What's Java 8?
+
+Java 8 provides more ways to help you write more concise, readable, and maintainable code
+for your robot.
+
+We're adding Java 8 editor support to this SDK release. 
+To enable support, you can enable `Enable beta Java 8 editor features` in the Settings menu.
+
+For an example, take the following code snippet from
+the `ConceptTelemetry`[0] sample you might have already seen in prior years
+
+```
+/**
+ * As an illustration, the first line on our telemetry display will display the
+ * battery voltage. The idea here is that it's expensive to compute the voltage
+ * (at least for purposes of illustration) so you don't want to do it unless the
+ * data is <em>actually</em> going to make it to the driver station (recall that
+ * telemetry transmission is throttled to reduce bandwidth use.
+ * Note that getBatteryVoltage() below returns 'Infinity' if there's no voltage
+ * sensor attached.
+ *
+ * @see Telemetry#getMsTransmissionInterval()
+ */
+telemetry.addData("voltage", "%.1f volts", new Func<Double>() {
+    @Override public Double value() {
+        return getBatteryVoltage();
+    }
+});
+```
+
+There's a few ways to rewrite the same snippet to be more concise by using 
+what's called a lambda (lamb-da) expression[1] from the new Java 8 editor support.
+
+The part of the code that simply defines what's called an "anonymous class"
+can be actually rewritten as a lambda expression.
+
+The anonymous class above is the following section:
+```
+new Func<Double>() {
+    @Override public Double value() {
+        return getBatteryVoltage();
+    }
+}
+```
+
+What you actually care about is the return value (`getBatteryVoltage()`)
+of the function you defined, not the wrapping syntax (`new Func<Double>{...}`).
+
+As a general pattern, for a function that takes no arguments, you can remove
+the class declaration, method return type, and method name and the compiler
+will get what you are implying.
+
+To see this visually, this is the rewritten lambda expression:
+```
+() -> {
+    // this area wrapped by the curly braces is the lambda body
+    return getBatteryVoltage();
+}
+```
+
+This leaves the lambda body intact and is a useful pattern if your return value
+needs a multiline calculation.
+
+In this case, we only have the method return taking a single line, so we can
+"unwrap" the return expression:
+```
+() -> getBatteryVoltage()
+```
+
+This again leaves a bit of room to make more concise, applying the same pattern,
+what can we remove?
+
+```
+this::getBatteryVoltage
+```
+
+This is called a method reference, which requires only two things, the object and
+the method you want to call on the object,
+Advanced note: the `this` comes from the `this` that was implied indirectly in the anonymous class
+usage through a capture, but now you actually need to add this `this` reference.
+
+Put all together, the same snippet can be rewritten simply as:
+```
+telemetry.addData("voltage", "%.1f volts", this::getBatteryVoltage);
+```
+
+
+We're still bound by some limitations of the Android platform, you can check
+https://developer.android.com/studio/write/java8-support-table for known 
+limitations for more advanced features.
+
+### Known limitations
+- Android 6.0 Marshmallow devices cannot use Java 8 features
+- `IntStream` usage via direct usage can cause Robot Controller crashes. 
+  - You can use `Arrays.of(new int[]{1})` as a workaround.
+
+0: https://github.com/FIRST-Tech-Challenge/FtcRobotController/blob/00cbf344526d991ce33452437018af9f119d22d1/FtcRobotController/src/main/java/org/firstinspires/ftc/robotcontroller/external/samples/ConceptTelemetry.java#L110-L123
+1: https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html
+2: https://docs.oracle.com/javase/tutorial/java/javaOO/anonymousclasses.html#accessing
+
+
+
 
