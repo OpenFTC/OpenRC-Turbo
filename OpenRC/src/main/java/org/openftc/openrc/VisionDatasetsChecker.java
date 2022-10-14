@@ -86,40 +86,12 @@ public class VisionDatasetsChecker
     public static boolean checkFiles()
     {
         String[] files = new String[] {
-
                 /*
-                 * Velocity Vortex
+                 * Power Play
                  */
-                "/sdcard/FIRST/vision/FTC_2016-17.dat",
-                "/sdcard/FIRST/vision/FTC_2016-17.xml",
-
-                /*
-                 * Relic Recovery
-                 */
-                "/sdcard/FIRST/vision/RelicVuMark.dat",
-                "/sdcard/FIRST/vision/RelicVuMark.xml",
-
-                /*
-                 * Generic
-                 */
-                "/sdcard/FIRST/vision/StonesAndChips.dat",
-                "/sdcard/FIRST/vision/StonesAndChips.xml",
-
-                /*
-                 * Ultimate goal
-                 */
-                "/sdcard/FIRST/vision/UltimateGoal.xml",
-                "/sdcard/FIRST/vision/UltimateGoal.dat",
-                "/sdcard/FIRST/vision/UltimateGoal.tflite",
-
-                /*
-                 * Freight Frenzy
-                 */
-                "/sdcard/FIRST/vision/FreightFrenzy.xml",
-                "/sdcard/FIRST/vision/FreightFrenzy.dat",
-                "/sdcard/FIRST/vision/FreightFrenzy_BC.tflite",
-                "/sdcard/FIRST/vision/FreightFrenzy_DM.tflite",
-                "/sdcard/FIRST/vision/FreightFrenzy_BCDM.tflite"};
+                "/sdcard/FIRST/vision/PowerPlay.xml",
+                "/sdcard/FIRST/vision/PowerPlay.dat",
+                "/sdcard/FIRST/vision/PowerPlay.tflite"};
 
         for(String s : files)
         {
