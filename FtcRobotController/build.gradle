@@ -59,29 +59,29 @@ dependencies {
      * appcompat-v7 package too. So, we have to specifically exclude
      * it from *every* single FTC lib. Sigh.
      */
-    stockApi ('org.firstinspires.ftc:Inspection:7.2.0') {
+    stockApi ('org.firstinspires.ftc:Inspection:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:Blocks:7.2.0') {
+    stockApi ('org.firstinspires.ftc:Blocks:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:RobotCore:7.2.0') {
+    stockApi ('org.firstinspires.ftc:RobotCore:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:RobotServer:7.2.0') {
+    stockApi ('org.firstinspires.ftc:RobotServer:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:OnBotJava:7.2.0') {
+    stockApi ('org.firstinspires.ftc:OnBotJava:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:Hardware:7.2.0') {
+    stockApi ('org.firstinspires.ftc:Hardware:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
-    stockApi ('org.firstinspires.ftc:FtcCommon:7.2.0') {
+    stockApi ('org.firstinspires.ftc:FtcCommon:8.0.0') {
         exclude group: 'com.android.support', module: 'appcompat-v7'
     }
 
-    stockApi 'org.firstinspires.ftc:gameAssets-FreightFrenzy:1.0.0'
+    stockApi 'org.firstinspires.ftc:gameAssets-PowerPlay:1.0.0'
     /*
      * External
      */
